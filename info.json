@@ -1,0 +1,13 @@
+{
+    "name": "muppet_streamer",
+    "version": "18.0.0",
+    "title": "Muppet Streamer",
+    "author": "Muppet9010",
+    "contact": "",
+    "homepage": "https://mods.factorio.com/mod/muppet_streamer",
+    "factorio_version": "0.18",
+    "dependencies": [
+        "base >= 0.18"
+    ],
+    "description": "Mod for streamers to disable some default Factorio things and earn/research extra team members (players) to help them in Multiplayer."
+}
