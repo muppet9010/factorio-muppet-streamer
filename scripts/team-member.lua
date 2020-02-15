@@ -17,7 +17,7 @@ TeamMember.OnLoad = function()
     Events.RegisterHandler(defines.events.on_player_joined_game, "TeamMember", TeamMember.OnPlayerJoinedGame)
     Events.RegisterHandler(defines.events.on_player_left_game, "TeamMember", TeamMember.OnPlayerLeftGame)
     Events.RegisterHandler(defines.events.on_runtime_mod_setting_changed, "TeamMember", TeamMember.OnSettingChanged)
-    remote.add_interface("muppet_streamer", {increase_team_member_level = TeamMember.RemoteChangeTeamMemberLevel})
+    remote.add_interface("muppet_streamer", {increase_team_member_level = TeamMember.RemoteIncreaseTeamMemberLevel})
     Commands.Register("muppet_streamer_change_team_member_max", {"api-description.muppet_streamer_change_team_member_max"}, TeamMember.CommandChangeTeamMemberLevel, true)
 end
 
@@ -93,7 +93,7 @@ TeamMember.GuiCreatePlayer = function(player)
                             type = "label",
                             name = "team_members_recruited",
                             tooltip = {"self"},
-                            style = "muppet_label_heading_large_bold",
+                            style = "muppet_label_text_large_bold",
                             storeName = "TeamMember"
                         }
                     }

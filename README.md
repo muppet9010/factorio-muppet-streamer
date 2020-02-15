@@ -1,12 +1,14 @@
 # factorio-streamer-support-team
 Mod for streamers to disable some default Factorio things and earn/research extra team members (players) to help them in Multiplayer.
 
+
 Features
 -----------
 - Disable freeplay's rocket counter GUI
 - Disable freeplay's introduction message
 - Disable freeplay's rocket win
 - Add a team member limit feature for use in Multiplayer by streamers.
+
 
 Team Member Limit (other players than 1 streamer)
 ------------

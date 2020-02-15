@@ -19,7 +19,7 @@ end
 local function OnStartup()
     CreateGlobals()
     OnLoad()
-    Events.RaiseRuntimeModSettingChangedEventFromStartup()
+    Events.RaiseInternalEvent({name = defines.events.on_runtime_mod_setting_changed})
 
     if settings.startup["muppet_streamer-disable_intro_message"].value then
         Utils.DisableIntroMessage()

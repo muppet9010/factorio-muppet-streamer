@@ -53,7 +53,7 @@ data:extend(
         {
             name = "muppet_streamer-recruited_team_member_gui_title",
             type = "string-setting",
-            default_value = "Recruited team members",
+            default_value = "Active team members",
             allow_blank = true,
             setting_type = "runtime-global",
             order = "2001"

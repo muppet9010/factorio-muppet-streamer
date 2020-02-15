@@ -34,15 +34,15 @@ Events.RegisterEvent = function(eventName, filterName, filterData)
     script.on_event(eventId, Events._HandleEvent)
 end
 
---Called from the root of Control.lua for custom actions as their names are handled specially.
-Events.RegisterCustomAction = function(actionName)
+--Called from the root of Control.lua for custom inputs (key bindings) as their names are handled specially.
+Events.RegisterCustomInput = function(actionName)
     if actionName == nil then
-        error("Events.RegisterCustomAction called with missing arguments")
+        error("Events.RegisterCustomInput called with missing arguments")
     end
     script.on_event(actionName, Events._HandleEvent)
 end
 
---Called from OnLoad() from each script file. Handles all event types and custom actions.
+--Called from OnLoad() from each script file. Handles all event types and custom inputs.
 Events.RegisterHandler = function(eventName, handlerName, handlerFunction, filterName)
     if eventName == nil or handlerName == nil or handlerFunction == nil then
         error("Events.RegisterHandler called with missing arguments")
@@ -81,13 +81,9 @@ Events.RemoveHandler = function(eventName, handlerName, filterName)
 end
 
 Events._HandleEvent = function(eventData)
-    local eventId, inputName = eventData.name, eventData.input_name
+    local eventId = eventData.name
     if MOD.events[eventId] ~= nil then
         for _, handlerFunction in pairs(MOD.events[eventId]) do
-            handlerFunction(eventData)
-        end
-    elseif MOD.events[inputName] ~= nil then
-        for _, handlerFunction in pairs(MOD.events[inputName]) do
             handlerFunction(eventData)
         end
     end
@@ -120,9 +116,20 @@ Events.RaiseEvent = function(eventData)
     end
 end
 
---Called from OnStartup() to trigger the defines.events.on_runtime_mod_setting_changed event to run with a nil value to trigger all mod settings being updated on game start.
-Events.RaiseRuntimeModSettingChangedEventFromStartup = function()
-    Events._HandleEvent({name = defines.events.on_runtime_mod_setting_changed})
+--Called from anywhere, including OnStartup in tick 0. This won't be passed out to other mods however, only run within this mod.
+Events.RaiseInternalEvent = function(eventData)
+    eventData.tick = game.tick
+    local eventName = eventData.name
+    if defines.events[eventName] ~= nil then
+        Events._HandleEvent(eventData)
+    elseif MOD.customEventNameToId[eventName] ~= nil then
+        eventData.name = MOD.customEventNameToId[eventName]
+        Events._HandleEvent(eventData)
+    elseif type(eventName) == "number" then
+        Events._HandleEvent(eventData)
+    else
+        error("WARNING: raise event called that doesn't exist: " .. eventName)
+    end
 end
 
 return Events
