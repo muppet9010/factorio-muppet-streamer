@@ -80,7 +80,7 @@ function Utils.TableToProperPosition(thing)
     elseif thing.x ~= nil and thing.y ~= nil then
         return {x = thing.x, y = thing.y}
     else
-        return {x = thing[1], y = thing[1]}
+        return {x = thing[1], y = thing[2]}
     end
 end
 
