@@ -134,6 +134,11 @@ TeamMember.ToggleGui = function(player)
 end
 
 TeamMember.RemoteIncreaseTeamMemberLevel = function(changeQuantity)
+    local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max remote interface "
+    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) ~= 0 then
+        Logging.LogPrint(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
+        return
+    end
     global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount + changeQuantity
     TeamMember.GuiUpdateAll()
 end
