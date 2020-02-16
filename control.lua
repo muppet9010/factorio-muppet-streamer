@@ -1,15 +1,19 @@
 local Events = require("utility/events")
 local TeamMember = require("scripts/team-member")
 local Utils = require("utility/utils")
+local ExplosiveDelivery = require("scripts/explosive-delivery")
+local EventScheduler = require("utility/event-scheduler")
 
 local function CreateGlobals()
     TeamMember.CreateGlobals()
+    ExplosiveDelivery.CreateGlobals()
 end
 
 local function OnLoad()
     --Any Remote Interface registration calls can go in here or in root of control.lua
     remote.remove_interface("muppet_streamer")
     TeamMember.OnLoad()
+    ExplosiveDelivery.OnLoad()
 
     if settings.startup["muppet_streamer-disable_silo_counter"].value then
         Utils.DisableSiloScript()
@@ -39,3 +43,5 @@ Events.RegisterEvent(defines.events.on_research_finished)
 Events.RegisterEvent(defines.events.on_lua_shortcut)
 Events.RegisterEvent(defines.events.on_player_joined_game)
 Events.RegisterEvent(defines.events.on_player_left_game)
+
+EventScheduler.RegisterScheduler()

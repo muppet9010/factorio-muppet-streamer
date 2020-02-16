@@ -8,6 +8,7 @@ Features
 - Disable freeplay's introduction message
 - Disable freeplay's rocket win
 - Add a team member limit feature for use in Multiplayer by streamers.
+- Schedule the delivery of some explosives to a player.
 
 
 Team Member Limit (other players than 1 streamer)
@@ -18,3 +19,19 @@ Team Member Limit (other players than 1 streamer)
 - Command:
     - syntax: `/muppet_streamer_change_team_member_max CHANGENUMBER`
     - example to increase by 2: `/muppet_streamer_change_team_member_max 2`
+
+
+Schedule Explosive Delivery
+-----------------
+- Can deliver a high customisable explosive delivery via command. Will appear near the target player based on the accuracy settings. The perfect gift for any streamer.
+- Command syntax: `/muppet_streamer_schedule_explosive_delivery [DETAILS JSON STRING]`
+- Details in JSON string supports the arguments:
+    - delay: NUMBER - Optional: how many seconds the arrival of the explosives will be delayed for. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - explosiveCount: NUMBER - Mandatory: the quantity of explosives to be delivered, if 0 then the command is ignored.
+    - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "artilleryShell", "atomicRocket"
+    - target: STRING - Mandatory: the player name to target.
+    - accuracyRadiusMin: NUMBER - Optional: the minimum distance from the target that can be randomly selected within. If not specified defaults to 0.
+    - accuracyRadiusMax: NUMBER - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
+- Example command 1: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
+- Example command 2: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
+- At present is hard coded to the "nauvis" (default) surface.
