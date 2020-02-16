@@ -147,7 +147,8 @@ for _, attributes in pairs(
     {
         {"", {}},
         {"_frame", {default_graphical_set = {base = {position = {0, 0}, corner_size = 8}, shadow = {position = {440, 24}, corner_size = 8, draw_type = "outer"}}}},
-        {"_noBorder", {default_graphical_set = {}, hovered_graphical_set = {}, clicked_graphical_set = {}}}
+        {"_noBorder", {default_graphical_set = {}, hovered_graphical_set = {}, clicked_graphical_set = {}}},
+        {"_frameCloseButtonClickable", {default_graphical_set = {base = {position = {0, 0}, corner_size = 8}, shadow = {position = {440, 24}, corner_size = 8, draw_type = "outer"}}, padding = -6, width = 16, height = 16}}
     }
 ) do
     for _, size in pairs({{"", nil}, {"_mod", 36}, {"_smallText", 28}, {"_clickable", 16}, {"_32", 32}, {"_48", 48}, {"_64", 64}}) do

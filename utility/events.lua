@@ -80,10 +80,15 @@ Events.RemoveHandler = function(eventName, handlerName, filterName)
     end
 end
 
+--inputName used by custom_input , with eventId used by all other events
 Events._HandleEvent = function(eventData)
-    local eventId = eventData.name
+    local eventId, inputName = eventData.name, eventData.input_name
     if MOD.events[eventId] ~= nil then
         for _, handlerFunction in pairs(MOD.events[eventId]) do
+            handlerFunction(eventData)
+        end
+    elseif MOD.events[inputName] ~= nil then
+        for _, handlerFunction in pairs(MOD.events[inputName]) do
             handlerFunction(eventData)
         end
     end

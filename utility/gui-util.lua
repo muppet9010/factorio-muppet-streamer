@@ -94,14 +94,6 @@ GuiUtil.GetElementFromPlayersReferenceStorage = function(playerIndex, storeName,
     return global.GUIUtilPlayerElementReferenceStorage[playerIndex][storeName][GuiUtil.GenerateGuiElementName(name, type)]
 end
 
-GuiUtil.GetOrAddElement = function(arguments, storeName)
-    local frameElement = GuiUtil.GetElementFromPlayersReferenceStorage(arguments.parent.player_index, storeName, arguments.name, arguments.type)
-    if frameElement == nil then
-        frameElement = GuiUtil.AddElement(arguments, storeName)
-    end
-    return frameElement
-end
-
 --Similar options as AddElement where arguments exist. Some don't make sense for updating and so not supported.
 GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeName, name, type, arguments, ignoreMissingElement)
     ignoreMissingElement = ignoreMissingElement or false
