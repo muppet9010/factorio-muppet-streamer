@@ -22,7 +22,7 @@ TeamMember.OnLoad = function()
 end
 
 TeamMember.OnStartup = function()
-    TeamMember.GuiRecreateAll()
+    TeamMember.GuiRecreateForAll()
 end
 
 TeamMember.OnSettingChanged = function(event)
@@ -36,7 +36,7 @@ TeamMember.OnResearchFinished = function(event)
     local technology = event.research
     if string.find(technology.name, "muppet_streamer-recruit_team_member", 0, true) then
         global.teamMember.recruitedMaxCount = technology.level
-        TeamMember.GuiUpdateAll()
+        TeamMember.GuiUpdateForAll()
     end
 end
 
@@ -44,7 +44,11 @@ TeamMember.OnLuaShortcut = function(event)
     local shortcutName = event.prototype_name
     if shortcutName == "muppet_streamer-team_member_gui_button" then
         local player = game.get_player(event.player_index)
-        TeamMember.ToggleGui(player)
+        if global.teamMember.playerGuiOpened[player.index] then
+            TeamMember.GuiCloseForPlayer(player)
+        else
+            TeamMember.GuiOpenForPlayer(player)
+        end
     end
 end
 
@@ -52,29 +56,41 @@ TeamMember.OnPlayerJoinedGame = function(event)
     local playerIndex = event.player_index
     global.teamMember.playerGuiOpened[playerIndex] = global.teamMember.playerGuiOpened[playerIndex] or true
     local player = game.get_player(playerIndex)
-    TeamMember.GuiRecreatePlayer(player)
-    TeamMember.GuiUpdateAll()
+    TeamMember.GuiRecreateForPlayer(player)
+    TeamMember.GuiUpdateForAll()
 end
 
 TeamMember.OnPlayerLeftGame = function()
-    TeamMember.GuiUpdateAll()
+    TeamMember.GuiUpdateForAll()
 end
 
-TeamMember.GuiRecreateAll = function()
+TeamMember.GuiRecreateForAll = function()
     for _, player in ipairs(game.connected_players) do
-        TeamMember.GuiRecreatePlayer(player)
+        TeamMember.GuiRecreateForPlayer(player)
     end
 end
 
-TeamMember.GuiRecreatePlayer = function(player)
+TeamMember.GuiRecreateForPlayer = function(player)
+    GuiUtil.DestroyPlayersReferenceStorage(player.index, "TeamMember")
     if not global.teamMember.playerGuiOpened[player.index] then
         return
     end
-    TeamMember.GuiDestroy(player)
-    TeamMember.GuiCreatePlayer(player)
+    TeamMember.GuiOpenForPlayer(player)
 end
 
-TeamMember.GuiCreatePlayer = function(player)
+TeamMember.GuiOpenForPlayer = function(player)
+    global.teamMember.playerGuiOpened[player.index] = true
+    player.set_shortcut_toggled("muppet_streamer-team_member_gui_button", true)
+    TeamMember.GuiCreateForPlayer(player)
+end
+
+TeamMember.GuiCloseForPlayer = function(player)
+    global.teamMember.playerGuiOpened[player.index] = false
+    player.set_shortcut_toggled("muppet_streamer-team_member_gui_button", false)
+    GuiUtil.DestroyPlayersReferenceStorage(player.index, "TeamMember")
+end
+
+TeamMember.GuiCreateForPlayer = function(player)
     GuiUtil.AddElement(
         {
             parent = player.gui.left,
@@ -101,36 +117,20 @@ TeamMember.GuiCreatePlayer = function(player)
             }
         }
     )
-    TeamMember.GuiUpdatePlayer(player)
+    TeamMember.GuiUpdateForPlayer(player)
 end
 
-TeamMember.GuiUpdateAll = function()
+TeamMember.GuiUpdateForAll = function()
     for _, player in ipairs(game.connected_players) do
-        TeamMember.GuiUpdatePlayer(player)
+        TeamMember.GuiUpdateForPlayer(player)
     end
 end
 
-TeamMember.GuiUpdatePlayer = function(player)
+TeamMember.GuiUpdateForPlayer = function(player)
     if not global.teamMember.playerGuiOpened[player.index] then
         return
     end
     GuiUtil.UpdateElementFromPlayersReferenceStorage(player.index, "TeamMember", "team_members_recruited", "label", {caption = {"self", global.teamMember.recruitTeamMemberTitle, #game.connected_players - 1, global.teamMember.recruitedMaxCount}})
-end
-
-TeamMember.GuiDestroy = function(player)
-    GuiUtil.DestroyPlayersReferenceStorage(player.index, "TeamMember")
-end
-
-TeamMember.ToggleGui = function(player)
-    if global.teamMember.playerGuiOpened[player.index] then
-        global.teamMember.playerGuiOpened[player.index] = false
-        TeamMember.GuiDestroy(player)
-        player.set_shortcut_toggled("muppet_streamer-team_member_gui_button", false)
-    else
-        global.teamMember.playerGuiOpened[player.index] = true
-        TeamMember.GuiRecreatePlayer(player)
-        player.set_shortcut_toggled("muppet_streamer-team_member_gui_button", true)
-    end
 end
 
 TeamMember.RemoteIncreaseTeamMemberLevel = function(changeQuantity)
@@ -140,7 +140,7 @@ TeamMember.RemoteIncreaseTeamMemberLevel = function(changeQuantity)
         return
     end
     global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount + changeQuantity
-    TeamMember.GuiUpdateAll()
+    TeamMember.GuiUpdateForAll()
 end
 
 TeamMember.CommandChangeTeamMemberLevel = function(command)
@@ -162,7 +162,7 @@ TeamMember.CommandChangeTeamMemberLevel = function(command)
     end
 
     global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount + changeValue
-    TeamMember.GuiUpdateAll()
+    TeamMember.GuiUpdateForAll()
 end
 
 return TeamMember
