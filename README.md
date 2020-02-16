@@ -23,7 +23,7 @@ Team Member Limit (other players than 1 streamer)
 
 Schedule Explosive Delivery
 -----------------
-- Can deliver a high customisable explosive delivery via command. Will appear near the target player based on the accuracy settings. The perfect gift for any streamer.
+- Can deliver a highly customisable explosive delivery via command. A number of the chosen explosive type after a delay will fly from offscreen to randomly around the target player. The perfect gift for any streamer.
 - Command syntax: `/muppet_streamer_schedule_explosive_delivery [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds the arrival of the explosives will be delayed for. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
