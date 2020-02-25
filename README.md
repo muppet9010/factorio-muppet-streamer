@@ -4,6 +4,7 @@ Mod for streamers to disable some default Factorio things and earn/research extr
 
 Features
 -----------
+
 - Disable freeplay's rocket counter GUI
 - Disable freeplay's introduction message
 - Disable freeplay's rocket win
@@ -13,6 +14,7 @@ Features
 
 Team Member Limit (other players than 1 streamer)
 ------------
+
 - Includes a simple one line GUI in the top left that says the current number of team members (players - 1) and the current max team members.
 - Option to have research to increase the number of team members. Cost is configurable and the research levels increase in science pack complexity. Infinite options that double in cost each time.
 - Modding interface and command to increase the max team member count by a set amount. For use with other mods/streaming integrations when the research option isn't being used.
@@ -23,6 +25,7 @@ Team Member Limit (other players than 1 streamer)
 
 Schedule Explosive Delivery
 -----------------
+
 - Can deliver a highly customisable explosive delivery via command. A number of the chosen explosive type after a delay will fly from offscreen to randomly around the target player. The perfect gift for any streamer.
 - Command syntax: `/muppet_streamer_schedule_explosive_delivery [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
