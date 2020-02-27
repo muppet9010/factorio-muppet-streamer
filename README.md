@@ -5,11 +5,11 @@ Mod for streamers to customise and add flavour to their play throughs.
 Features
 -----------
 
-- Disable freeplay's rocket counter GUI
-- Disable freeplay's introduction message
-- Disable freeplay's rocket win
-- Add a team member limit feature for use in Multiplayer by streamers.
-- Schedule the delivery of some explosives to a player.
+- Option to disable freeplay's rocket counter GUI
+- Option to disable freeplay's introduction message
+- Option to disable freeplay's rocket win
+- Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
+- Can schedule the delivery of some explosives to a player via command.
 
 
 Team Member Limit (other players than 1 streamer)
