@@ -5,6 +5,10 @@ local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 
 TeamMember.CreateGlobals = function()
+    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) < 0 then
+        return
+    end
+
     global.teamMember = global.teamMember or {}
     global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount or 0
     global.teamMember.playerGuiOpened = global.teamMember.playerGuiOpened or {}
@@ -12,6 +16,10 @@ TeamMember.CreateGlobals = function()
 end
 
 TeamMember.OnLoad = function()
+    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) < 0 then
+        return
+    end
+
     Events.RegisterHandler(defines.events.on_research_finished, "TeamMember", TeamMember.OnResearchFinished)
     Events.RegisterHandler(defines.events.on_lua_shortcut, "TeamMember", TeamMember.OnLuaShortcut)
     Events.RegisterHandler(defines.events.on_player_joined_game, "TeamMember", TeamMember.OnPlayerJoinedGame)
@@ -22,6 +30,10 @@ TeamMember.OnLoad = function()
 end
 
 TeamMember.OnStartup = function()
+    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) < 0 then
+        return
+    end
+
     TeamMember.GuiRecreateForAll()
 end
 

@@ -4,6 +4,10 @@ local recruitTeamMemberCost = tonumber(settings.startup["muppet_streamer-recruit
 local recruitTeamMemberTitle = settings.startup["muppet_streamer-recruit_team_member_technology_title"].value
 local recruitTeamMemberDescription = settings.startup["muppet_streamer-recruit_team_member_technology_description"].value
 
+if recruitTeamMemberCost < 0 then
+    return
+end
+
 --Add the techs if cost is 0, but just hide them. Means other mods can use the info from the techs.
 data:extend(
     {

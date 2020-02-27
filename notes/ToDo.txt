@@ -1,0 +1,5 @@
+Can you spawn trees and use radius as the amount so it just fills in a circle around the player? Have a configurable density of trees.
+
+I'd do them popping up and probably also offer rocks, lasers, turrets with ammo types
+or i'd have an option: circle permimiter with x number , circle randomly filled with X number , filled in circle with X density
+as it would be quantity and radius of perimitier, rather than randomly within the area
