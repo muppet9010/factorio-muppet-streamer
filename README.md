@@ -1,5 +1,5 @@
 # factorio-streamer-support-team
-Mod for streamers to disable some default Factorio things and earn/research extra team members (players) to help them in Multiplayer.
+Mod for streamers to disable some default Factorio things and various features to add flavour to their play throughs.
 
 
 Features
