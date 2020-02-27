@@ -1,5 +1,11 @@
-Can you spawn trees and use radius as the amount so it just fills in a circle around the player? Have a configurable density of trees.
-
-I'd do them popping up and probably also offer rocks, lasers, turrets with ammo types
-or i'd have an option: circle permimiter with x number , circle randomly filled with X number , filled in circle with X density
-as it would be quantity and radius of perimitier, rather than randomly within the area
+Next:
+	- Can you spawn trees and use radius as the amount so it just fills in a circle around the player? Have a configurable density of trees.
+		I'd do them popping up and probably also offer rocks, lasers, turrets with ammo types
+		or i'd have an option: circle permimiter with x number , circle randomly filled with X number , filled in circle with X density
+		as it would be quantity and radius of perimitier, rather than randomly within the area
+	- Make a leaky flame thrower that shoots somewhere in front of the player randomly. concept code:
+		/c script.on_nth_tick(2, function() game.players[1].shooting_state = {state=defines.shooting.shooting_selected, position ={0,0}} end)
+	- Give weapon and ammo in to their weapon slots.
+	- prevent weapon equipment changes by reacting to the weapon inventory changed event: on_player_gun_inventory_changed
+	- prevent weapon changes via defines.input_action.select_next_valid_gun to stop them changing weapon until death or detect no ammo left on current gun?
+	- add a smart teleport that checks for valid placement and path finder back to where the player was to avoid island teleports. add option to teleport to nearest biter nest or player entity / military entity.
