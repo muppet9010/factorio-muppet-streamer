@@ -1,5 +1,5 @@
 # factorio-streamer-support-team
-Mod for streamers to disable some default Factorio things and various features to add flavour to their play throughs.
+Mod for streamers to customise and add flavour to their play throughs.
 
 
 Features
@@ -17,6 +17,8 @@ Team Member Limit (other players than 1 streamer)
 
 - Includes a simple one line GUI in the top left that says the current number of team members (players - 1) and the current max team members.
 - Option to have research to increase the number of team members. Cost is configurable and the research levels increase in science pack complexity. Infinite options that double in cost each time.
+- Set the "Team member technology pack count" setting to 0 to hide the tech, but keep the feature active for use via mod or command.
+- Set the "Team member technology pack count" setting to -1 to disable the feature entirely and rmeove it from the screen/shortcut bar.
 - Modding interface and command to increase the max team member count by a set amount. For use with other mods/streaming integrations when the research option isn't being used.
 - Command:
     - syntax: `/muppet_streamer_change_team_member_max CHANGENUMBER`

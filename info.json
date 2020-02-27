@@ -1,6 +1,6 @@
 {
     "name": "muppet_streamer",
-    "version": "18.0.0",
+    "version": "18.0.1",
     "title": "Muppet Streamer",
     "author": "Muppet9010",
     "contact": "",
@@ -9,5 +9,5 @@
     "dependencies": [
         "base >= 0.18"
     ],
-    "description": "Mod for streamers to disable some default Factorio things and various features to add flavour to their play throughs."
+    "description": "Mod for streamers to customise and add flavour to their play throughs."
 }
