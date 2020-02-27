@@ -1,4 +1,5 @@
 Next:
+	- to explosive delivery add: medium & behemoth spitter or worm(?) spit, poison capsules, slow down capsules, explosive rockets
 	- Can you spawn trees and use radius as the amount so it just fills in a circle around the player? Have a configurable density of trees.
 		I'd do them popping up and probably also offer rocks, lasers, turrets with ammo types
 		or i'd have an option: circle permimiter with x number , circle randomly filled with X number , filled in circle with X density
@@ -9,3 +10,4 @@ Next:
 	- prevent weapon equipment changes by reacting to the weapon inventory changed event: on_player_gun_inventory_changed
 	- prevent weapon changes via defines.input_action.select_next_valid_gun to stop them changing weapon until death or detect no ammo left on current gun?
 	- add a smart teleport that checks for valid placement and path finder back to where the player was to avoid island teleports. add option to teleport to nearest biter nest or player entity / military entity.
+	- add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
