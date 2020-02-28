@@ -20,6 +20,12 @@ TeamMember.OnLoad = function()
         return
     end
 
+    Events.RegisterEvent(defines.events.on_runtime_mod_setting_changed)
+    Events.RegisterEvent(defines.events.on_research_finished)
+    Events.RegisterEvent(defines.events.on_lua_shortcut)
+    Events.RegisterEvent(defines.events.on_player_joined_game)
+    Events.RegisterEvent(defines.events.on_player_left_game)
+
     Events.RegisterHandler(defines.events.on_research_finished, "TeamMember", TeamMember.OnResearchFinished)
     Events.RegisterHandler(defines.events.on_lua_shortcut, "TeamMember", TeamMember.OnLuaShortcut)
     Events.RegisterHandler(defines.events.on_player_joined_game, "TeamMember", TeamMember.OnPlayerJoinedGame)
