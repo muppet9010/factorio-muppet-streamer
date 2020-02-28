@@ -1,10 +1,8 @@
 Next:
-	- look at how to register events conditionally safely.
-    - to explosive delivery add: medium & behemoth spitter or worm(?) spit, poison capsules, slow down capsules, explosive rockets
-	- Can you spawn trees and use radius as the amount so it just fills in a circle around the player? Have a configurable density of trees.
-		I'd do them popping up and probably also offer rocks, lasers, turrets with ammo types
-		or i'd have an option: circle permimiter with x number , circle randomly filled with X number , filled in circle with X density
-		as it would be quantity and radius of perimitier, rather than randomly within the area
+	- spawn things in radius around target:
+		offer: trees, rocks, lasers, turrets with ammo types, fire, robot capsule types
+		option: circle permimiter with x number, circle randomly filled with X number, filled in circle with X density
+		quantity and radius of perimitier options
 	- Make a leaky flame thrower that shoots somewhere in front of the player randomly. concept code:
 		/c script.on_nth_tick(2, function() game.players[1].shooting_state = {state=defines.shooting.shooting_selected, position ={0,0}} end)
 	- Give weapon and ammo in to their weapon slots.

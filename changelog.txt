@@ -2,9 +2,11 @@
 Version: 18.0.2
 Date: 2020-02-28
   Features:
+    - Explosive Delivery added new types: slowdown capsule, poison capsule, explosive rocket, small spit, medium spit, large spit
   Changes:
   Bugfixes:
   Info:
+    - remove hard coded surface, so will use the players current surface
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.1
 Date: 2020-02-27

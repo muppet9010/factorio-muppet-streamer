@@ -80,7 +80,6 @@ end
 
 ExplosiveDelivery.DeliverExplosives = function(eventData)
     local data = eventData.data
-    local surface = game.surfaces[1]
 
     local targetPos, targetPlayer
     if type(data.target) == "string" then
@@ -92,13 +91,17 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         targetPos = targetPlayer.position
     end
 
+    local surface, explosiveType = targetPlayer.surface, data.explosiveType
     for i = 1, data.explosiveCount do
         local targetEntityPos = Utils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
         local targetEntity = surface.create_entity {name = "muppet_streamer-explosive-delivery-target", position = targetEntityPos}
 
         local explosiveCreatePos = Utils.RandomLocationInRadius(targetPos, math.max(100, data.accuracyRadiusMax * 2), math.max(100, data.accuracyRadiusMax * 2))
-        surface.create_entity {name = data.explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = data.explosiveType.speed}
-
+        if explosiveType.projectileName ~= nil then
+            surface.create_entity {name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed}
+        elseif explosiveType.beamName ~= nil then
+            surface.create_entity {name = explosiveType.beamName, position = explosiveCreatePos, target = targetEntity, source_position = explosiveCreatePos}
+        end
         targetEntity.destroy()
     end
 end
@@ -112,12 +115,36 @@ ExplosiveDelivery.ExplosiveTypes = {
         projectileName = "cluster-grenade",
         speed = 0.3
     },
+    slowdownCapsule = {
+        projectileName = "slowdown-capsule",
+        speed = 0.3
+    },
+    poisonCapsule = {
+        projectileName = "poison-capsule",
+        speed = 0.3
+    },
     artilleryShell = {
         projectileName = "artillery-projectile",
         speed = 1
     },
+    explosiveRocket = {
+        projectileName = "explosive-rocket",
+        speed = 0.3
+    },
     atomicRocket = {
         projectileName = "atomic-rocket",
+        speed = 0.3
+    },
+    smallSpit = {
+        beamName = "acid-stream-spitter-small",
+        speed = 0.3
+    },
+    mediumSpit = {
+        beamName = "acid-stream-worm-medium",
+        speed = 0.3
+    },
+    largeSpit = {
+        beamName = "acid-stream-worm-behemoth",
         speed = 0.3
     }
 }
