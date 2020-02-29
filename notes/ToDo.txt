@@ -3,8 +3,6 @@ Next:
 		offer: trees, rocks, lasers, turrets with ammo types, fire, robot capsule types
 		option: circle permimiter with x number, circle randomly filled with X number, filled in circle with X density
 		quantity and radius of perimitier options
-	- Make a leaky flame thrower that shoots somewhere in front of the player randomly. concept code:
-		/c script.on_nth_tick(2, function() game.players[1].shooting_state = {state=defines.shooting.shooting_selected, position ={0,0}} end)
 	- Give weapon and ammo in to their weapon slots.
 	- prevent weapon equipment changes by reacting to the weapon inventory changed event: on_player_gun_inventory_changed
 	- prevent weapon changes via defines.input_action.select_next_valid_gun to stop them changing weapon until death or detect no ammo left on current gun?

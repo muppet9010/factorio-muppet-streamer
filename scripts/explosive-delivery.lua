@@ -10,7 +10,6 @@ ExplosiveDelivery.CreateGlobals = function()
 end
 
 ExplosiveDelivery.OnLoad = function()
-    EventScheduler.RegisterScheduler()
     Commands.Register("muppet_streamer_schedule_explosive_delivery", {"api-description.muppet_streamer_schedule_explosive_delivery"}, ExplosiveDelivery.ScheduleExplosiveDeliveryCommand)
     EventScheduler.RegisterScheduledEventType("ExplosiveDelivery.DeliverExplosives", ExplosiveDelivery.DeliverExplosives)
 end

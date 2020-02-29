@@ -2,10 +2,13 @@ local Events = require("utility/events")
 local Freeplay = require("scripts/freeplay")
 local TeamMember = require("scripts/team-member")
 local ExplosiveDelivery = require("scripts/explosive-delivery")
+local LeakyFlamethrower = require("scripts/leaky-flamethrower")
+local EventScheduler = require("utility/event-scheduler")
 
 local function CreateGlobals()
     TeamMember.CreateGlobals()
     ExplosiveDelivery.CreateGlobals()
+    LeakyFlamethrower.CreateGlobals()
 end
 
 local function OnLoad()
@@ -14,6 +17,7 @@ local function OnLoad()
     Freeplay.OnLoad()
     TeamMember.OnLoad()
     ExplosiveDelivery.OnLoad()
+    LeakyFlamethrower.OnLoad()
 end
 
 local function OnStartup()
@@ -28,3 +32,4 @@ end
 script.on_init(OnStartup)
 script.on_configuration_changed(OnStartup)
 script.on_load(OnLoad)
+EventScheduler.RegisterScheduler()
