@@ -28,7 +28,8 @@ Team Member Limit (other players than 1 streamer)
 Schedule Explosive Delivery to player
 -----------------
 
-- Can deliver a highly customisable explosive delivery via command. A number of the chosen explosive type after a delay will fly from offscreen to randomly around the target player. The perfect gift for any streamer. Note, that it takes them a second or two to fly in from offscreen.
+Can deliver a highly customisable explosive delivery via command. A number of the chosen explosive type after a delay will fly from offscreen to randomly around the target player. The perfect gift for any streamer. Note, that it takes them a second or two to fly in from offscreen.
+
 - Command syntax: `/muppet_streamer_schedule_explosive_delivery [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds the arrival of the explosives will be delayed for. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
@@ -39,3 +40,21 @@ Schedule Explosive Delivery to player
     - accuracyRadiusMax: NUMBER - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
 - Example command 1: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command 2: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
+- Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories may vary.
+
+
+Leaky Flamethrower
+------------------
+
+Gives the targeted player a flamethrower that shoots in random dirctions for short bursts until the set ammo is used up. During this time the player can't do anything to prevent this from happening.
+
+- Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
+- Details in JSON string supports the arguments:
+    - delay: NUMBER - Optional: how many seconds before the flamethrower and effects are delayed for. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - ammoCount: NUMBER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired, if 0 then the command is ignored.
+    - target: STRING - Mandatory: the player name to target.
+- Example command 1: `/muppet_streamer_leaky_flamethrower {"delay":5, "ammoCount":5, "target":"muppet9010"}`
+- While activated the player will be kicked out of any vehicle they are in and prevented from entering one.
+- While activated the player will loose control over their weapons targetign and firing behaviour.
+- While activated the player can not change active gun via the switch to next weapon key.
+- The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to do. However, this is such an active countering of the mods behaviour.

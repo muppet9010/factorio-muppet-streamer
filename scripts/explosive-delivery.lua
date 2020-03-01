@@ -25,11 +25,11 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local delay = 0
     if commandData.delay ~= nil then
         delay = tonumber(commandData.delay)
-        if delay == nil or delay < 0 then
+        if delay == nil then
             Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
             return
         end
-        delay = delay * 60
+        delay = math.max(delay * 60, 0)
     end
 
     local explosiveCount = tonumber(commandData.explosiveCount)
@@ -74,7 +74,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
 
     global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
-    EventScheduler.ScheduleEvent(delay, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target})
+    EventScheduler.ScheduleEvent(command.tick + delay, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target})
 end
 
 ExplosiveDelivery.DeliverExplosives = function(eventData)

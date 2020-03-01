@@ -8,6 +8,7 @@ local Events = require("utility/events")
 LeakyFlamethrower.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
     global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {}
+    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId or 0
 end
 
 LeakyFlamethrower.OnLoad = function()
@@ -15,6 +16,16 @@ LeakyFlamethrower.OnLoad = function()
     EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ShootFlamethrower", LeakyFlamethrower.ShootFlamethrower)
     Events.RegisterEvent(defines.events.on_player_died)
     Events.RegisterHandler(defines.events.on_player_died, "LeakyFlamethrower.OnPlayerDied", LeakyFlamethrower.OnPlayerDied)
+    EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ApplyToPlayer", LeakyFlamethrower.ApplyToPlayer)
+end
+
+LeakyFlamethrower.OnStartup = function()
+    if not game.permissions.get_group("LeakyFlamethrower") then
+        local group = game.permissions.create_group("LeakyFlamethrower")
+        group.set_allows_action(defines.input_action.select_next_valid_gun, false)
+        group.set_allows_action(defines.input_action.toggle_driving, false)
+        group.set_allows_action(defines.input_action.change_shooting_state, false)
+    end
 end
 
 LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
@@ -23,6 +34,16 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
         return
+    end
+
+    local delay = 0
+    if commandData.delay ~= nil then
+        delay = tonumber(commandData.delay)
+        if delay == nil then
+            Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
+            return
+        end
+        delay = math.max(delay * 60, 0)
     end
 
     local target = commandData.target
@@ -44,16 +65,20 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         return
     end
 
-    LeakyFlamethrower.ApplyToPlayer(player, ammoCount)
+    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1
+    EventScheduler.ScheduleEvent(command.tick + delay, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, {player = player, ammoCount = ammoCount})
 end
 
-LeakyFlamethrower.ApplyToPlayer = function(player, ammoCount)
+LeakyFlamethrower.ApplyToPlayer = function(eventData)
+    local player, ammoCount = eventData.data.player, eventData.data.ammoCount
     if global.leakyFlamethrower.affectedPlayers[player.index] ~= nil then
         return
     end
     if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) then
         return
     end
+
+    player.driving = false
 
     local flamethrowerFoundIndex, flamethrowerGiven = 0, false
     local gunInventory = player.get_inventory(defines.inventory.character_guns)
@@ -105,12 +130,12 @@ LeakyFlamethrower.ApplyToPlayer = function(player, ammoCount)
 
     player.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = ammoCount})
     player.character.selected_gun_index = flamethrowerFoundIndex
+    local oldPermissionGroup = player.permission_group
+    player.permission_group = game.permissions.get_group("LeakyFlamethrower")
+    global.leakyFlamethrower.affectedPlayers[player.index] = {flamethrowerGiven = flamethrowerGiven, oldPermissionGroup = oldPermissionGroup}
 
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
-
-    global.leakyFlamethrower.affectedPlayers[player.index] = {flamethrowerGiven = flamethrowerGiven}
-
     LeakyFlamethrower.ShootFlamethrower({tick = game.tick, instanceId = player.index, data = {player = player, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = ammoCount}})
 end
 
@@ -126,7 +151,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
 
     local delay = 0
     data.currentBurstTicks = data.currentBurstTicks + 1
-    if data.currentBurstTicks >= 100 then
+    if data.currentBurstTicks > 100 then
         data.currentBurstTicks = 0
         data.burstsDone = data.burstsDone + 1
         if data.burstsDone == data.maxBursts then
@@ -135,6 +160,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         end
         data.angle = math.random(0, 360)
         data.distance = math.random(2, 10)
+        player.shooting_state = {state = defines.shooting.not_shooting}
         delay = 180
     else
         data.distance = math.min(math.max(data.distance + (math.random(-1, 1)), 2), 10)
@@ -150,21 +176,18 @@ LeakyFlamethrower.OnPlayerDied = function(event)
 end
 
 LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex)
-    if global.leakyFlamethrower.affectedPlayers[playerIndex] == nil then
+    local affectedPlayer = global.leakyFlamethrower.affectedPlayers[playerIndex]
+    if affectedPlayer == nil then
         return
     end
 
     local player = game.get_player(playerIndex)
-    if player ~= nil and player.valid and player.character ~= nil and player.character.valid and global.leakyFlamethrower.affectedPlayers[playerIndex] ~= nil and global.leakyFlamethrower.affectedPlayers[playerIndex].flameThrowerGiven then
-        game.print("remove")
-        DOESN@T WORK
+    if player ~= nil and player.valid and player.character ~= nil and player.character.valid and affectedPlayer.flamethrowerGiven then
         local gunInventory = player.get_inventory(defines.inventory.character_guns)
         gunInventory.remove({name = "flamethrower", count = 1})
     end
-
-    global.leakyFlamethrower.affectedPlayers[playerIndex] = false
+    player.permission_group = affectedPlayer.oldPermissionGroup
+    global.leakyFlamethrower.affectedPlayers[playerIndex] = nil
 end
 
 return LeakyFlamethrower
-
---TODO: should stop player getting in vehicle as that would stop the flamethrower shooting. should prevent weapon change or weapon equipment change. should kick a player out of a vehicle if in one so it can start shooting.

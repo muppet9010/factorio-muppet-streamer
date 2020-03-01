@@ -3,8 +3,5 @@ Next:
 		offer: trees, rocks, lasers, turrets with ammo types, fire, robot capsule types
 		option: circle permimiter with x number, circle randomly filled with X number, filled in circle with X density
 		quantity and radius of perimitier options
-	- Give weapon and ammo in to their weapon slots.
-	- prevent weapon equipment changes by reacting to the weapon inventory changed event: on_player_gun_inventory_changed
-	- prevent weapon changes via defines.input_action.select_next_valid_gun to stop them changing weapon until death or detect no ammo left on current gun?
 	- add a smart teleport that checks for valid placement and path finder back to where the player was to avoid island teleports. add option to teleport to nearest biter nest or player entity / military entity.
     - add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
