@@ -4,6 +4,7 @@ local Logging = require("utility/logging")
 local Utils = require("utility/utils")
 local EventScheduler = require("utility/event-scheduler")
 local Events = require("utility/events")
+local Interfaces = require("utility/interfaces")
 
 LeakyFlamethrower.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
@@ -79,57 +80,9 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     end
 
     player.driving = false
-
-    local flamethrowerFoundIndex, flamethrowerGiven = 0, false
-    local gunInventory = player.get_inventory(defines.inventory.character_guns)
-    for i = 1, #gunInventory do
-        local gunItemStack = gunInventory[i]
-        if gunItemStack ~= nil and gunItemStack.valid_for_read then
-            if gunItemStack.name == "flamethrower" then
-                flamethrowerFoundIndex = i
-                break
-            end
-        end
-    end
-
-    if flamethrowerFoundIndex == 0 then
-        flamethrowerGiven = true
-        if not gunInventory.can_insert({name = "flamethrower", count = 1}) then
-            flamethrowerFoundIndex = math.random(1, 3)
-            local gunItemStack = gunInventory[flamethrowerFoundIndex]
-            if gunItemStack ~= nil and gunItemStack.valid_for_read then
-                local gunInsertedCount = player.insert({name = gunItemStack.name, count = gunItemStack.count})
-                if gunInsertedCount < gunItemStack.count then
-                    player.surface.spill_item_stack({name = gunItemStack.name, count = gunItemStack.count - gunInsertedCount})
-                end
-            end
-            gunItemStack.clear()
-
-            local ammoInventory = player.get_inventory(defines.inventory.character_ammo)
-            local ammoItemStack = ammoInventory[flamethrowerFoundIndex]
-            if ammoItemStack ~= nil and ammoItemStack.valid_for_read then
-                local ammoInsertedCount = player.insert({name = ammoItemStack.name, count = ammoItemStack.count})
-                if ammoInsertedCount < ammoItemStack.count then
-                    player.surface.spill_item_stack({name = ammoItemStack.name, count = ammoItemStack.count - ammoInsertedCount})
-                end
-            end
-            ammoItemStack.clear()
-        end
-
-        gunInventory.insert({name = "flamethrower", count = 1})
-        for i = 1, #gunInventory do
-            local gunItemStack = gunInventory[i]
-            if gunItemStack ~= nil and gunItemStack.valid_for_read then
-                if gunItemStack.name == "flamethrower" then
-                    flamethrowerFoundIndex = i
-                    break
-                end
-            end
-        end
-    end
+    local flamethrowerGiven = Interfaces.Call("GiveItems.EnsureHasWeapon", player, "flamethrower", true, true)
 
     player.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = ammoCount})
-    player.character.selected_gun_index = flamethrowerFoundIndex
     local oldPermissionGroup = player.permission_group
     player.permission_group = game.permissions.get_group("LeakyFlamethrower")
     global.leakyFlamethrower.affectedPlayers[player.index] = {flamethrowerGiven = flamethrowerGiven, oldPermissionGroup = oldPermissionGroup}

@@ -50,7 +50,7 @@ Gives the targeted player a flamethrower that shoots in random dirctions for sho
 
 - Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds before the flamethrower and effects are delayed for. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - delay: NUMBER - Optional: how many seconds the flamethrower and effects are delayed for before starting. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - ammoCount: NUMBER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired, if 0 then the command is ignored.
     - target: STRING - Mandatory: the player name to target.
 - Example command 1: `/muppet_streamer_leaky_flamethrower {"delay":5, "ammoCount":5, "target":"muppet9010"}`
@@ -58,3 +58,21 @@ Gives the targeted player a flamethrower that shoots in random dirctions for sho
 - While activated the player will loose control over their weapons targetign and firing behaviour.
 - While activated the player can not change active gun via the switch to next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to do. However, this is such an active countering of the mods behaviour.
+
+
+Give Weapon & Ammo
+-----------------
+
+Gives the target player a named weapon and/or named ammo.
+
+- Command syntax: `/muppet_streamer_give_player_weapon_ammo [DETAILS JSON STRING]`
+- Details in JSON string supports the arguments:
+    - delay: NUMBER - Optional: how many seconds before the items are given. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - target: STRING - Mandatory: the player name to target.
+    - weaponType: STRING - Optional: the name of a weapon to ensure the player has 1 of. Can be either in their weapon inventory or in their character inventory. If not provided no weapon is given or selected.
+    - forceWeaponToSlot: BOOLEAN - Optional: if true the weaponType will be placed/moved to the players weapon inventory. If theres no room a current weapon will be placed in the character inventory to make room. If not provided then the weapon will be placed in a free slot, otherwise the character inventory.
+    - selectWeapon: BOOLEAN - Optional: if true the player will have this weaponType selected as active if its equiped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
+    - ammoType: STRING - Optional: the name of the ammo type to be given to the player.
+    - ammoCount: NUMBER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
+- Example command 1: `/muppet_streamer_give_player_weapon_ammo {"delay":5, "target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
+- If there isn't room in the character inventory for items they will eb dropped on the ground at the players feeet.

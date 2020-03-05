@@ -4,6 +4,7 @@ Date: 2020-02-28
   Features:
     - Explosive Delivery added new types: slowdown capsule, poison capsule, explosive rocket, small spit, medium spit, large spit
     - Added the leaky flamethrower.
+    - Added give weapon and ammo feature.
   Changes:
   Bugfixes:
     - fix scheduled delivery delay to apply.

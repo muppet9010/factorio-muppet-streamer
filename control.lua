@@ -4,11 +4,13 @@ local TeamMember = require("scripts/team-member")
 local ExplosiveDelivery = require("scripts/explosive-delivery")
 local LeakyFlamethrower = require("scripts/leaky-flamethrower")
 local EventScheduler = require("utility/event-scheduler")
+local GiveItems = require("scripts/give-items")
 
 local function CreateGlobals()
     TeamMember.CreateGlobals()
     ExplosiveDelivery.CreateGlobals()
     LeakyFlamethrower.CreateGlobals()
+    GiveItems.CreateGlobals()
 end
 
 local function OnLoad()
@@ -18,6 +20,7 @@ local function OnLoad()
     TeamMember.OnLoad()
     ExplosiveDelivery.OnLoad()
     LeakyFlamethrower.OnLoad()
+    GiveItems.OnLoad()
 end
 
 local function OnStartup()
