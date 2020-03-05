@@ -29,11 +29,8 @@ GiveItems.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInve
         end
     end
 
-    if weaponFoundIndex == 0 and forceWeaponToWeaponInventorySlot then
-        --TODO: check inventory for the weapon and give if not found - bug in old code
-
-        weaponGiven = true
-        if not gunInventory.can_insert({name = weaponName, count = 1}) then
+    if weaponFoundIndex == 0 then
+        if not gunInventory.can_insert({name = weaponName, count = 1}) and forceWeaponToWeaponInventorySlot then
             weaponFoundIndex = math.random(1, 3)
             local gunItemStack = gunInventory[weaponFoundIndex]
             if gunItemStack ~= nil and gunItemStack.valid_for_read then
@@ -53,7 +50,15 @@ GiveItems.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInve
                     player.surface.spill_item_stack({name = ammoItemStack.name, count = ammoItemStack.count - ammoInsertedCount})
                 end
             end
+            ammoInventory.set_filter(weaponFoundIndex, nil)
             ammoItemStack.clear()
+        end
+
+        local characterInventory = player.get_main_inventory()
+        if characterInventory.get_item_count(weaponName) == 0 then
+            weaponGiven = true
+        else
+            characterInventory.remove({name = weaponName, count = 1})
         end
 
         gunInventory.insert({name = weaponName, count = 1})
