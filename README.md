@@ -87,13 +87,13 @@ Spawns entities in the game around the named player on their side. Incldues both
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the spawning occurs. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to center upon.
-	- entityName: STRING - the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, fire, defenderCapsule, distractorCapsule, destroyedCapsule.
+	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, fire, defenderCapsule, distractorCapsule, destroyedCapsule.
 	- radiusMax: NUMBER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: NUMBER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a peremiter is effectively made. If not provided then 0 is used.
-    - existingEntities: STRING - Optional: how the newly spawned entity should handle existing entities on the map. Either `destroy`, `overlap`, or `avoid`. 
+    - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `destroy`, `overlap`, or `avoid`.
 	- quantity: NUMBER - Optional: specifies the quantity of entities to place.
 	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is very dense, close to 0 is very sparse.
-    - ammo: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count, for fire it's the stacked fire count (longer burn/more damage).
+    - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count, for fire it's the stacked fire count (longer burn/more damage).
 - Example command 1: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
 - Example command 2: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"destroy", "quantity":10, "ammo":10}`
-- For entityType of tree a random tree will be selected, unless the biter-reincarnation mod is present, then the tree will be biome specific.
+- For entityType of tree a random tree will be selected, unless the biter_reincarnation mod is present, then the tree will be biome specific.

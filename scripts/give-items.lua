@@ -150,7 +150,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         ammoType = nil
     end
 
-    global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
+    global.giveItems.nextId = global.giveItems.nextId + 1
     EventScheduler.ScheduleEvent(command.tick + delay, "GiveItems.GiveWeaponAmmoScheduled", global.giveItems.nextId, {target = target, ammoType = ammoType, ammoCount = ammoCount, weaponType = weaponType, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon})
 end
 
