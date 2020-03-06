@@ -3,8 +3,9 @@ Version: 18.0.2
 Date: 2020-02-28
   Features:
     - Explosive Delivery added new types: slowdown capsule, poison capsule, explosive rocket, small spit, medium spit, large spit
-    - Added the leaky flamethrower.
-    - Added give weapon and ammo feature.
+    - Added the Leaky Flamethrower feature.
+    - Added the Give Weapon And Ammo feature.
+    - Added the Spawn Around Player feature.
   Changes:
   Bugfixes:
     - fix scheduled delivery delay to apply.
