@@ -1,0 +1,13 @@
+{
+    "name": "muppet_streamer",
+    "version": "18.0.2",
+    "title": "Muppet Streamer",
+    "author": "Muppet9010",
+    "contact": "",
+    "homepage": "https://mods.factorio.com/mod/muppet_streamer",
+    "factorio_version": "0.18",
+    "dependencies": [
+        "base >= 0.18"
+    ],
+    "description": "Mod for streamers to customise and add flavour to their play throughs."
+}

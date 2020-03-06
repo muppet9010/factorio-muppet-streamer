@@ -1,0 +1,3 @@
+Next:
+	- add a smart teleport that checks for valid placement and path finder back to where the player was to avoid island teleports. add option to teleport to nearest biter nest or player entity / military entity.
+    - add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower

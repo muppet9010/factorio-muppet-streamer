@@ -1,0 +1,29 @@
+---------------------------------------------------------------------------------------------------
+Version: 18.0.2
+Date: 2020-02-28
+  Features:
+    - Explosive Delivery added new types: slowdown capsule, poison capsule, explosive rocket, small spit, medium spit, large spit
+    - Added the Leaky Flamethrower feature.
+    - Added the Give Weapon And Ammo feature.
+    - Added the Spawn Around Player feature.
+  Changes:
+  Bugfixes:
+    - fix scheduled delivery delay to apply.
+  Info:
+    - remove hard coded surface, so will use the players current surface
+---------------------------------------------------------------------------------------------------
+Version: 18.0.1
+Date: 2020-02-27
+  Features:
+  Changes:
+    - Make Workforce feature entirely disablable.
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
+Version: 18.0.0
+Date: 2020-02-16
+  Features:
+    - Initial Release
+  Changes:
+  Bugfixes:
+  Info:
