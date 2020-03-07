@@ -155,14 +155,12 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
 end
 
 GiveItems.GiveWeaponAmmoScheduled = function(eventData)
-    local data, targetPlayer = eventData.data
+    local data = eventData.data
 
-    if type(data.target) == "string" then
-        targetPlayer = game.get_player(data.target)
-        if targetPlayer == nil then
-            Logging.LogPrint("ERROR: muppet_streamer_give_player_weapon_ammo command target player not found at delivery time: " .. data.target)
-            return
-        end
+    local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        Logging.LogPrint("ERROR: muppet_streamer_give_player_weapon_ammo command target player not found at delivery time: " .. data.target)
+        return
     end
 
     if data.weaponType ~= nil and data.weaponType.valid then

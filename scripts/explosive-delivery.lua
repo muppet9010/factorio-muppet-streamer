@@ -80,15 +80,12 @@ end
 ExplosiveDelivery.DeliverExplosives = function(eventData)
     local data = eventData.data
 
-    local targetPos, targetPlayer
-    if type(data.target) == "string" then
-        targetPlayer = game.get_player(data.target)
-        if targetPlayer == nil then
-            Logging.LogPrint("ERROR: muppet_streamer_schedule_explosive_delivery command target player not found at delivery time: " .. data.target)
-            return
-        end
-        targetPos = targetPlayer.position
+    local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        Logging.LogPrint("ERROR: muppet_streamer_schedule_explosive_delivery command target player not found at delivery time: " .. data.target)
+        return
     end
+    local targetPos = targetPlayer.position
 
     local surface, explosiveType = targetPlayer.surface, data.explosiveType
     for i = 1, data.explosiveCount do

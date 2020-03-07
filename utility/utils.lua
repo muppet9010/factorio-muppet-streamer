@@ -4,10 +4,10 @@ local factorioUtil = require("__core__/lualib/util")
 Utils.DeepCopy = factorioUtil.table.deepcopy
 Utils.TableMerge = factorioUtil.merge -- takes an array of tables and returns a new table with copies of their contents
 
-function Utils.KillAllKillableObjectsInArea(surface, positionedBoundingBox, killerEntity, collisionBoxOnlyEntities)
+function Utils.KillAllKillableObjectsInArea(surface, positionedBoundingBox, killerEntity, collisionBoxOnlyEntities, force)
     local entitiesFound = surface.find_entities(positionedBoundingBox)
     for k, entity in pairs(entitiesFound) do
-        if entity.valid then
+        if entity.valid and (force == nil or entity.force == force) then
             if entity.health ~= nil and entity.destructible and ((collisionBoxOnlyEntities and Utils.IsCollisionBoxPopulated(entity.prototype.collision_box)) or (not collisionBoxOnlyEntities)) then
                 if killerEntity ~= nil then
                     entity.die("neutral", killerEntity)
@@ -19,10 +19,10 @@ function Utils.KillAllKillableObjectsInArea(surface, positionedBoundingBox, kill
     end
 end
 
-function Utils.KillAllObjectsInArea(surface, positionedBoundingBox, killerEntity)
+function Utils.KillAllObjectsInArea(surface, positionedBoundingBox, killerEntity, force)
     local entitiesFound = surface.find_entities(positionedBoundingBox)
     for k, entity in pairs(entitiesFound) do
-        if entity.valid then
+        if entity.valid and (force == nil or entity.force == force) then
             if entity.destructible then
                 if killerEntity ~= nil then
                     entity.die("neutral", killerEntity)
@@ -36,10 +36,10 @@ function Utils.KillAllObjectsInArea(surface, positionedBoundingBox, killerEntity
     end
 end
 
-function Utils.DestroyAllKillableObjectsInArea(surface, positionedBoundingBox, collisionBoxOnlyEntities)
+function Utils.DestroyAllKillableObjectsInArea(surface, positionedBoundingBox, collisionBoxOnlyEntities, force)
     local entitiesFound = surface.find_entities(positionedBoundingBox)
     for k, entity in pairs(entitiesFound) do
-        if entity.valid then
+        if entity.valid and (force == nil or entity.force == force) then
             if entity.health ~= nil and entity.destructible and ((collisionBoxOnlyEntities and Utils.IsCollisionBoxPopulated(entity.prototype.collision_box)) or (not collisionBoxOnlyEntities)) then
                 entity.destroy({dp_cliff_correction = true, raise_destroy = false})
             end
@@ -47,10 +47,10 @@ function Utils.DestroyAllKillableObjectsInArea(surface, positionedBoundingBox, c
     end
 end
 
-function Utils.DestroyAllObjectsInArea(surface, positionedBoundingBox)
+function Utils.DestroyAllObjectsInArea(surface, positionedBoundingBox, force)
     local entitiesFound = surface.find_entities(positionedBoundingBox)
     for k, entity in pairs(entitiesFound) do
-        if entity.valid then
+        if entity.valid and (force == nil or entity.force == force) then
             entity.destroy({dp_cliff_correction = true, raise_destroy = false})
         end
     end

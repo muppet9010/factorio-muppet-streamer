@@ -5,11 +5,12 @@ Mod for streamers to customise and add flavour to their play throughs.
 Features
 -----------
 
-- Option to disable freeplay's rocket counter GUI
-- Option to disable freeplay's introduction message
-- Option to disable freeplay's rocket win
+- Option to disable freeplay's rocket counter GUI, introduction message and rocket win.
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
 - Can schedule the delivery of some explosives to a player via command.
+- A leaky flamethrower that shoots for short bursts intermittently.
+- Give a player a weapon and ammo, plus options to force it as active weapon.
+- Spawn "friendly" entities around the player with various placement options.
 
 
 Team Member Limit (other players than 1 streamer)
@@ -63,7 +64,7 @@ Gives the targeted player a flamethrower that shoots in random dirctions for sho
 Give Weapon & Ammo
 -----------------
 
-Gives the target player a named weapon and/or named ammo.
+Ensures the target player has a specific weapon and can give ammo and force their selection of the weapon.
 
 - Command syntax: `/muppet_streamer_give_player_weapon_ammo [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
@@ -90,10 +91,12 @@ Spawns entities in the game around the named player on their side. Incldues both
 	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, fire, defenderCapsule, distractorCapsule, destroyedCapsule.
 	- radiusMax: NUMBER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: NUMBER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a peremiter is effectively made. If not provided then 0 is used.
-    - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `destroy`, `overlap`, or `avoid`.
+    - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `destroyOwn`, `destroyAll`, `overlap`, or `avoid`.
 	- quantity: NUMBER - Optional: specifies the quantity of entities to place.
 	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is very dense, close to 0 is very sparse.
     - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count, for fire it's the stacked fire count (longer burn/more damage).
 - Example command 1: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
 - Example command 2: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"destroy", "quantity":10, "ammo":10}`
 - For entityType of tree a random tree will be selected, unless the biter_reincarnation mod is present, then the tree will be biome specific.
+- For existingEntities the `destroyOwn` option will only destroy entities on the targeted players force, all other forces entities will be avoided. `DestroyAll` will affect all forces entities. Both will only effect killable entities, so not cliffs for example.
+- Entity placement will pick the random location and try to find a valid placement within a few tiles of that spot. If it can't find somewhere after a few attempts it will skip that placement, so you may get less than the requested number placed.

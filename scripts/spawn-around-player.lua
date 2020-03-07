@@ -64,7 +64,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end
 
     local existingEntities = commandData.existingEntities
-    if existingEntities == nil and existingEntities ~= "destroy" and existingEntities ~= "overlap" and existingEntities ~= "avoid" then
+    if existingEntities == nil or (existingEntities ~= "destroyOwn" and existingEntities ~= "destroyAll" and existingEntities ~= "overlap" and existingEntities ~= "avoid") then
         Logging.LogPrint(errorMessageStart .. "existingEntities is mandatory and must be a supported setting type")
         return
     end
@@ -79,67 +79,182 @@ end
 
 SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     local errorMessageStart = "ERROR: muppet_streamer_spawn_around_player command "
-    local data, targetPlayer = eventData.data
+    local data = eventData.data
 
-    if type(data.target) == "string" then
-        targetPlayer = game.get_player(data.target)
-        if targetPlayer == nil then
-            Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
-            return
-        end
+    local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
+        return
     end
+    local targetPos, surface = targetPlayer.position, targetPlayer.surface
 
+    local entityTypeFunction = SpawnAroundPlayer.EntityTypeFunctions[data.entityName]
+
+    if data.quantity ~= nil then
+        local placed, targetPlaced, attempts, maxAttempts = 0, data.quantity, 0, data.quantity * 2
+        while placed < targetPlaced do
+            local pos = Utils.RandomLocationInRadius(targetPos, data.radiusMax, data.radiusMin)
+            local entityName = entityTypeFunction.getEntityName()
+            if data.existingEntities == "destroyOwn" then
+                local entityBoundingBox = game.entity_prototypes[entityName].collision_box
+                Utils.KillAllKillableObjectsInArea(surface, Utils.ApplyBoundingBoxToPosition(pos, entityBoundingBox), nil, true, targetPlayer.force)
+            elseif data.existingEntities == "destroyAll" then
+                local entityBoundingBox = game.entity_prototypes[entityName].collision_box
+                Utils.KillAllKillableObjectsInArea(surface, Utils.ApplyBoundingBoxToPosition(pos, entityBoundingBox), nil, true)
+            end
+            if data.existingEntities == "avoid" or data.existingEntities == "destroyOwn" or data.existingEntities == "destroyAll" then
+                pos = entityTypeFunction.searchPlacement(surface, entityName, pos)
+            end
+            if pos ~= nil then
+                entityTypeFunction.placeEntity(surface, entityName, pos, targetPlayer.force, data.ammoCount)
+                placed = placed + 1
+            end
+            attempts = attempts + 1
+            if attempts >= maxAttempts then
+                break
+            end
+        end
+    elseif data.density ~= nil then
     --TODO do the creation logic from the settings
+    end
 end
 
 SpawnAroundPlayer.EntityTypeFunctions = {
-    --return entity name and and optional ammo item name
-    tree = function(surface, position)
-        if remote.interfaces["biter_reincarnation"] == nil then
-            return global.spawnAroundPlayer.randomTrees[math.random(#global.spawnAroundPlayer.randomTrees)]
-        else
-            return remote.call("biter_reincarnation", "get_random_tree_type_for_position", surface, position)
+    tree = {
+        getEntityName = function(surface, position)
+            if remote.interfaces["biter_reincarnation"] == nil then
+                return global.spawnAroundPlayer.randomTrees[math.random(#global.spawnAroundPlayer.randomTrees)]
+            else
+                return remote.call("biter_reincarnation", "get_random_tree_type_for_position", surface, position)
+            end
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+        end,
+        placeEntity = function(surface, entityName, position, force)
+            surface.create_entity {name = entityName, position = position, force = force}
         end
-    end,
-    rock = function()
-        local random = math.random()
-        if random < 0.2 then
-            return "rock-huge"
-        elseif random < 0.6 then
-            return "rock-big"
-        else
-            return "sand-rock-big"
+    },
+    rock = {
+        getEntityName = function()
+            local random = math.random()
+            if random < 0.2 then
+                return "rock-huge"
+            elseif random < 0.6 then
+                return "rock-big"
+            else
+                return "sand-rock-big"
+            end
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+        end,
+        placeEntity = function(surface, entityName, position)
+            surface.create_entity {name = entityName, position = position, force = "neutral"}
         end
-    end,
-    laserTurret = function()
-        return "laser-turret"
-    end,
-    gunTurretRegularAmmo = function()
-        return "gun-turret", "firearm-magazine"
-    end,
-    gunTurretPiercingAmmo = function()
-        return "gun-turret", "piercing-rounds-magazine"
-    end,
-    gunTurretUraniumAmmo = function()
-        return "gun-turret", "uranium-rounds-magazine"
-    end,
-    fire = function()
-        return "fire-flame"
-    end,
-    defenderCapsule = function()
-        return "defender-capsule"
-    end,
-    distractorCapsule = function()
-        return "distractor-capsule"
-    end,
-    destroyedCapsule = function()
-        return "destroyer-capsule"
-    end
+    },
+    laserTurret = {
+        getEntityName = function()
+            return "laser-turret"
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 1)
+        end,
+        placeEntity = function(surface, entityName, position, force)
+            surface.create_entity {name = entityName, position = position, force = force}
+        end
+    },
+    gunTurretRegularAmmo = {
+        getEntityName = function()
+            return "gun-turret"
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 1)
+        end,
+        placeEntity = function(surface, entityName, position, force, ammoCount)
+            local turret = surface.create_entity {name = entityName, position = position, force = force}
+            if turret ~= nil then
+                turret.insert("firearm-magazine", ammoCount)
+            end
+        end
+    },
+    gunTurretPiercingAmmo = {
+        getEntityName = function()
+            return "gun-turret"
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 1)
+        end,
+        placeEntity = function(surface, entityName, position, force, ammoCount)
+            local turret = surface.create_entity {name = entityName, position = position, force = force}
+            if turret ~= nil then
+                turret.insert("piercing-rounds-magazine", ammoCount)
+            end
+        end
+    },
+    gunTurretUraniumAmmo = {
+        getEntityName = function()
+            return "gun-turret"
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 1)
+        end,
+        placeEntity = function(surface, entityName, position, force, ammoCount)
+            local turret = surface.create_entity {name = entityName, position = position, force = force}
+            if turret ~= nil then
+                turret.insert("uranium-rounds-magazine", ammoCount)
+            end
+        end
+    },
+    fire = {
+        getEntityName = function()
+            return "fire-flame"
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+        end,
+        placeEntity = function(surface, entityName, position, _, ammoCount)
+            surface.create_entity {name = entityName, position = position, force = "neutral", initial_ground_flame_count = ammoCount}
+        end
+    },
+    defenderCapsule = {
+        getEntityName = function()
+            return "defender-capsule"
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+        end,
+        placeEntity = function(surface, entityName, position, force)
+            surface.create_entity {name = entityName, position = position, force = force}
+        end
+    },
+    distractorCapsule = {
+        getEntityName = function()
+            return "distractor-capsule"
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+        end,
+        placeEntity = function(surface, entityName, position, force)
+            surface.create_entity {name = entityName, position = position, force = force}
+        end
+    },
+    destroyedCapsule = {
+        getEntityName = function()
+            return "destroyer-capsule"
+        end,
+        searchPlacement = function(surface, entityName, position)
+            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+        end,
+        placeEntity = function(surface, entityName, position, force)
+            surface.create_entity {name = entityName, position = position, force = force}
+        end
+    }
 }
 
 SpawnAroundPlayer.PopulateRandomTrees = function()
     global.spawnAroundPlayer.randomTrees = {}
-    for treeName in pairs(game.get_filtered_entity_prototypes({filter = "type", type = "tree"})) do
+    for treeName in pairs(game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}})) do
         table.insert(global.spawnAroundPlayer.randomTrees, treeName)
     end
 end

@@ -51,9 +51,7 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
     if target == nil then
         Logging.LogPrint(errorMessageStart .. "target is mandatory")
         return
-    end
-    local player = game.get_player(target)
-    if player == nil then
+    elseif game.get_player(target) == nil then
         Logging.LogPrint(errorMessageStart .. "target is invalid player name")
         return
     end
@@ -67,29 +65,34 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
     end
 
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, {player = player, ammoCount = ammoCount})
+    EventScheduler.ScheduleEvent(command.tick + delay, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, {target = target, ammoCount = ammoCount})
 end
 
 LeakyFlamethrower.ApplyToPlayer = function(eventData)
-    local player, ammoCount = eventData.data.player, eventData.data.ammoCount
-    if global.leakyFlamethrower.affectedPlayers[player.index] ~= nil then
-        return
-    end
-    if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) then
+    local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command "
+    local data, ammoCount = eventData.data, eventData.data.ammoCount
+
+    local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
         return
     end
 
-    player.driving = false
-    local flamethrowerGiven = Interfaces.Call("GiveItems.EnsureHasWeapon", player, "flamethrower", true, true)
+    if global.leakyFlamethrower.affectedPlayers[targetPlayer.index] ~= nil then
+        return
+    end
 
-    player.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = ammoCount})
-    local oldPermissionGroup = player.permission_group
-    player.permission_group = game.permissions.get_group("LeakyFlamethrower")
-    global.leakyFlamethrower.affectedPlayers[player.index] = {flamethrowerGiven = flamethrowerGiven, oldPermissionGroup = oldPermissionGroup}
+    targetPlayer.driving = false
+    local flamethrowerGiven = Interfaces.Call("GiveItems.EnsureHasWeapon", targetPlayer, "flamethrower", true, true)
+
+    targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = ammoCount})
+    local oldPermissionGroup = targetPlayer.permission_group
+    targetPlayer.permission_group = game.permissions.get_group("LeakyFlamethrower")
+    global.leakyFlamethrower.affectedPlayers[targetPlayer.index] = {flamethrowerGiven = flamethrowerGiven, oldPermissionGroup = oldPermissionGroup}
 
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
-    LeakyFlamethrower.ShootFlamethrower({tick = game.tick, instanceId = player.index, data = {player = player, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = ammoCount}})
+    LeakyFlamethrower.ShootFlamethrower({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = ammoCount}})
 end
 
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
