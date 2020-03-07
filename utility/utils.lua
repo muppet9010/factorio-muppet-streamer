@@ -115,6 +115,10 @@ function Utils.ApplyBoundingBoxToPosition(centrePos, boundingBox, orientation)
     end
 end
 
+function Utils.FloorPosition(pos)
+    return {x = math.floor(pos.x), y = math.floor(pos.y)}
+end
+
 function Utils.GetChunkPositionForTilePosition(pos)
     return {x = math.floor(pos.x / 32), y = math.floor(pos.y / 32)}
 end

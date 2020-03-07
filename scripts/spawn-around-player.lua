@@ -95,18 +95,19 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
         while placed < targetPlaced do
             local pos = Utils.RandomLocationInRadius(targetPos, data.radiusMax, data.radiusMin)
             local entityName = entityTypeFunction.getEntityName()
+            local entityAlignedPosition = entityTypeFunction.getEntityAlignedPosition(pos)
             if data.existingEntities == "destroyOwn" then
                 local entityBoundingBox = game.entity_prototypes[entityName].collision_box
-                Utils.KillAllKillableObjectsInArea(surface, Utils.ApplyBoundingBoxToPosition(pos, entityBoundingBox), nil, true, targetPlayer.force)
+                Utils.KillAllKillableObjectsInArea(surface, Utils.ApplyBoundingBoxToPosition(entityAlignedPosition, entityBoundingBox), nil, true, targetPlayer.force)
             elseif data.existingEntities == "destroyAll" then
                 local entityBoundingBox = game.entity_prototypes[entityName].collision_box
-                Utils.KillAllKillableObjectsInArea(surface, Utils.ApplyBoundingBoxToPosition(pos, entityBoundingBox), nil, true)
+                Utils.KillAllKillableObjectsInArea(surface, Utils.ApplyBoundingBoxToPosition(entityAlignedPosition, entityBoundingBox), nil, true)
             end
             if data.existingEntities == "avoid" or data.existingEntities == "destroyOwn" or data.existingEntities == "destroyAll" then
-                pos = entityTypeFunction.searchPlacement(surface, entityName, pos)
+                entityAlignedPosition = entityTypeFunction.searchPlacement(surface, entityName, entityAlignedPosition)
             end
-            if pos ~= nil then
-                entityTypeFunction.placeEntity(surface, entityName, pos, targetPlayer.force, data.ammoCount)
+            if entityAlignedPosition ~= nil then
+                entityTypeFunction.placeEntity(surface, entityName, entityAlignedPosition, targetPlayer.force, data.ammoCount)
                 placed = placed + 1
             end
             attempts = attempts + 1
@@ -128,6 +129,9 @@ SpawnAroundPlayer.EntityTypeFunctions = {
                 return remote.call("biter_reincarnation", "get_random_tree_type_for_position", surface, position)
             end
         end,
+        getEntityAlignedPosition = function(position)
+            return position
+        end,
         searchPlacement = function(surface, entityName, position)
             return surface.find_non_colliding_position(entityName, position, 3, 0.2)
         end,
@@ -146,6 +150,9 @@ SpawnAroundPlayer.EntityTypeFunctions = {
                 return "sand-rock-big"
             end
         end,
+        getEntityAlignedPosition = function(position)
+            return position
+        end,
         searchPlacement = function(surface, entityName, position)
             return surface.find_non_colliding_position(entityName, position, 3, 0.2)
         end,
@@ -157,8 +164,11 @@ SpawnAroundPlayer.EntityTypeFunctions = {
         getEntityName = function()
             return "laser-turret"
         end,
+        getEntityAlignedPosition = function(position)
+            return Utils.FloorPosition(position)
+        end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 1)
+            return surface.find_non_colliding_position(entityName, position, 3, 1, true)
         end,
         placeEntity = function(surface, entityName, position, force)
             surface.create_entity {name = entityName, position = position, force = force}
@@ -168,13 +178,16 @@ SpawnAroundPlayer.EntityTypeFunctions = {
         getEntityName = function()
             return "gun-turret"
         end,
+        getEntityAlignedPosition = function(position)
+            return Utils.FloorPosition(position)
+        end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 1)
+            return surface.find_non_colliding_position(entityName, position, 3, 1, true)
         end,
         placeEntity = function(surface, entityName, position, force, ammoCount)
             local turret = surface.create_entity {name = entityName, position = position, force = force}
             if turret ~= nil then
-                turret.insert("firearm-magazine", ammoCount)
+                turret.insert({name = "firearm-magazine", count = ammoCount})
             end
         end
     },
@@ -182,13 +195,16 @@ SpawnAroundPlayer.EntityTypeFunctions = {
         getEntityName = function()
             return "gun-turret"
         end,
+        getEntityAlignedPosition = function(position)
+            return Utils.FloorPosition(position)
+        end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 1)
+            return surface.find_non_colliding_position(entityName, position, 3, 1, true)
         end,
         placeEntity = function(surface, entityName, position, force, ammoCount)
             local turret = surface.create_entity {name = entityName, position = position, force = force}
             if turret ~= nil then
-                turret.insert("piercing-rounds-magazine", ammoCount)
+                turret.insert({name = "piercing-rounds-magazine", count = ammoCount})
             end
         end
     },
@@ -196,19 +212,25 @@ SpawnAroundPlayer.EntityTypeFunctions = {
         getEntityName = function()
             return "gun-turret"
         end,
+        getEntityAlignedPosition = function(position)
+            return Utils.FloorPosition(position)
+        end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 1)
+            return surface.find_non_colliding_position(entityName, position, 3, 1, true)
         end,
         placeEntity = function(surface, entityName, position, force, ammoCount)
             local turret = surface.create_entity {name = entityName, position = position, force = force}
             if turret ~= nil then
-                turret.insert("uranium-rounds-magazine", ammoCount)
+                turret.insert({name = "uranium-rounds-magazine", count = ammoCount})
             end
         end
     },
     fire = {
         getEntityName = function()
             return "fire-flame"
+        end,
+        getEntityAlignedPosition = function(position)
+            return position
         end,
         searchPlacement = function(surface, entityName, position)
             return surface.find_non_colliding_position(entityName, position, 3, 0.2)
@@ -221,6 +243,9 @@ SpawnAroundPlayer.EntityTypeFunctions = {
         getEntityName = function()
             return "defender-capsule"
         end,
+        getEntityAlignedPosition = function(position)
+            return position
+        end,
         searchPlacement = function(surface, entityName, position)
             return surface.find_non_colliding_position(entityName, position, 3, 0.2)
         end,
@@ -232,6 +257,9 @@ SpawnAroundPlayer.EntityTypeFunctions = {
         getEntityName = function()
             return "distractor-capsule"
         end,
+        getEntityAlignedPosition = function(position)
+            return position
+        end,
         searchPlacement = function(surface, entityName, position)
             return surface.find_non_colliding_position(entityName, position, 3, 0.2)
         end,
@@ -242,6 +270,9 @@ SpawnAroundPlayer.EntityTypeFunctions = {
     destroyedCapsule = {
         getEntityName = function()
             return "destroyer-capsule"
+        end,
+        getEntityAlignedPosition = function(position)
+            return position
         end,
         searchPlacement = function(surface, entityName, position)
             return surface.find_non_colliding_position(entityName, position, 3, 0.2)
