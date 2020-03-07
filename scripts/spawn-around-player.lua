@@ -113,6 +113,8 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     end
 end
 
+SpawnAroundPlayer.quantitySearchRadius = 3
+
 SpawnAroundPlayer.EntityTypeFunctions = {
     tree = {
         getEntityName = function(surface, position)
@@ -126,7 +128,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return position
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 0.2)
         end,
         placeEntity = function(surface, entityName, position, force)
             surface.create_entity {name = entityName, position = position, force = force}
@@ -147,7 +149,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return position
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 0.2)
         end,
         placeEntity = function(surface, entityName, position)
             surface.create_entity {name = entityName, position = position, force = "neutral"}
@@ -161,7 +163,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return Utils.FloorPosition(position)
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 1)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 1)
         end,
         placeEntity = function(surface, entityName, position, force)
             surface.create_entity {name = entityName, position = position, force = force}
@@ -175,7 +177,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return Utils.FloorPosition(position)
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 1)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 1)
         end,
         placeEntity = function(surface, entityName, position, force, ammoCount)
             local turret = surface.create_entity {name = entityName, position = position, force = force}
@@ -192,7 +194,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return Utils.FloorPosition(position)
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 1)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 1)
         end,
         placeEntity = function(surface, entityName, position, force, ammoCount)
             local turret = surface.create_entity {name = entityName, position = position, force = force}
@@ -209,7 +211,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return Utils.FloorPosition(position)
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 1)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 1)
         end,
         placeEntity = function(surface, entityName, position, force, ammoCount)
             local turret = surface.create_entity {name = entityName, position = position, force = force}
@@ -226,7 +228,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return position
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 0.2)
         end,
         placeEntity = function(surface, entityName, position, _, ammoCount)
             surface.create_entity {name = entityName, position = position, force = "neutral", initial_ground_flame_count = ammoCount}
@@ -240,7 +242,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return position
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 0.2)
         end,
         placeEntity = function(surface, entityName, position, force)
             surface.create_entity {name = entityName, position = position, force = force}
@@ -254,7 +256,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return position
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 0.2)
         end,
         placeEntity = function(surface, entityName, position, force)
             surface.create_entity {name = entityName, position = position, force = force}
@@ -268,7 +270,7 @@ SpawnAroundPlayer.EntityTypeFunctions = {
             return position
         end,
         searchPlacement = function(surface, entityName, position)
-            return surface.find_non_colliding_position(entityName, position, 3, 0.2)
+            return surface.find_non_colliding_position(entityName, position, SpawnAroundPlayer.quantitySearchRadius, 0.2)
         end,
         placeEntity = function(surface, entityName, position, force)
             surface.create_entity {name = entityName, position = position, force = force}

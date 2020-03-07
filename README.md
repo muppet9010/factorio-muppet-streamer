@@ -98,5 +98,4 @@ Spawns entities in the game around the named player on their side. Incldues both
 - Example command 1: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
 - Example command 2: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"destroy", "quantity":10, "ammo":10}`
 - For entityType of tree a random tree will be selected, unless the biter_reincarnation mod is present, then the tree will be biome specific.
-
 - Entity placement will pick the random location and try to find a valid placement within a few tiles of that spot. If it can't find somewhere after a few attempts it will skip that placement, so you may get less than the requested number placed.
