@@ -8,9 +8,9 @@ Features
 - Mod options to disable freeplay's rocket counter GUI, introduction message, rocket win conditon and set starting map reveal area.
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
 - Can schedule the delivery of some explosives to a player via command.
-- A leaky flamethrower that shoots for short bursts intermittently.
-- Give a player a weapon and ammo, plus options to force it as active weapon.
-- Spawn "friendly" entities around the player with various placement options.
+- A leaky flamethrower that shoots for short bursts intermittently via command.
+- Give a player a weapon and ammo, plus options to force it as active weapon via command.
+- Spawn "friendly" entities around the player with various placement options via command.
 
 
 Team Member Limit (other players than 1 streamer)
@@ -88,12 +88,12 @@ Spawns entities in the game around the named player on their side. Incldues both
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the spawning occurs. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to center upon.
-	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, fire, defenderCapsule, distractorCapsule, destroyedCapsule.
+	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, wall, fire, defenderCapsule, distractorCapsule, destroyedCapsule.
 	- radiusMax: NUMBER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: NUMBER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a peremiter is effectively made. If not provided then 0 is used.
     - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
 	- quantity: NUMBER - Optional: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truely random placement within the radius which is then searched around for a near by valid spot. Intended for small quantities.
-	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Intended for larger quantities.
+	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities.
     - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count, for fire it's the stacked fire count (longer burn/more damage).
 - Example command 1: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
 - Example command 2: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"destroy", "quantity":10, "ammo":10}`

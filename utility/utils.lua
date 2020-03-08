@@ -115,8 +115,8 @@ function Utils.ApplyBoundingBoxToPosition(centrePos, boundingBox, orientation)
     end
 end
 
-function Utils.FloorPosition(pos)
-    return {x = math.floor(pos.x), y = math.floor(pos.y)}
+function Utils.RoundPosition(pos, numDecimalPlaces)
+    return {x = Utils.RoundNumberToDecimalPlaces(pos.x, numDecimalPlaces), y = Utils.RoundNumberToDecimalPlaces(pos.y, numDecimalPlaces)}
 end
 
 function Utils.GetChunkPositionForTilePosition(pos)
@@ -744,6 +744,50 @@ function Utils.GetPositionForAngledDistance(startingPos, distance, angle)
         y = (distance * -math.cos(angleRad)) + startingPos.y
     }
     return newPos
+end
+
+function Utils.FindWhereLineCrossesCircle(radius, slope, yIntercept)
+    local centerPos = {x = 0, y = 0}
+    local A = 1 + slope * slope
+    local B = -2 * centerPos.x + 2 * slope * yIntercept - 2 * centerPos.y * slope
+    local C = centerPos.x * centerPos.x + yIntercept * yIntercept + centerPos.y * centerPos.y - 2 * centerPos.y * yIntercept - radius * radius
+    local delta = B * B - 4 * A * C
+
+    if delta < 0 then
+        return nil, nil
+    else
+        local x1 = (-B + math.sqrt(delta)) / (2 * A)
+
+        local x2 = (-B - math.sqrt(delta)) / (2 * A)
+
+        local y1 = slope * x1 + yIntercept
+
+        local y2 = slope * x2 + yIntercept
+
+        local pos1 = {x = x1, y = y1}
+        local pos2 = {x = x2, y = y2}
+        if pos1 == pos2 then
+            return pos1, nil
+        else
+            return pos1, pos2
+        end
+    end
+end
+
+function Utils.IsPositionWithinCircled(circleCenter, radius, position)
+    local deltaX = math.abs(position.x - circleCenter.x)
+    local deltaY = math.abs(position.y - circleCenter.y)
+    if deltaX + deltaY <= radius then
+        return true
+    elseif deltaX > radius then
+        return false
+    elseif deltaY > radius then
+        return false
+    elseif deltaX ^ 2 + deltaY ^ 2 <= radius ^ 2 then
+        return true
+    else
+        return false
+    end
 end
 
 return Utils
