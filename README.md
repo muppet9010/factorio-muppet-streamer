@@ -5,7 +5,7 @@ Mod for streamers to customise and add flavour to their play throughs.
 Features
 -----------
 
-- Option to disable freeplay's rocket counter GUI, introduction message and rocket win.
+- Mod options to disable freeplay's rocket counter GUI, introduction message, rocket win conditon and set starting map reveal area.
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
 - Can schedule the delivery of some explosives to a player via command.
 - A leaky flamethrower that shoots for short bursts intermittently.
@@ -92,10 +92,9 @@ Spawns entities in the game around the named player on their side. Incldues both
 	- radiusMax: NUMBER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: NUMBER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a peremiter is effectively made. If not provided then 0 is used.
     - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
-	- quantity: NUMBER - Optional: specifies the quantity of entities to place.
-	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is very dense, close to 0 is very sparse.
+	- quantity: NUMBER - Optional: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truely random placement within the radius which is then searched around for a near by valid spot. Intended for small quantities.
+	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Intended for larger quantities.
     - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count, for fire it's the stacked fire count (longer burn/more damage).
 - Example command 1: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
 - Example command 2: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"destroy", "quantity":10, "ammo":10}`
 - For entityType of tree a random tree will be selected, unless the biter_reincarnation mod is present, then the tree will be biome specific.
-- Entity placement will pick the random location and try to find a valid placement within a few tiles of that spot. If it can't find somewhere after a few attempts it will skip that placement, so you may get less than the requested number placed.

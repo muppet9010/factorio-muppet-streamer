@@ -6,6 +6,7 @@ Date: 2020-02-28
     - Added the Leaky Flamethrower feature.
     - Added the Give Weapon And Ammo feature.
     - Added the Spawn Around Player feature.
+    - Added a game starting map reveal setting.
   Changes:
   Bugfixes:
     - fix scheduled delivery delay to apply.
