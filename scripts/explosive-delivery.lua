@@ -25,11 +25,11 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local delay = 0
     if commandData.delay ~= nil then
         delay = tonumber(commandData.delay)
-        if delay == nil or delay < 0 then
+        if delay == nil then
             Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
             return
         end
-        delay = delay * 60
+        delay = math.max(delay * 60, 0)
     end
 
     local explosiveCount = tonumber(commandData.explosiveCount)
@@ -74,30 +74,30 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
 
     global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
-    EventScheduler.ScheduleEvent(delay, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target})
+    EventScheduler.ScheduleEvent(command.tick + delay, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target})
 end
 
 ExplosiveDelivery.DeliverExplosives = function(eventData)
     local data = eventData.data
-    local surface = game.surfaces[1]
 
-    local targetPos, targetPlayer
-    if type(data.target) == "string" then
-        targetPlayer = game.get_player(data.target)
-        if targetPlayer == nil then
-            Logging.LogPrint("ERROR: muppet_streamer_schedule_explosive_delivery command target player not found at delivery time: " .. data.target)
-            return
-        end
-        targetPos = targetPlayer.position
+    local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        Logging.LogPrint("ERROR: muppet_streamer_schedule_explosive_delivery command target player not found at delivery time: " .. data.target)
+        return
     end
+    local targetPos = targetPlayer.position
 
+    local surface, explosiveType = targetPlayer.surface, data.explosiveType
     for i = 1, data.explosiveCount do
         local targetEntityPos = Utils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
         local targetEntity = surface.create_entity {name = "muppet_streamer-explosive-delivery-target", position = targetEntityPos}
 
         local explosiveCreatePos = Utils.RandomLocationInRadius(targetPos, math.max(100, data.accuracyRadiusMax * 2), math.max(100, data.accuracyRadiusMax * 2))
-        surface.create_entity {name = data.explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = data.explosiveType.speed}
-
+        if explosiveType.projectileName ~= nil then
+            surface.create_entity {name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed}
+        elseif explosiveType.beamName ~= nil then
+            surface.create_entity {name = explosiveType.beamName, position = explosiveCreatePos, target = targetEntity, source_position = explosiveCreatePos}
+        end
         targetEntity.destroy()
     end
 end
@@ -111,12 +111,36 @@ ExplosiveDelivery.ExplosiveTypes = {
         projectileName = "cluster-grenade",
         speed = 0.3
     },
+    slowdownCapsule = {
+        projectileName = "slowdown-capsule",
+        speed = 0.3
+    },
+    poisonCapsule = {
+        projectileName = "poison-capsule",
+        speed = 0.3
+    },
     artilleryShell = {
         projectileName = "artillery-projectile",
         speed = 1
     },
+    explosiveRocket = {
+        projectileName = "explosive-rocket",
+        speed = 0.3
+    },
     atomicRocket = {
         projectileName = "atomic-rocket",
+        speed = 0.3
+    },
+    smallSpit = {
+        beamName = "acid-stream-spitter-small",
+        speed = 0.3
+    },
+    mediumSpit = {
+        beamName = "acid-stream-worm-medium",
+        speed = 0.3
+    },
+    largeSpit = {
+        beamName = "acid-stream-worm-behemoth",
         speed = 0.3
     }
 }

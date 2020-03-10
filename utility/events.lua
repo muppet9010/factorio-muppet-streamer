@@ -5,23 +5,34 @@ local Events = {}
 MOD = MOD or {}
 MOD.events = MOD.events or {}
 MOD.customEventNameToId = MOD.customEventNameToId or {}
-MOD.filteredEvents = MOD.filteredEvents or {}
 
---Called from the root of Control.lua for vanilla events and custom events.
-Events.RegisterEvent = function(eventName, filterName, filterData)
+-- Called either from the root of Control.lua or from OnLoad for vanilla events and custom events.
+-- Filtered events have to expect to recieve results outside of their filter. As an event can only be registered one time, with multiple instances the most lienient or merged filters for all instances must be applied.
+Events.RegisterEvent = function(eventName, filterData)
     if eventName == nil then
         error("Events.RegisterEvent called with missing arguments")
     end
     local eventId
     if Utils.GetTableKeyWithValue(defines.events, eventName) ~= nil then
         eventId = eventName
-        if filterName ~= nil then
-            local filteredEventHandler = function(eventData)
-                eventData.filterName = filterName
-                Events._HandleFilteredEvent(eventData)
+        if filterData ~= nil then
+            local currentFilter, currentHandler = script.get_event_filter(eventId), script.get_event_handler(eventId)
+            if currentHandler ~= nil then
+                if currentFilter == nil then
+                    --event registered with no filter, so already fully lienent.
+                    return
+                else
+                    --add new filter to old filter and let it be re-applied.
+                    currentFilter[1].mode = "or"
+                    for _, currentFilterEntry in pairs(currentFilter) do
+                        table.insert(filterData, currentFilterEntry)
+                    end
+                end
+            --else
+            --no current handler so just let our filter be set.
             end
-            script.on_event(eventId, filteredEventHandler, filterData)
-            return
+        --else
+        --we're not filtering so just blindly overwrite whatever is there safely.
         end
     elseif MOD.customEventNameToId[eventName] ~= nil then
         eventId = MOD.customEventNameToId[eventName]
@@ -31,7 +42,7 @@ Events.RegisterEvent = function(eventName, filterName, filterData)
         eventId = script.generate_event_name()
         MOD.customEventNameToId[eventName] = eventId
     end
-    script.on_event(eventId, Events._HandleEvent)
+    script.on_event(eventId, Events._HandleEvent, filterData)
 end
 
 --Called from the root of Control.lua for custom inputs (key bindings) as their names are handled specially.
@@ -43,18 +54,13 @@ Events.RegisterCustomInput = function(actionName)
 end
 
 --Called from OnLoad() from each script file. Handles all event types and custom inputs.
-Events.RegisterHandler = function(eventName, handlerName, handlerFunction, filterName)
+Events.RegisterHandler = function(eventName, handlerName, handlerFunction)
     if eventName == nil or handlerName == nil or handlerFunction == nil then
         error("Events.RegisterHandler called with missing arguments")
     end
     local eventId
     if MOD.customEventNameToId[eventName] ~= nil then
         eventId = MOD.customEventNameToId[eventName]
-    elseif filterName ~= nil then
-        eventId = eventName
-        MOD.filteredEvents[eventId .. filterName] = MOD.filteredEvents[eventId .. filterName] or {}
-        MOD.filteredEvents[eventId .. filterName][handlerName] = handlerFunction
-        return
     else
         eventId = eventName
     end
@@ -63,21 +69,14 @@ Events.RegisterHandler = function(eventName, handlerName, handlerFunction, filte
 end
 
 --Called when needed
-Events.RemoveHandler = function(eventName, handlerName, filterName)
+Events.RemoveHandler = function(eventName, handlerName)
     if eventName == nil or handlerName == nil then
         error("Events.RemoveHandler called with missing arguments")
     end
-    if filterName ~= nil then
-        if MOD.filteredEvents[eventName .. filterName] == nil then
-            return
-        end
-        MOD.filteredEvents[eventName .. filterName][handlerName] = nil
-    else
-        if MOD.events[eventName] == nil then
-            return
-        end
-        MOD.events[eventName][handlerName] = nil
+    if MOD.events[eventName] == nil then
+        return
     end
+    MOD.events[eventName][handlerName] = nil
 end
 
 --inputName used by custom_input , with eventId used by all other events
@@ -91,17 +90,6 @@ Events._HandleEvent = function(eventData)
         for _, handlerFunction in pairs(MOD.events[inputName]) do
             handlerFunction(eventData)
         end
-    end
-end
-
-Events._HandleFilteredEvent = function(eventData)
-    local eventId = eventData.name
-    local filterName = eventData.filterName
-    if MOD.filteredEvents[eventId .. filterName] == nil then
-        return
-    end
-    for _, handlerFunction in pairs(MOD.filteredEvents[eventId .. filterName]) do
-        handlerFunction(eventData)
     end
 end
 

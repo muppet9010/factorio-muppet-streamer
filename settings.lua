@@ -22,9 +22,17 @@ data:extend(
             order = "1003"
         },
         {
+            name = "muppet_streamer-starting_reveal",
+            type = "int-setting",
+            default_value = -1,
+            minimum_value = -1,
+            setting_type = "startup",
+            order = "1004"
+        },
+        {
             name = "muppet_streamer-recruit_team_member_technology_cost",
             type = "int-setting",
-            default_value = 0,
+            default_value = -1,
             min_value = -1,
             setting_type = "startup",
             order = "2001"
