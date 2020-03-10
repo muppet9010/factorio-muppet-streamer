@@ -1,7 +1,7 @@
 --[[
     Used to get tile (biome) approperiate trees, rather than just select any old tree. Means they will fit in to the map better, although vanilla forest types don't always fully match the biome they are in.
     Will only nicely handle vanilla tiles and trees, modded tiles will get a random tree if they are a land-ish type tile.
-    Require the file and call the desired functions when needed. No pre-setup required.
+    Require the file and call the desired functions when needed (non _ functions t top of file). No pre-setup required.
 ]]
 local Utils = require("utility/utils")
 local Logging = require("utility/logging")
@@ -39,22 +39,31 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
 
     local suitableTrees = {}
     local currentChance = 0
-    for _, tree in pairs(global.UTILITYBIOMETREES.treeData) do
-        if tree.tempRange[1] <= tileTemp and tree.tempRange[2] >= tileTemp and tree.moistureRange[1] <= tileMoisture and tree.moistureRange[2] >= tileMoisture then
-            local treeEntry = {
-                chanceStart = currentChance,
-                chanceEnd = currentChance + tree.probability,
-                tree = tree
-            }
-            table.insert(suitableTrees, treeEntry)
-            currentChance = treeEntry.chanceEnd
+    --Make sure we find a tree of some type. Start as accurate as possible and then beocme less precise.
+    for accuracy = 1, 1.5, 0.1 do
+        for _, tree in pairs(global.UTILITYBIOMETREES.treeData) do
+            if tileTemp >= tree.tempRange[1] / accuracy and tileTemp <= tree.tempRange[2] * accuracy and tileMoisture >= tree.moistureRange[1] / accuracy and tileMoisture <= tree.moistureRange[2] * accuracy then
+                local treeEntry = {
+                    chanceStart = currentChance,
+                    chanceEnd = currentChance + tree.probability,
+                    tree = tree
+                }
+                table.insert(suitableTrees, treeEntry)
+                currentChance = treeEntry.chanceEnd
+            end
+        end
+        if #suitableTrees > 0 then
+            if logPositives then
+                Logging.LogPrint(#suitableTrees .. " found on accuracy: " .. accuracy)
+            end
+            break
         end
     end
     if #suitableTrees == 0 then
         if logNonPositives then
             Logging.LogPrint("No tree found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture)
         end
-        return BiomeTrees._GetTruelyRandomTreeForTileCollision()
+        return BiomeTrees._GetTruelyRandomTreeForTileCollision(tile)
     end
     if logPositives then
         Logging.LogPrint("trees found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture)
@@ -132,12 +141,12 @@ BiomeTrees._GetTreeData = function()
             treeData[prototype.name] = {
                 name = prototype.name,
                 tempRange = {
-                    autoplace.temperature_optimal - (autoplace.temperature_range * 1.5),
-                    autoplace.temperature_optimal + (autoplace.temperature_range * 1.5)
+                    autoplace.temperature_optimal - (autoplace.temperature_range),
+                    autoplace.temperature_optimal + (autoplace.temperature_range)
                 },
                 moistureRange = {
-                    autoplace.water_optimal - (autoplace.water_range * 1.5),
-                    autoplace.water_optimal + (autoplace.water_range * 1.5)
+                    autoplace.water_optimal - (autoplace.water_range),
+                    autoplace.water_optimal + (autoplace.water_range)
                 },
                 probability = prototype.autoplace_specification.max_probability
             }
