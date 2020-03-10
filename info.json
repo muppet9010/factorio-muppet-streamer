@@ -7,8 +7,7 @@
     "homepage": "https://mods.factorio.com/mod/muppet_streamer",
     "factorio_version": "0.18",
     "dependencies": [
-        "base >= 0.18",
-        "? biter_reincarnation"
+        "base >= 0.18"
     ],
     "description": "Mod for streamers to customise and add flavour to their play throughs."
 }

@@ -97,4 +97,4 @@ Spawns entities in the game around the named player on their side. Incldues both
     - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count, for fire it's the stacked fire count (longer burn/more damage).
 - Example command 1: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
 - Example command 2: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"destroy", "quantity":10, "ammo":10}`
-- For entityType of tree a random tree will be selected, unless the biter_reincarnation mod is present, then the tree will be biome specific.
+- For entityType of tree placed on a vanilla game tile a biome specific tree will be selected, otherwise the tree will be random.

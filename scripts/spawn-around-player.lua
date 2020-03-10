@@ -3,11 +3,11 @@ local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
+local BiomeTrees = require("utility/functions/biome-trees")
 
 SpawnAroundPlayer.CreateGlobals = function()
     global.spawnAroundPlayer = global.spawnAroundPlayer or {}
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId or 0
-    global.spawnAroundPlayer.randomTrees = global.spawnAroundPlayer.randomTrees or {}
 end
 
 SpawnAroundPlayer.OnLoad = function()
@@ -16,7 +16,6 @@ SpawnAroundPlayer.OnLoad = function()
 end
 
 SpawnAroundPlayer.OnStartup = function()
-    SpawnAroundPlayer.PopulateRandomTrees()
 end
 
 SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
@@ -93,15 +92,17 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     if data.quantity ~= nil then
         local placed, targetPlaced, attempts, maxAttempts = 0, data.quantity, 0, data.quantity * 5
         while placed < targetPlaced do
-            local pos = Utils.RandomLocationInRadius(targetPos, data.radiusMax, data.radiusMin)
-            local entityName = entityTypeDetails.getEntityName()
-            local entityAlignedPosition = entityTypeDetails.getEntityAlignedPosition(pos)
-            if data.existingEntities == "avoid" then
-                entityAlignedPosition = entityTypeDetails.searchPlacement(surface, entityName, entityAlignedPosition, SpawnAroundPlayer.quantitySearchRadius)
-            end
-            if entityAlignedPosition ~= nil then
-                entityTypeDetails.placeEntity(surface, entityName, entityAlignedPosition, targetPlayer.force, data.ammoCount)
-                placed = placed + 1
+            local position = Utils.RandomLocationInRadius(targetPos, data.radiusMax, data.radiusMin)
+            local entityName = entityTypeDetails.getEntityName(surface, position)
+            if entityName ~= nil then
+                local entityAlignedPosition = entityTypeDetails.getEntityAlignedPosition(position)
+                if data.existingEntities == "avoid" then
+                    entityAlignedPosition = entityTypeDetails.searchPlacement(surface, entityName, entityAlignedPosition, SpawnAroundPlayer.quantitySearchRadius)
+                end
+                if entityAlignedPosition ~= nil then
+                    entityTypeDetails.placeEntity(surface, entityName, entityAlignedPosition, targetPlayer.force, data.ammoCount)
+                    placed = placed + 1
+                end
             end
             attempts = attempts + 1
             if attempts >= maxAttempts then
@@ -138,12 +139,16 @@ SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine = function(entityTypeDetails,
     end
 end
 
-SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, pos, surface, force, data)
+SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position, surface, force, data)
     if math.random() > data.density then
         return
     end
-    local entityName = entityTypeDetails.getEntityName()
-    local entityAlignedPosition = entityTypeDetails.getEntityAlignedPosition(pos)
+    local entityName = entityTypeDetails.getEntityName(surface, position)
+    if entityName == nil then
+        --no tree name is suitable for this tile, likely non land tile
+        return
+    end
+    local entityAlignedPosition = entityTypeDetails.getEntityAlignedPosition(position)
     if data.existingEntities == "avoid" then
         entityAlignedPosition = entityTypeDetails.searchPlacement(surface, entityName, entityAlignedPosition, SpawnAroundPlayer.densitySearchRadius)
     end
@@ -159,11 +164,7 @@ SpawnAroundPlayer.offgridPlacementJitter = 0.3
 SpawnAroundPlayer.EntityTypeDetails = {
     tree = {
         getEntityName = function(surface, position)
-            if remote.interfaces["biter_reincarnation"] == nil then
-                return global.spawnAroundPlayer.randomTrees[math.random(#global.spawnAroundPlayer.randomTrees)]
-            else
-                return remote.call("biter_reincarnation", "get_random_tree_type_for_position", surface, position)
-            end
+            return BiomeTrees.GetBiomeTreeName(surface, position)
         end,
         getEntityAlignedPosition = function(position)
             return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
@@ -343,12 +344,5 @@ SpawnAroundPlayer.EntityTypeDetails = {
         end
     }
 }
-
-SpawnAroundPlayer.PopulateRandomTrees = function()
-    global.spawnAroundPlayer.randomTrees = {}
-    for treeName in pairs(game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}})) do
-        table.insert(global.spawnAroundPlayer.randomTrees, treeName)
-    end
-end
 
 return SpawnAroundPlayer
