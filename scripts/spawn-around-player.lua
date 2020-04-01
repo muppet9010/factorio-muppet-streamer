@@ -81,7 +81,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     local data = eventData.data
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil then
+    if targetPlayer == nil or not targetPlayer.valid then
         Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
         return
     end
@@ -295,6 +295,9 @@ SpawnAroundPlayer.EntityTypeDetails = {
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
         placeEntity = function(surface, entityName, position, _, ammoCount)
+            if ammoCount ~= nil then
+                ammoCount = math.min(ammoCount, 250)
+            end
             surface.create_entity {name = entityName, position = position, force = "neutral", initial_ground_flame_count = ammoCount}
         end
     },
@@ -328,7 +331,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             surface.create_entity {name = entityName, position = position, force = force}
         end
     },
-    destroyedCapsule = {
+    destroyerCapsule = {
         getEntityName = function()
             return "destroyer-capsule"
         end,

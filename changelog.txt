@@ -4,6 +4,10 @@ Date: 2020-04-01
   Features:
   Changes:
   Bugfixes:
+    - Leaky flamethrower fix crash when player is dead or has no body.
+    - Added some checks to other places character inventory is used to make sure a character exists (not nil).
+    - Fix destroyer capsule typo in spawn around player.
+    - Stop spawn_around_player type of "fire" having an ammoCount above 250 as it crashes the game
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.2
