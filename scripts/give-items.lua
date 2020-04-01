@@ -16,9 +16,16 @@ GiveItems.OnLoad = function()
 end
 
 GiveItems.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInventorySlot, selectWeapon)
+    if player == nil or not player.valid then
+        return nil
+    end
+
     -- If forceWeaponToWeaponInventorySlot is true and the player has full gun slots then a weapon is randomly selected and moved to the player inventory with its ammo. So that our weapon can be put there.
     local weaponFoundIndex, weaponGiven = 0, false
     local gunInventory = player.get_inventory(defines.inventory.character_guns)
+    if gunInventory == nil then
+        return nil
+    end
     for i = 1, #gunInventory do
         local gunItemStack = gunInventory[i]
         if gunItemStack ~= nil and gunItemStack.valid_for_read then
@@ -158,7 +165,7 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
     local data = eventData.data
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil then
+    if targetPlayer == nil or not targetPlayer.valid then
         Logging.LogPrint("ERROR: muppet_streamer_give_player_weapon_ammo command target player not found at delivery time: " .. data.target)
         return
     end

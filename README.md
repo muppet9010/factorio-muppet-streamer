@@ -41,8 +41,11 @@ Can deliver a highly customisable explosive delivery via command. A number of th
     - accuracyRadiusMax: NUMBER - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
 - Example command 1: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command 2: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
-- Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories may vary.
 
+Notes:
+
+- Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
+- Weapons are on the "enemy" team and so don't get affected by your research.
 
 Leaky Flamethrower
 ------------------
@@ -55,10 +58,14 @@ Gives the targeted player a flamethrower that shoots in random dirctions for sho
     - ammoCount: NUMBER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired, if 0 then the command is ignored.
     - target: STRING - Mandatory: the player name to target.
 - Example command 1: `/muppet_streamer_leaky_flamethrower {"delay":5, "ammoCount":5, "target":"muppet9010"}`
+
+Notes:
+
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one.
 - While activated the player will loose control over their weapons targetign and firing behaviour.
 - While activated the player can not change active gun via the switch to next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to do. However, this is such an active countering of the mods behaviour.
+- The flamethrower is yours and so any of your damage upgrades will affect it.
 
 
 Give Weapon & Ammo
@@ -76,6 +83,9 @@ Ensures the target player has a specific weapon and can give ammo and force thei
     - ammoType: STRING - Optional: the name of the ammo type to be given to the player.
     - ammoCount: NUMBER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
 - Example command 1: `/muppet_streamer_give_player_weapon_ammo {"delay":5, "target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
+
+Notes:
+
 - If there isn't room in the character inventory for items they will eb dropped on the ground at the players feet.
 
 
@@ -88,13 +98,17 @@ Spawns entities in the game around the named player on their side. Incldues both
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the spawning occurs. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to center upon.
-	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, wall, fire, defenderCapsule, distractorCapsule, destroyedCapsule.
+	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, wall, fire, defenderCapsule, distractorCapsule, destroyerCapsule.
 	- radiusMax: NUMBER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: NUMBER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a peremiter is effectively made. If not provided then 0 is used.
     - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
 	- quantity: NUMBER - Optional: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truely random placement within the radius which is then searched around for a near by valid spot. Intended for small quantities.
 	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities.
-    - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count, for fire it's the stacked fire count (longer burn/more damage).
-- Example command 1: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
-- Example command 2: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"destroy", "quantity":10, "ammo":10}`
+    - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count and ammo over the turrets max storage is ignored. For fire it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
+- Example command 1: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
+- Example command 2: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount":10}`
+- Example command 3: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density": 0.05, "ammoCount": 100}`
+
+Notes:
+
 - For entityType of tree placed on a vanilla game tile a biome specific tree will be selected, otherwise the tree will be random.

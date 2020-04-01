@@ -73,8 +73,11 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local data, ammoCount = eventData.data, eventData.data.ammoCount
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil then
+    if targetPlayer == nil or not targetPlayer.valid then
         Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
+        return
+    end
+    if targetPlayer.character == nil or not targetPlayer.character.valid then
         return
     end
 
