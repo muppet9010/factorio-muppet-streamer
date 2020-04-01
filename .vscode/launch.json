@@ -8,7 +8,10 @@
             "type": "factoriomod",
             "request": "launch",
             "name": "Factorio Mod Debug",
-            "factorioPath": "C:/FactorioModding/bin/x64/factorio.exe"
+            "factorioPath": "C:/FactorioModding/bin/x64/factorio.exe",
+            "factorioArgs": [
+                "--window-size=1280x720"
+            ]
         }
     ]
 }
