@@ -41,8 +41,11 @@ Can deliver a highly customisable explosive delivery via command. A number of th
     - accuracyRadiusMax: NUMBER - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
 - Example command 1: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command 2: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
-- Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories may vary.
 
+Notes:
+
+- Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
+- Weapons are on the "enemy" team and so don't get affected by your research.
 
 Leaky Flamethrower
 ------------------
@@ -62,6 +65,7 @@ Notes:
 - While activated the player will loose control over their weapons targetign and firing behaviour.
 - While activated the player can not change active gun via the switch to next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to do. However, this is such an active countering of the mods behaviour.
+- The flamethrower is yours and so any of your damage upgrades will affect it.
 
 
 Give Weapon & Ammo

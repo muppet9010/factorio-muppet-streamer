@@ -9,6 +9,7 @@ Date: 2020-04-01
     - Fix destroyer capsule typo in spawn around player.
     - Stop spawn_around_player type of "fire" having an ammoCount above 250 as it crashes the game
   Info:
+    - Many small readme fixes and clarifications added.
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.2
 Date: 2020-02-28
