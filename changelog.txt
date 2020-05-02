@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 18.0.4
+Date: 2020-05-02
+  Features:
+  Changes:
+  Bugfixes:
+    - When giving weapons and ammo if the items spilled on the floor it errored. No longer happens.
+---------------------------------------------------------------------------------------------------
 Version: 18.0.3
 Date: 2020-04-01
   Features:

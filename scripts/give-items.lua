@@ -43,7 +43,7 @@ GiveItems.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInve
             if gunItemStack ~= nil and gunItemStack.valid_for_read then
                 local gunInsertedCount = player.insert({name = gunItemStack.name, count = gunItemStack.count})
                 if gunInsertedCount < gunItemStack.count then
-                    player.surface.spill_item_stack({name = gunItemStack.name, count = gunItemStack.count - gunInsertedCount})
+                    player.surface.spill_item_stack(player.position, {name = gunItemStack.name, count = gunItemStack.count - gunInsertedCount}, true, nil, false)
                 end
             end
             gunInventory.set_filter(weaponFoundIndex, nil)
@@ -54,7 +54,7 @@ GiveItems.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInve
             if ammoItemStack ~= nil and ammoItemStack.valid_for_read then
                 local ammoInsertedCount = player.insert({name = ammoItemStack.name, count = ammoItemStack.count})
                 if ammoInsertedCount < ammoItemStack.count then
-                    player.surface.spill_item_stack({name = ammoItemStack.name, count = ammoItemStack.count - ammoInsertedCount})
+                    player.surface.spill_item_stack(player.position, {name = ammoItemStack.name, count = ammoItemStack.count - ammoInsertedCount}, true, nil, false)
                 end
             end
             ammoInventory.set_filter(weaponFoundIndex, nil)
@@ -174,9 +174,9 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
         GiveItems.EnsureHasWeapon(targetPlayer, data.weaponType.name, data.forceWeaponToSlot, data.selectWeapon)
     end
     if data.ammoType ~= nil and data.ammoType.valid and data.ammoCount > 0 then
-        local inserted = targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = data.ammoType.name, count = data.ammoCount})
+        local inserted = targetPlayer.insert({name = data.ammoType.name, count = data.ammoCount})
         if inserted < data.ammoCount then
-            targetPlayer.surface.spill_item_stack({name = data.ammoType.name, count = data.ammoCount - inserted})
+            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = data.ammoType.name, count = data.ammoCount - inserted}, true, nil, false)
         end
     end
 end
