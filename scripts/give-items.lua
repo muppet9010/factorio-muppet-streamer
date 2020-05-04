@@ -11,7 +11,7 @@ end
 
 GiveItems.OnLoad = function()
     Interfaces.RegisterInterface("GiveItems.EnsureHasWeapon", GiveItems.EnsureHasWeapon)
-    Commands.Register("muppet_streamer_give_player_weapon_ammo", {"api-description.muppet_streamer_give_player_weapon_ammo"}, GiveItems.GivePlayerWeaponAmmoCommand)
+    Commands.Register("muppet_streamer_give_player_weapon_ammo", {"api-description.muppet_streamer_give_player_weapon_ammo"}, GiveItems.GivePlayerWeaponAmmoCommand, true)
     EventScheduler.RegisterScheduledEventType("GiveItems.GiveWeaponAmmoScheduled", GiveItems.GiveWeaponAmmoScheduled)
 end
 
@@ -93,7 +93,10 @@ end
 
 GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_give_player_weapon_ammo command "
-    local commandData = game.json_to_table(command.parameter)
+    local commandData
+    if command.parameter ~= nil then
+        commandData = game.json_to_table(command.parameter)
+    end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
         return

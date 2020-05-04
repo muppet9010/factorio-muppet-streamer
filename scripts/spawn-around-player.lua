@@ -11,7 +11,7 @@ SpawnAroundPlayer.CreateGlobals = function()
 end
 
 SpawnAroundPlayer.OnLoad = function()
-    Commands.Register("muppet_streamer_spawn_around_player", {"api-description.muppet_streamer_spawn_around_player"}, SpawnAroundPlayer.SpawnAroundPlayerCommand)
+    Commands.Register("muppet_streamer_spawn_around_player", {"api-description.muppet_streamer_spawn_around_player"}, SpawnAroundPlayer.SpawnAroundPlayerCommand, true)
     EventScheduler.RegisterScheduledEventType("SpawnAroundPlayer.SpawnAroundPlayerScheduled", SpawnAroundPlayer.SpawnAroundPlayerScheduled)
 end
 
@@ -20,7 +20,10 @@ end
 
 SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_spawn_around_player command "
-    local commandData = game.json_to_table(command.parameter)
+    local commandData
+    if command.parameter ~= nil then
+        commandData = game.json_to_table(command.parameter)
+    end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
         return

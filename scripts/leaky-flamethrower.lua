@@ -13,7 +13,7 @@ LeakyFlamethrower.CreateGlobals = function()
 end
 
 LeakyFlamethrower.OnLoad = function()
-    Commands.Register("muppet_streamer_leaky_flamethrower", {"api-description.muppet_streamer_leaky_flamethrower"}, LeakyFlamethrower.LeakyFlamethrowerCommand)
+    Commands.Register("muppet_streamer_leaky_flamethrower", {"api-description.muppet_streamer_leaky_flamethrower"}, LeakyFlamethrower.LeakyFlamethrowerCommand, true)
     EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ShootFlamethrower", LeakyFlamethrower.ShootFlamethrower)
     Events.RegisterEvent(defines.events.on_player_died)
     Events.RegisterHandler(defines.events.on_player_died, "LeakyFlamethrower.OnPlayerDied", LeakyFlamethrower.OnPlayerDied)
@@ -31,7 +31,10 @@ end
 
 LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command "
-    local commandData = game.json_to_table(command.parameter)
+    local commandData
+    if command.parameter ~= nil then
+        commandData = game.json_to_table(command.parameter)
+    end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
         return

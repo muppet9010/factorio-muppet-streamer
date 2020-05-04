@@ -10,13 +10,16 @@ ExplosiveDelivery.CreateGlobals = function()
 end
 
 ExplosiveDelivery.OnLoad = function()
-    Commands.Register("muppet_streamer_schedule_explosive_delivery", {"api-description.muppet_streamer_schedule_explosive_delivery"}, ExplosiveDelivery.ScheduleExplosiveDeliveryCommand)
+    Commands.Register("muppet_streamer_schedule_explosive_delivery", {"api-description.muppet_streamer_schedule_explosive_delivery"}, ExplosiveDelivery.ScheduleExplosiveDeliveryCommand, true)
     EventScheduler.RegisterScheduledEventType("ExplosiveDelivery.DeliverExplosives", ExplosiveDelivery.DeliverExplosives)
 end
 
 ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_schedule_explosive_delivery command "
-    local commandData = game.json_to_table(command.parameter)
+    local commandData
+    if command.parameter ~= nil then
+        commandData = game.json_to_table(command.parameter)
+    end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
         return

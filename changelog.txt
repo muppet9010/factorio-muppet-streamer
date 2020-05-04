@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 18.0.5
+Date: 2020-05-04
+  Features:
+  Changes:
+  Bugfixes:
+    - Made all commands be admin only.
+    - Made all commands not error if no data is passed to them.
+---------------------------------------------------------------------------------------------------
 Version: 18.0.4
 Date: 2020-05-02
   Features:

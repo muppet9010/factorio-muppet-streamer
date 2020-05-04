@@ -39,7 +39,7 @@ Can deliver a highly customisable explosive delivery via command. A number of th
     - target: STRING - Mandatory: the player name to target.
     - accuracyRadiusMin: NUMBER - Optional: the minimum distance from the target that can be randomly selected within. If not specified defaults to 0.
     - accuracyRadiusMax: NUMBER - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
-- Example command 1: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
+- Example command 1: `/muppet_streamer_schedule_explosive_delivery {"delay":1, "explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command 2: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
 
 Notes:
@@ -57,7 +57,7 @@ Gives the targeted player a flamethrower that shoots in random dirctions for sho
     - delay: NUMBER - Optional: how many seconds the flamethrower and effects are delayed for before starting. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - ammoCount: NUMBER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired, if 0 then the command is ignored.
     - target: STRING - Mandatory: the player name to target.
-- Example command 1: `/muppet_streamer_leaky_flamethrower {"delay":5, "ammoCount":5, "target":"muppet9010"}`
+- Example command 1: `/muppet_streamer_leaky_flamethrower {"delay":1, "ammoCount":5, "target":"muppet9010"}`
 
 Notes:
 
@@ -82,7 +82,7 @@ Ensures the target player has a specific weapon and can give ammo and force thei
     - selectWeapon: BOOLEAN - Optional: if true the player will have this weaponType selected as active if its equiped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
     - ammoType: STRING - Optional: the name of the ammo type to be given to the player.
     - ammoCount: NUMBER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
-- Example command 1: `/muppet_streamer_give_player_weapon_ammo {"delay":5, "target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
+- Example command 1: `/muppet_streamer_give_player_weapon_ammo {"delay":1, "target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
 
 Notes:
 
@@ -106,7 +106,7 @@ Spawns entities in the game around the named player on their side. Incldues both
 	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities.
     - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count and ammo over the turrets max storage is ignored. For fire it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
 - Example command 1: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
-- Example command 2: `/muppet_streamer_spawn_around_player {"delay":5, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount":10}`
+- Example command 2: `/muppet_streamer_spawn_around_player {"delay":1, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount":10}`
 - Example command 3: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density": 0.05, "ammoCount": 100}`
 
 Notes:
