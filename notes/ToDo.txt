@@ -1,3 +1,15 @@
+TODO:
+    - spawn around player capsules errors that target not specified
+
 Next:
     - add a smart teleport that checks for valid placement and path finder back to where the player was to avoid island teleports. add option to teleport to nearest biter nest or player entity / military entity.
     - add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
+	- the code doesn't handle trees being removed after the game starts. you could try wiping the cached data from the mods global. Will probably work, but do at your own risk. global.UTILITYBIOMETREES
+
+Notes from other location, may be old:
+	- flamethrower doesn't always move weapons out of the way, maybe to do with filtering?
+	- If it clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards.
+	- check all abilities handle dead players nicely. giving stuff should go in their corpse inventory or on the ground.
+	- add option to give extra copy of weapon or just ensure they have 1. Meak readme really clear. Also make option for if ammo is added and or just topped up.
+	- add landmine as entity placement type.
+	- Add option to set the force of placed entities, default to player.
