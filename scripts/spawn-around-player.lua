@@ -75,8 +75,16 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local density = tonumber(commandData.density)
     local ammoCount = tonumber(commandData.ammoCount)
 
+    local followPlayer = commandData.followPlayer
+    if followPlayer ~= nil then
+        if type(followPlayer) ~= "boolean" then
+            Logging.LogPrint(errorMessageStart .. "optional followPlayer provided, but isn't a boolean true/false")
+            return
+        end
+    end
+
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "SpawnAroundPlayer.SpawnAroundPlayerScheduled", global.spawnAroundPlayer.nextId, {target = target, entityName = entityName, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount})
+    EventScheduler.ScheduleEvent(command.tick + delay, "SpawnAroundPlayer.SpawnAroundPlayerScheduled", global.spawnAroundPlayer.nextId, {target = target, entityName = entityName, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer})
 end
 
 SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
@@ -88,9 +96,11 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
         Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
         return
     end
-    local targetPos, surface = targetPlayer.position, targetPlayer.surface
-
+    local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0
     local entityTypeDetails = SpawnAroundPlayer.EntityTypeDetails[data.entityName]
+    if data.followPlayer and entityTypeDetails.followPlayerMax ~= nil then
+        followsLeft = entityTypeDetails.followPlayerMax(targetPlayer)
+    end
 
     if data.quantity ~= nil then
         local placed, targetPlaced, attempts, maxAttempts = 0, data.quantity, 0, data.quantity * 5
@@ -103,7 +113,12 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
                     entityAlignedPosition = entityTypeDetails.searchPlacement(surface, entityName, entityAlignedPosition, SpawnAroundPlayer.quantitySearchRadius)
                 end
                 if entityAlignedPosition ~= nil then
-                    entityTypeDetails.placeEntity(surface, entityName, entityAlignedPosition, targetPlayer.force, data.ammoCount)
+                    local thisOneFollows = false
+                    if followsLeft > 0 then
+                        thisOneFollows = true
+                        followsLeft = followsLeft - 1
+                    end
+                    entityTypeDetails.placeEntity(surface, entityName, entityAlignedPosition, targetPlayer, data.ammoCount, thisOneFollows)
                     placed = placed + 1
                 end
             end
@@ -113,18 +128,19 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
             end
         end
     elseif data.density ~= nil then
-        --do outer perimiter first
+        local followsLeftTable = {followsLeft} -- Do as table so it can be passed by reference in to functions
+        -- Do outer perimiter first
         for yOffset = -data.radiusMax, data.radiusMax, entityTypeDetails.gridPlacementSize do
-            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, 1, yOffset)
-            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, -1, yOffset)
+            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, 1, yOffset, followsLeftTable)
+            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, -1, yOffset, followsLeftTable)
         end
         if data.radiusMin ~= data.radiusMax then
-            --fill in between circles
+            -- Fill in between circles
             for yOffset = -data.radiusMax, data.radiusMax, entityTypeDetails.gridPlacementSize do
                 for xOffset = -data.radiusMax, data.radiusMax, entityTypeDetails.gridPlacementSize do
                     local placementPos = Utils.ApplyOffsetToPosition({x = xOffset, y = yOffset}, targetPos)
                     if Utils.IsPositionWithinCircled(targetPos, data.radiusMax, placementPos) and not Utils.IsPositionWithinCircled(targetPos, data.radiusMin, placementPos) then
-                        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, placementPos, surface, targetPlayer.force, data)
+                        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, placementPos, surface, targetPlayer, data, followsLeftTable)
                     end
                 end
             end
@@ -132,17 +148,17 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     end
 end
 
-SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine = function(entityTypeDetails, data, targetPos, surface, targetPlayer, radius, lineSlope, lineYOffset)
+SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine = function(entityTypeDetails, data, targetPos, surface, targetPlayer, radius, lineSlope, lineYOffset, followsLeftTable)
     local crossPos1, crossPos2 = Utils.FindWhereLineCrossesCircle(radius, lineSlope, lineYOffset)
     if crossPos1 ~= nil then
-        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, Utils.ApplyOffsetToPosition(crossPos1, targetPos), surface, targetPlayer.force, data)
+        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, Utils.ApplyOffsetToPosition(crossPos1, targetPos), surface, targetPlayer, data, followsLeftTable)
     end
     if crossPos2 ~= nil then
-        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, Utils.ApplyOffsetToPosition(crossPos2, targetPos), surface, targetPlayer.force, data)
+        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, Utils.ApplyOffsetToPosition(crossPos2, targetPos), surface, targetPlayer, data, followsLeftTable)
     end
 end
 
-SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position, surface, force, data)
+SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position, surface, targetPlayer, data, followsLeftTable)
     if math.random() > data.density then
         return
     end
@@ -155,8 +171,13 @@ SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position
     if data.existingEntities == "avoid" then
         entityAlignedPosition = entityTypeDetails.searchPlacement(surface, entityName, entityAlignedPosition, SpawnAroundPlayer.densitySearchRadius)
     end
+    local thisOneFollows = false
+    if followsLeftTable[1] > 0 then
+        thisOneFollows = true
+        followsLeftTable[1] = followsLeftTable[1] - 1
+    end
     if entityAlignedPosition ~= nil then
-        entityTypeDetails.placeEntity(surface, entityName, entityAlignedPosition, force, data.ammoCount)
+        entityTypeDetails.placeEntity(surface, entityName, entityAlignedPosition, targetPlayer, data.ammoCount, thisOneFollows)
     end
 end
 
@@ -176,8 +197,8 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
-        placeEntity = function(surface, entityName, position, force)
-            surface.create_entity {name = entityName, position = position, force = force}
+        placeEntity = function(surface, entityName, position, targetPlayer, _, _)
+            surface.create_entity {name = entityName, position = position, force = targetPlayer.force}
         end
     },
     rock = {
@@ -198,7 +219,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
-        placeEntity = function(surface, entityName, position)
+        placeEntity = function(surface, entityName, position, _, _, _)
             surface.create_entity {name = entityName, position = position, force = "neutral"}
         end
     },
@@ -213,8 +234,8 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 1)
         end,
-        placeEntity = function(surface, entityName, position, force)
-            surface.create_entity {name = entityName, position = position, force = force}
+        placeEntity = function(surface, entityName, position, targetPlayer, _, _)
+            surface.create_entity {name = entityName, position = position, force = targetPlayer.force}
         end
     },
     gunTurretRegularAmmo = {
@@ -228,8 +249,8 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 1)
         end,
-        placeEntity = function(surface, entityName, position, force, ammoCount)
-            local turret = surface.create_entity {name = entityName, position = position, force = force}
+        placeEntity = function(surface, entityName, position, targetPlayer, ammoCount, _)
+            local turret = surface.create_entity {name = entityName, position = position, force = targetPlayer.force}
             if turret ~= nil then
                 turret.insert({name = "firearm-magazine", count = ammoCount})
             end
@@ -246,8 +267,8 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 1)
         end,
-        placeEntity = function(surface, entityName, position, force, ammoCount)
-            local turret = surface.create_entity {name = entityName, position = position, force = force}
+        placeEntity = function(surface, entityName, position, targetPlayer, ammoCount, _)
+            local turret = surface.create_entity {name = entityName, position = position, force = targetPlayer.force}
             if turret ~= nil then
                 turret.insert({name = "piercing-rounds-magazine", count = ammoCount})
             end
@@ -264,8 +285,8 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 1)
         end,
-        placeEntity = function(surface, entityName, position, force, ammoCount)
-            local turret = surface.create_entity {name = entityName, position = position, force = force}
+        placeEntity = function(surface, entityName, position, targetPlayer, ammoCount, _)
+            local turret = surface.create_entity {name = entityName, position = position, force = targetPlayer.force}
             if turret ~= nil then
                 turret.insert({name = "uranium-rounds-magazine", count = ammoCount})
             end
@@ -282,8 +303,8 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 1, true)
         end,
-        placeEntity = function(surface, entityName, position, force)
-            surface.create_entity {name = entityName, position = position, force = force}
+        placeEntity = function(surface, entityName, position, targetPlayer, _, _)
+            surface.create_entity {name = entityName, position = position, force = targetPlayer.force}
         end
     },
     fire = {
@@ -297,16 +318,16 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
-        placeEntity = function(surface, entityName, position, _, ammoCount)
+        placeEntity = function(surface, entityName, position, _, ammoCount, _)
             if ammoCount ~= nil then
                 ammoCount = math.min(ammoCount, 250)
             end
             surface.create_entity {name = entityName, position = position, force = "neutral", initial_ground_flame_count = ammoCount}
         end
     },
-    defenderCapsule = {
+    defenderBot = {
         getEntityName = function()
-            return "defender-capsule"
+            return "defender"
         end,
         getEntityAlignedPosition = function(position)
             return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
@@ -315,13 +336,20 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
-        placeEntity = function(surface, entityName, position, force)
-            surface.create_entity {name = entityName, position = position, force = force}
+        placeEntity = function(surface, entityName, position, targetPlayer, _, followPlayer)
+            local target
+            if followPlayer then
+                target = targetPlayer.character
+            end
+            surface.create_entity {name = entityName, position = position, force = targetPlayer.force, target = target}
+        end,
+        followPlayerMax = function(targetPlayer)
+            return SpawnAroundPlayer.GetPlayerMaxBotFollows(targetPlayer)
         end
     },
-    distractorCapsule = {
+    distractorBot = {
         getEntityName = function()
-            return "distractor-capsule"
+            return "distractor"
         end,
         getEntityAlignedPosition = function(position)
             return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
@@ -330,13 +358,13 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
-        placeEntity = function(surface, entityName, position, force)
-            surface.create_entity {name = entityName, position = position, force = force}
+        placeEntity = function(surface, entityName, position, targetPlayer, _, _)
+            surface.create_entity {name = entityName, position = position, force = targetPlayer.force}
         end
     },
-    destroyerCapsule = {
+    destroyerBot = {
         getEntityName = function()
-            return "destroyer-capsule"
+            return "destroyer"
         end,
         getEntityAlignedPosition = function(position)
             return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
@@ -345,10 +373,26 @@ SpawnAroundPlayer.EntityTypeDetails = {
         searchPlacement = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
-        placeEntity = function(surface, entityName, position, force)
-            surface.create_entity {name = entityName, position = position, force = force}
+        placeEntity = function(surface, entityName, position, targetPlayer, _, followPlayer)
+            local target
+            if followPlayer then
+                target = targetPlayer.character
+            end
+            surface.create_entity {name = entityName, position = position, force = targetPlayer.force, target = target}
+        end,
+        followPlayerMax = function(targetPlayer)
+            return SpawnAroundPlayer.GetPlayerMaxBotFollows(targetPlayer)
         end
     }
 }
+
+SpawnAroundPlayer.GetPlayerMaxBotFollows = function(targetPlayer)
+    if targetPlayer.character == nil then
+        return 0
+    end
+    local max = targetPlayer.character_maximum_following_robot_count_bonus + targetPlayer.force.maximum_following_robot_count
+    local current = #targetPlayer.following_robots
+    return max - current
+end
 
 return SpawnAroundPlayer
