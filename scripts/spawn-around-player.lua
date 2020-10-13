@@ -15,9 +15,6 @@ SpawnAroundPlayer.OnLoad = function()
     EventScheduler.RegisterScheduledEventType("SpawnAroundPlayer.SpawnAroundPlayerScheduled", SpawnAroundPlayer.SpawnAroundPlayerScheduled)
 end
 
-SpawnAroundPlayer.OnStartup = function()
-end
-
 SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_spawn_around_player command "
     local commandData

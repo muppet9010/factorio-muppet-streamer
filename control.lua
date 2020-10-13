@@ -34,7 +34,6 @@ local function OnStartup()
     Freeplay.OnStartup()
     TeamMember.OnStartup()
     LeakyFlamethrower.OnStartup()
-    SpawnAroundPlayer.OnStartup()
 end
 
 script.on_init(OnStartup)
