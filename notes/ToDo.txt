@@ -5,7 +5,6 @@ TODO:
 	- add option to give extra copy of weapon or just ensure they have 1. Meak readme really clear. Also make option for if ammo is added and or just topped up.
 
 Future:
-	- Add option to set the force of placed entities, default to player.
     - add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
     - Agrresive Train Driver:
         - Commands to lock the player in the train and force forwards driving for a set time period.

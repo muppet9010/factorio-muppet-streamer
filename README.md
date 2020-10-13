@@ -98,6 +98,7 @@ Spawns entities in the game around the named player on their side. Incldues both
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the spawning occurs. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to center upon.
+    - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player` or `enemy`), or leave blank for the force of the targeted player. Certain entity types are hardcoded like trees, rocks and fire to be neutral.
 	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, wall, fire, defenderBot, distractorBot, destroyerBot.
 	- radiusMax: NUMBER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: NUMBER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a peremiter is effectively made. If not provided then 0 is used.
