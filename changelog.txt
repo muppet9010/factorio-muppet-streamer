@@ -3,6 +3,7 @@ Version: 19.0.6
 Date: 2020-xxxxxxx
   Features:
     - Combat robots have option to follow the player or not. Any robots which can't follow will just be created loose on the map.
+    - Add landmine option to spawn around player feature.
   Changes:
   Bugfixes:
     - Fix combat robots commands from erroring.

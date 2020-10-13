@@ -307,6 +307,21 @@ SpawnAroundPlayer.EntityTypeDetails = {
             surface.create_entity {name = entityName, position = position, force = targetPlayer.force}
         end
     },
+    landmine = {
+        getEntityName = function()
+            return "land-mine"
+        end,
+        getEntityAlignedPosition = function(position)
+            return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+        end,
+        gridPlacementSize = 1,
+        searchPlacement = function(surface, entityName, position, searchRadius)
+            return surface.find_non_colliding_position(entityName, position, searchRadius, 1, true)
+        end,
+        placeEntity = function(surface, entityName, position, targetPlayer, _, _)
+            surface.create_entity {name = entityName, position = position, force = targetPlayer.force}
+        end
+    },
     fire = {
         getEntityName = function()
             return "fire-flame"
