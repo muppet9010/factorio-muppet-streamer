@@ -6,6 +6,7 @@ local LeakyFlamethrower = require("scripts/leaky-flamethrower")
 local EventScheduler = require("utility/event-scheduler")
 local GiveItems = require("scripts/give-items")
 local SpawnAroundPlayer = require("scripts/spawn-around-player")
+local AggressiveDriver = require("scripts/aggressive-driver")
 
 local function CreateGlobals()
     TeamMember.CreateGlobals()
@@ -13,6 +14,7 @@ local function CreateGlobals()
     LeakyFlamethrower.CreateGlobals()
     GiveItems.CreateGlobals()
     SpawnAroundPlayer.CreateGlobals()
+    AggressiveDriver.CreateGlobals()
 end
 
 local function OnLoad()
@@ -24,6 +26,7 @@ local function OnLoad()
     LeakyFlamethrower.OnLoad()
     GiveItems.OnLoad()
     SpawnAroundPlayer.OnLoad()
+    AggressiveDriver.OnLoad()
 end
 
 local function OnStartup()
@@ -34,6 +37,7 @@ local function OnStartup()
     Freeplay.OnStartup()
     TeamMember.OnStartup()
     LeakyFlamethrower.OnStartup()
+    AggressiveDriver.OnStartup()
 end
 
 script.on_init(OnStartup)

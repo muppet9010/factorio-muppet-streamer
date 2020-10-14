@@ -7,10 +7,11 @@ Features
 
 - Mod options to disable freeplay's rocket counter GUI, introduction message, rocket win conditon and set starting map reveal area.
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
-- Can schedule the delivery of some explosives to a player via command.
+- Can schedule the delivery of some explosives to a player at speed via command.
 - A leaky flamethrower that shoots for short bursts intermittently via command.
 - Give a player a weapon and ammo, plus options to force it as active weapon via command.
-- Spawn "friendly" entities around the player with various placement options via command.
+- Spawn entities around the player with various placement options via command.
+- Make the player an aggressive driver via command.
 
 
 Team Member Limit (other players than 1 streamer)
@@ -115,3 +116,18 @@ Spawns entities in the game around the named player on their side. Incldues both
 Notes:
 
 - For entityType of tree placed on a vanilla game tile a biome specific tree will be selected, otherwise the tree will be random.
+
+
+Aggressive Driver
+---------------
+
+The player is locked inside their vehicle and forced to drive forwards for the set duration. If the vehicle comes to a stop during the time it will automatiaclly start going the opposite direction.
+
+- Command syntax: `/muppet_streamer_aggressive_driver [DETAILS JSON STRING]`
+- Details in JSON string supports the arguments:
+    - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - target: STRING - Mandatory: the player name to target.
+    - duration: NUMBER - Mandatory: how long the effect lasts on the player.
+    - control: STRING - Optional: the control the player has over the left/right turning, either: `full` or `random`. If not specified then full is applied so the player can choose when to turn.
+    - teleportDistance: Number - Optional: the max distance that the player will be teleported in to the nearest vehicle. If not supplied is treated as 0 distance and so player isn't teleported.
+- Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"10", "control": "full"}`

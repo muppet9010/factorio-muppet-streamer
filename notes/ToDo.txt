@@ -7,13 +7,6 @@ TODO:
 
 Future:
     - add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
-    - Agrresive Train Driver:
-        - Commands to lock the player in the train and force forwards driving for a set time period.
-        - Steering Options:
-            - Player can steer
-            - Random steering by mod
-            - No steering
-        - Option to teleport player to a random train within X tiles
     - Call for Help:
         - set arrival radius
         - set max distance to call players from
