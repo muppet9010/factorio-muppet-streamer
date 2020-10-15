@@ -6,6 +6,8 @@ local EventScheduler = require("utility/event-scheduler")
 local Events = require("utility/events")
 local Interfaces = require("utility/interfaces")
 
+local EffectEndStatus = {completed = "completed", died = "died", invalid = "invalid"}
+
 LeakyFlamethrower.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
     global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {}
@@ -71,7 +73,7 @@ end
 
 LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command "
-    local data, ammoCount = eventData.data, eventData.data.ammoCount
+    local data = eventData.data
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil or not targetPlayer.valid then
@@ -89,7 +91,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     targetPlayer.driving = false
     local flamethrowerGiven = Interfaces.Call("GiveItems.EnsureHasWeapon", targetPlayer, "flamethrower", true, true)
 
-    targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = ammoCount})
+    targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = data.ammoCount})
     global.origionalPlayersPermissionGroup[targetPlayer.index] = global.origionalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
     targetPlayer.permission_group = game.permissions.get_group("LeakyFlamethrower")
     global.leakyFlamethrower.affectedPlayers[targetPlayer.index] = {flamethrowerGiven = flamethrowerGiven}
@@ -97,13 +99,13 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
     game.print({"message.muppet_streamer_leaky_flamethrower_start", targetPlayer.name})
-    LeakyFlamethrower.ShootFlamethrower({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = ammoCount}})
+    LeakyFlamethrower.ShootFlamethrower({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount}})
 end
 
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId
     if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
-        LeakyFlamethrower.StopEffectOnPlayer(playerIndex)
+        LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end
 
@@ -116,7 +118,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         data.currentBurstTicks = 0
         data.burstsDone = data.burstsDone + 1
         if data.burstsDone == data.maxBursts then
-            LeakyFlamethrower.StopEffectOnPlayer(playerIndex)
+            LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
             return
         end
         data.angle = math.random(0, 360)
@@ -133,16 +135,16 @@ end
 
 LeakyFlamethrower.OnPlayerDied = function(event)
     local playerIndex = event.player_index
-    LeakyFlamethrower.StopEffectOnPlayer(playerIndex)
+    LeakyFlamethrower.StopEffectOnPlayer(playerIndex, nil, EffectEndStatus.died)
 end
 
-LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex)
+LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     local affectedPlayer = global.leakyFlamethrower.affectedPlayers[playerIndex]
     if affectedPlayer == nil then
         return
     end
 
-    local player = game.get_player(playerIndex)
+    player = player or game.get_player(playerIndex)
     if player ~= nil and player.valid and player.character ~= nil and player.character.valid and affectedPlayer.flamethrowerGiven then
         local gunInventory = player.get_inventory(defines.inventory.character_guns)
         gunInventory.remove({name = "flamethrower", count = 1})
@@ -154,7 +156,9 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex)
         global.origionalPlayersPermissionGroup[playerIndex] = nil
     end
     global.leakyFlamethrower.affectedPlayers[playerIndex] = nil
-    game.print({"message.muppet_streamer_leaky_flamethrower_stop", player.name})
+    if status == EffectEndStatus.completed then
+        game.print({"message.muppet_streamer_leaky_flamethrower_stop", player.name})
+    end
 end
 
 return LeakyFlamethrower

@@ -3,7 +3,9 @@ local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
+
 local ControlTypes = {full = "full", random = "random"}
+local EffectEndStatus = {completed = "completed", died = "died", invalid = "invalid"}
 
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
@@ -142,7 +144,7 @@ end
 AggressiveDriver.Drive = function(eventData)
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId
     if player == nil or (not player.valid) or player.vehicle == nil or (not player.vehicle.valid) then
-        AggressiveDriver.StopEffectOnPlayer(playerIndex, player)
+        AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end
 
@@ -178,15 +180,15 @@ AggressiveDriver.Drive = function(eventData)
     if data.duration >= 0 then
         EventScheduler.ScheduleEvent(eventData.tick + 1, "AggressiveDriver.Drive", playerIndex, data)
     else
-        AggressiveDriver.StopEffectOnPlayer(playerIndex, player)
+        AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end
 end
 
 AggressiveDriver.OnPlayerDied = function(event)
-    AggressiveDriver.StopEffectOnPlayer(event.player_index)
+    AggressiveDriver.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)
 end
 
-AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player)
+AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
     local affectedPlayer = global.aggressiveDriver.affectedPlayers[playerIndex]
     if affectedPlayer == nil then
         return
@@ -203,7 +205,9 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player)
         acceleration = defines.riding.acceleration.braking,
         direction = defines.riding.direction.straight
     }
-    game.print({"message.muppet_streamer_aggressive_driver_stop", player.name})
+    if status == EffectEndStatus.completed then
+        game.print({"message.muppet_streamer_aggressive_driver_stop", player.name})
+    end
 end
 
 return AggressiveDriver
