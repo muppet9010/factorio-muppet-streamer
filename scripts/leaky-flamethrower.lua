@@ -21,12 +21,10 @@ LeakyFlamethrower.OnLoad = function()
 end
 
 LeakyFlamethrower.OnStartup = function()
-    if not game.permissions.get_group("LeakyFlamethrower") then
-        local group = game.permissions.create_group("LeakyFlamethrower")
-        group.set_allows_action(defines.input_action.select_next_valid_gun, false)
-        group.set_allows_action(defines.input_action.toggle_driving, false)
-        group.set_allows_action(defines.input_action.change_shooting_state, false)
-    end
+    local group = game.permissions.get_group("LeakyFlamethrower") or game.permissions.create_group("LeakyFlamethrower")
+    group.set_allows_action(defines.input_action.select_next_valid_gun, false)
+    group.set_allows_action(defines.input_action.toggle_driving, false)
+    group.set_allows_action(defines.input_action.change_shooting_state, false)
 end
 
 LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
@@ -92,18 +90,19 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local flamethrowerGiven = Interfaces.Call("GiveItems.EnsureHasWeapon", targetPlayer, "flamethrower", true, true)
 
     targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = ammoCount})
-    local oldPermissionGroup = targetPlayer.permission_group
+    global.origionalPlayersPermissionGroup[targetPlayer.index] = global.origionalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
     targetPlayer.permission_group = game.permissions.get_group("LeakyFlamethrower")
-    global.leakyFlamethrower.affectedPlayers[targetPlayer.index] = {flamethrowerGiven = flamethrowerGiven, oldPermissionGroup = oldPermissionGroup}
+    global.leakyFlamethrower.affectedPlayers[targetPlayer.index] = {flamethrowerGiven = flamethrowerGiven}
 
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
+    game.print({"message.muppet_streamer_leaky_flamethrower_start", targetPlayer.name})
     LeakyFlamethrower.ShootFlamethrower({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = ammoCount}})
 end
 
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId
-    if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) then
+    if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
         LeakyFlamethrower.StopEffectOnPlayer(playerIndex)
         return
     end
@@ -147,9 +146,15 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex)
     if player ~= nil and player.valid and player.character ~= nil and player.character.valid and affectedPlayer.flamethrowerGiven then
         local gunInventory = player.get_inventory(defines.inventory.character_guns)
         gunInventory.remove({name = "flamethrower", count = 1})
+    --TODO: Need to remove any ammo given if effect is interupted mid run.
     end
-    player.permission_group = affectedPlayer.oldPermissionGroup
+    if player.permission_group.name == "LeakyFlamethrower" then
+        -- If the permission group has been changed by something else don't set it back to the last non modded one.
+        player.permission_group = global.origionalPlayersPermissionGroup[playerIndex]
+        global.origionalPlayersPermissionGroup[playerIndex] = nil
+    end
     global.leakyFlamethrower.affectedPlayers[playerIndex] = nil
+    game.print({"message.muppet_streamer_leaky_flamethrower_stop", player.name})
 end
 
 return LeakyFlamethrower

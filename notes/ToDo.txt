@@ -1,5 +1,5 @@
 TODO:
-    - leaky flame thrower should add schedule duplicate events after one another or increase to the current one if possible.
+    - time duration events should add to existing ones if active.
 	- flamethrower doesn't always move weapons out of the way, maybe to do with filtering?
 	- If it clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards.
 	- check all abilities handle dead players nicely. giving stuff should go in their corpse inventory or on the ground.

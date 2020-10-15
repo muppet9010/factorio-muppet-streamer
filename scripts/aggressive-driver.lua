@@ -2,7 +2,7 @@ local AggressiveDriver = {}
 local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
-
+local Utils = require("utility/utils")
 local ControlTypes = {full = "full", random = "random"}
 
 AggressiveDriver.CreateGlobals = function()
@@ -18,10 +18,8 @@ AggressiveDriver.OnLoad = function()
 end
 
 AggressiveDriver.OnStartup = function()
-    if not game.permissions.get_group("AggressiveDriver") then
-        local group = game.permissions.create_group("AggressiveDriver")
-        group.set_allows_action(defines.input_action.toggle_driving, false)
-    end
+    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver")
+    group.set_allows_action(defines.input_action.toggle_driving, false)
 end
 
 AggressiveDriver.AggressiveDriverCommand = function(command)
@@ -98,9 +96,34 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     end
 
     local inVehicle = targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid and targetPlayer.vehicle.type ~= "spider-vehicle"
+    if not inVehicle and data.teleportDistance > 0 then
+        local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "tank", "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}}
+        local distanceSortedVehicles = {}
+        for _, vehicle in pairs(vehicles) do
+            local vehicleValid = true
+            if vehicle.get_driver() ~= nil then
+                vehicleValid = false
+            end
+            if vehicle.get_fuel_inventory().is_empty() then
+                vehicleValid = false
+            end
+            if vehicleValid then
+                local distance = Utils.GetDistance(targetPlayer.position, vehicle.position)
+                table.insert(distanceSortedVehicles, {distance = distance, vehicle = vehicle})
+            end
+        end
+        if #distanceSortedVehicles > 0 then
+            table.sort(
+                distanceSortedVehicles,
+                function(a, b)
+                    return a.distance < b.distance
+                end
+            )
+            distanceSortedVehicles[1].vehicle.set_driver(targetPlayer)
+            inVehicle = true
+        end
+    end
     if not inVehicle then
-        --teleportDistance
-        game.print("TODO: player not driving")
         return
     end
 
@@ -108,9 +131,9 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         return
     end
 
-    local oldPermissionGroup = targetPlayer.permission_group
+    global.origionalPlayersPermissionGroup[targetPlayer.index] = global.origionalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
     targetPlayer.permission_group = game.permissions.get_group("AggressiveDriver")
-    global.aggressiveDriver.affectedPlayers[targetPlayer.index] = {oldPermissionGroup = oldPermissionGroup}
+    global.aggressiveDriver.affectedPlayers[targetPlayer.index] = true
 
     game.print({"message.muppet_streamer_aggressive_driver_start", targetPlayer.name})
     AggressiveDriver.Drive({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, duration = data.duration, control = data.control, accelerationTime = 0, accelerationState = defines.riding.acceleration.accelerating}})
@@ -123,7 +146,7 @@ AggressiveDriver.Drive = function(eventData)
         return
     end
 
-    if data.accelerationTime > 0 and player.vehicle.speed == 0 then
+    if data.accelerationTime > 3 and player.vehicle.speed == 0 then
         data.accelerationTime = 0
         if data.accelerationState == defines.riding.acceleration.accelerating then
             data.accelerationState = defines.riding.acceleration.reversing
@@ -170,7 +193,11 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player)
     end
 
     player = player or game.get_player(playerIndex)
-    player.permission_group = affectedPlayer.oldPermissionGroup
+    if player.permission_group.name == "AggressiveDriver" then
+        -- If the permission group has been changed by something else don't set it back to the last non modded one.
+        player.permission_group = global.origionalPlayersPermissionGroup[playerIndex]
+        global.origionalPlayersPermissionGroup[playerIndex] = nil
+    end
     global.aggressiveDriver.affectedPlayers[playerIndex] = nil
     player.riding_state = {
         acceleration = defines.riding.acceleration.braking,

@@ -13,6 +13,8 @@ Features
 - Spawn entities around the player with various placement options via command.
 - Make the player an aggressive driver via command.
 
+At present a time duration event will interupt another time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Duplicate time duration events of the same type will be ignored.
+
 
 Team Member Limit (other players than 1 streamer)
 ------------
@@ -51,7 +53,7 @@ Notes:
 Leaky Flamethrower
 ------------------
 
-Gives the targeted player a flamethrower that shoots in random dirctions for short bursts until the set ammo is used up. During this time the player can't do anything to prevent this from happening.
+Gives the targeted player a flamethrower that shoots in random dirctions for short bursts until the set ammo is used up. During this time the player can't do anything to prevent this from happening. This is a Time Duration event.
 
 - Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
@@ -62,6 +64,7 @@ Gives the targeted player a flamethrower that shoots in random dirctions for sho
 
 Notes:
 
+- This feature uses a custom permission group when active.
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one.
 - While activated the player will loose control over their weapons targetign and firing behaviour.
 - While activated the player can not change active gun via the switch to next weapon key.
@@ -121,7 +124,7 @@ Notes:
 Aggressive Driver
 ---------------
 
-The player is locked inside their vehicle and forced to drive forwards for the set duration. If the vehicle comes to a stop during the time it will automatiaclly start going the opposite direction.
+The player is locked inside their vehicle and forced to drive forwards for the set duration. If the vehicle comes to a stop during the time it will automatically start going the opposite direction. This is a Time Duration event.
 
 - Command syntax: `/muppet_streamer_aggressive_driver [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
@@ -129,5 +132,9 @@ The player is locked inside their vehicle and forced to drive forwards for the s
     - target: STRING - Mandatory: the player name to target.
     - duration: NUMBER - Mandatory: how long the effect lasts on the player.
     - control: STRING - Optional: the control the player has over the left/right turning, either: `full` or `random`. If not specified then full is applied so the player can choose when to turn.
-    - teleportDistance: Number - Optional: the max distance that the player will be teleported in to the nearest vehicle. If not supplied is treated as 0 distance and so player isn't teleported.
-- Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"10", "control": "full"}`
+    - teleportDistance: Number - Optional: the max distance of tiles that the player will be teleported in to the nearest drivable vehicle. If not supplied is treated as 0 distance and so player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
+- Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"10", "control": "full", "teleportDistance": 100}`
+
+Notes:
+
+- This feature uses a custom permission group when active.
