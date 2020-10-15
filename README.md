@@ -13,7 +13,7 @@ Features
 - Spawn entities around the player with various placement options via command.
 - Make the player an aggressive driver via command.
 
-At present a time duration event will interupt another time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Duplicate time duration events of the same type will be ignored.
+At present a time duration event will interupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
 
 
 Team Member Limit (other players than 1 streamer)

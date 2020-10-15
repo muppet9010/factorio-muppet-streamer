@@ -7,8 +7,10 @@ Date: 2020-xxxxxxx
     - Add landmine option to spawn around player feature.
     - Add force option to spawn around player feature.
   Changes:
+    - Different types of time duration features will interupt each other. Same tpes currently don't stack.
   Bugfixes:
     - Fix combat robots commands from erroring.
+    - When you die (stop leaky flamethrower) any unused ammo you were given is removed.
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.5
 Date: 2020-05-04

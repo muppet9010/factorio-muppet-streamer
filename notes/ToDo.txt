@@ -3,7 +3,6 @@ TODO:
 	- flamethrower doesn't always move weapons out of the way, maybe to do with filtering?
 	- If it clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards.
 	- check all abilities handle dead players nicely. giving stuff should go in their corpse inventory or on the ground.
-	- add option to give extra copy of weapon or just ensure they have 1. Meak readme really clear. Also make option for if ammo is added and or just topped up.
 
 Future:
     - add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower

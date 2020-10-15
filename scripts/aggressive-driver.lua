@@ -3,6 +3,7 @@ local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
+local Events = require("utility/events")
 
 local ControlTypes = {full = "full", random = "random"}
 local EffectEndStatus = {completed = "completed", died = "died", invalid = "invalid"}
@@ -15,6 +16,8 @@ end
 
 AggressiveDriver.OnLoad = function()
     Commands.Register("muppet_streamer_aggressive_driver", {"api-description.muppet_streamer_aggressive_driver"}, AggressiveDriver.AggressiveDriverCommand, true)
+    Events.RegisterEvent(defines.events.on_pre_player_died)
+    Events.RegisterHandler(defines.events.on_pre_player_died, "AggressiveDriver.OnPrePlayerDied", AggressiveDriver.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.Drive", AggressiveDriver.Drive)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.ApplyToPlayer", AggressiveDriver.ApplyToPlayer)
 end
@@ -184,7 +187,7 @@ AggressiveDriver.Drive = function(eventData)
     end
 end
 
-AggressiveDriver.OnPlayerDied = function(event)
+AggressiveDriver.OnPrePlayerDied = function(event)
     AggressiveDriver.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)
 end
 

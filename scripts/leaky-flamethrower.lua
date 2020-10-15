@@ -17,8 +17,8 @@ end
 LeakyFlamethrower.OnLoad = function()
     Commands.Register("muppet_streamer_leaky_flamethrower", {"api-description.muppet_streamer_leaky_flamethrower"}, LeakyFlamethrower.LeakyFlamethrowerCommand, true)
     EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ShootFlamethrower", LeakyFlamethrower.ShootFlamethrower)
-    Events.RegisterEvent(defines.events.on_player_died)
-    Events.RegisterHandler(defines.events.on_player_died, "LeakyFlamethrower.OnPlayerDied", LeakyFlamethrower.OnPlayerDied)
+    Events.RegisterEvent(defines.events.on_pre_player_died)
+    Events.RegisterHandler(defines.events.on_pre_player_died, "LeakyFlamethrower.OnPrePlayerDied", LeakyFlamethrower.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ApplyToPlayer", LeakyFlamethrower.ApplyToPlayer)
 end
 
@@ -94,7 +94,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = data.ammoCount})
     global.origionalPlayersPermissionGroup[targetPlayer.index] = global.origionalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
     targetPlayer.permission_group = game.permissions.get_group("LeakyFlamethrower")
-    global.leakyFlamethrower.affectedPlayers[targetPlayer.index] = {flamethrowerGiven = flamethrowerGiven}
+    global.leakyFlamethrower.affectedPlayers[targetPlayer.index] = {flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount}
 
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
@@ -117,6 +117,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
     if data.currentBurstTicks > 100 then
         data.currentBurstTicks = 0
         data.burstsDone = data.burstsDone + 1
+        global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft = global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft - 1
         if data.burstsDone == data.maxBursts then
             LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
             return
@@ -133,9 +134,8 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
     EventScheduler.ScheduleEvent(eventData.tick + delay, "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
 end
 
-LeakyFlamethrower.OnPlayerDied = function(event)
-    local playerIndex = event.player_index
-    LeakyFlamethrower.StopEffectOnPlayer(playerIndex, nil, EffectEndStatus.died)
+LeakyFlamethrower.OnPrePlayerDied = function(event)
+    LeakyFlamethrower.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)
 end
 
 LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
@@ -145,10 +145,15 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     end
 
     player = player or game.get_player(playerIndex)
-    if player ~= nil and player.valid and player.character ~= nil and player.character.valid and affectedPlayer.flamethrowerGiven then
-        local gunInventory = player.get_inventory(defines.inventory.character_guns)
-        gunInventory.remove({name = "flamethrower", count = 1})
-    --TODO: Need to remove any ammo given if effect is interupted mid run.
+    if player ~= nil and player.valid and player.character ~= nil and player.character.valid then
+        if affectedPlayer.flamethrowerGiven then
+            local gunInventory = player.get_inventory(defines.inventory.character_guns)
+            gunInventory.remove({name = "flamethrower", count = 1})
+        end
+        if affectedPlayer.burstsLeft > 0 then
+            local ammoInventory = player.get_inventory(defines.inventory.character_ammo)
+            ammoInventory.remove({name = "flamethrower-ammo", count = affectedPlayer.burstsLeft})
+        end
     end
     if player.permission_group.name == "LeakyFlamethrower" then
         -- If the permission group has been changed by something else don't set it back to the last non modded one.
