@@ -121,14 +121,14 @@ CallForHelp.CallForHelp = function(eventData)
     local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
     local helpPlayers, helpPlayersInRange = {}, {}
     for _, helpPlayer in pairs(connectedPlayers) do
-        --if helpPlayer ~= targetPlayer then -- TODO: just removed for testing so I am a player to help
-        if helpPlayer.surface.index == targetPlayerSurface.index and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
-            local distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
-            if distance <= data.callRadius then
-                table.insert(helpPlayersInRange, {player = helpPlayer, distance = distance})
+        if helpPlayer ~= targetPlayer then
+            if helpPlayer.surface.index == targetPlayerSurface.index and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
+                local distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
+                if distance <= data.callRadius then
+                    table.insert(helpPlayersInRange, {player = helpPlayer, distance = distance})
+                end
             end
         end
-        --end
     end
     if #helpPlayersInRange == 0 then
         game.print({"message.muppet_streamer_call_for_help_no_players_found", targetPlayer.name})
