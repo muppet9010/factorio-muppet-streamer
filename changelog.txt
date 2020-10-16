@@ -12,6 +12,8 @@ Date: 2020-xxxxxxx
   Bugfixes:
     - Fix combat robots commands from erroring.
     - When you die (stop leaky flamethrower) any unused ammo you were given is removed.
+  Info:
+    - Updated Muppet Utility library, includes many minor fixes, some will fix un-reported issues in this mod.
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.5
 Date: 2020-05-04
@@ -20,6 +22,7 @@ Date: 2020-05-04
   Bugfixes:
     - Made all commands be admin only.
     - Made all commands not error if no data is passed to them.
+  Info:
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.4
 Date: 2020-05-02
@@ -27,6 +30,7 @@ Date: 2020-05-02
   Changes:
   Bugfixes:
     - When giving weapons and ammo if the items spilled on the floor it errored. No longer happens.
+  Info:
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.3
 Date: 2020-04-01

@@ -20,17 +20,10 @@ TeamMember.OnLoad = function()
         return
     end
 
-    Events.RegisterEvent(defines.events.on_runtime_mod_setting_changed)
-    Events.RegisterEvent(defines.events.on_research_finished)
-    Events.RegisterEvent(defines.events.on_lua_shortcut)
-    Events.RegisterEvent(defines.events.on_player_joined_game)
-    Events.RegisterEvent(defines.events.on_player_left_game)
-
-    Events.RegisterHandler(defines.events.on_research_finished, "TeamMember", TeamMember.OnResearchFinished)
-    Events.RegisterHandler(defines.events.on_lua_shortcut, "TeamMember", TeamMember.OnLuaShortcut)
-    Events.RegisterHandler(defines.events.on_player_joined_game, "TeamMember", TeamMember.OnPlayerJoinedGame)
-    Events.RegisterHandler(defines.events.on_player_left_game, "TeamMember", TeamMember.OnPlayerLeftGame)
-    Events.RegisterHandler(defines.events.on_runtime_mod_setting_changed, "TeamMember", TeamMember.OnSettingChanged)
+    Events.RegisterHandlerEvent(defines.events.on_research_finished, "TeamMember", TeamMember.OnResearchFinished)
+    Events.RegisterHandlerEvent(defines.events.on_lua_shortcut, "TeamMember", TeamMember.OnLuaShortcut)
+    Events.RegisterHandlerEvent(defines.events.on_player_joined_game, "TeamMember", TeamMember.OnPlayerJoinedGame)
+    Events.RegisterHandlerEvent(defines.events.on_player_left_game, "TeamMember", TeamMember.OnPlayerLeftGame)
     remote.add_interface("muppet_streamer", {increase_team_member_level = TeamMember.RemoteIncreaseTeamMemberLevel})
     Commands.Register("muppet_streamer_change_team_member_max", {"api-description.muppet_streamer_change_team_member_max"}, TeamMember.CommandChangeTeamMemberLevel, true)
 end

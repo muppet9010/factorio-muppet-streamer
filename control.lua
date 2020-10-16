@@ -1,4 +1,3 @@
-local Events = require("utility/events")
 local Freeplay = require("scripts/freeplay")
 local TeamMember = require("scripts/team-member")
 local ExplosiveDelivery = require("scripts/explosive-delivery")
@@ -31,10 +30,14 @@ local function OnLoad()
     AggressiveDriver.OnLoad()
 end
 
+local function OnSettingChanged(event)
+    TeamMember.OnSettingChanged(event)
+end
+
 local function OnStartup()
     CreateGlobals()
     OnLoad()
-    Events.RaiseInternalEvent({name = defines.events.on_runtime_mod_setting_changed})
+    OnSettingChanged(nil)
 
     Freeplay.OnStartup()
     TeamMember.OnStartup()
