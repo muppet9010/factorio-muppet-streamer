@@ -131,6 +131,7 @@ CallForHelp.CallForHelp = function(eventData)
         --end
     end
     if #helpPlayersInRange == 0 then
+        game.print({"message.muppet_streamer_call_for_help_no_players_found", targetPlayer.name})
         return
     end
 
@@ -159,7 +160,7 @@ CallForHelp.CallForHelp = function(eventData)
     end
 
     for _, helpPlayer in pairs(helpPlayers) do
-        CallForHelp.TeleportPlayer(helpPlayer, data.arrivalRadius, targetPlayer, data.instanceId, 1)
+        CallForHelp.TeleportPlayer(helpPlayer, data.arrivalRadius, targetPlayer, eventData.instanceId, 1)
     end
 end
 
@@ -220,18 +221,23 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         return
     end
 
+    local helpPlayer = pathRequest.helpPlayer
     if event.path == nil then
         -- Path request failed
         pathRequest.attempt = pathRequest.attempt + 1
         if pathRequest.attempt > 3 then
-            game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", pathRequest.helpPlayer.name, pathRequest.targetPlayer.name})
+            game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", helpPlayer.name, pathRequest.targetPlayer.name})
         else
-            CallForHelp.TeleportPlayer(pathRequest.helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.callForHelpId, pathRequest.attempt)
+            CallForHelp.TeleportPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.callForHelpId, pathRequest.attempt)
         end
         return
     end
 
-    pathRequest.helpPlayer.teleport(pathRequest.position)
+    if helpPlayer.vehicle ~= nil and helpPlayer.vehicle.valid then
+        helpPlayer.vehicle.teleport(pathRequest.position)
+    else
+        helpPlayer.teleport(pathRequest.position)
+    end
 end
 
 return CallForHelp
