@@ -190,7 +190,18 @@ CallForHelp.TeleportPlayer = function(helpPlayer, arrivalRadius, targetPlayer, c
         return
     end
 
-    local pathRequestId = targetPlayerSurface.request_path {bounding_box = helpPlayerEntity.bounding_box, collision_mask = helpPlayerEntity.prototype.collision_mask, start = targetPlayerPosition, goal = arrivalPos, force = helpPlayer.force, radius = 1, can_open_gates = true, entity_to_ignore = targetPlayerEntity}
+    local pathRequestId =
+        targetPlayerSurface.request_path {
+        bounding_box = helpPlayerEntity.prototype.collision_box, -- Work around for: https://forums.factorio.com/viewtopic.php?f=182&t=90146
+        collision_mask = helpPlayerEntity.prototype.collision_mask,
+        start = arrivalPos,
+        goal = targetPlayerPosition,
+        force = helpPlayer.force,
+        radius = 1,
+        can_open_gates = true,
+        entity_to_ignore = targetPlayerEntity,
+        pathfind_flags = {allow_paths_through_own_entities = true, cache = false}
+    }
     global.callForHelp.pathingRequests[pathRequestId] = {
         callForHelpId = callForHelpId,
         pathRequestId = pathRequestId,
