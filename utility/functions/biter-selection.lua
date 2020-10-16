@@ -70,28 +70,23 @@ function BiterSelection.GetWormType(wormEvoGlobalName, evolution)
 end
 
 function BiterSelection._CalculateSpecificWormForEvolution(evolution)
-    local turrets = game.get_filtered_entity_prototypes({{filter = "turret"}})
-    local enemyTurrets = {}
-    for _, turret in pairs(turrets) do
-        if turret.subgroup ~= nil and turret.subgroup.name == "enemies" then
-            local autoplaceEvo = turret.build_base_evolution_requirement or 0
-            if autoplaceEvo <= evolution then
-                enemyTurrets[autoplaceEvo] = turret
-            end
-        end
-    end
-    local selectedTurret, maxEvo = nil, -1
-    for evo, turret in pairs(enemyTurrets) do
-        if evo > maxEvo then
-            selectedTurret = turret
-            maxEvo = evo
-        end
-    end
-    if selectedTurret == nil then
+    local turrets = game.get_filtered_entity_prototypes({{filter = "turret"}, {mode = "and", filter = "build-base-evolution-requirement", comparison = "≤", value = evolution}, {mode = "and", filter = "flag", flag = "placeable-enemy"}, {mode = "and", filter = "flag", flag = "player-creation", invert = true}})
+    if #turrets == 0 then
         return nil
-    else
-        return selectedTurret.name
     end
+
+    local sortedTurrets = {}
+    for _, turret in pairs(turrets) do
+        table.insert(sortedTurrets, turret)
+    end
+
+    table.sort(
+        sortedTurrets,
+        function(a, b)
+            return a.build_base_evolution_requirement > b.build_base_evolution_requirement
+        end
+    )
+    return sortedTurrets[1].name
 end
 
 return BiterSelection

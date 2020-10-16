@@ -69,12 +69,25 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
         Logging.LogPrint("trees found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture)
     end
 
-    local highestChance = suitableTrees[#suitableTrees].chanceEnd
+    local highestChance, treeName, treeFound = suitableTrees[#suitableTrees].chanceEnd, nil, false
     local chanceValue = math.random() * highestChance
     for _, treeEntry in pairs(suitableTrees) do
         if chanceValue >= treeEntry.chanceStart and chanceValue <= treeEntry.chanceEnd then
-            return treeEntry.tree.name
+            treeName = treeEntry.tree.name
+            treeFound = true
+            break
         end
+    end
+    if not treeFound then
+        return nil
+    end
+
+    -- Check the tree type still exists, if not re-generate data and run process again. There's no startup event requried with this method.
+    if game.entity_prototypes[treeName] == nil then
+        BiomeTrees._ObtainRequiredData(true)
+        return BiomeTrees.GetBiomeTreeName(surface, position)
+    else
+        return treeName
     end
 end
 
@@ -115,7 +128,10 @@ BiomeTrees._GetTruelyRandomTreeForTileCollision = function(tile)
     end
 end
 
-BiomeTrees._ObtainRequiredData = function()
+BiomeTrees._ObtainRequiredData = function(forceReload)
+    if forceReload then
+        global.UTILITYBIOMETREES = nil
+    end
     global.UTILITYBIOMETREES = global.UTILITYBIOMETREES or {}
     global.UTILITYBIOMETREES.tileData = global.UTILITYBIOMETREES.tileData or BiomeTrees._GetTileData()
     global.UTILITYBIOMETREES.treeData = global.UTILITYBIOMETREES.treeData or BiomeTrees._GetTreeData()
