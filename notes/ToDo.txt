@@ -6,6 +6,7 @@ Future:
 	- Flamethrower doesn't always move weapons out of the way, maybe to do with filtering?
 	- If it clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room.
+    - Spawn around player to support biters, spitters or both. Allow named or evo specific.
     - Call for Help:
         - set arrival radius
         - set max distance to call players from

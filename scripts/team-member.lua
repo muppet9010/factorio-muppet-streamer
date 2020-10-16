@@ -5,10 +5,6 @@ local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 
 TeamMember.CreateGlobals = function()
-    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) < 0 then
-        return
-    end
-
     global.teamMember = global.teamMember or {}
     global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount or 0
     global.teamMember.playerGuiOpened = global.teamMember.playerGuiOpened or {}
@@ -37,7 +33,10 @@ TeamMember.OnStartup = function()
 end
 
 TeamMember.OnSettingChanged = function(event)
-    local settingName = event.setting
+    local settingName
+    if event ~= nil then
+        settingName = event.setting
+    end
     if (settingName == nil or settingName == "muppet_streamer-recruited_team_member_gui_title") then
         global.teamMember.recruitTeamMemberTitle = settings.global["muppet_streamer-recruited_team_member_gui_title"].value
     end
