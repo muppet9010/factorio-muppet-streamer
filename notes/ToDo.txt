@@ -1,11 +1,11 @@
 TODO:
-    - time duration events should add to existing ones if active.
-	- flamethrower doesn't always move weapons out of the way, maybe to do with filtering?
-	- If it clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards.
-	- check all abilities handle dead players nicely. giving stuff should go in their corpse inventory or on the ground.
 
 Future:
-    - add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
+    - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
+    - Time duration events should add to existing ones if active.
+	- Flamethrower doesn't always move weapons out of the way, maybe to do with filtering?
+	- If it clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards.
+	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room.
     - Call for Help:
         - set arrival radius
         - set max distance to call players from

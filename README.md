@@ -1,5 +1,6 @@
 # factorio-streamer-support-team
-Mod for streamers to customise and add flavour to their play throughs.
+
+Adds actions that a streamer can let chat activate to make their games more dynamic and interactive.
 
 
 Features

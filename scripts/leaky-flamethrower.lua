@@ -80,7 +80,8 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
         Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
         return
     end
-    if targetPlayer.character == nil or not targetPlayer.character.valid then
+    if targetPlayer.controller_type ~= defines.controllers.character then
+        game.print({"message.muppet_streamer_leaky_flamethrower_not_character_controller", data.target})
         return
     end
 

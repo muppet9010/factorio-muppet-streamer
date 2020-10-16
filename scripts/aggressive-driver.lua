@@ -99,6 +99,10 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
         return
     end
+    if targetPlayer.controller_type ~= defines.controllers.character then
+        game.print({"message.muppet_streamer_aggressive_driver_not_character_controller", data.target})
+        return
+    end
 
     local inVehicle = targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid and targetPlayer.vehicle.type ~= "spider-vehicle"
     if not inVehicle and data.teleportDistance > 0 then
@@ -125,7 +129,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                 end
             )
             distanceSortedVehicles[1].vehicle.set_driver(targetPlayer)
-            inVehicle = true
+            inVehicle = targetPlayer.vehicle
         end
     end
     if not inVehicle then
