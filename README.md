@@ -17,8 +17,10 @@ Features
 At present a time duration event will interupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
 
 
-Team Member Limit (other players than 1 streamer)
+Team Member Limit
 ------------
+
+A way to soft limit players on the map and have reseach to increase it.
 
 - Includes a simple one line GUI in the top left that says the current number of team members (players - 1) and the current max team members.
 - Option to have research to increase the number of team members. Cost is configurable and the research levels increase in science pack complexity. Infinite options that double in cost each time.
@@ -33,7 +35,7 @@ Team Member Limit (other players than 1 streamer)
 Schedule Explosive Delivery to player
 -----------------
 
-Can deliver a highly customisable explosive delivery via command. A number of the chosen explosive type after a delay will fly from offscreen to randomly around the target player. The perfect gift for any streamer. Note, that it takes them a second or two to fly in from offscreen.
+Can deliver a highly customisable explosive delivery to the player.
 
 - Command syntax: `/muppet_streamer_schedule_explosive_delivery [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
@@ -48,13 +50,14 @@ Can deliver a highly customisable explosive delivery via command. A number of th
 
 Notes:
 
+- Explosives will fly in from offscreen to random location around the target player. They may take a few seconds to complete their delivery.
 - Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
 - Weapons are on the "enemy" team and so don't get affected by your research.
 
 Leaky Flamethrower
 ------------------
 
-Gives the targeted player a flamethrower that shoots in random dirctions for short bursts until the set ammo is used up. During this time the player can't do anything to prevent this from happening. This is a Time Duration event.
+Gives the targeted player a flamethrower that shoots in random dirctions for short bursts until the set ammo is used up. This is a Time Duration event.
 
 - Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
@@ -125,7 +128,7 @@ Notes:
 Aggressive Driver
 ---------------
 
-The player is locked inside their vehicle and forced to drive forwards for the set duration. If the vehicle comes to a stop during the time it will automatically start going the opposite direction. This is a Time Duration event.
+The player is locked inside their vehicle and forced to drive forwards for the set duration. This is a Time Duration event.
 
 - Command syntax: `/muppet_streamer_aggressive_driver [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
@@ -139,3 +142,28 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 Notes:
 
 - This feature uses a custom permission group when active.
+- If the vehicle comes to a stop during the time it will automatically start going the opposite direction.
+
+
+Call For Help
+------------
+
+Teleports other players on the server to your position.
+
+- Command syntax: `/muppet_streamer_call_for_help [DETAILS JSON STRING]`
+- Details in JSON string supports the arguments:
+    - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - target: STRING - Mandatory: the player name to target.
+    - arrivalRadius - NUMBER - Mandatory: the max distance players will be teleported to from the target player
+    - callRadius - NUMBER - Mandatory: the max distance to call players from
+    - callSelection - STRING - Mandatory: the logic to select which players in the callRadius are teleported, either: 'random', 'nearest'.
+    - number - NUMBER - Optional: how many players to call. Either `number` or `activePercentage` must be supplied.
+    - activePercentage - NUMBER - Optional: the percentage of currently online players to call, i.e. 90. Either `number` or `activePercentage` must be supplied.
+
+- Example command : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":20, "callRadius": 1000, "callSelection": "random", "number": 3, "activePercentage": 50}`
+
+Notes:
+
+- The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
+- If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
+- A player teleported comes with their vehicle if they have one.

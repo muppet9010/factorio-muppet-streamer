@@ -172,7 +172,7 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
         Logging.LogPrint("ERROR: muppet_streamer_give_player_weapon_ammo command target player not found at delivery time: " .. data.target)
         return
     end
-    if targetPlayer.controller_type ~= defines.controllers.character then
+    if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         game.print({"message.muppet_streamer_give_player_weapon_ammo_not_character_controller", data.target})
         return
     end

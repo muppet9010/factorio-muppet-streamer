@@ -702,7 +702,7 @@ function Utils.DisplayTimeOfTicks(inputTicks, displayLargestTimeUnit, displaySma
 end
 
 function Utils._CreatePlacementTestEntityPrototype(entityToClone, newEntityName, subgroup, collisionMask)
-    -- TODO: doesn't handle mipmaps at all presently. Also ignores any of the extra data in an icons table of "Types/IconData". Think this should just duplicate the target icons table entry.
+    -- Doesn't handle mipmaps at all presently. Also ignores any of the extra data in an icons table of "Types/IconData". Think this should just duplicate the target icons table entry.
     local clonedIcon = entityToClone.icon
     local clonedIconSize = entityToClone.icon_size
     if clonedIcon == nil then
@@ -747,7 +747,9 @@ function Utils.CreateWaterPlacementTestEntityPrototype(entityToClone, newEntityN
     return Utils._CreatePlacementTestEntityPrototype(entityToClone, newEntityName, subgroup, {"ground-tile", "colliding-with-tiles-only"})
 end
 
-function Utils.GetValidPositionForEntityNearPosition(entityName, surface, centerPos, radius, maxAttempts, searchIncrement, allowNonTileCenter)
+--[[
+    NOT NEEDED AS surface.find_non_colliding_position() STARTS IN CENTER AND WORKS OUT - MAYBE DIDN'T IN THE PAST
+    function Utils.GetValidPositionForEntityNearPosition(entityName, surface, centerPos, radius, maxAttempts, searchIncrement, allowNonTileCenter)
     local pos
     local attempts = 1
     searchIncrement = searchIncrement or 1
@@ -764,8 +766,7 @@ function Utils.GetValidPositionForEntityNearPosition(entityName, surface, center
         end
     end
     return nil
-end
-
+end]]
 function Utils.ToBoolean(text)
     text = string.lower(text)
     if text ~= nil and text == "true" then
@@ -777,15 +778,11 @@ function Utils.ToBoolean(text)
 end
 
 function Utils.RandomLocationInRadius(centrePos, maxRadius, minRadius)
-    local angleRad = math.random() * (math.pi * 2)
+    local angle = math.random(0, 360)
     minRadius = minRadius or 0
     local radiusMultiplier = maxRadius - minRadius
     local distance = minRadius + (math.random() * radiusMultiplier)
-    local randomPos = {
-        x = (distance * math.sin(angleRad)) + centrePos.x,
-        y = (distance * -math.cos(angleRad)) + centrePos.y
-    }
-    return randomPos
+    return Utils.GetPositionForAngledDistance(centrePos, distance, angle)
 end
 
 function Utils.GetPositionForAngledDistance(startingPos, distance, angle)
