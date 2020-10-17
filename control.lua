@@ -49,7 +49,6 @@ local function OnStartup()
     TeamMember.OnStartup()
     LeakyFlamethrower.OnStartup()
     AggressiveDriver.OnStartup()
-    CallForHelp.OnStartup()
     Teleport.OnStartup()
 end
 

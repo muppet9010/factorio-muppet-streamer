@@ -1,4 +1,6 @@
 TODO:
+    - Make other uses of boolean values be like teleport.
+    - If the players weapon is lost during leaky flamethrower the effect should be stopped. Curently hit via full item poop.
 
 Future:
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
@@ -10,18 +12,6 @@ Future:
     - Call for Help - add:
         - named player list of players to explicitly excluded or included.
         - an option to weight the player selection by time online. - this may be multiple options, see discussion: https://mods.factorio.com/mod/muppet_streamer/discussion/5f7b1102057852611e5817c6
-    - Teleport:
-        - Target: random, biter nest (track nest creation and destruction)
-        - Minimum distance to teleport
-        - Maximum distance to teleport
-        - Should take any vehicle you are in with you (option).
-        - Option to take the train/carriage you are in with you (create the wagon on the ground with tiny bit of free rail)
-        - Do pathfinder check to make sure biter base is reachable from arrive spot.
-        - If target is biter nest:
-            - Option for closeness to teleport.
-            - Option for safe area to arrive in.
-            - Option to make sure biter base is patchable from spawn (avoids islands).
-        - Option to do it to nearest enemy unit group, rather than biter base if UPS friendly.
     - Spider Fish Brain:
         - spiders need a fish as their brain, sometimes they gain control.
         - for set time period

@@ -768,10 +768,16 @@ end
     return nil
 end]]
 function Utils.ToBoolean(text)
+    if text == nil then
+        return nil
+    end
+    if type(text) == "boolean" then
+        return text
+    end
     text = string.lower(text)
-    if text ~= nil and text == "true" then
+    if text == "true" then
         return true
-    elseif text ~= nil and text == "false" then
+    elseif text == "false" then
         return false
     end
     return nil

@@ -134,15 +134,16 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
-    - duration: NUMBER - Mandatory: how long the effect lasts on the player.
+    - duration: NUMBER - Mandatory: how many seconds the effect lasts on the player.
     - control: STRING - Optional: the control the player has over the left/right turning, either: `full` or `random`. If not specified then full is applied so the player can choose when to turn.
-    - teleportDistance: Number - Optional: the max distance of tiles that the player will be teleported in to the nearest drivable vehicle. If not supplied is treated as 0 distance and so player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
+    - teleportDistance: Number - Optional: the max distance of tiles that the player will be teleported in to the nearest suitable drivable vehicle. If not supplied is treated as 0 distance and so player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
 - Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"10", "control": "full", "teleportDistance": 100}`
 
 Notes:
 
 - This feature uses a custom permission group when active.
 - If the vehicle comes to a stop during the time it will automatically start going the opposite direction.
+- This feature affects all vehicles other than tha Spider Vehicle.
 
 
 Call For Help
@@ -159,7 +160,6 @@ Teleports other players on the server to near your position.
     - callSelection - STRING - Mandatory: the logic to select which players in the callRadius are teleported, either: 'random', 'nearest'.
     - number - NUMBER - Optional: how many players to call. Either `number` or `activePercentage` must be supplied.
     - activePercentage - NUMBER - Optional: the percentage of currently online players to call, i.e. 90. Either `number` or `activePercentage` must be supplied.
-
 - Example command : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":20, "callRadius": 1000, "callSelection": "random", "number": 3, "activePercentage": 50}`
 
 Notes:
@@ -167,3 +167,28 @@ Notes:
 - The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
 - A player teleported comes with their vehicle if they have one.
+
+
+Teleport
+-------------
+
+Teleports the player to the nearest type of thing.
+
+- Command syntax: `/muppet_streamer_teleport [DETAILS JSON STRING]`
+- Details in JSON string supports the arguments:
+    - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - target: STRING - Mandatory: the player name to target.
+    - destinationType: STRING - Mandatory: the place to teleport to, either `random`, `biterNest`, `biterGroup`, `spawn` or a specific position as a table. Will be the nearest instance of it.
+    - minDistance: NUMBER - Optional: the minimum distance to teleport. If not provided then value of 0 is used.
+    - maxDistance: NUMBER - Mandatory: the maximum distance to teleport. Is ignored for destinationType of `spawn` or specific position.
+    - reachableOnly: BOOLEAN - Optional: if the place you are teleported must be walkable back to where you were. Defaults to true.
+    - If target is biter nest:
+        - Option for closeness to teleport.
+        - Option for safe area to arrive in.
+- Example command biter nest: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"biterNest", "maxDistance": 1000}`
+- Example command random location: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"random", "minDistance": 100, "maxDistance": 500, "reachableOnly": false}`
+- Example command specific position: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":[1000, 500], "maxDistance": 0}`
+
+Notes:
+
+- destinationType of position expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.

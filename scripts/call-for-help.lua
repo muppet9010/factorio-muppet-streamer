@@ -21,9 +21,6 @@ CallForHelp.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "CallForHelp.OnScriptPathRequestFinished", CallForHelp.OnScriptPathRequestFinished)
 end
 
-CallForHelp.OnStartup = function()
-end
-
 CallForHelp.CallForHelpCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_call_for_help command "
     local commandData
@@ -120,12 +117,11 @@ CallForHelp.CallForHelp = function(eventData)
         return
     end
 
-    local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
     local helpPlayers, helpPlayersInRange = {}, {}
     for _, helpPlayer in pairs(connectedPlayers) do
         if SPTesting or helpPlayer ~= targetPlayer then
-            if helpPlayer.surface.index == targetPlayerSurface.index and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
-                local distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
+            if helpPlayer.surface.index == targetPlayer.surface.index and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
+                local distance = Utils.GetDistance(targetPlayer.position, helpPlayer.position)
                 if distance <= data.callRadius then
                     table.insert(helpPlayersInRange, {player = helpPlayer, distance = distance})
                 end
@@ -168,6 +164,10 @@ CallForHelp.CallForHelp = function(eventData)
     end
 end
 
+CallForHelp.IsTeleportableVehicle = function(vehicle)
+    return vehicle ~= nil and vehicle.valid and (vehicle.name == "car" or vehicle.name == "tank" or vehicle.name == "spider-vehicle")
+end
+
 CallForHelp.PlanTeleportPlayer = function(helpPlayer, arrivalRadius, targetPlayer, callForHelpId, attempt)
     local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
     local targetPlayerEntity = targetPlayer.character
@@ -175,7 +175,7 @@ CallForHelp.PlanTeleportPlayer = function(helpPlayer, arrivalRadius, targetPlaye
         targetPlayerEntity = targetPlayer.vehicle
     end
     local helpPlayerEntity
-    if helpPlayer.vehicle ~= nil and (helpPlayer.vehicle.name == "car" or helpPlayer.vehicle.name == "tank" or helpPlayer.vehicle.name == "spider-vehicle") then
+    if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then
         helpPlayerEntity = helpPlayer.vehicle
     else
         helpPlayerEntity = helpPlayer.character
@@ -238,7 +238,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
             CallForHelp.PlanTeleportPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.callForHelpId, pathRequest.attempt)
         end
     else
-        if helpPlayer.vehicle ~= nil and helpPlayer.vehicle.valid then
+        if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then
             helpPlayer.vehicle.teleport(pathRequest.position)
         else
             helpPlayer.teleport(pathRequest.position)
