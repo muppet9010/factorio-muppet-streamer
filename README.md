@@ -148,7 +148,7 @@ Notes:
 Call For Help
 ------------
 
-Teleports other players on the server to your position.
+Teleports other players on the server to near your position.
 
 - Command syntax: `/muppet_streamer_call_for_help [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:

@@ -6,11 +6,13 @@ local Utils = require("utility/utils")
 local Events = require("utility/events")
 
 local CallSelection = {random = "random", nearest = "nearest"}
+local SPTesting = false -- Set to true to let yourself go to your own support.
 
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
     global.callForHelp.nextId = global.callForHelp.nextId or 0
     global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {}
+    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {}
 end
 
 CallForHelp.OnLoad = function()
@@ -95,7 +97,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     global.callForHelp.nextId = global.callForHelp.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "CallForHelp.CallForHelp", global.callForHelp.nextId, {target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, callSelection = callSelection, number = number, activePercentage = activePercentage})
+    EventScheduler.ScheduleEvent(command.tick + delay, "CallForHelp.CallForHelp", global.callForHelp.nextId, {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, callSelection = callSelection, number = number, activePercentage = activePercentage})
 end
 
 CallForHelp.CallForHelp = function(eventData)
@@ -121,7 +123,7 @@ CallForHelp.CallForHelp = function(eventData)
     local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
     local helpPlayers, helpPlayersInRange = {}, {}
     for _, helpPlayer in pairs(connectedPlayers) do
-        if helpPlayer ~= targetPlayer then
+        if SPTesting or helpPlayer ~= targetPlayer then
             if helpPlayer.surface.index == targetPlayerSurface.index and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
                 local distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
                 if distance <= data.callRadius then
@@ -159,12 +161,14 @@ CallForHelp.CallForHelp = function(eventData)
         end
     end
 
+    game.print({"message.muppet_streamer_call_for_help_start", targetPlayer.name})
+    global.callForHelp.callForHelpIds[data.callForHelpId] = {callForHelpId = data.callForHelpId, pendingPathRequests = {}}
     for _, helpPlayer in pairs(helpPlayers) do
-        CallForHelp.TeleportPlayer(helpPlayer, data.arrivalRadius, targetPlayer, eventData.instanceId, 1)
+        CallForHelp.PlanTeleportPlayer(helpPlayer, data.arrivalRadius, targetPlayer, data.callForHelpId, 1)
     end
 end
 
-CallForHelp.TeleportPlayer = function(helpPlayer, arrivalRadius, targetPlayer, callForHelpId, attempt)
+CallForHelp.PlanTeleportPlayer = function(helpPlayer, arrivalRadius, targetPlayer, callForHelpId, attempt)
     local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
     local targetPlayerEntity = targetPlayer.character
     if targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid then
@@ -212,6 +216,7 @@ CallForHelp.TeleportPlayer = function(helpPlayer, arrivalRadius, targetPlayer, c
         attempt = attempt,
         arrivalRadius = arrivalRadius
     }
+    global.callForHelp.callForHelpIds[callForHelpId].pendingPathRequests[pathRequestId] = global.callForHelp.pathingRequests[pathRequestId]
 end
 
 CallForHelp.OnScriptPathRequestFinished = function(event)
@@ -221,6 +226,8 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         return
     end
 
+    global.callForHelp.callForHelpIds[pathRequest.callForHelpId].pendingPathRequests[pathRequest.pathRequestId] = nil
+    global.callForHelp.pathingRequests[event.id] = nil
     local helpPlayer = pathRequest.helpPlayer
     if event.path == nil then
         -- Path request failed
@@ -228,15 +235,19 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         if pathRequest.attempt > 3 then
             game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", helpPlayer.name, pathRequest.targetPlayer.name})
         else
-            CallForHelp.TeleportPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.callForHelpId, pathRequest.attempt)
+            CallForHelp.PlanTeleportPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.callForHelpId, pathRequest.attempt)
         end
-        return
+    else
+        if helpPlayer.vehicle ~= nil and helpPlayer.vehicle.valid then
+            helpPlayer.vehicle.teleport(pathRequest.position)
+        else
+            helpPlayer.teleport(pathRequest.position)
+        end
     end
 
-    if helpPlayer.vehicle ~= nil and helpPlayer.vehicle.valid then
-        helpPlayer.vehicle.teleport(pathRequest.position)
-    else
-        helpPlayer.teleport(pathRequest.position)
+    if #global.callForHelp.callForHelpIds[pathRequest.callForHelpId].pendingPathRequests == 0 then
+        game.print({"message.muppet_streamer_call_for_help_stop", pathRequest.targetPlayer.name})
+        global.callForHelp.callForHelpIds[pathRequest.callForHelpId] = nil
     end
 end
 
