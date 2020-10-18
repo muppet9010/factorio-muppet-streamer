@@ -11,15 +11,22 @@ Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
     global.teleport.nextId = global.teleport.nextId or 0
     global.teleport.pathingRequests = global.teleport.pathingRequests or {}
+    global.teleport.biterNests = global.teleport.biterNests or {}
 end
 
 Teleport.OnLoad = function()
     Commands.Register("muppet_streamer_teleport", {"api-description.muppet_streamer_teleport"}, Teleport.TeleportCommand, true)
     EventScheduler.RegisterScheduledEventType("Teleport.PlanTeleportTarget", Teleport.PlanTeleportTarget)
-    Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "teleport.OnScriptPathRequestFinished", Teleport.OnScriptPathRequestFinished)
+    Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "Teleport.OnScriptPathRequestFinished", Teleport.OnScriptPathRequestFinished)
+    Events.RegisterHandlerEvent(defines.events.on_biter_base_built, "Teleport.OnBiterBaseBuilt", Teleport.OnBiterBaseBuilt)
+    Events.RegisterHandlerEvent(defines.events.script_raised_built, "Teleport.ScriptRaisedBuilt", Teleport.ScriptRaisedBuilt, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
+    Events.RegisterHandlerEvent(defines.events.on_chunk_generated, "Teleport.OnChunkGenerated", Teleport.OnChunkGenerated)
+    Events.RegisterHandlerEvent(defines.events.on_entity_died, "Teleport.OnEntityDied", Teleport.OnEntityDied, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
+    Events.RegisterHandlerEvent(defines.events.script_raised_destroy, "Teleport.ScriptRaisedDestroy", Teleport.ScriptRaisedDestroy, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
 end
 
 Teleport.OnStartup = function()
+    --TODO: populate global.teleport.biterNests with exisitng nests if empty.
 end
 
 Teleport.TeleportCommand = function(command)
@@ -115,11 +122,37 @@ Teleport.PlanTeleportTarget = function(eventData)
     elseif data.destinationType == DestinationTypeSelection.position then
         data.destinationTargetPosition = data.destinationTargetPosition
     elseif data.destinationType == DestinationTypeSelection.random then
-        --TODO
+        data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer.position, data.maxDistance, data.minDistance)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
-        --TODO
+        local spawnerDistances = {}
+        for i, spawner in pairs(global.teleport.biterNests) do
+            if not spawner.valid then
+                global.teleport.biterNests[i] = nil
+            elseif spawner.force ~= targetPlayer.force then
+                local spawnerDistance = Utils.GetDistance(targetPlayer.position, spawner.position)
+                if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
+                    table.insert(spawnerDistances, {distance = spawnerDistance, spawner = spawner})
+                end
+            end
+        end
+        if #spawnerDistances == 0 then
+            game.print({"message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name})
+            return
+        else
+            table.sort(
+                spawnerDistances,
+                function(a, b)
+                    return a.distance < b.distance
+                end
+            )
+            data.destinationTargetPosition = spawnerDistances[1].spawner.position
+        end
     elseif data.destinationType == DestinationTypeSelection.biterGroup then
-    --TODO
+        data.destinationTargetPosition = targetPlayer.surface.find_nearest_enemy {position = targetPlayer.position, max_distance = data.maxDistance, force = targetPlayer.force}
+        if data.destinationTargetPosition == nil then
+            game.print({"message.muppet_streamer_teleport_no_biter_group_found", targetPlayer.name})
+            return
+        end
     end
 
     data.targetPlayer = targetPlayer
@@ -139,7 +172,7 @@ Teleport.PlanTeleportLocation = function(data)
         targetPlayerEntity = targetPlayer.character
     end
 
-    local arrivalPos, arrivalRadius = nil, 10
+    local arrivalPos, arrivalRadius = nil, 10 -- TODO this arrivalRadius is a setting.
     for _ = 1, 10 do
         local randomPos = Utils.RandomLocationInRadius(data.destinationTargetPosition, arrivalRadius, 1)
         randomPos = Utils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
@@ -149,7 +182,7 @@ Teleport.PlanTeleportLocation = function(data)
         end
     end
     if arrivalPos == nil then
-        game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", targetPlayer.name, targetPlayer.name})
+        game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
         return
     end
     data.thisAttemptPosition = arrivalPos
@@ -202,6 +235,43 @@ Teleport.Teleport = function(data)
     else
         targetPlayer.teleport(data.thisAttemptPosition)
     end
+end
+
+Teleport.OnBiterBaseBuilt = function(event)
+    if event.entity.type == "unit-spawner" then
+        Teleport.SpawnerCreated(event.entity)
+    end
+end
+
+Teleport.ScriptRaisedBuilt = function(event)
+    Teleport.SpawnerCreated(event.entity)
+end
+
+Teleport.OnChunkGenerated = function(event)
+    local area, surface = event.area, event.surface
+    local spawners = surface.find_entities_filtered {area = area, type = "unit-spawner"}
+    for _, spawner in pairs(spawners) do
+        Teleport.SpawnerCreated(spawner)
+    end
+end
+
+Teleport.OnEntityDied = function(event)
+    Teleport.SpawnerRemoved(event.entity)
+end
+
+Teleport.ScriptRaisedDestroy = function(event)
+    Teleport.SpawnerRemoved(event.entity)
+end
+
+Teleport.SpawnerCreated = function(spawner)
+    global.teleport.biterNests[spawner.unit_number] = spawner
+end
+
+Teleport.SpawnerRemoved = function(spawner)
+    if not spawner.valid then
+        return
+    end
+    global.teleport.biterNests[spawner.unit_number] = nil
 end
 
 return Teleport

@@ -120,7 +120,7 @@ CallForHelp.CallForHelp = function(eventData)
     local helpPlayers, helpPlayersInRange = {}, {}
     for _, helpPlayer in pairs(connectedPlayers) do
         if SPTesting or helpPlayer ~= targetPlayer then
-            if helpPlayer.surface.index == targetPlayer.surface.index and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
+            if helpPlayer.surface == targetPlayer.surface and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
                 local distance = Utils.GetDistance(targetPlayer.position, helpPlayer.position)
                 if distance <= data.callRadius then
                     table.insert(helpPlayersInRange, {player = helpPlayer, distance = distance})

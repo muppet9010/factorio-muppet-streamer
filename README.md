@@ -155,8 +155,8 @@ Teleports other players on the server to near your position.
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
-    - arrivalRadius - NUMBER - Mandatory: the max distance players will be teleported to from the target player
-    - callRadius - NUMBER - Mandatory: the max distance to call players from
+    - arrivalRadius - NUMBER - Mandatory: the max distance players will be teleported to from the target player.
+    - callRadius - NUMBER - Mandatory: the max distance to call players from.
     - callSelection - STRING - Mandatory: the logic to select which players in the callRadius are teleported, either: 'random', 'nearest'.
     - number - NUMBER - Optional: how many players to call. Either `number` or `activePercentage` must be supplied.
     - activePercentage - NUMBER - Optional: the percentage of currently online players to call, i.e. 90. Either `number` or `activePercentage` must be supplied.
@@ -178,13 +178,11 @@ Teleports the player to the nearest type of thing.
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
-    - destinationType: STRING - Mandatory: the place to teleport to, either `random`, `biterNest`, `biterGroup`, `spawn` or a specific position as a table. Will be the nearest instance of it.
-    - minDistance: NUMBER - Optional: the minimum distance to teleport. If not provided then value of 0 is used.
+    - destinationType: STRING - Mandatory: the type of teleport to do, either `random`, `biterNest`, `biterGroup`, `spawn` or a specific position as a table. For biter types it Will be the nearest one found within range.
+    - arrivalRadius - NUMBER - Mandatory: the max distance the player will be teleported to from the targeted destinationType.
+    - minDistance: NUMBER - Optional: the minimum distance to teleport. If not provided then value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `biterGroup`.
     - maxDistance: NUMBER - Mandatory: the maximum distance to teleport. Is ignored for destinationType of `spawn` or specific position.
     - reachableOnly: BOOLEAN - Optional: if the place you are teleported must be walkable back to where you were. Defaults to true.
-    - If target is biter nest:
-        - Option for closeness to teleport.
-        - Option for safe area to arrive in.
 - Example command biter nest: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"biterNest", "maxDistance": 1000}`
 - Example command random location: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"random", "minDistance": 100, "maxDistance": 500, "reachableOnly": false}`
 - Example command specific position: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":[1000, 500], "maxDistance": 0}`
@@ -192,3 +190,5 @@ Teleports the player to the nearest type of thing.
 Notes:
 
 - destinationType of position expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
+- destinationType of biterGroup does a search for the nearest enemy unit within the maxDistance. If this is a very large area (3000+) this may be slow.
+- All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will repeat the whole activity up to 5 times before giving up. The destinationType target will be re-calculated for each attempt.
