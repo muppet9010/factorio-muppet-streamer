@@ -13,7 +13,7 @@ Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
     global.teleport.nextId = global.teleport.nextId or 0
     global.teleport.pathingRequests = global.teleport.pathingRequests or {}
-    global.teleport.biterNests = global.teleport.biterNests or {}
+    global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSurfacesSpawners()
 end
 
 Teleport.OnLoad = function()
@@ -25,10 +25,6 @@ Teleport.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_chunk_generated, "Teleport.OnChunkGenerated", Teleport.OnChunkGenerated)
     Events.RegisterHandlerEvent(defines.events.on_entity_died, "Teleport.OnEntityDied", Teleport.OnEntityDied, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
     Events.RegisterHandlerEvent(defines.events.script_raised_destroy, "Teleport.ScriptRaisedDestroy", Teleport.ScriptRaisedDestroy, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
-end
-
-Teleport.OnStartup = function()
-    --TODO: populate global.teleport.biterNests with exisitng nests if empty.
 end
 
 Teleport.TeleportCommand = function(command)
@@ -127,10 +123,11 @@ Teleport.PlanTeleportTarget = function(eventData)
         data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer.position, data.maxDistance, data.minDistance)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
         local spawnerDistances = {}
-        for i, spawner in pairs(global.teleport.biterNests) do
+        for unitNumber, spawner in pairs(global.teleport.surfaceBiterNests[targetPlayer.surface.index]) do
             if not spawner.valid then
-                global.teleport.biterNests[i] = nil
-            elseif spawner.force ~= targetPlayer.force then
+                global.teleport.surfaceBiterNests[targetPlayer.surface.index][unitNumber] = nil
+            elseif (not targetPlayer.force.get_cease_fire(spawner.force)) and (not targetPlayer.force.get_friend(spawner.force)) then
+                -- Not a friend or cease fire force, so enemy.
                 local spawnerDistance = Utils.GetDistance(targetPlayer.position, spawner.position)
                 if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
                     table.insert(spawnerDistances, {distance = spawnerDistance, spawner = spawner})
@@ -216,12 +213,12 @@ Teleport.OnScriptPathRequestFinished = function(event)
     end
 
     global.teleport.pathingRequests[event.id] = nil
-    local player = data.player
+    local targetPlayer = data.targetPlayer
     if event.path == nil then
         -- Path request failed
-        data.attempt = data.attempt + 1
-        if data.attempt > 5 then
-            game.print({"message.muppet_streamer_teleport_no_teleport_location_found", player.name})
+        data.targetAttempt = data.targetAttempt + 1
+        if data.targetAttempt > 5 then
+            game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
         else
             Teleport.PlanTeleportTarget({data = data})
         end
@@ -266,14 +263,26 @@ Teleport.ScriptRaisedDestroy = function(event)
 end
 
 Teleport.SpawnerCreated = function(spawner)
-    global.teleport.biterNests[spawner.unit_number] = spawner
+    global.teleport.surfaceBiterNests[spawner.surface.index][spawner.unit_number] = spawner
 end
 
 Teleport.SpawnerRemoved = function(spawner)
     if not spawner.valid then
         return
     end
-    global.teleport.biterNests[spawner.unit_number] = nil
+    global.teleport.surfaceBiterNests[spawner.surface.index][spawner.unit_number] = nil
+end
+
+Teleport.FindExistingSurfacesSpawners = function()
+    local surfaceNests = global.teleport.surfaceBiterNests or {}
+    for _, surface in pairs(game.surfaces) do
+        surfaceNests[surface.index] = surfaceNests[surface.index] or {}
+        local spawners = surface.find_entities_filtered {type = "unit-spawner"}
+        for _, spawner in pairs(spawners) do
+            surfaceNests[surface.index][spawner.unit_number] = spawner
+        end
+    end
+    return surfaceNests
 end
 
 return Teleport

@@ -49,7 +49,6 @@ local function OnStartup()
     TeamMember.OnStartup()
     LeakyFlamethrower.OnStartup()
     AggressiveDriver.OnStartup()
-    Teleport.OnStartup()
 end
 
 script.on_init(OnStartup)
