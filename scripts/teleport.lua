@@ -5,6 +5,8 @@ local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
 local Events = require("utility/events")
 
+--TODO: if a target fails to find a suitable position then the next attempt needs to select a different one. Espicially important with the pathfinder checks and nearest biter bases/units that may be on islands. As otherwise it will just pick the same target over and over.
+
 local DestinationTypeSelection = {random = "random", biterNest = "biterNest", biterGroup = "biterGroup", spawn = "spawn", position = "position"}
 
 Teleport.CreateGlobals = function()
@@ -88,9 +90,9 @@ Teleport.TeleportCommand = function(command)
         return
     end
 
-    local reachableOnlyRaw, reachableOnly = commandData.reachableOnly, true
-    if reachableOnlyRaw ~= nil then
-        reachableOnly = Utils.ToBoolean(reachableOnlyRaw)
+    local reachableOnly = true
+    if commandData.reachableOnly ~= nil then
+        reachableOnly = Utils.ToBoolean(commandData.reachableOnly)
         if reachableOnly == nil then
             Logging.LogPrint(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
             return

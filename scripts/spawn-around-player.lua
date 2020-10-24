@@ -80,10 +80,11 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local density = tonumber(commandData.density)
     local ammoCount = tonumber(commandData.ammoCount)
 
-    local followPlayer = commandData.followPlayer
-    if followPlayer ~= nil then
-        if type(followPlayer) ~= "boolean" then
-            Logging.LogPrint(errorMessageStart .. "optional followPlayer provided, but isn't a boolean true/false")
+    local followPlayer = false
+    if commandData.followPlayer ~= nil then
+        followPlayer = Utils.ToBoolean(commandData.followPlayer)
+        if followPlayer == nil then
+            Logging.LogPrint(errorMessageStart .. "followPlayer is Optional, but if provided must be a boolean")
             return
         end
     end

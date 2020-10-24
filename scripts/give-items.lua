@@ -3,6 +3,7 @@ local Interfaces = require("utility/interfaces")
 local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
+local Utils = require("utility/utils")
 
 GiveItems.CreateGlobals = function()
     global.giveItems = global.giveItems or {}
@@ -130,17 +131,19 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         end
     end
 
-    local forceWeaponToSlot = commandData.forceWeaponToSlot
-    if forceWeaponToSlot ~= nil then
-        if type(forceWeaponToSlot) ~= "boolean" then
+    local forceWeaponToSlot = false
+    if commandData.forceWeaponToSlot ~= nil then
+        forceWeaponToSlot = Utils.ToBoolean(commandData.forceWeaponToSlot)
+        if forceWeaponToSlot == nil then
             Logging.LogPrint(errorMessageStart .. "optional forceWeaponToSlot provided, but isn't a boolean true/false")
             return
         end
     end
 
-    local selectWeapon = commandData.selectWeapon
-    if selectWeapon ~= nil then
-        if type(selectWeapon) ~= "boolean" then
+    local selectWeapon = false
+    if commandData.selectWeapon ~= nil then
+        selectWeapon = Utils.ToBoolean(commandData.selectWeapon)
+        if selectWeapon == nil then
             Logging.LogPrint(errorMessageStart .. "optional selectWeapon provided, but isn't a boolean true/false")
             return
         end

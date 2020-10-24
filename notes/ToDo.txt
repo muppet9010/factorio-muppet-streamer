@@ -1,5 +1,4 @@
 TODO:
-    - Make other uses of boolean values be like teleport.
     - If the players weapon is lost during leaky flamethrower the effect should be stopped. Curently hit via full item poop.
 
 Future:
