@@ -344,6 +344,18 @@ function Utils.GetTableNonNilLength(table)
     return count
 end
 
+function Utils.GetFirstTableKey(table)
+    return next(table)
+end
+
+function Utils.GetFirstTableValue(table)
+    return table[next(table)]
+end
+
+function Utils.GetFirstTableKeyValue(table)
+    return next(table), table[next(table)]
+end
+
 function Utils.GetMaxKey(table)
     local max_key = 0
     for k in pairs(table) do

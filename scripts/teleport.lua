@@ -99,6 +99,9 @@ Teleport.TeleportCommand = function(command)
         if reachableOnly == nil then
             Logging.LogPrint(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
             return
+        elseif reachableOnly == true and not (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
+            Logging.LogPrint(errorMessageStart .. "reachableOnly is enabled set for unsupported destinationType")
+            return
         end
     end
 
@@ -136,44 +139,44 @@ Teleport.PlanTeleportTarget = function(eventData)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
         if data.targetAttempt > 1 then
             table.insert(data.failedTargetPositions, data.destinationTargetPosition)
-        end
-        local spawnerDistances = {}
-        for unitNumber, spawner in pairs(global.teleport.surfaceBiterNests[targetPlayer.surface.index]) do
-            if not spawner.valid then
-                global.teleport.surfaceBiterNests[targetPlayer.surface.index][unitNumber] = nil
-            elseif (not targetPlayer.force.get_cease_fire(spawner.force)) and (not targetPlayer.force.get_friend(spawner.force)) then
-                -- Not a friend or cease fire force, so enemy.
-                local inSkippableArea = false
-                for _, badSpawnerPosition in pairs(data.failedTargetPositions) do
-                    if Utils.GetDistance(badSpawnerPosition, spawner.position) < 30 then
-                        -- Target spawner is too close to a bad previous target attempt.
-                        inSkippableArea = true
-                        break
-                    end
-                end
-                if not inSkippableArea then
+        else
+            data.spawnerDistances = {}
+            for unitNumber, spawner in pairs(global.teleport.surfaceBiterNests[targetPlayer.surface.index]) do
+                if not spawner.valid then
+                    global.teleport.surfaceBiterNests[targetPlayer.surface.index][unitNumber] = nil
+                elseif (not targetPlayer.force.get_cease_fire(spawner.force)) and (not targetPlayer.force.get_friend(spawner.force)) then
+                    -- Not a friend or cease fire force, so enemy.
                     -- potential spawner isn't too close to a bad location already tried.
                     local spawnerDistance = Utils.GetDistance(targetPlayer.position, spawner.position)
                     if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
-                        table.insert(spawnerDistances, {distance = spawnerDistance, spawner = spawner})
+                        table.insert(data.spawnerDistances, {distance = spawnerDistance, spawner = spawner})
                     end
                 end
             end
         end
-        if #spawnerDistances == 0 then
+        for index, spawnerDetails in pairs(data.spawnerDistances) do
+            for _, badSpawnerPosition in pairs(data.failedTargetPositions) do
+                if Utils.GetDistance(badSpawnerPosition, spawnerDetails.spawner.position) < 30 then
+                    -- Target spawner is too close to a bad previous target attempt.
+                    data.spawnerDistances[index] = nil
+                    break
+                end
+            end
+        end
+        if #data.spawnerDistances == 0 then
             game.print({"message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name})
             return
-        else
+        end
+        if data.targetAttempt == 1 then
             table.sort(
-                spawnerDistances,
+                data.spawnerDistances,
                 function(a, b)
                     return a.distance < b.distance
                 end
             )
-            data.destinationTargetPosition = spawnerDistances[1].spawner.position
         end
+        data.destinationTargetPosition = Utils.GetFirstTableValue(data.spawnerDistances).spawner.position
     elseif data.destinationType == DestinationTypeSelection.biterGroup then
-        -- TODO: how do we handle if its not pathable?
         data.destinationTargetPosition = targetPlayer.surface.find_nearest_enemy {position = targetPlayer.position, max_distance = data.maxDistance, force = targetPlayer.force}
         if data.destinationTargetPosition == nil then
             game.print({"message.muppet_streamer_teleport_no_biter_group_found", targetPlayer.name})
