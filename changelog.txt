@@ -2,8 +2,10 @@
 Version: 19.0.6
 Date: 2020-xxxxxxx
   Features:
-    - Add aggressive driver mode with inital features listed in readme.
-    - Combat robots have option to follow the player or not. Any robots which can't follow will just be created loose on the map.
+    - Add Aggressive Driver feature to drive a vehicle forwards aggressively.
+    - Add Call For Help feature to teleport other players to around the specific player.
+    - Add Teleport feature to take the player near a range of possible targets.
+    - Combat robots created by the Spawn Around Player feature have option to follow the player or not. Any robots which can't follow will just be created loose on the map.
     - Add landmine option to spawn around player feature.
     - Add force option to spawn around player feature.
   Changes:

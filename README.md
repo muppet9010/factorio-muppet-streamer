@@ -13,6 +13,8 @@ Features
 - Give a player a weapon and ammo, plus options to force it as active weapon via command.
 - Spawn entities around the player with various placement options via command.
 - Make the player an aggressive driver via command.
+- Teleport other players to the player in a call for help via command.
+- Teleport the player to near a range of possible targets via command.
 
 At present a time duration event will interupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
 

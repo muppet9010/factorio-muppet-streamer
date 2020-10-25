@@ -1,11 +1,11 @@
 TODO:
-    - If the players weapon is lost during leaky flamethrower the effect should be stopped. Curently hit via full item poop.
+    - If the players weapon is lost during leaky flamethrower the effect should be stopped. Curently encountered if a full item poop occurs.
 
 Future:
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
     - Time duration events should add to existing ones if active.
-	- Flamethrower doesn't always move weapons out of the way, maybe to do with filtering?
-	- If it clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards.
+	- Leaky Flamethrower doesn't always move weapons out of the way, maybe to do with filtering?
+	- If Leaky Flamethrower clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards if available.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room.
     - Spawn around player to support biters, spitters or both. Allow named or evo specific.
     - Call for Help - add:
@@ -19,6 +19,3 @@ Future:
         - option: spider walks randomly around
         - option: walk towards nearest biter base (use teleport biter nest tracking).
         - option: walk towards nearest enemy unit group (use teleport to nearest biter logic).
-
-Long Term:
-	- the code doesn't handle trees being removed after the game starts. you could try wiping the cached data from the mods global. Will probably work, but do at your own risk. global.UTILITYBIOMETREES
