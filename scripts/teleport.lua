@@ -5,8 +5,6 @@ local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
 local Events = require("utility/events")
 
---TODO: if a target fails to find a suitable position then the next attempt needs to select a different one. Espicially important with the pathfinder checks and nearest biter bases/units that may be on islands. As otherwise it will just pick the same target over and over.
-
 local DestinationTypeSelection = {random = "random", biterNest = "biterNest", biterGroup = "biterGroup", spawn = "spawn", position = "position"}
 
 Teleport.CreateGlobals = function()
@@ -86,7 +84,7 @@ Teleport.TeleportCommand = function(command)
         return
     end
 
-    local reachableOnly = true
+    local reachableOnly = false
     if commandData.reachableOnly ~= nil then
         reachableOnly = Utils.ToBoolean(commandData.reachableOnly)
         if reachableOnly == nil then
@@ -96,7 +94,12 @@ Teleport.TeleportCommand = function(command)
     end
 
     global.teleport.nextId = global.teleport.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "Teleport.PlanTeleportTarget", global.teleport.nextId, {teleportId = global.teleport.nextId, target = target, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, targetAttempt = 0})
+    EventScheduler.ScheduleEvent(
+        command.tick + delay,
+        "Teleport.PlanTeleportTarget",
+        global.teleport.nextId,
+        {teleportId = global.teleport.nextId, target = target, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, targetAttempt = 0, failedTargetPositions = {}}
+    )
 end
 
 Teleport.PlanTeleportTarget = function(eventData)
@@ -122,15 +125,29 @@ Teleport.PlanTeleportTarget = function(eventData)
     elseif data.destinationType == DestinationTypeSelection.random then
         data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer.position, data.maxDistance, data.minDistance)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
+        if data.targetAttempt > 1 then
+            table.insert(data.failedTargetPositions, data.destinationTargetPosition)
+        end
         local spawnerDistances = {}
         for unitNumber, spawner in pairs(global.teleport.surfaceBiterNests[targetPlayer.surface.index]) do
             if not spawner.valid then
                 global.teleport.surfaceBiterNests[targetPlayer.surface.index][unitNumber] = nil
             elseif (not targetPlayer.force.get_cease_fire(spawner.force)) and (not targetPlayer.force.get_friend(spawner.force)) then
                 -- Not a friend or cease fire force, so enemy.
-                local spawnerDistance = Utils.GetDistance(targetPlayer.position, spawner.position)
-                if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
-                    table.insert(spawnerDistances, {distance = spawnerDistance, spawner = spawner})
+                local inSkippableArea = false
+                for _, badSpawnerPosition in pairs(data.failedTargetPositions) do
+                    if Utils.GetDistance(badSpawnerPosition, spawner.position) < 30 then
+                        -- Target spawner is too close to a bad previous target attempt.
+                        inSkippableArea = true
+                        break
+                    end
+                end
+                if not inSkippableArea then
+                    -- potential spawner isn't too close to a bad location already tried.
+                    local spawnerDistance = Utils.GetDistance(targetPlayer.position, spawner.position)
+                    if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
+                        table.insert(spawnerDistances, {distance = spawnerDistance, spawner = spawner})
+                    end
                 end
             end
         end
@@ -147,6 +164,7 @@ Teleport.PlanTeleportTarget = function(eventData)
             data.destinationTargetPosition = spawnerDistances[1].spawner.position
         end
     elseif data.destinationType == DestinationTypeSelection.biterGroup then
+        -- TODO: how do we handle if its not pathable?
         data.destinationTargetPosition = targetPlayer.surface.find_nearest_enemy {position = targetPlayer.position, max_distance = data.maxDistance, force = targetPlayer.force}
         if data.destinationTargetPosition == nil then
             game.print({"message.muppet_streamer_teleport_no_biter_group_found", targetPlayer.name})
@@ -181,8 +199,12 @@ Teleport.PlanTeleportLocation = function(data)
         end
     end
     if arrivalPos == nil then
-        game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
-        return
+        if data.targetAttempt > 5 then
+            game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
+            return
+        else
+            Teleport.PlanTeleportTarget({data = data})
+        end
     end
     data.thisAttemptPosition = arrivalPos
 
@@ -216,7 +238,6 @@ Teleport.OnScriptPathRequestFinished = function(event)
     local targetPlayer = data.targetPlayer
     if event.path == nil then
         -- Path request failed
-        data.targetAttempt = data.targetAttempt + 1
         if data.targetAttempt > 5 then
             game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
         else
@@ -229,10 +250,14 @@ end
 
 Teleport.Teleport = function(data)
     local targetPlayer = data.targetPlayer
+    local teleportResult
     if Teleport.IsTeleportableVehicle(targetPlayer.vehicle) then
-        targetPlayer.vehicle.teleport(data.thisAttemptPosition)
+        teleportResult = targetPlayer.vehicle.teleport(data.thisAttemptPosition)
     else
-        targetPlayer.teleport(data.thisAttemptPosition)
+        teleportResult = targetPlayer.teleport(data.thisAttemptPosition)
+    end
+    if not teleportResult then
+        game.print("Muppet Streamer Error - teleport failed")
     end
 end
 
