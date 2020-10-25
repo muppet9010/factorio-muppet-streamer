@@ -67,10 +67,19 @@ Teleport.TeleportCommand = function(command)
         end
     end
 
+    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 0
+    if arrivalRadiusRaw ~= nil then
+        arrivalRadius = tonumber(arrivalRadiusRaw)
+        if arrivalRadius == nil or arrivalRadius < 0 then
+            Logging.LogPrint(errorMessageStart .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
+            return
+        end
+    end
+
     local minDistanceRaw, minDistance = commandData.minDistance, 0
     if minDistanceRaw ~= nil then
         minDistance = tonumber(minDistanceRaw)
-        if minDistance == nil then
+        if minDistance == nil or minDistance < 0 then
             Logging.LogPrint(errorMessageStart .. "minDistance is Optional, but if supplied must be 0 or greater")
             return
         end
@@ -79,7 +88,7 @@ Teleport.TeleportCommand = function(command)
     local maxDistance = tonumber(commandData.maxDistance)
     if destinationType == DestinationTypeSelection.position or destinationType == DestinationTypeSelection.spawn then
         maxDistance = 0
-    elseif maxDistance == nil then
+    elseif maxDistance == nil or maxDistance < 0 then
         Logging.LogPrint(errorMessageStart .. "maxDistance is Mandatory, must be 0 or greater")
         return
     end
@@ -98,7 +107,7 @@ Teleport.TeleportCommand = function(command)
         command.tick + delay,
         "Teleport.PlanTeleportTarget",
         global.teleport.nextId,
-        {teleportId = global.teleport.nextId, target = target, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, targetAttempt = 0, failedTargetPositions = {}}
+        {teleportId = global.teleport.nextId, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, targetAttempt = 0, failedTargetPositions = {}}
     )
 end
 
@@ -189,9 +198,9 @@ Teleport.PlanTeleportLocation = function(data)
         targetPlayerEntity = targetPlayer.character
     end
 
-    local arrivalPos, arrivalRadius = nil, 10 -- TODO this arrivalRadius is a setting.
+    local arrivalPos
     for _ = 1, 10 do
-        local randomPos = Utils.RandomLocationInRadius(data.destinationTargetPosition, arrivalRadius, 1)
+        local randomPos = Utils.RandomLocationInRadius(data.destinationTargetPosition, data.arrivalRadius, 1)
         randomPos = Utils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
         arrivalPos = targetPlayer.surface.find_non_colliding_position(targetPlayerEntity.name, randomPos, 10, 1, false)
         if arrivalPos ~= nil then

@@ -181,7 +181,7 @@ Teleports the player to the nearest type of thing.
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - destinationType: STRING - Mandatory: the type of teleport to do, either `random`, `biterNest`, `biterGroup`, `spawn` or a specific position as a table. For biter types it Will be the nearest one found within range.
-    - arrivalRadius - NUMBER - Mandatory: the max distance the player will be teleported to from the targeted destinationType.
+    - arrivalRadius - NUMBER - Optional: the max distance the player will be teleported to from the targeted destinationType. Defaults to 10.
     - minDistance: NUMBER - Optional: the minimum distance to teleport. If not provided then value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `biterGroup`.
     - maxDistance: NUMBER - Mandatory: the maximum distance to teleport. Is ignored for destinationType of `spawn` or specific position.
     - reachableOnly: BOOLEAN - Optional: if the place you are teleported must be walkable back to where you were. Defaults to false.
