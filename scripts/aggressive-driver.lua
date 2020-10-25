@@ -105,7 +105,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
 
     local inVehicle = targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid and targetPlayer.vehicle.type ~= "spider-vehicle"
     if not inVehicle and data.teleportDistance > 0 then
-        local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "tank", "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}}
+        local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "tank", "locomotive"}}
         local distanceSortedVehicles = {}
         for _, vehicle in pairs(vehicles) do
             local vehicleValid = true
@@ -149,12 +149,24 @@ end
 
 AggressiveDriver.Drive = function(eventData)
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId
-    if player == nil or (not player.valid) or player.vehicle == nil or (not player.vehicle.valid) then
+    local vehicle = player.vehicle
+    if player == nil or (not player.valid) or vehicle == nil or (not vehicle.valid) then
         AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end
 
-    if data.accelerationTime > 3 and player.vehicle.speed == 0 then
+    if vehicle.type == "locomotive" then
+        vehicle.train.manual_mode = true
+        if vehicle.speed ~= 0 then
+            if (vehicle.speed > 0 and vehicle.speed == vehicle.train.speed) or (vehicle.speed < 0 and vehicle.speed ~= vehicle.train.speed) then
+                data.accelerationState = defines.riding.acceleration.accelerating
+            else
+                data.accelerationState = defines.riding.acceleration.reversing
+            end
+        end
+    end
+
+    if data.accelerationTime > 3 and vehicle.speed == 0 then
         data.accelerationTime = 0
         if data.accelerationState == defines.riding.acceleration.accelerating then
             data.accelerationState = defines.riding.acceleration.reversing

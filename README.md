@@ -145,7 +145,7 @@ Notes:
 
 - This feature uses a custom permission group when active.
 - If the vehicle comes to a stop during the time it will automatically start going the opposite direction.
-- This feature affects all vehicles other than tha Spider Vehicle.
+- This feature affects all types of cars, tanks and locomotive vehicles, but not the Spider Vehicle.
 
 
 Call For Help
