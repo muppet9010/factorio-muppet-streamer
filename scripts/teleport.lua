@@ -5,7 +5,11 @@ local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
 local Events = require("utility/events")
 
-local DestinationTypeSelection = {random = "random", biterNest = "biterNest", biterGroup = "biterGroup", spawn = "spawn", position = "position"}
+local DestinationTypeSelection = {random = "random", biterNest = "biterNest", enemyUnit = "enemyUnit", spawn = "spawn", position = "position"}
+local DestinationTypeSelectionDescription = {random = "Random Location", biterNest = "Nearest Biter Nest", enemyUnit = "Enemy Unit", spawn = "spawn", position = "Set Position"}
+local MaxTargetAttempts = 5
+local MaxRandomPositionsAroundTarget = 10
+local MaxDistancePositionAroundTarget = 10
 
 Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
@@ -36,11 +40,25 @@ Teleport.TeleportCommand = function(command)
         return
     end
 
+    local commandValues = Teleport.GetCommandData(commandData, errorMessageStart, 0)
+    if commandValues == nil then
+        return
+    end
+
+    Teleport.ScheduleTeleportCommand(commandValues)
+end
+
+Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
+    local depthErrorMessage = ""
+    if depth > 0 then
+        depthErrorMessage = "at depth " .. depth .. " - "
+    end
+
     local delay = 0
     if commandData.delay ~= nil then
         delay = tonumber(commandData.delay)
         if delay == nil then
-            Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "delay is Optional, but must be a non-negative number if supplied")
             return
         end
         delay = math.max(delay * 60, 0)
@@ -51,7 +69,7 @@ Teleport.TeleportCommand = function(command)
         Logging.LogPrint(errorMessageStart .. "target is mandatory")
         return
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
+        Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "target is invalid player name")
         return
     end
 
@@ -60,18 +78,20 @@ Teleport.TeleportCommand = function(command)
     if destinationType == nil then
         destinationTargetPosition = Utils.TableToProperPosition(destinationTypeRaw)
         if destinationTargetPosition == nil then
-            Logging.LogPrint(errorMessageStart .. "destinationType is Mandatory and must be a valid type or a table for position")
+            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "destinationType is Mandatory and must be a valid type or a table for position")
             return
         else
             destinationType = DestinationTypeSelection.position
         end
     end
 
+    local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType]
+
     local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 0
     if arrivalRadiusRaw ~= nil then
         arrivalRadius = tonumber(arrivalRadiusRaw)
         if arrivalRadius == nil or arrivalRadius < 0 then
-            Logging.LogPrint(errorMessageStart .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
+            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
             return
         end
     end
@@ -80,7 +100,7 @@ Teleport.TeleportCommand = function(command)
     if minDistanceRaw ~= nil then
         minDistance = tonumber(minDistanceRaw)
         if minDistance == nil or minDistance < 0 then
-            Logging.LogPrint(errorMessageStart .. "minDistance is Optional, but if supplied must be 0 or greater")
+            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
             return
         end
     end
@@ -89,7 +109,7 @@ Teleport.TeleportCommand = function(command)
     if destinationType == DestinationTypeSelection.position or destinationType == DestinationTypeSelection.spawn then
         maxDistance = 0
     elseif maxDistance == nil or maxDistance < 0 then
-        Logging.LogPrint(errorMessageStart .. "maxDistance is Mandatory, must be 0 or greater")
+        Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "maxDistance is Mandatory, must be 0 or greater")
         return
     end
 
@@ -100,18 +120,47 @@ Teleport.TeleportCommand = function(command)
             Logging.LogPrint(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
             return
         elseif reachableOnly == true and not (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
-            Logging.LogPrint(errorMessageStart .. "reachableOnly is enabled set for unsupported destinationType")
+            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "reachableOnly is enabled set for unsupported destinationType")
             return
         end
     end
 
+    local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
+    if backupTeleportSettingsRaw ~= nil and type(backupTeleportSettingsRaw) == "table" then
+        backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1)
+    end
+
+    return {delay = delay, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
+end
+
+Teleport.ScheduleTeleportCommand = function(commandValues)
     global.teleport.nextId = global.teleport.nextId + 1
     EventScheduler.ScheduleEvent(
-        command.tick + delay,
+        game.tick + commandValues.delay,
         "Teleport.PlanTeleportTarget",
         global.teleport.nextId,
-        {teleportId = global.teleport.nextId, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, targetAttempt = 0, failedTargetPositions = {}}
+        {
+            teleportId = global.teleport.nextId,
+            target = commandValues.target,
+            arrivalRadius = commandValues.arrivalRadius,
+            minDistance = commandValues.minDistance,
+            maxDistance = commandValues.maxDistance,
+            destinationType = commandValues.destinationType,
+            destinationTargetPosition = commandValues.destinationTargetPosition,
+            reachableOnly = commandValues.reachableOnly,
+            targetAttempt = 0,
+            failedTargetPositions = {},
+            backupTeleportSettings = commandValues.backupTeleportSettings,
+            destinationTypeDescription = commandValues.destinationTypeDescription
+        }
     )
+end
+
+Teleport.DoBackupTeleport = function(data)
+    if data.backupTeleportSettings ~= nil then
+        game.print({"message.muppet_streamer_teleport_doing_backup", data.backupTeleportSettings.destinationTypeDescription, data.backupTeleportSettings.target})
+        Teleport.ScheduleTeleportCommand(data.backupTeleportSettings)
+    end
 end
 
 Teleport.PlanTeleportTarget = function(eventData)
@@ -165,6 +214,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
         if #data.spawnerDistances == 0 then
             game.print({"message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name})
+            Teleport.DoBackupTeleport(data)
             return
         end
         if data.targetAttempt == 1 then
@@ -176,10 +226,11 @@ Teleport.PlanTeleportTarget = function(eventData)
             )
         end
         data.destinationTargetPosition = Utils.GetFirstTableValue(data.spawnerDistances).spawner.position
-    elseif data.destinationType == DestinationTypeSelection.biterGroup then
+    elseif data.destinationType == DestinationTypeSelection.enemyUnit then
         data.destinationTargetPosition = targetPlayer.surface.find_nearest_enemy {position = targetPlayer.position, max_distance = data.maxDistance, force = targetPlayer.force}
         if data.destinationTargetPosition == nil then
-            game.print({"message.muppet_streamer_teleport_no_biter_group_found", targetPlayer.name})
+            game.print({"message.muppet_streamer_teleport_no_enemy_unit_found", targetPlayer.name})
+            Teleport.DoBackupTeleport(data)
             return
         end
     end
@@ -202,20 +253,22 @@ Teleport.PlanTeleportLocation = function(data)
     end
 
     local arrivalPos
-    for _ = 1, 10 do
+    for _ = 1, MaxRandomPositionsAroundTarget do
         local randomPos = Utils.RandomLocationInRadius(data.destinationTargetPosition, data.arrivalRadius, 1)
         randomPos = Utils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
-        arrivalPos = targetPlayer.surface.find_non_colliding_position(targetPlayerEntity.name, randomPos, 10, 1, false)
+        arrivalPos = targetPlayer.surface.find_non_colliding_position(targetPlayerEntity.name, randomPos, MaxDistancePositionAroundTarget, 1, false)
         if arrivalPos ~= nil then
             break
         end
     end
     if arrivalPos == nil then
-        if data.targetAttempt > 5 then
+        if data.targetAttempt > MaxTargetAttempts then
             game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
+            Teleport.DoBackupTeleport(data)
             return
         else
             Teleport.PlanTeleportTarget({data = data})
+            return
         end
     end
     data.thisAttemptPosition = arrivalPos
@@ -250,8 +303,9 @@ Teleport.OnScriptPathRequestFinished = function(event)
     local targetPlayer = data.targetPlayer
     if event.path == nil then
         -- Path request failed
-        if data.targetAttempt > 5 then
+        if data.targetAttempt > MaxTargetAttempts then
             game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
+            Teleport.DoBackupTeleport(data)
         else
             Teleport.PlanTeleportTarget({data = data})
         end
@@ -270,6 +324,7 @@ Teleport.Teleport = function(data)
     end
     if not teleportResult then
         game.print("Muppet Streamer Error - teleport failed")
+        Teleport.DoBackupTeleport(data)
     end
 end
 

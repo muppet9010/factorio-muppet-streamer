@@ -180,18 +180,21 @@ Teleports the player to the nearest type of thing.
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
-    - destinationType: STRING - Mandatory: the type of teleport to do, either `random`, `biterNest`, `biterGroup`, `spawn` or a specific position as a table. For biter types it Will be the nearest one found within range.
+    - destinationType: STRING - Mandatory: the type of teleport to do, either `random`, `biterNest`, `enemyUnit`, `spawn` or a specific position as a table. For biterNest and enemyUnit it will be the nearest one found within range.
     - arrivalRadius - NUMBER - Optional: the max distance the player will be teleported to from the targeted destinationType. Defaults to 10.
-    - minDistance: NUMBER - Optional: the minimum distance to teleport. If not provided then value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `biterGroup`.
+    - minDistance: NUMBER - Optional: the minimum distance to teleport. If not provided then value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `enemyUnit`.
     - maxDistance: NUMBER - Mandatory: the maximum distance to teleport. Is ignored for destinationType of `spawn` or specific position.
     - reachableOnly: BOOLEAN - Optional: if the place you are teleported must be walkable back to where you were. Defaults to false. Only applicable for destinationType of `random` and `biterNest`.
+    - backupTeleportSettings: Teleport details in JSON string - Optional: a backup complete teleport action that will be done if the main destinationType is unsuccessful. Is a complete copy of the main muppet_streamer_teleport settings as a JSON object.
 - Example command biter nest: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"biterNest", "maxDistance": 1000, "reachableOnly": true}`
 - Example command random location: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"random", "minDistance": 100, "maxDistance": 500, "reachableOnly": true}`
 - Example command specific position: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":[1000, 500], "maxDistance": 0}`
+- Example command backup teleport: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"biterNest", "maxDistance": 100, "reachableOnly": true, "backupTeleportSettings": {"target":"muppet9010", "destinationType":"random", "minDistance": 100, "maxDistance": 500, "reachableOnly": true} }`
 
 Notes:
 
 - destinationType of position expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
-- destinationType of biterGroup does a search for the nearest enemy unit within the maxDistance. If this is a very large area (3000+) this may be slow.
+- destinationType of enemyUnit does a search for the nearest enemy unit within the maxDistance. If this is a very large area (3000+) this may be slow.
 - All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will repeat the whole activity up to 5 times before giving up. The destinationType target will be re-calculated for each attempt.
 - The reachableOnly will give up on a target if it gets a failed pathfinder request and find a new target to repeat the process with up to the 5 times. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations.
+- The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the preiovus teleport attempt failing.
