@@ -3,6 +3,7 @@ local Interfaces = require("utility/interfaces")
 local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
+local Utils = require("utility/utils")
 
 GiveItems.CreateGlobals = function()
     global.giveItems = global.giveItems or {}
@@ -130,17 +131,19 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         end
     end
 
-    local forceWeaponToSlot = commandData.forceWeaponToSlot
-    if forceWeaponToSlot ~= nil then
-        if type(forceWeaponToSlot) ~= "boolean" then
+    local forceWeaponToSlot = false
+    if commandData.forceWeaponToSlot ~= nil then
+        forceWeaponToSlot = Utils.ToBoolean(commandData.forceWeaponToSlot)
+        if forceWeaponToSlot == nil then
             Logging.LogPrint(errorMessageStart .. "optional forceWeaponToSlot provided, but isn't a boolean true/false")
             return
         end
     end
 
-    local selectWeapon = commandData.selectWeapon
-    if selectWeapon ~= nil then
-        if type(selectWeapon) ~= "boolean" then
+    local selectWeapon = false
+    if commandData.selectWeapon ~= nil then
+        selectWeapon = Utils.ToBoolean(commandData.selectWeapon)
+        if selectWeapon == nil then
             Logging.LogPrint(errorMessageStart .. "optional selectWeapon provided, but isn't a boolean true/false")
             return
         end
@@ -170,6 +173,10 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil or not targetPlayer.valid then
         Logging.LogPrint("ERROR: muppet_streamer_give_player_weapon_ammo command target player not found at delivery time: " .. data.target)
+        return
+    end
+    if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
+        game.print({"message.muppet_streamer_give_player_weapon_ammo_not_character_controller", data.target})
         return
     end
 

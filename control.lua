@@ -1,4 +1,3 @@
-local Events = require("utility/events")
 local Freeplay = require("scripts/freeplay")
 local TeamMember = require("scripts/team-member")
 local ExplosiveDelivery = require("scripts/explosive-delivery")
@@ -6,13 +5,21 @@ local LeakyFlamethrower = require("scripts/leaky-flamethrower")
 local EventScheduler = require("utility/event-scheduler")
 local GiveItems = require("scripts/give-items")
 local SpawnAroundPlayer = require("scripts/spawn-around-player")
+local AggressiveDriver = require("scripts/aggressive-driver")
+local CallForHelp = require("scripts/call-for-help")
+local Teleport = require("scripts/teleport")
 
 local function CreateGlobals()
+    global.origionalPlayersPermissionGroup = global.origionalPlayersPermissionGroup or {} -- Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
+
     TeamMember.CreateGlobals()
     ExplosiveDelivery.CreateGlobals()
     LeakyFlamethrower.CreateGlobals()
     GiveItems.CreateGlobals()
     SpawnAroundPlayer.CreateGlobals()
+    AggressiveDriver.CreateGlobals()
+    CallForHelp.CreateGlobals()
+    Teleport.CreateGlobals()
 end
 
 local function OnLoad()
@@ -24,17 +31,24 @@ local function OnLoad()
     LeakyFlamethrower.OnLoad()
     GiveItems.OnLoad()
     SpawnAroundPlayer.OnLoad()
+    AggressiveDriver.OnLoad()
+    CallForHelp.OnLoad()
+    Teleport.OnLoad()
+end
+
+local function OnSettingChanged(event)
+    TeamMember.OnSettingChanged(event)
 end
 
 local function OnStartup()
     CreateGlobals()
     OnLoad()
-    Events.RaiseInternalEvent({name = defines.events.on_runtime_mod_setting_changed})
+    OnSettingChanged(nil)
 
     Freeplay.OnStartup()
     TeamMember.OnStartup()
     LeakyFlamethrower.OnStartup()
-    SpawnAroundPlayer.OnStartup()
+    AggressiveDriver.OnStartup()
 end
 
 script.on_init(OnStartup)

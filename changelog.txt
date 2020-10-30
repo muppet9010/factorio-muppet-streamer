@@ -1,4 +1,22 @@
 ---------------------------------------------------------------------------------------------------
+Version: 19.0.6
+Date: 2020-10-30
+  Features:
+    - Add Aggressive Driver feature to drive a vehicle forwards aggressively.
+    - Add Call For Help feature to teleport other players to around the specific player.
+    - Add Teleport feature to take the player near a range of possible targets, including backup teleport actions.
+    - Combat robots created by the Spawn Around Player feature have option to follow the player or not. Any robots which can't follow will just be created loose on the map.
+    - Add landmine option to spawn around player feature.
+    - Add force option to spawn around player feature.
+  Changes:
+    - Different types of time duration features will interupt each other. Same tpes currently don't stack.
+    - Alert in chat when a targeted player isn't in a state to have an effect applied to them.
+  Bugfixes:
+    - Fix combat robots commands from erroring.
+    - When you die (stop leaky flamethrower) any unused ammo you were given is removed.
+  Info:
+    - Updated Muppet Utility library, includes many minor fixes, some will fix un-reported issues in this mod.
+---------------------------------------------------------------------------------------------------
 Version: 18.0.5
 Date: 2020-05-04
   Features:
@@ -6,6 +24,7 @@ Date: 2020-05-04
   Bugfixes:
     - Made all commands be admin only.
     - Made all commands not error if no data is passed to them.
+  Info:
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.4
 Date: 2020-05-02
@@ -13,6 +32,7 @@ Date: 2020-05-02
   Changes:
   Bugfixes:
     - When giving weapons and ammo if the items spilled on the floor it errored. No longer happens.
+  Info:
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.3
 Date: 2020-04-01
