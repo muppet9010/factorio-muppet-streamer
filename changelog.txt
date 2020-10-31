@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 18.0.7
+Date: 2020-xxxx
+  Features:
+  Changes:
+    - Teleport & Call For Help uses the player character and not the vehicle for pathfinding requests. Still uses the player vehicle for placement finding.
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 19.0.6
 Date: 2020-10-30
   Features:
@@ -9,7 +17,7 @@ Date: 2020-10-30
     - Add landmine option to spawn around player feature.
     - Add force option to spawn around player feature.
   Changes:
-    - Different types of time duration features will interupt each other. Same tpes currently don't stack.
+    - Different types of time duration features will interupt each other. Same types currently don't stack.
     - Alert in chat when a targeted player isn't in a state to have an effect applied to them.
   Bugfixes:
     - Fix combat robots commands from erroring.
