@@ -1,5 +1,4 @@
 TODO:
-    - If the players weapon is lost during leaky flamethrower the effect should be stopped. Curently encountered if a full item poop occurs.
 
 Future:
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower

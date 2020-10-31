@@ -5,6 +5,8 @@ Date: 2020-xxxx
   Changes:
     - Teleport & Call For Help uses the player character and not the vehicle for pathfinding requests. Still uses the player vehicle for placement finding.
   Bugfixes:
+    - Leaky Flamethrower - If the gun is lost (via script) then the effect stops. Before when you picked up another gun it would start firing that.
+    - Leaky Flamethrower - If the gun is lost (via script) then the weapon and ammo is recovered from the players inventory or items on the group.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 19.0.6

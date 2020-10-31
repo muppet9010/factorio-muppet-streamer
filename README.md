@@ -1,6 +1,6 @@
 # factorio-muppet-streamer
 
-Adds actions that a streamer can let chat activate to make their games more dynamic and interactive.
+Adds actions that a streamer can let chat activate to make their games more dynamic and interactive. These features are more complicated than can be achived via simple RCON commands.
 
 
 Features
