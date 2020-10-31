@@ -7,6 +7,8 @@ local Events = require("utility/events")
 
 local CallSelection = {random = "random", nearest = "nearest"}
 local SPTesting = false -- Set to true to let yourself go to your own support.
+local MaxRandomPositionsAroundTarget = 10
+local MaxDistancePositionAroundTarget = 10
 
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
@@ -180,10 +182,10 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
     end
 
     local arrivalPos
-    for _ = 1, 10 do
+    for _ = 1, MaxRandomPositionsAroundTarget do
         local randomPos = Utils.RandomLocationInRadius(targetPlayerPosition, arrivalRadius, 1)
         randomPos = Utils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
-        arrivalPos = targetPlayerSurface.find_non_colliding_position(helpPlayerPlacementEntity.name, randomPos, 10, 1, false)
+        arrivalPos = targetPlayerSurface.find_non_colliding_position(helpPlayerPlacementEntity.name, randomPos, MaxDistancePositionAroundTarget, 1, false)
         if arrivalPos ~= nil then
             break
         end
