@@ -7,6 +7,8 @@ local Events = require("utility/events")
 
 local CallSelection = {random = "random", nearest = "nearest"}
 local SPTesting = false -- Set to true to let yourself go to your own support.
+local MaxRandomPositionsAroundTarget = 10
+local MaxDistancePositionAroundTarget = 10
 
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
@@ -160,7 +162,7 @@ CallForHelp.CallForHelp = function(eventData)
     game.print({"message.muppet_streamer_call_for_help_start", targetPlayer.name})
     global.callForHelp.callForHelpIds[data.callForHelpId] = {callForHelpId = data.callForHelpId, pendingPathRequests = {}}
     for _, helpPlayer in pairs(helpPlayers) do
-        CallForHelp.PlanTeleportPlayer(helpPlayer, data.arrivalRadius, targetPlayer, data.callForHelpId, 1)
+        CallForHelp.PlanTeleportHelpPlayer(helpPlayer, data.arrivalRadius, targetPlayer, data.callForHelpId, 1)
     end
 end
 
@@ -168,24 +170,22 @@ CallForHelp.IsTeleportableVehicle = function(vehicle)
     return vehicle ~= nil and vehicle.valid and (vehicle.name == "car" or vehicle.name == "tank" or vehicle.name == "spider-vehicle")
 end
 
-CallForHelp.PlanTeleportPlayer = function(helpPlayer, arrivalRadius, targetPlayer, callForHelpId, attempt)
+CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetPlayer, callForHelpId, attempt)
     local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
     local targetPlayerEntity = targetPlayer.character
     if targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid then
         targetPlayerEntity = targetPlayer.vehicle
     end
-    local helpPlayerEntity
+    local helpPlayerPathingEntity, helpPlayerPlacementEntity = helpPlayer.character, helpPlayer.character
     if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then
-        helpPlayerEntity = helpPlayer.vehicle
-    else
-        helpPlayerEntity = helpPlayer.character
+        helpPlayerPlacementEntity = helpPlayer.vehicle
     end
 
     local arrivalPos
-    for _ = 1, 10 do
+    for _ = 1, MaxRandomPositionsAroundTarget do
         local randomPos = Utils.RandomLocationInRadius(targetPlayerPosition, arrivalRadius, 1)
         randomPos = Utils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
-        arrivalPos = targetPlayerSurface.find_non_colliding_position(helpPlayerEntity.name, randomPos, 10, 1, false)
+        arrivalPos = targetPlayerSurface.find_non_colliding_position(helpPlayerPlacementEntity.name, randomPos, MaxDistancePositionAroundTarget, 1, false)
         if arrivalPos ~= nil then
             break
         end
@@ -197,8 +197,8 @@ CallForHelp.PlanTeleportPlayer = function(helpPlayer, arrivalRadius, targetPlaye
 
     local pathRequestId =
         targetPlayerSurface.request_path {
-        bounding_box = helpPlayerEntity.prototype.collision_box, -- Work around for: https://forums.factorio.com/viewtopic.php?f=182&t=90146
-        collision_mask = helpPlayerEntity.prototype.collision_mask,
+        bounding_box = helpPlayerPathingEntity.prototype.collision_box, -- Work around for: https://forums.factorio.com/viewtopic.php?f=182&t=90146
+        collision_mask = helpPlayerPathingEntity.prototype.collision_mask,
         start = arrivalPos,
         goal = targetPlayerPosition,
         force = helpPlayer.force,
@@ -235,7 +235,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         if pathRequest.attempt > 3 then
             game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", helpPlayer.name, pathRequest.targetPlayer.name})
         else
-            CallForHelp.PlanTeleportPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.callForHelpId, pathRequest.attempt)
+            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.callForHelpId, pathRequest.attempt)
         end
     else
         if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then

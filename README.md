@@ -1,6 +1,6 @@
 # factorio-muppet-streamer
 
-Adds actions that a streamer can let chat activate to make their games more dynamic and interactive.
+Adds actions that a streamer can let chat activate to make their games more dynamic and interactive. These features are more complicated than can be achived via simple RCON commands.
 
 
 Features
@@ -44,7 +44,8 @@ Can deliver a highly customisable explosive delivery to the player.
     - delay: NUMBER - Optional: how many seconds the arrival of the explosives will be delayed for. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - explosiveCount: NUMBER - Mandatory: the quantity of explosives to be delivered, if 0 then the command is ignored.
     - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "slowdownCapsule", "poisonCapsule", "artilleryShell", "explosiveRocket", "atomicRocket", "smallSpit", "mediumSpit", "largeSpit"
-    - target: STRING - Mandatory: the player name to target.
+    - target: STRING - Mandatory: a player name to target.
+    - targetPosition: STRING - Optional: a position as a table to target instead of the players position. Will come on to the target players map (surface).
     - accuracyRadiusMin: NUMBER - Optional: the minimum distance from the target that can be randomly selected within. If not specified defaults to 0.
     - accuracyRadiusMax: NUMBER - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
 - Example command atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"delay":1, "explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
@@ -55,6 +56,7 @@ Notes:
 - Explosives will fly in from offscreen to random location around the target player. They may take a few seconds to complete their delivery.
 - Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
 - Weapons are on the "enemy" team and so don't get affected by your research.
+- targetPosition expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
 
 Leaky Flamethrower
 ------------------

@@ -245,18 +245,16 @@ end
 
 Teleport.PlanTeleportLocation = function(data)
     local targetPlayer = data.targetPlayer
-    local targetPlayerEntity
+    local targetPlayerPathingEntity, targetPlayerPlacementEntity = targetPlayer.character, targetPlayer.character
     if Teleport.IsTeleportableVehicle(targetPlayer.vehicle) then
-        targetPlayerEntity = targetPlayer.vehicle
-    else
-        targetPlayerEntity = targetPlayer.character
+        targetPlayerPlacementEntity = targetPlayer.vehicle
     end
 
     local arrivalPos
     for _ = 1, MaxRandomPositionsAroundTarget do
         local randomPos = Utils.RandomLocationInRadius(data.destinationTargetPosition, data.arrivalRadius, 1)
         randomPos = Utils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
-        arrivalPos = targetPlayer.surface.find_non_colliding_position(targetPlayerEntity.name, randomPos, MaxDistancePositionAroundTarget, 1, false)
+        arrivalPos = targetPlayer.surface.find_non_colliding_position(targetPlayerPlacementEntity.name, randomPos, MaxDistancePositionAroundTarget, 1, false)
         if arrivalPos ~= nil then
             break
         end
@@ -276,14 +274,14 @@ Teleport.PlanTeleportLocation = function(data)
     if data.reachableOnly then
         local pathRequestId =
             targetPlayer.surface.request_path {
-            bounding_box = targetPlayerEntity.prototype.collision_box, -- Work around for: https://forums.factorio.com/viewtopic.php?f=182&t=90146
-            collision_mask = targetPlayerEntity.prototype.collision_mask,
+            bounding_box = targetPlayerPathingEntity.prototype.collision_box, -- Work around for: https://forums.factorio.com/viewtopic.php?f=182&t=90146
+            collision_mask = targetPlayerPathingEntity.prototype.collision_mask,
             start = arrivalPos,
             goal = targetPlayer.position,
             force = targetPlayer.force,
             radius = 1,
             can_open_gates = true,
-            entity_to_ignore = targetPlayerEntity,
+            entity_to_ignore = targetPlayerPlacementEntity,
             pathfind_flags = {allow_paths_through_own_entities = true, cache = false}
         }
         global.teleport.pathingRequests[pathRequestId] = data

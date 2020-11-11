@@ -109,6 +109,13 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         return
     end
 
+    local gunInventory, selectedGunInventoryIndex = player.get_inventory(defines.inventory.character_guns), player.character.selected_gun_index
+    if gunInventory[selectedGunInventoryIndex] == nil or (not gunInventory[selectedGunInventoryIndex].valid_for_read) or gunInventory[selectedGunInventoryIndex].name ~= "flamethrower" then
+        -- Flamethrower has been removed as active weapon by some script.
+        LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        return
+    end
+
     local targetPos = Utils.GetPositionForAngledDistance(player.position, data.distance, data.angle)
     player.shooting_state = {state = defines.shooting.shooting_selected, position = targetPos}
 
@@ -145,14 +152,16 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     end
 
     player = player or game.get_player(playerIndex)
+    local flamethrowerWeaponToFind, flamethrowerAmmoToFind = 0, affectedPlayer.burstsLeft
+    if affectedPlayer.flamethrowerGiven then
+        flamethrowerWeaponToFind = 1
+    end
     if player ~= nil and player.valid and player.character ~= nil and player.character.valid then
-        if affectedPlayer.flamethrowerGiven then
-            local gunInventory = player.get_inventory(defines.inventory.character_guns)
-            gunInventory.remove({name = "flamethrower", count = 1})
+        if flamethrowerWeaponToFind > 0 then
+            LeakyFlamethrower.TakeItemFromPlayerOrGround(player, "flamethrower", 1)
         end
-        if affectedPlayer.burstsLeft > 0 then
-            local ammoInventory = player.get_inventory(defines.inventory.character_ammo)
-            ammoInventory.remove({name = "flamethrower-ammo", count = affectedPlayer.burstsLeft})
+        if flamethrowerAmmoToFind > 0 then
+            LeakyFlamethrower.TakeItemFromPlayerOrGround(player, "flamethrower-ammo", flamethrowerAmmoToFind)
         end
     end
     if player.permission_group.name == "LeakyFlamethrower" then
@@ -164,6 +173,27 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     if status == EffectEndStatus.completed then
         game.print({"message.muppet_streamer_leaky_flamethrower_stop", player.name})
     end
+end
+
+LeakyFlamethrower.TakeItemFromPlayerOrGround = function(player, itemName, itemCount)
+    local removed = 0
+    removed = removed + player.remove_item({name = itemName, count = itemCount})
+    if itemCount == 0 then
+        return removed
+    end
+
+    local itemsOnGround = player.surface.find_entities_filtered {position = player.position, radius = 10, name = "item-on-ground"}
+    for _, itemOnGround in pairs(itemsOnGround) do
+        if itemOnGround.valid and itemOnGround.stack ~= nil and itemOnGround.stack.valid and itemOnGround.stack.name == itemName then
+            itemOnGround.destroy()
+            removed = removed + 1
+            itemCount = itemCount - 1
+            if itemCount == 0 then
+                break
+            end
+        end
+    end
+    return removed
 end
 
 return LeakyFlamethrower

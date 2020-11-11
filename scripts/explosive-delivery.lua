@@ -58,6 +58,15 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         return
     end
 
+    local targetPosition = commandData.targetPosition
+    if targetPosition ~= nil then
+        targetPosition = Utils.TableToProperPosition(targetPosition)
+        if targetPosition == nil then
+            Logging.LogPrint(errorMessageStart .. "targetPosition is Optional, but if provided must be a valid position table string")
+            return
+        end
+    end
+
     local accuracyRadiusMin = 0
     if commandData.accuracyRadiusMin ~= nil then
         accuracyRadiusMin = tonumber(commandData.accuracyRadiusMin)
@@ -77,7 +86,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
 
     global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target})
+    EventScheduler.ScheduleEvent(command.tick + delay, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target, targetPosition = targetPosition})
 end
 
 ExplosiveDelivery.DeliverExplosives = function(eventData)
@@ -88,7 +97,12 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         Logging.LogPrint("ERROR: muppet_streamer_schedule_explosive_delivery command target player not found at delivery time: " .. data.target)
         return
     end
-    local targetPos = targetPlayer.position
+    local targetPos
+    if data.targetPosition ~= nil then
+        targetPos = data.targetPosition
+    else
+        targetPos = targetPlayer.position
+    end
 
     local surface, explosiveType = targetPlayer.surface, data.explosiveType
     for i = 1, data.explosiveCount do
