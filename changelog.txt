@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
-Version: 18.0.7
-Date: 2020-xxxx
+Version: 19.0.7
+Date: 2020-11-11
   Features:
+    - Add targetPosition option to the Explosive Delivery so you can target set locations on the map if desired.
   Changes:
     - Teleport & Call For Help uses the player character and not the vehicle for pathfinding requests. Still uses the player vehicle for placement finding.
   Bugfixes:
