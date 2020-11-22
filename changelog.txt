@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 19.0.8
+Date: 2020-11-22
+  Features:
+  Changes:
+    - Aggressive Driver - `random` control train will alternate between directions continously, cars/tanks will continue to turn for a short period.
+  Bugfixes:
+    - Call For Help - fix crash if optional activePercentage argument not supplied.
+  Info:
+    - Aggressive Driver - updated readme to state that `full` control only applies to cars/tanks. Trains will go straight in this mode. I can't find a way to allow user input when in a train and still force acceleration.
+---------------------------------------------------------------------------------------------------
 Version: 19.0.7
 Date: 2020-11-11
   Features:
