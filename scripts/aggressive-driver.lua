@@ -178,11 +178,15 @@ AggressiveDriver.Drive = function(eventData)
     if data.control == ControlTypes.full then
         player.riding_state = {
             acceleration = data.accelerationState,
-            direction = player.riding_state.direction
+            direction = defines.riding.direction.straight
         }
     elseif data.control == ControlTypes.random then
         if data.directionDuration == nil or data.directionDuration == 0 then
-            data.directionDuration = math.random(10, 30)
+            if vehicle.type == "locomotive" then
+                data.directionDuration = 1
+            else
+                data.directionDuration = math.random(10, 30)
+            end
             data.direction = math.random(0, 2)
         else
             data.directionDuration = data.directionDuration - 1

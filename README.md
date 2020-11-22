@@ -115,7 +115,7 @@ Spawns entities in the game around the named player on their side. Includes both
 	- radiusMax: NUMBER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: NUMBER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then 0 is used.
     - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
-	- quantity: NUMBER - Optional: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truely random placement within the radius which is then searched around for a near by valid spot. Intended for small quantities.
+	- quantity: NUMBER - Optional: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a near by valid spot. Intended for small quantities.
 	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities.
     - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count and ammo over the turrets max storage is ignored. For fire it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
     - followPlayer: BOOLEAN - Optional: if true the entities that can move will follow the player. If false they will be unmanaged. Some entities like defender combat bots have a maximum follow number, the remainder will not follow the player.
@@ -139,7 +139,7 @@ The player is locked inside their vehicle and forced to drive forwards for the s
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - duration: NUMBER - Mandatory: how many seconds the effect lasts on the player.
-    - control: STRING - Optional: the control the player has over the left/right turning, either: `full` or `random`. If not specified then full is applied so the player can choose when to turn.
+    - control: STRING - Optional: the control the player has over the left/right turning of a car/tank, either: `full` or `random`. If not specified then full is applied so the player can choose when to turn. A train will keep on going straight in `full` mode.
     - teleportDistance: Number - Optional: the max distance of tiles that the player will be teleported in to the nearest suitable drivable vehicle. If not supplied is treated as 0 distance and so player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
 - Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"10", "control": "full", "teleportDistance": 100}`
 
@@ -162,8 +162,8 @@ Teleports other players on the server to near your position.
     - arrivalRadius - NUMBER - Mandatory: the max distance players will be teleported to from the target player.
     - callRadius - NUMBER - Mandatory: the max distance to call players from.
     - callSelection - STRING - Mandatory: the logic to select which players in the callRadius are teleported, either: 'random', 'nearest'.
-    - number - NUMBER - Optional: how many players to call. Either `number` or `activePercentage` must be supplied.
-    - activePercentage - NUMBER - Optional: the percentage of currently online players to call, i.e. 90. Either `number` or `activePercentage` must be supplied.
+    - number - NUMBER - Mandatory Special: how many players to call. Either `number` or `activePercentage` must be supplied.
+    - activePercentage - NUMBER - Mandatory Special: the percentage of currently online players to call, i.e. 90. Either `number` or `activePercentage` must be supplied.
 - Example command : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":20, "callRadius": 1000, "callSelection": "random", "number": 3, "activePercentage": 50}`
 
 Notes:

@@ -78,6 +78,8 @@ CallForHelp.CallForHelpCommand = function(command)
             Logging.LogPrint(errorMessageStart .. "number is Optional, but must be a valid number if provided")
             return
         end
+    else
+        number = 0
     end
 
     local activePercentage = commandData.activePercentage
@@ -88,9 +90,11 @@ CallForHelp.CallForHelpCommand = function(command)
             return
         end
         activePercentage = activePercentage / 100
+    else
+        activePercentage = 0
     end
 
-    if number == nil and activePercentage == nil then
+    if number == 0 and activePercentage == 0 then
         Logging.LogPrint(errorMessageStart .. "either number or activePercentage must be provided")
         return
     end
