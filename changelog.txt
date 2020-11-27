@@ -6,6 +6,7 @@ Date: 2020-11-27
   Changes:
     - Removed the mod setting that disabled tracking launched items in the rocket silo as that Freeplay scenario feature has been removed from Factorio in 1.1.
   Bugfixes:
+    - Fixed team member limit styyle error.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 19.0.8
