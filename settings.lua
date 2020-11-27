@@ -1,13 +1,6 @@
 data:extend(
     {
         {
-            name = "muppet_streamer-disable_silo_counter",
-            type = "bool-setting",
-            default_value = false,
-            setting_type = "startup",
-            order = "1001"
-        },
-        {
             name = "muppet_streamer-disable_intro_message",
             type = "bool-setting",
             default_value = false,

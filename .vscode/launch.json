@@ -13,8 +13,9 @@
                 "--window-size=1280x720"
             ],
             "hookControl": true,
-            "hookData": false,
-            "hookSettings": false
+            "hookData": true,
+            "hookSettings": true,
+            "hookLog": true
         }
     ]
 }

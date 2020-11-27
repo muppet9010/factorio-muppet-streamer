@@ -25,7 +25,6 @@ end
 local function OnLoad()
     --Any Remote Interface registration calls can go in here or in root of control.lua
     remote.remove_interface("muppet_streamer")
-    Freeplay.OnLoad()
     TeamMember.OnLoad()
     ExplosiveDelivery.OnLoad()
     LeakyFlamethrower.OnLoad()
