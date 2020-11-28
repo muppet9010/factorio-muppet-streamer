@@ -156,7 +156,10 @@ AggressiveDriver.Drive = function(eventData)
     end
 
     if vehicle.type == "locomotive" then
-        vehicle.train.manual_mode = true
+        if vehicle.train.manual_mode ~= true then
+            -- Don't set every tick blindly as it resets the players key directions on that tick to straight forwards.
+            vehicle.train.manual_mode = true
+        end
         if vehicle.speed ~= 0 then
             if (vehicle.speed > 0 and vehicle.speed == vehicle.train.speed) or (vehicle.speed < 0 and vehicle.speed ~= vehicle.train.speed) then
                 data.accelerationState = defines.riding.acceleration.accelerating
@@ -178,7 +181,7 @@ AggressiveDriver.Drive = function(eventData)
     if data.control == ControlTypes.full then
         player.riding_state = {
             acceleration = data.accelerationState,
-            direction = defines.riding.direction.straight
+            direction = player.riding_state.direction
         }
     elseif data.control == ControlTypes.random then
         if data.directionDuration == nil or data.directionDuration == 0 then

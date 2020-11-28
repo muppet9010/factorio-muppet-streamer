@@ -1,4 +1,6 @@
 TODO:
+    - If in a train and try to teleport it just fails.
+    - Teleport to a specific position has to be revealed or it fails.
 
 Future:
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
