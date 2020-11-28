@@ -314,13 +314,27 @@ end
 
 Teleport.Teleport = function(data)
     local targetPlayer = data.targetPlayer
-    local teleportResult
+    local teleportResult, wasDriving, wasPassengerIn
     if Teleport.IsTeleportableVehicle(targetPlayer.vehicle) then
         teleportResult = targetPlayer.vehicle.teleport(data.thisAttemptPosition)
     else
+        if targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid then
+            -- Player is in a non suitable vehicle, so get them out of it before teleporting.
+            if targetPlayer.vehicle.get_driver() then
+                wasDriving = targetPlayer.vehicle
+            elseif targetPlayer.vehicle.get_passenger() then
+                wasPassengerIn = targetPlayer.vehicle
+            end
+            targetPlayer.driving = false
+        end
         teleportResult = targetPlayer.teleport(data.thisAttemptPosition)
     end
     if not teleportResult then
+        if wasDriving then
+            wasDriving.set_driver(targetPlayer)
+        elseif wasPassengerIn then
+            wasPassengerIn.set_passenger(targetPlayer)
+        end
         game.print("Muppet Streamer Error - teleport failed")
         Teleport.DoBackupTeleport(data)
     end

@@ -245,7 +245,25 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then
             helpPlayer.vehicle.teleport(pathRequest.position)
         else
-            helpPlayer.teleport(pathRequest.position)
+            local wasDriving, wasPassengerIn
+            if helpPlayer.vehicle ~= nil and helpPlayer.vehicle.valid then
+                -- Player is in a non suitable vehicle, so get them out of it before teleporting.
+                if helpPlayer.vehicle.get_driver() then
+                    wasDriving = helpPlayer.vehicle
+                elseif helpPlayer.vehicle.get_passenger() then
+                    wasPassengerIn = helpPlayer.vehicle
+                end
+                helpPlayer.driving = false
+            end
+            local teleportResult = helpPlayer.teleport(pathRequest.position)
+            if not teleportResult then
+                if wasDriving then
+                    wasDriving.set_driver(helpPlayer)
+                elseif wasPassengerIn then
+                    wasPassengerIn.set_passenger(helpPlayer)
+                end
+                game.print("Muppet Streamer Error - teleport failed")
+            end
         end
     end
 
