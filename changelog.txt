@@ -1,4 +1,18 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.9
+Date: 2020-11-27
+  Features:
+    - Updated to Factorio 1.1.
+  Changes:
+    - Removed the mod setting that disabled tracking launched items in the rocket silo as that Freeplay scenario feature has been removed from Factorio in 1.1.
+  Bugfixes:
+    - Fixed team member limit styyle error.
+    - Aggressive Driver - Fix loss of steering in car/tank introduced in previous version.
+    - Aggressive Driver - Fix loss of steering in train, in previous version it was flagged as a loss of functionality.
+    - Teleport & Call For Help - Fix being in a train would prevent teleporting.
+  Info:
+    - Aggressive Driver - updated readme to state that `full` control applies to cars/tanks & trains again, revertign last updates readme change.
+---------------------------------------------------------------------------------------------------
 Version: 19.0.8
 Date: 2020-11-22
   Features:

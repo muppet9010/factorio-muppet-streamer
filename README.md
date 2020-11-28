@@ -6,7 +6,7 @@ Adds actions that a streamer can let chat activate to make their games more dyna
 Features
 -----------
 
-- Mod options to disable freeplay's rocket counter GUI, introduction message, rocket win condition and set starting map reveal area.
+- Mod options to disable freeplay's introduction message, rocket win condition and set the starting map reveal area.
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
 - Can schedule the delivery of some explosives to a player at speed via command.
 - A leaky flamethrower that shoots for short bursts intermittently via command.
@@ -139,7 +139,7 @@ The player is locked inside their vehicle and forced to drive forwards for the s
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - duration: NUMBER - Mandatory: how many seconds the effect lasts on the player.
-    - control: STRING - Optional: the control the player has over the left/right turning of a car/tank, either: `full` or `random`. If not specified then full is applied so the player can choose when to turn. A train will keep on going straight in `full` mode.
+    - control: STRING - Optional: if the player has control over steering, either: `full` or `random`. Full allows control over left/right steering, random switches between left, right, straight for short periods. If not specified then full is applied.
     - teleportDistance: Number - Optional: the max distance of tiles that the player will be teleported in to the nearest suitable drivable vehicle. If not supplied is treated as 0 distance and so player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
 - Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"10", "control": "full", "teleportDistance": 100}`
 
@@ -200,3 +200,4 @@ Notes:
 - All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will repeat the whole activity up to 5 times before giving up. The destinationType target will be re-calculated for each attempt.
 - The reachableOnly will give up on a target if it gets a failed pathfinder request and find a new target to repeat the process with up to the 5 times. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations.
 - The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
+- A player teleported comes with their vehicle if they have one.
