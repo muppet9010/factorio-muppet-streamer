@@ -11,13 +11,13 @@ MOD.events = MOD.events or {}
 MOD.customEventNameToId = MOD.customEventNameToId or {}
 MOD.eventFilters = MOD.eventFilters or {}
 
--- Called from OnLoad() from each script file. Registers the event in Factorio and the handler function for all event types and custom inputs.
+-- Called from OnLoad() from each script file. Registers the event in Factorio and the handler function for all event types and custom events.
 -- Filtered events have to expect to recieve results outside of their filter. As an event can only be registered one time, with multiple instances the most lienient or merged filters for all instances must be applied.
 -- Returns the eventId, useful for custom event names when you need to store the eventId to return via a remote interface call.
 -- If an empty table (not nil) is passed in to filterData then no event is registered and not eventId is returned. This is really for when a filter is dynamically generated and so we don;t want to do anything for an empty filer table oddity.
 Events.RegisterHandlerEvent = function(eventName, handlerName, handlerFunction, thisFilterName, thisFilterData)
     if eventName == nil or handlerName == nil or handlerFunction == nil then
-        error("Events.RegisterHandler called with missing arguments")
+        error("Events.RegisterHandlerEvent called with missing arguments")
     end
     local eventId = Events._RegisterEvent(eventName, thisFilterName, thisFilterData)
     if eventId == nil then
@@ -28,12 +28,23 @@ Events.RegisterHandlerEvent = function(eventName, handlerName, handlerFunction, 
     return eventId
 end
 
--- Called from the root of Control.lua for custom inputs (key bindings) as their names are handled specially.
-Events.RegisterCustomInput = function(actionName)
+-- Called from OnLoad() from each script file. Registers the custom inputs (key bindings) as their names in Factorio and the handler function for all just custom inputs. These are handled specially in Factorio.
+Events.RegisterHandlerCustomInput = function(actionName, handlerName, handlerFunction)
     if actionName == nil then
-        error("Events.RegisterCustomInput called with missing arguments")
+        error("Events.RegisterHandlerCustomInput called with missing arguments")
     end
     script.on_event(actionName, Events._HandleEvent)
+    MOD.events[actionName] = MOD.events[actionName] or {}
+    MOD.events[actionName][handlerName] = handlerFunction
+end
+
+--Called from OnLoad() from the script file. Registers the custom event name and returns an event ID for use by other mods in subscribing to custom events.
+Events.RegisterCustomEventName = function(eventName)
+    if eventName == nil then
+        error("Events.RegisterCustomEventName called with missing arguments")
+    end
+    local eventId = Events._RegisterEvent(eventName)
+    return eventId
 end
 
 -- Called when needed
