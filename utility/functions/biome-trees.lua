@@ -154,12 +154,12 @@ BiomeTrees._GetTreeData = function()
             end
         end
         if autoplace ~= nil then
-            -- Use really wide range defaults as no idea what else to do.
+            -- Use really wide range defaults for missing moisture values as likely unspecified by mods to mean ALL.
             treeData[prototype.name] = {
                 name = prototype.name,
                 tempRange = {
-                    (autoplace.temperature_optimal or -100) - (autoplace.temperature_range or 0),
-                    (autoplace.temperature_optimal or 100) + (autoplace.temperature_range or 0)
+                    autoplace.temperature_optimal - autoplace.temperature_range,
+                    autoplace.temperature_optimal + autoplace.temperature_range
                 },
                 moistureRange = {
                     (autoplace.water_optimal or 0) - (autoplace.water_range or 0),

@@ -126,7 +126,7 @@ Spawns entities in the game around the named player on their side. Includes both
 
 Notes:
 
-- For entityType of tree placed on a vanilla game tile a biome specific tree will be selected, otherwise the tree will be random.
+- For entityType of tree, if placed on a vanilla game tile a biome specific tree will be selected, otherwise the tree will be random on modded tiles. Should support and handle fully defined custom tree types, otherwise they wil be ignored.
 
 
 Aggressive Driver
