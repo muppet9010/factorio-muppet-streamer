@@ -1,7 +1,7 @@
 --[[
-    Used to get tile (biome) approperiate trees, rather than just select any old tree. Means they will fit in to the map better, although vanilla forest types don't always fully match the biome they are in.
+    Used to get tile (biome) approperiate trees, rather than just select any old tree. Means they will generally fit in to the map better, although vanilla forest types don't always fully match the biome they are in.
     Will only nicely handle vanilla tiles and trees, modded tiles will get a random tree if they are a land-ish type tile.
-    Require the file and call the desired functions when needed (non _ functions t top of file). No pre-setup required.
+    Require the file and call the desired functions when needed (non _ functions at top of file). No pre-setup required.
 ]]
 local Utils = require("utility/utils")
 local Logging = require("utility/logging")
@@ -154,15 +154,16 @@ BiomeTrees._GetTreeData = function()
             end
         end
         if autoplace ~= nil then
+            -- Use really wide range defaults as no idea what else to do.
             treeData[prototype.name] = {
                 name = prototype.name,
                 tempRange = {
-                    autoplace.temperature_optimal - (autoplace.temperature_range),
-                    autoplace.temperature_optimal + (autoplace.temperature_range)
+                    (autoplace.temperature_optimal or -100) - (autoplace.temperature_range or 0),
+                    (autoplace.temperature_optimal or 100) + (autoplace.temperature_range or 0)
                 },
                 moistureRange = {
-                    autoplace.water_optimal - (autoplace.water_range),
-                    autoplace.water_optimal + (autoplace.water_range)
+                    (autoplace.water_optimal or 0) - (autoplace.water_range or 0),
+                    (autoplace.water_optimal or 1) + (autoplace.water_range or 0)
                 },
                 probability = prototype.autoplace_specification.max_probability
             }
