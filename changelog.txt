@@ -4,6 +4,7 @@ Date: xxxxxx
   Features:
   Changes:
   Bugfixes:
+    - Spawn Around Player - type tree - Fix crash with Alien Biomes modded snow-a tree.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.0.9

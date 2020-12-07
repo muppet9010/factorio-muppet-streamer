@@ -196,7 +196,7 @@ BiomeTrees._GetTileData = function()
         tileDetails[tileName] = {name = tileName, type = type, tempRanges = tempRanges, moistureRanges = moistureRanges}
     end
 
-    -- Vanilla - 1.0.0
+    -- Vanilla - 1.1.5
     AddTileDetails("grass-1", "grass", {{0, 0.7}, {1, 1}})
     AddTileDetails("grass-2", "grass", {{0.45, 0.45}, {1, 0.8}})
     AddTileDetails("grass-3", "grass", {{0, 0.6}, {0.65, 0.9}})
