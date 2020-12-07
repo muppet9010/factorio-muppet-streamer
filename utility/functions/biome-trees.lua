@@ -11,7 +11,7 @@ local AlienBiomesData = require("utility/functions/biome-trees-data/alien-biomes
 
 local BiomeTrees = {}
 local logNonPositives = true
-local logPositives = false
+local logPositives = true
 local logData = false
 
 BiomeTrees.GetBiomeTreeName = function(surface, position)
@@ -37,7 +37,7 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
     local tempRange = tileData.tempRanges[rangeInt]
     local moistureRange = tileData.moistureRanges[rangeInt]
     local tempScaleMultiplyer = Utils.GetRandomFloatInRange(tempRange[1], tempRange[2])
-    local tileTemp = math.max(5, (tempScaleMultiplyer * 35))
+    local tileTemp = global.UTILITYBIOMETREES.environmentData.tileTempCalcFunc(tempScaleMultiplyer)
     local tileMoisture = Utils.GetRandomFloatInRange(moistureRange[1], moistureRange[2])
 
     local suitableTrees = {}
@@ -136,6 +136,7 @@ BiomeTrees._ObtainRequiredData = function(forceReload)
         global.UTILITYBIOMETREES = nil
     end
     global.UTILITYBIOMETREES = global.UTILITYBIOMETREES or {}
+    global.UTILITYBIOMETREES.environmentData = global.UTILITYBIOMETREES.environmentData or BiomeTrees._GetEnvironmentData()
     global.UTILITYBIOMETREES.tileData = global.UTILITYBIOMETREES.tileData or BiomeTrees._GetTileData()
     global.UTILITYBIOMETREES.treeData = global.UTILITYBIOMETREES.treeData or BiomeTrees._GetTreeData()
     global.UTILITYBIOMETREES.randomTrees = global.UTILITYBIOMETREES.randomTrees or BiomeTrees._GetRandomTrees()
@@ -146,8 +147,26 @@ BiomeTrees._ObtainRequiredData = function(forceReload)
     end
 end
 
+BiomeTrees._GetEnvironmentData = function()
+    -- Used to handle the differing tree to tile value relationships of mods vs base game.
+    local environmentData = {}
+    if game.active_mods["alien-biomes"] then
+        environmentData.moistureRangeAttributeName = {optimal = "aux_optimal", range = "aux_range"}
+        environmentData.tileTempCalcFunc = function(tempScaleMultiplyer)
+            return math.min(125, math.max(-15, tempScaleMultiplyer * 100)) -- on scale of -0.5 to 1.5 = -50 to 150. -15 is lowest temp tree +125 is highest temp tree.
+        end
+    else
+        environmentData.moistureRangeAttributeName = {optimal = "water_optimal", range = "water_range"}
+        environmentData.tileTempCalcFunc = function(tempScaleMultiplyer)
+            return math.max(5, (tempScaleMultiplyer * 35))
+        end
+    end
+    return environmentData
+end
+
 BiomeTrees._GetTreeData = function()
     local treeData = {}
+    local moistureRangeAttributeName = global.UTILITYBIOMETREES.environmentData.moistureRangeAttributeName
     for _, prototype in pairs(game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}, {mode = "and", filter = "autoplace"}})) do
         Logging.LogPrint(prototype.name, logData)
         local autoplace = nil
@@ -165,8 +184,8 @@ BiomeTrees._GetTreeData = function()
                     autoplace.temperature_optimal + autoplace.temperature_range
                 },
                 moistureRange = {
-                    (autoplace.water_optimal or 0) - (autoplace.water_range or 0),
-                    (autoplace.water_optimal or 1) + (autoplace.water_range or 0)
+                    (autoplace[moistureRangeAttributeName.optimal] or 0) - (autoplace[moistureRangeAttributeName.range] or 0),
+                    (autoplace[moistureRangeAttributeName.optimal] or 1) + (autoplace[moistureRangeAttributeName.range] or 0)
                 },
                 probability = prototype.autoplace_specification.max_probability
             }
@@ -189,12 +208,12 @@ BiomeTrees._GetTileData = function()
         local tempRanges = {}
         local moistureRanges = {}
         if range1 ~= nil then
-            table.insert(tempRanges, {range1[1][1], range1[2][1]})
-            table.insert(moistureRanges, {range1[1][2], range1[2][2]})
+            table.insert(tempRanges, {range1[1][1] or 0, range1[2][1] or 0})
+            table.insert(moistureRanges, {range1[1][2] or 0, range1[2][2] or 0})
         end
         if range2 ~= nil then
-            table.insert(tempRanges, {range2[1][1], range2[2][1]})
-            table.insert(moistureRanges, {range2[1][2], range2[2][2]})
+            table.insert(tempRanges, {range2[1][1] or 0, range2[2][1] or 0})
+            table.insert(moistureRanges, {range2[1][2] or 0, range2[2][2] or 0})
         end
         tileDetails[tileName] = {name = tileName, type = type, tempRanges = tempRanges, moistureRanges = moistureRanges}
     end
