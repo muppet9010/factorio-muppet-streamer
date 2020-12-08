@@ -539,6 +539,17 @@ function Utils.GetTableKeyWithInnerKeyValue(theTable, key, value)
     return nil
 end
 
+function Utils.TableValuesToKey(tableWithValues)
+    if tableWithValues == nil then
+        return nil
+    end
+    local newTable = {}
+    for _, value in pairs(tableWithValues) do
+        newTable[value] = value
+    end
+    return newTable
+end
+
 function Utils.GetRandomFloatInRange(lower, upper)
     return lower + math.random() * (upper - lower)
 end

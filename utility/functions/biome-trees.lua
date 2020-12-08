@@ -46,13 +46,15 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
     for accuracy = 1, 1.5, 0.1 do
         for _, tree in pairs(global.UTILITYBIOMETREES.treeData) do
             if tileTemp >= tree.tempRange[1] / accuracy and tileTemp <= tree.tempRange[2] * accuracy and tileMoisture >= tree.moistureRange[1] / accuracy and tileMoisture <= tree.moistureRange[2] * accuracy then
-                local treeEntry = {
-                    chanceStart = currentChance,
-                    chanceEnd = currentChance + tree.probability,
-                    tree = tree
-                }
-                table.insert(suitableTrees, treeEntry)
-                currentChance = treeEntry.chanceEnd
+                if (tree.tile_restrictions == nil) or (tree.tile_restrictions ~= nil and tree.tile_restrictions[tileData.name]) then
+                    local treeEntry = {
+                        chanceStart = currentChance,
+                        chanceEnd = currentChance + tree.probability,
+                        tree = tree
+                    }
+                    table.insert(suitableTrees, treeEntry)
+                    currentChance = treeEntry.chanceEnd
+                end
             end
         end
         if #suitableTrees > 0 then
@@ -137,7 +139,7 @@ BiomeTrees._ObtainRequiredData = function(forceReload)
     end
     global.UTILITYBIOMETREES = global.UTILITYBIOMETREES or {}
     global.UTILITYBIOMETREES.environmentData = global.UTILITYBIOMETREES.environmentData or BiomeTrees._GetEnvironmentData()
-    global.UTILITYBIOMETREES.tileData = global.UTILITYBIOMETREES.tileData or BiomeTrees._GetTileData()
+    global.UTILITYBIOMETREES.tileData = global.UTILITYBIOMETREES.tileData or global.UTILITYBIOMETREES.environmentData.tileData
     global.UTILITYBIOMETREES.treeData = global.UTILITYBIOMETREES.treeData or BiomeTrees._GetTreeData()
     global.UTILITYBIOMETREES.randomTrees = global.UTILITYBIOMETREES.randomTrees or BiomeTrees._GetRandomTrees()
 
@@ -155,17 +157,37 @@ BiomeTrees._GetEnvironmentData = function()
         environmentData.tileTempCalcFunc = function(tempScaleMultiplyer)
             return math.min(125, math.max(-15, tempScaleMultiplyer * 100)) -- on scale of -0.5 to 1.5 = -50 to 150. -15 is lowest temp tree +125 is highest temp tree.
         end
+        environmentData.tileData = BiomeTrees._AddTilesDetails(AlienBiomesData.GetTileData())
+        HERE
+        -- DO A TILE COLOUR TO TREE COLOR RANGES
+        for _, details in pairs(environmentData.tileData) do
+            if details.tags ~= nil then
+                local newTags, colors = {}, {"grey" = {}"green"}
+                for tag in pairs(details.tags) do
+                    if tag == "grey" then
+                        newTags[white] = "white"
+                    elseif colors[tag] then
+                        newTags[tag] = tag
+                    end
+                end
+                details.tags = newTags
+            end
+        end
+        environmentData.treeMetaData = AlienBiomesData.GetTreeMetaData()
     else
         environmentData.moistureRangeAttributeName = {optimal = "water_optimal", range = "water_range"}
         environmentData.tileTempCalcFunc = function(tempScaleMultiplyer)
             return math.max(5, (tempScaleMultiplyer * 35))
         end
+        environmentData.tileData = BiomeTrees._AddTilesDetails(BaseGameData.GetTileData())
+        environmentData.treeMetaData = {}
     end
     return environmentData
 end
 
 BiomeTrees._GetTreeData = function()
     local treeData = {}
+    local environmentData = global.UTILITYBIOMETREES.environmentData
     local moistureRangeAttributeName = global.UTILITYBIOMETREES.environmentData.moistureRangeAttributeName
     for _, prototype in pairs(game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}, {mode = "and", filter = "autoplace"}})) do
         Logging.LogPrint(prototype.name, logData)
@@ -189,6 +211,10 @@ BiomeTrees._GetTreeData = function()
                 },
                 probability = prototype.autoplace_specification.max_probability
             }
+            if environmentData.treeMetaData[prototype.name] ~= nil then
+                treeData[prototype.name].tags = environmentData.treeMetaData[prototype.name][1]
+                treeData[prototype.name].tile_restrictions = environmentData.treeMetaData[prototype.name][2]
+            end
         end
     end
     return treeData
@@ -202,30 +228,25 @@ BiomeTrees._GetRandomTrees = function()
     return randomTrees
 end
 
-BiomeTrees._GetTileData = function()
+BiomeTrees._AddTileDetails = function(tileDetails, tileName, type, range1, range2, tags)
+    local tempRanges = {}
+    local moistureRanges = {}
+    if range1 ~= nil then
+        table.insert(tempRanges, {range1[1][1] or 0, range1[2][1] or 0})
+        table.insert(moistureRanges, {range1[1][2] or 0, range1[2][2] or 0})
+    end
+    if range2 ~= nil then
+        table.insert(tempRanges, {range2[1][1] or 0, range2[2][1] or 0})
+        table.insert(moistureRanges, {range2[1][2] or 0, range2[2][2] or 0})
+    end
+    tileDetails[tileName] = {name = tileName, type = type, tempRanges = tempRanges, moistureRanges = moistureRanges, tags = tags}
+end
+
+BiomeTrees._AddTilesDetails = function(tilesDetails)
     local tileDetails = {}
-    local function AddTileDetails(tileName, type, range1, range2)
-        local tempRanges = {}
-        local moistureRanges = {}
-        if range1 ~= nil then
-            table.insert(tempRanges, {range1[1][1] or 0, range1[2][1] or 0})
-            table.insert(moistureRanges, {range1[1][2] or 0, range1[2][2] or 0})
-        end
-        if range2 ~= nil then
-            table.insert(tempRanges, {range2[1][1] or 0, range2[2][1] or 0})
-            table.insert(moistureRanges, {range2[1][2] or 0, range2[2][2] or 0})
-        end
-        tileDetails[tileName] = {name = tileName, type = type, tempRanges = tempRanges, moistureRanges = moistureRanges}
+    for name, details in pairs(tilesDetails) do
+        BiomeTrees._AddTileDetails(tileDetails, name, details[1], details[2], details[3], details[4])
     end
-    local function AddTilesDetails(tilesDetails)
-        for name, details in pairs(tilesDetails) do
-            AddTileDetails(name, details[1], details[2], details[3])
-        end
-    end
-
-    AddTilesDetails(BaseGameData.GetTileData())
-    AddTilesDetails(AlienBiomesData.GetTileData())
-
     return tileDetails
 end
 
