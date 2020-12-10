@@ -2927,4 +2927,41 @@ Data.GetTreeMetaData = function()
     }
 end
 
+Data.GetTileTagToTreeColors = function()
+    local tagsToColors = {
+        purple = {violet = "violet", "purple", red = "red"},
+        red = {orange = "orange", red = "red", purple = "purple"},
+        violet = {violet = "violet", "purple", blue = "blue"},
+        blue = {violet = "violet", blue = "blue", turquoise = "turquoise"},
+        green = {turquoise = "turquoise", green = "green", yellow = "yellow"},
+        orange = {yellow = "yellow", orange = "orange", red = "red"},
+        turquoise = {blue = "blue", turquoise = "turquoise", green = "green"},
+        yellow = {green = "green", yellow = "yellow", orange = "orange"}
+    }
+    tagsToColors.mauve = tagsToColors.violet
+    tagsToColors.olive = tagsToColors.green
+    tagsToColors.white = {white = "white"}
+    tagsToColors.aubergine = tagsToColors.purple
+    tagsToColors.beige = tagsToColors.orange
+    tagsToColors.black = {white = "white"}
+    tagsToColors.brown = tagsToColors.orange
+    tagsToColors.cream = tagsToColors.orange
+    tagsToColors.dustyrose = tagsToColors.red
+    tagsToColors.grey = {white = "white"}
+    tagsToColors.tan = tagsToColors.orange
+    --[[
+        Tree Colors:
+            violet
+            purple
+            blue
+            turquoise
+            green
+            yellow
+            orange
+            red
+            white
+    ]]
+    return tagsToColors
+end
+
 return Data

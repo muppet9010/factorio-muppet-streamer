@@ -40,35 +40,18 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
     local tileTemp = global.UTILITYBIOMETREES.environmentData.tileTempCalcFunc(tempScaleMultiplyer)
     local tileMoisture = Utils.GetRandomFloatInRange(moistureRange[1], moistureRange[2])
 
-    local suitableTrees = {}
-    local currentChance = 0
-    -- Make sure we find a tree of some type. Start as accurate as possible and then beocme less precise.
-    for accuracy = 1, 1.5, 0.1 do
-        for _, tree in pairs(global.UTILITYBIOMETREES.treeData) do
-            if tileTemp >= tree.tempRange[1] / accuracy and tileTemp <= tree.tempRange[2] * accuracy and tileMoisture >= tree.moistureRange[1] / accuracy and tileMoisture <= tree.moistureRange[2] * accuracy then
-                if (tree.tile_restrictions == nil) or (tree.tile_restrictions ~= nil and tree.tile_restrictions[tileData.name]) then
-                    local treeEntry = {
-                        chanceStart = currentChance,
-                        chanceEnd = currentChance + tree.probability,
-                        tree = tree
-                    }
-                    table.insert(suitableTrees, treeEntry)
-                    currentChance = treeEntry.chanceEnd
-                end
-            end
-        end
-        if #suitableTrees > 0 then
-            if logPositives then
-                Logging.LogPrint(#suitableTrees .. " found on accuracy: " .. accuracy)
-            end
-            break
-        end
-    end
+    local suitableTrees = BiomeTrees._SearchForSuitableTrees(tileData, tileTemp, tileMoisture)
     if #suitableTrees == 0 then
         if logNonPositives then
             Logging.LogPrint("No tree found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture)
         end
-        return BiomeTrees._GetTruelyRandomTreeForTileCollision(tile)
+        suitableTrees = BiomeTrees._SearchForSuitableTrees(tileData, tileTemp, tileMoisture, true)
+        if #suitableTrees == 0 then
+            if logNonPositives then
+                Logging.LogPrint("No tree found for conditions (ignoring tile_restrictions): tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture)
+            end
+            return BiomeTrees._GetTruelyRandomTreeForTileCollision(tile)
+        end
     end
     if logPositives then
         Logging.LogPrint("trees found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture)
@@ -94,6 +77,52 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
     else
         return treeName
     end
+end
+
+BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture, ignoreTileRestrictions)
+    local tagsOkDefault = false
+    if Utils.IsTableEmpty(tileData.tags) then
+        tagsOkDefault = true
+    end
+
+    local suitableTrees = {}
+    local currentChance = 0
+    -- Make sure we find a tree of some type. Start as accurate as possible and then beocme less precise.
+    for accuracy = 1, 1.5, 0.1 do
+        for _, tree in pairs(global.UTILITYBIOMETREES.treeData) do
+            if tileTemp >= tree.tempRange[1] / accuracy and tileTemp <= tree.tempRange[2] * accuracy and tileMoisture >= tree.moistureRange[1] / accuracy and tileMoisture <= tree.moistureRange[2] * accuracy then
+                if (ignoreTileRestrictions) or (tree.tile_restrictions == nil) or (tree.tile_restrictions ~= nil and tree.tile_restrictions[tileData.name]) then
+                    local tagsOk = tagsOkDefault
+                    if not tagsOkDefault then
+                        for tileTag in pairs(tileData.tags) do
+                            if tree.tags[tileTag] then
+                                tagsOk = true
+                                break
+                            end
+                        end
+                    end
+
+                    if (tagsOk) then
+                        local treeEntry = {
+                            chanceStart = currentChance,
+                            chanceEnd = currentChance + tree.probability,
+                            tree = tree
+                        }
+                        table.insert(suitableTrees, treeEntry)
+                        currentChance = treeEntry.chanceEnd
+                    end
+                end
+            end
+        end
+        if #suitableTrees > 0 then
+            if logPositives then
+                Logging.LogPrint(#suitableTrees .. " found on accuracy: " .. accuracy)
+            end
+            break
+        end
+    end
+
+    return suitableTrees
 end
 
 BiomeTrees.AddBiomeTreeNearPosition = function(surface, position, distance)
@@ -153,27 +182,24 @@ BiomeTrees._GetEnvironmentData = function()
     -- Used to handle the differing tree to tile value relationships of mods vs base game.
     local environmentData = {}
     if game.active_mods["alien-biomes"] then
-        environmentData.moistureRangeAttributeName = {optimal = "aux_optimal", range = "aux_range"}
+        environmentData.moistureRangeAttributeName = {optimal = "water_optimal", range = "water_max_range"}
         environmentData.tileTempCalcFunc = function(tempScaleMultiplyer)
             return math.min(125, math.max(-15, tempScaleMultiplyer * 100)) -- on scale of -0.5 to 1.5 = -50 to 150. -15 is lowest temp tree +125 is highest temp tree.
         end
         environmentData.tileData = BiomeTrees._AddTilesDetails(AlienBiomesData.GetTileData())
-        HERE
-        -- DO A TILE COLOUR TO TREE COLOR RANGES
-        for _, details in pairs(environmentData.tileData) do
-            if details.tags ~= nil then
-                local newTags, colors = {}, {"grey" = {}"green"}
-                for tag in pairs(details.tags) do
-                    if tag == "grey" then
-                        newTags[white] = "white"
-                    elseif colors[tag] then
-                        newTags[tag] = tag
-                    end
+        -- DO A TILE TAG TO TREE COLOR RANGES
+        local tagToColors = AlienBiomesData.GetTileTagToTreeColors()
+        for _, tile in pairs(environmentData.tileData) do
+            if tile.tags ~= nil then
+                if tagToColors[tile.tags] then
+                    tile.tags = tagToColors[tile.tags]
+                else
+                    Logging.LogPrint("Failed to find tile to tree colour mapping for tile tag: ' " .. tile.tags .. "'")
                 end
-                details.tags = newTags
             end
         end
         environmentData.treeMetaData = AlienBiomesData.GetTreeMetaData()
+        TODO: need to add the vaniall dead trees in.
     else
         environmentData.moistureRangeAttributeName = {optimal = "water_optimal", range = "water_range"}
         environmentData.tileTempCalcFunc = function(tempScaleMultiplyer)
