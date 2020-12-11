@@ -1,6 +1,6 @@
 --[[
     Used to get tile (biome) approperiate trees, rather than just select any old tree. Means they will generally fit in to the map better, although vanilla forest types don't always fully match the biome they are in.
-    Will only nicely handle vanilla tiles and trees, modded tiles will get a random tree if they are a land-ish type tile.
+    Will only nicely handle vanilla and Alient Biomes tiles and trees, modded tiles will get a random tree if they are a land-ish type tile.
     Require the file and call the desired functions when needed (non _ functions at top of file). No pre-setup required.
     Supports specifically coded modded trees with meta data. If a tree has tile restrictions this is used for selection after temp and water, otherwise the tags of tile and tree are checked. This logic comes from suppporting alien biomes.
 ]]
@@ -26,7 +26,7 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
         tileData = global.UTILITYBIOMETREES.tileData[tileName]
         if tileData == nil then
             Logging.LogPrint("Failed to get tile data for ''" .. tostring(tile.name) .. "'' and hidden tile '" .. tostring(tileName) .. "'", logNonPositives)
-            return BiomeTrees.GetRandomDeadTree(tile)
+            return global.UTILITYBIOMETREES.environmentData.getRandomTreeLastResort(tile)
         end
     end
     if tileData.type ~= "allow-trees" then
@@ -43,7 +43,7 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
     local suitableTrees = BiomeTrees._SearchForSuitableTrees(tileData, tileTemp, tileMoisture)
     if #suitableTrees == 0 then
         Logging.LogPrint("No tree found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture, logNonPositives)
-        return BiomeTrees.GetRandomDeadTree(tile)
+        return global.UTILITYBIOMETREES.environmentData.getRandomTreeLastResort(tile)
     end
     Logging.LogPrint("trees found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture, logPositives)
 
@@ -92,7 +92,7 @@ BiomeTrees.AddBiomeTreeNearPosition = function(surface, position, distance)
 end
 
 BiomeTrees.GetRandomDeadTree = function(tile)
-    if tile.collides_with("player-layer") then
+    if tile ~= nil and tile.collides_with("player-layer") then
         -- Is a non-land tile
         return nil
     else
@@ -100,8 +100,8 @@ BiomeTrees.GetRandomDeadTree = function(tile)
     end
 end
 
-BiomeTrees.GetTruelyRandomTreeForTileCollision = function(tile)
-    if tile.collides_with("player-layer") then
+BiomeTrees.GetTruelyRandomTree = function(tile)
+    if tile ~= nil and tile.collides_with("player-layer") then
         -- Is a non-land tile
         return nil
     else
@@ -198,6 +198,7 @@ BiomeTrees._GetEnvironmentData = function()
         environmentData.treeMetaData = AlienBiomesData.GetTreeMetaData()
         environmentData.deadTreeNames = {"dead-tree-desert", "dead-grey-trunk", "dead-dry-hairy-tree", "dry-hairy-tree", "dry-tree"}
         environmentData.whiteListTreeNames = environmentData.deadTreeNames
+        environmentData.getRandomTreeLastResort = BiomeTrees.GetRandomDeadTree
     else
         environmentData.moistureRangeAttributeName = {optimal = "water_optimal", range = "water_range"}
         environmentData.tileTempCalcFunc = function(tempScaleMultiplyer)
@@ -207,6 +208,7 @@ BiomeTrees._GetEnvironmentData = function()
         environmentData.treeMetaData = {}
         environmentData.deadTreeNames = {"dead-tree-desert", "dead-grey-trunk", "dead-dry-hairy-tree", "dry-hairy-tree", "dry-tree"}
         environmentData.whiteListTreeNames = {}
+        environmentData.getRandomTreeLastResort = BiomeTrees.GetTruelyRandomTree
     end
     return environmentData
 end
