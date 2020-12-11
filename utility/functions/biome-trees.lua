@@ -36,8 +36,7 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
     local rangeInt = math.random(1, #tileData.tempRanges)
     local tempRange = tileData.tempRanges[rangeInt]
     local moistureRange = tileData.moistureRanges[rangeInt]
-    local tempScaleMultiplyer = Utils.GetRandomFloatInRange(tempRange[1], tempRange[2])
-    local tileTemp = global.UTILITYBIOMETREES.environmentData.tileTempCalcFunc(tempScaleMultiplyer)
+    local tileTemp = global.UTILITYBIOMETREES.environmentData.tileTempCalcFunc(Utils.GetRandomFloatInRange(tempRange[1], tempRange[2]))
     local tileMoisture = Utils.GetRandomFloatInRange(moistureRange[1], moistureRange[2])
 
     local suitableTrees = BiomeTrees._SearchForSuitableTrees(tileData, tileTemp, tileMoisture)
@@ -117,13 +116,15 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
         for _, tree in pairs(global.UTILITYBIOMETREES.treeData) do
             if tileTemp >= tree.tempRange[1] / accuracy and tileTemp <= tree.tempRange[2] * accuracy and tileMoisture >= tree.moistureRange[1] / accuracy and tileMoisture <= tree.moistureRange[2] * accuracy then
                 local include = false
-                if not Utils.IsTableEmpty(tree.tile_restrictions) and tree.tile_restrictions[tileData.name] then
-                    Logging.LogPrint("tile restrictons match", logTags)
-                    include = true
-                elseif Utils.IsTableEmpty(tree.tile_restrictions) then
+                if not Utils.IsTableEmpty(tree.tile_restrictions) then
+                    if tree.tile_restrictions[tileData.name] then
+                        Logging.LogPrint("tile restrictons match", logTags)
+                        include = true
+                    end
+                else
                     if Utils.IsTableEmpty(tileData.tags) then
                         include = true
-                    else
+                    elseif not Utils.IsTableEmpty(tree.tags) then
                         for tileTag in pairs(tileData.tags) do
                             if tree.tags[tileTag] then
                                 Logging.LogPrint("tile tags: " .. Utils.TableKeyToCommaString(tileData.tags) .. "  --- tree tags: " .. Utils.TableKeyToCommaString(tree.tags), logTags)
