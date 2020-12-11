@@ -110,14 +110,9 @@ BiomeTrees.GetTruelyRandomTree = function(tile)
 end
 
 BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
-    local tagsOkDefault = false
-    if Utils.IsTableEmpty(tileData.tags) then
-        tagsOkDefault = true
-    end
-
     local suitableTrees = {}
     local currentChance = 0
-    -- Make sure we find a tree of some type. Start as accurate as possible and then beocme less precise.
+    -- Try to ensure we find a tree vaguely accurate. Start as accurate as possible and then become less precise.
     for accuracy = 1, 1.5, 0.1 do
         for _, tree in pairs(global.UTILITYBIOMETREES.treeData) do
             if tileTemp >= tree.tempRange[1] / accuracy and tileTemp <= tree.tempRange[2] * accuracy and tileMoisture >= tree.moistureRange[1] / accuracy and tileMoisture <= tree.moistureRange[2] * accuracy then
@@ -126,18 +121,16 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
                     Logging.LogPrint("tile restrictons match", logTags)
                     include = true
                 elseif Utils.IsTableEmpty(tree.tile_restrictions) then
-                    local tagsOk = tagsOkDefault
-                    if not tagsOkDefault then
+                    if Utils.IsTableEmpty(tileData.tags) then
+                        include = true
+                    else
                         for tileTag in pairs(tileData.tags) do
                             if tree.tags[tileTag] then
-                                tagsOk = true
+                                Logging.LogPrint("tile tags: " .. Utils.TableKeyToCommaString(tileData.tags) .. "  --- tree tags: " .. Utils.TableKeyToCommaString(tree.tags), logTags)
+                                include = true
                                 break
                             end
                         end
-                    end
-                    if tagsOk then
-                        Logging.LogPrint("tile tags: " .. Utils.TableKeyToCommaString(tileData.tags) .. "  --- tree tags: " .. Utils.TableKeyToCommaString(tree.tags), logTags)
-                        include = true
                     end
                 end
 
@@ -157,7 +150,6 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
             break
         end
     end
-
     return suitableTrees
 end
 
@@ -197,7 +189,6 @@ BiomeTrees._GetEnvironmentData = function()
         end
         environmentData.treeMetaData = AlienBiomesData.GetTreeMetaData()
         environmentData.deadTreeNames = {"dead-tree-desert", "dead-grey-trunk", "dead-dry-hairy-tree", "dry-hairy-tree", "dry-tree"}
-        environmentData.whiteListTreeNames = environmentData.deadTreeNames
         environmentData.getRandomTreeLastResort = BiomeTrees.GetRandomDeadTree
     else
         environmentData.moistureRangeAttributeName = {optimal = "water_optimal", range = "water_range"}
@@ -207,7 +198,6 @@ BiomeTrees._GetEnvironmentData = function()
         environmentData.tileData = BiomeTrees._AddTilesDetails(BaseGameData.GetTileData())
         environmentData.treeMetaData = {}
         environmentData.deadTreeNames = {"dead-tree-desert", "dead-grey-trunk", "dead-dry-hairy-tree", "dry-hairy-tree", "dry-tree"}
-        environmentData.whiteListTreeNames = {}
         environmentData.getRandomTreeLastResort = BiomeTrees.GetTruelyRandomTree
     end
     return environmentData
@@ -218,17 +208,13 @@ BiomeTrees._GetTreeData = function()
     local environmentData = global.UTILITYBIOMETREES.environmentData
     local moistureRangeAttributeName = global.UTILITYBIOMETREES.environmentData.moistureRangeAttributeName
     local treeEntities = game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}, {mode = "and", filter = "autoplace"}})
-    if not Utils.IsTableEmpty(environmentData.whiteListTreeNames) then
-        for _, treeName in pairs(environmentData.whiteListTreeNames) do
-            table.insert(treeEntities, game.entity_prototypes[treeName])
-        end
-    end
     for _, prototype in pairs(treeEntities) do
         Logging.LogPrint(prototype.name, logData)
         local autoplace = nil
         for _, peak in pairs(prototype.autoplace_specification.peaks) do
-            if peak.temperature_optimal ~= nil then
+            if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeName.optimal] ~= nil then
                 autoplace = peak
+                break
             end
         end
         if autoplace ~= nil then
@@ -236,14 +222,14 @@ BiomeTrees._GetTreeData = function()
             treeData[prototype.name] = {
                 name = prototype.name,
                 tempRange = {
-                    autoplace.temperature_optimal - autoplace.temperature_range,
-                    autoplace.temperature_optimal + autoplace.temperature_range
+                    (autoplace.temperature_optimal or 0) - (autoplace.temperature_range or 0),
+                    (autoplace.temperature_optimal or 1) + (autoplace.temperature_range or 0)
                 },
                 moistureRange = {
                     (autoplace[moistureRangeAttributeName.optimal] or 0) - (autoplace[moistureRangeAttributeName.range] or 0),
                     (autoplace[moistureRangeAttributeName.optimal] or 1) + (autoplace[moistureRangeAttributeName.range] or 0)
                 },
-                probability = prototype.autoplace_specification.max_probability
+                probability = prototype.autoplace_specification.max_probability or 0.01
             }
             if environmentData.treeMetaData[prototype.name] ~= nil then
                 treeData[prototype.name].tags = environmentData.treeMetaData[prototype.name][1]
