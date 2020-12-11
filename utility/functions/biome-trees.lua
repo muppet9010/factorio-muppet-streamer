@@ -112,6 +112,7 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
     local suitableTrees = {}
     local currentChance = 0
     -- Try to ensure we find a tree vaguely accurate. Start as accurate as possible and then become less precise.
+    -- This should probably be cached to reduce run time load. But not really sure how to given all the different filtering we have to do.
     for accuracy = 1, 1.5, 0.1 do
         for _, tree in pairs(global.UTILITYBIOMETREES.treeData) do
             if tileTemp >= tree.tempRange[1] / accuracy and tileTemp <= tree.tempRange[2] * accuracy and tileMoisture >= tree.moistureRange[1] / accuracy and tileMoisture <= tree.moistureRange[2] * accuracy then
