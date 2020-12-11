@@ -2928,27 +2928,37 @@ Data.GetTreeMetaData = function()
 end
 
 Data.GetTileTagToTreeColors = function()
-    local tagsToColors = {
-        purple = {violet = "violet", "purple", red = "red"},
+    --[[local tagsToColors = {
+        purple = {violet = "violet", purple= "purple", red = "red"},
         red = {orange = "orange", red = "red", purple = "purple"},
-        violet = {violet = "violet", "purple", blue = "blue"},
+        violet = {purple = "purple", violet = "violet", blue = "blue"},
         blue = {violet = "violet", blue = "blue", turquoise = "turquoise"},
         green = {turquoise = "turquoise", green = "green", yellow = "yellow"},
         orange = {yellow = "yellow", orange = "orange", red = "red"},
         turquoise = {blue = "blue", turquoise = "turquoise", green = "green"},
         yellow = {green = "green", yellow = "yellow", orange = "orange"}
+    }]]
+    local tagsToColors = {
+        purple = {purple = "purple"},
+        red = {red = "red"},
+        violet = {violet = "violet"},
+        blue = {blue = "blue"},
+        green = {green = "green"},
+        orange = {orange = "orange"},
+        turquoise = {turquoise = "turquoise"},
+        yellow = {yellow = "yellow"}
     }
     tagsToColors.mauve = tagsToColors.violet
     tagsToColors.olive = tagsToColors.green
     tagsToColors.white = {white = "white"}
     tagsToColors.aubergine = tagsToColors.purple
-    tagsToColors.beige = tagsToColors.orange
+    tagsToColors.beige = tagsToColors.yellow
     tagsToColors.black = {white = "white"}
-    tagsToColors.brown = tagsToColors.orange
-    tagsToColors.cream = tagsToColors.orange
+    tagsToColors.brown = tagsToColors.yellow
+    tagsToColors.cream = tagsToColors.yellow
     tagsToColors.dustyrose = tagsToColors.red
     tagsToColors.grey = {white = "white"}
-    tagsToColors.tan = tagsToColors.orange
+    tagsToColors.tan = tagsToColors.yellow
     --[[
         Tree Colors:
             violet
@@ -2957,7 +2967,7 @@ Data.GetTileTagToTreeColors = function()
             turquoise
             green
             yellow
-            orange
+            orange - not a real tree color, just for volcanic it seems
             red
             white
     ]]

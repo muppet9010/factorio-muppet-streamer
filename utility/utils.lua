@@ -438,6 +438,38 @@ function Utils.TableKeyToArray(aTable)
     return newArray
 end
 
+function Utils.TableKeyToCommaString(aTable)
+    -- Doesn't support commas in values or nested tables. Really for logging.
+    local newString = ""
+    if Utils.IsTableEmpty(aTable) then
+        return newString
+    end
+    for key in pairs(aTable) do
+        if newString == "" then
+            newString = key
+        else
+            newString = newString .. ", " .. tostring(key)
+        end
+    end
+    return newString
+end
+
+function Utils.TableValueToCommaString(aTable)
+    -- Doesn't support commas in values or nested tables. Really for logging.
+    local newString = ""
+    if Utils.IsTableEmpty(aTable) then
+        return newString
+    end
+    for _, value in pairs(aTable) do
+        if newString == "" then
+            newString = value
+        else
+            newString = newString .. ", " .. tostring(value)
+        end
+    end
+    return newString
+end
+
 function Utils.TableContentsToJSON(targetTable, name, singleLineOutput)
     -- targetTable is the only mandatory parameter. name if provided will appear as a "name:JSONData" output. singleLineOutput removes all lines and spacing from the output.
     singleLineOutput = singleLineOutput or false
