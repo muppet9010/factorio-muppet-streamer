@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.10
+Date: 2020-12-11
+  Features:
+    - Spawn Around Player - type tree - Full support for Alien Biomes added. Excessive dead trees should ony be seen for Ice and hotest volcanic tiles.
+  Changes:
+  Bugfixes:
+    - Spawn Around Player - type tree - Fix crash with any tree autoplace that was missing water ranges (Alien Biomes modded snow type trees).
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.9
 Date: 2020-11-27
   Features:

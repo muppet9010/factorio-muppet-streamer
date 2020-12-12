@@ -1,4 +1,5 @@
 local Utils = require("utility/utils")
+local Events = require("utility/events")
 local EventScheduler = {}
 MOD = MOD or {}
 MOD.scheduledEventNames =
@@ -12,7 +13,7 @@ MOD.scheduledEventNames =
 
 -- Called from the root of Control.lua
 EventScheduler.RegisterScheduler = function()
-    script.on_event(defines.events.on_tick, EventScheduler._OnSchedulerCycle)
+    Events.RegisterHandlerEvent(defines.events.on_tick, "EventScheduler._OnSchedulerCycle", EventScheduler._OnSchedulerCycle)
 end
 
 -- Called from OnLoad() from each script file.
