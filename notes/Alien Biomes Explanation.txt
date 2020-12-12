@@ -1,0 +1,16 @@
+Earendel:
+Yeah the settings are essentially volumes - see image
+Left to right blocks are the moisture bands, desert, dirt, grass, wetland grass
+top to bottom is temperature
+left to right within a block is the aux value
+the axis values are in prototypes/biome/biome-axes
+and then the more specific assignments are in prototypes/biome/biome-spec
+however
+when you mix these values with tree noise the trees tend to bleed outside of their assigned volume, so it is only good for rough placement
+so for example, sometimes you get my snow trees on non-snow terrain, but it is still cold there so for my purposes it is ok.
+If you are aiming for something more specific then it would be better to use tile restrictions on the autoplace and build the allowed tiles list using my tile tags system.
+The data phase alien_biomes object is defined in data.lua
+it has the axes and specs tables but also the tile tags functions
+alien_biomes.list_tiles(alien_biomes.require_tag(alien_biomes.all_tiles(), {"sand"})) for example would get you all dirt and sand tiles
+alien_biomes.list_tiles(alien_biomes.require_tag(alien_biomes.require_tag(alien_biomes.all_tiles(), {"sand"}), {"red", "white"})) would get red and white sand tiles
+the return value can be plugged straight into the entity.autoplace.tile_restrction
