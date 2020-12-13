@@ -35,8 +35,9 @@ local function OnLoad()
     Teleport.OnLoad()
 end
 
-local function OnSettingChanged(event)
-    TeamMember.OnSettingChanged(event)
+local function OnSettingChanged()
+    TeamMember.OnSettingChanged()
+    SpawnAroundPlayer.OnStartup()
 end
 
 local function OnStartup()

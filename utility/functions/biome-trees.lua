@@ -1,7 +1,10 @@
 --[[
     Used to get tile (biome) approperiate trees, rather than just select any old tree. Means they will generally fit in to the map better, although vanilla forest types don't always fully match the biome they are in.
     Will only nicely handle vanilla and Alient Biomes tiles and trees, modded tiles will get a random tree if they are a land-ish type tile.
-    Require the file and call the desired functions when needed (non _ functions at top of file). No pre-setup required.
+    Usage:
+        - Require the file at usage locations.
+        - Call the BiomeTrees.OnStartup() for script.on_init and script.on_configuration_changed. This will load the meta tables of the mod fresh from the current tiles and trees.
+        - Call the desired functions when needed (non _ functions at top of file).
     Supports specifically coded modded trees with meta data. If a tree has tile restrictions this is used for selection after temp and water, otherwise the tags of tile and tree are checked. This logic comes from suppporting alien biomes.
 ]]
 local Utils = require("utility/utils")
@@ -16,9 +19,20 @@ local logPositives = false
 local logData = false
 local logTags = false
 
+BiomeTrees.OnStartup = function()
+    -- Always recreate on game startup/config changed to handle any mod changed trees, tiles, etc.
+    global.UTILITYBIOMETREES = {}
+    global.UTILITYBIOMETREES.environmentData = BiomeTrees._GetEnvironmentData()
+    global.UTILITYBIOMETREES.tileData = global.UTILITYBIOMETREES.environmentData.tileData
+    global.UTILITYBIOMETREES.treeData = BiomeTrees._GetTreeData()
+    if logData then
+        Logging.LogPrint(serpent.block(global.UTILITYBIOMETREES.treeData))
+        Logging.LogPrint(serpent.block(global.UTILITYBIOMETREES.tileData))
+    end
+end
+
 BiomeTrees.GetBiomeTreeName = function(surface, position)
     -- Returns the tree name or nil if tile isn't land type
-    BiomeTrees._ObtainRequiredData()
     local tile = surface.get_tile(position)
     local tileData = global.UTILITYBIOMETREES.tileData[tile.name]
     if tileData == nil then
@@ -59,18 +73,11 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
         return nil
     end
 
-    -- Check the tree type still exists, if not re-generate data and run process again. There's no startup event requried with this method.
-    if game.entity_prototypes[treeName] == nil then
-        BiomeTrees._ObtainRequiredData(true)
-        return BiomeTrees.GetBiomeTreeName(surface, position)
-    else
-        return treeName
-    end
+    return treeName
 end
 
 BiomeTrees.AddBiomeTreeNearPosition = function(surface, position, distance)
     -- Returns the tree entity if one found and created or nil
-    BiomeTrees._ObtainRequiredData()
     local treeType = BiomeTrees.GetBiomeTreeName(surface, position)
     if treeType == nil then
         Logging.LogPrint("no tree was found", logNonPositives)
@@ -152,21 +159,6 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
         end
     end
     return suitableTrees
-end
-
-BiomeTrees._ObtainRequiredData = function(forceReload)
-    if forceReload then
-        global.UTILITYBIOMETREES = nil
-    end
-    global.UTILITYBIOMETREES = global.UTILITYBIOMETREES or {}
-    global.UTILITYBIOMETREES.environmentData = global.UTILITYBIOMETREES.environmentData or BiomeTrees._GetEnvironmentData()
-    global.UTILITYBIOMETREES.tileData = global.UTILITYBIOMETREES.tileData or global.UTILITYBIOMETREES.environmentData.tileData
-    global.UTILITYBIOMETREES.treeData = global.UTILITYBIOMETREES.treeData or BiomeTrees._GetTreeData()
-
-    if logData then
-        Logging.LogPrint(serpent.block(global.UTILITYBIOMETREES.treeData))
-        Logging.LogPrint(serpent.block(global.UTILITYBIOMETREES.tileData))
-    end
 end
 
 BiomeTrees._GetEnvironmentData = function()
