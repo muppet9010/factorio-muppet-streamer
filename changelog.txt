@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.12
+Date: 2020-12-14
+  Features:
+  Changes:
+  Bugfixes:
+    - Replace naughty function in mod global code, added in 20.0.10 and 20.0.11. Caused crashes on loading a save made after updating the mod.
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.11
 Date: 2020-12-13
   Features:

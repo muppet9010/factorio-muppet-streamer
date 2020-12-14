@@ -40,7 +40,7 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
         tileData = global.UTILITYBIOMETREES.tileData[tileName]
         if tileData == nil then
             Logging.LogPrint("Failed to get tile data for ''" .. tostring(tile.name) .. "'' and hidden tile '" .. tostring(tileName) .. "'", logNonPositives)
-            return global.UTILITYBIOMETREES.environmentData.getRandomTreeLastResort(tile)
+            return BiomeTrees.GetRandomTreeLastResort(tile)
         end
     end
     if tileData.type ~= "allow-trees" then
@@ -50,13 +50,13 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
     local rangeInt = math.random(1, #tileData.tempRanges)
     local tempRange = tileData.tempRanges[rangeInt]
     local moistureRange = tileData.moistureRanges[rangeInt]
-    local tileTemp = global.UTILITYBIOMETREES.environmentData.tileTempCalcFunc(Utils.GetRandomFloatInRange(tempRange[1], tempRange[2]))
+    local tileTemp = BiomeTrees._CalculateTileTemp(Utils.GetRandomFloatInRange(tempRange[1], tempRange[2]))
     local tileMoisture = Utils.GetRandomFloatInRange(moistureRange[1], moistureRange[2])
 
     local suitableTrees = BiomeTrees._SearchForSuitableTrees(tileData, tileTemp, tileMoisture)
     if #suitableTrees == 0 then
         Logging.LogPrint("No tree found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture, logNonPositives)
-        return global.UTILITYBIOMETREES.environmentData.getRandomTreeLastResort(tile)
+        return BiomeTrees.GetRandomTreeLastResort(tile)
     end
     Logging.LogPrint("trees found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture, logPositives)
 
@@ -115,6 +115,15 @@ BiomeTrees.GetTruelyRandomTree = function(tile)
     end
 end
 
+BiomeTrees.GetRandomTreeLastResort = function(tile)
+    -- Gets the a tree from the list of last resort based on the mod active.
+    if global.UTILITYBIOMETREES.environmentData.randomTreeLastResort == "GetTruelyRandomTree" then
+        return BiomeTrees.GetTruelyRandomTree(tile)
+    elseif global.UTILITYBIOMETREES.environmentData.randomTreeLastResort == "GetRandomDeadTree" then
+        return BiomeTrees.GetRandomDeadTree(tile)
+    end
+end
+
 BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
     local suitableTrees = {}
     local currentChance = 0
@@ -166,9 +175,12 @@ BiomeTrees._GetEnvironmentData = function()
     local environmentData = {}
     if game.active_mods["alien-biomes"] then
         environmentData.moistureRangeAttributeName = {optimal = "water_optimal", range = "water_max_range"}
-        environmentData.tileTempCalcFunc = function(tempScaleMultiplyer)
-            return math.min(125, math.max(-15, tempScaleMultiplyer * 100)) -- on scale of -0.5 to 1.5 = -50 to 150. -15 is lowest temp tree +125 is highest temp tree.
-        end
+        environmentData.tileTempCalculations = {
+            -- on scale of -0.5 to 1.5 = -50 to 150. -15 is lowest temp tree +125 is highest temp tree.
+            scaleMultiplyer = 100,
+            max = 125,
+            min = -15
+        }
         environmentData.tileData = BiomeTrees._AddTilesDetails(AlienBiomesData.GetTileData())
         local tagToColors = AlienBiomesData.GetTileTagToTreeColors()
         for _, tile in pairs(environmentData.tileData) do
@@ -182,16 +194,18 @@ BiomeTrees._GetEnvironmentData = function()
         end
         environmentData.treeMetaData = AlienBiomesData.GetTreeMetaData()
         environmentData.deadTreeNames = {"dead-tree-desert", "dead-grey-trunk", "dead-dry-hairy-tree", "dry-hairy-tree", "dry-tree"}
-        environmentData.getRandomTreeLastResort = BiomeTrees.GetRandomDeadTree
+        environmentData.randomTreeLastResort = "GetRandomDeadTree"
     else
         environmentData.moistureRangeAttributeName = {optimal = "water_optimal", range = "water_range"}
-        environmentData.tileTempCalcFunc = function(tempScaleMultiplyer)
-            return math.max(5, (tempScaleMultiplyer * 35))
-        end
+        environmentData.tileTempCalculations = {
+            -- on scale of 0 to 1 = 0 to 35. 5 is the lowest tempt tree.
+            scaleMultiplyer = 35,
+            min = 5
+        }
         environmentData.tileData = BiomeTrees._AddTilesDetails(BaseGameData.GetTileData())
         environmentData.treeMetaData = {}
         environmentData.deadTreeNames = {"dead-tree-desert", "dead-grey-trunk", "dead-dry-hairy-tree", "dry-hairy-tree", "dry-tree"}
-        environmentData.getRandomTreeLastResort = BiomeTrees.GetTruelyRandomTree
+        environmentData.randomTreeLastResort = "GetTruelyRandomTree"
     end
     return environmentData
 end
@@ -253,6 +267,21 @@ BiomeTrees._AddTilesDetails = function(tilesDetails)
         BiomeTrees._AddTileDetails(tileDetails, name, details[1], details[2], details[3], details[4])
     end
     return tileDetails
+end
+
+BiomeTrees._CalculateTileTemp = function(tempBase)
+    local tileTempCalculations = global.UTILITYBIOMETREES.environmentData.tileTempCalculations
+    local temp = tempBase
+    if tileTempCalculations.scaleMultiplyer ~= nil then
+        temp = temp * tileTempCalculations.scaleMultiplyer
+    end
+    if tileTempCalculations.max ~= nil then
+        temp = math.min(tileTempCalculations.max, temp)
+    end
+    if tileTempCalculations.min ~= nil then
+        temp = math.max(tileTempCalculations.min, temp)
+    end
+    return temp
 end
 
 return BiomeTrees

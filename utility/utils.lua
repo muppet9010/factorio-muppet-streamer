@@ -400,6 +400,7 @@ function Utils.CalculateTilesUnderPositionedBoundingBox(positionedBoundingBox)
 end
 
 function Utils.GetDistance(pos1, pos2)
+    pos1, pos2 = Utils.TableToProperPosition(pos1), Utils.TableToProperPosition(pos2)
     local dx = pos1.x - pos2.x
     local dy = pos1.y - pos2.y
     return math.sqrt(dx * dx + dy * dy)
@@ -1256,6 +1257,17 @@ end
 Utils.StringTrim = function(text)
     -- trim6 from http://lua-users.org/wiki/StringTrim
     return string.match(text, "^()%s*$") and "" or string.match(text, "^%s*(.*%S)")
+end
+
+Utils.OrientationToDirection = function(orientation)
+    return Utils.LoopIntValueWithinRange(Utils.RoundNumberToDecimalPlaces(orientation * 8, 0), 0, 7)
+end
+
+Utils.PushToList = function(list, itemsToPush)
+    -- Adds the items to the end of a list (table). Ignoring their keys.
+    for _, item in pairs(itemsToPush) do
+        table.insert(list, item)
+    end
 end
 
 return Utils
