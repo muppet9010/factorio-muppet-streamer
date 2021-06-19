@@ -341,13 +341,19 @@ Teleport.Teleport = function(data)
 end
 
 Teleport.OnBiterBaseBuilt = function(event)
-    if event.entity.type == "unit-spawner" then
-        Teleport.SpawnerCreated(event.entity)
+    local entity = event.entity
+    if not entity.valid or entity.type ~= "unit-spawner" then
+        return
     end
+    Teleport.SpawnerCreated(entity)
 end
 
 Teleport.ScriptRaisedBuilt = function(event)
-    Teleport.SpawnerCreated(event.entity)
+    local entity = event.entity
+    if not entity.valid or entity.type ~= "unit-spawner" then
+        return
+    end
+    Teleport.SpawnerCreated(entity)
 end
 
 Teleport.OnChunkGenerated = function(event)
@@ -359,22 +365,39 @@ Teleport.OnChunkGenerated = function(event)
 end
 
 Teleport.OnEntityDied = function(event)
-    Teleport.SpawnerRemoved(event.entity)
+    local entity = event.entity
+    if not entity.valid or entity.type ~= "unit-spawner" then
+        return
+    end
+    Teleport.SpawnerRemoved(entity)
 end
 
 Teleport.ScriptRaisedDestroy = function(event)
-    Teleport.SpawnerRemoved(event.entity)
+    local entity = event.entity
+    if not entity.valid or entity.type ~= "unit-spawner" then
+        return
+    end
+    Teleport.SpawnerRemoved(entity)
 end
 
 Teleport.SpawnerCreated = function(spawner)
-    global.teleport.surfaceBiterNests[spawner.surface.index][spawner.unit_number] = spawner
+    -- Create the surface table if it doesn't exist. Happens when the surface is created adhock during play.
+    local thisSurfaceBiterNests = global.teleport.surfaceBiterNests[spawner.surface.index]
+    if thisSurfaceBiterNests == nil then
+        global.teleport.surfaceBiterNests[spawner.surface.index] = {}
+        thisSurfaceBiterNests = global.teleport.surfaceBiterNests[spawner.surface.index]
+    end
+    -- Record the spawner.
+    thisSurfaceBiterNests[spawner.unit_number] = spawner
 end
 
 Teleport.SpawnerRemoved = function(spawner)
-    if not spawner.valid then
+    local thisSurfaceBiterNests = global.teleport.surfaceBiterNests[spawner.surface.index]
+    if thisSurfaceBiterNests == nil then
+        -- No records for this surface so nothing to remove. Shouldn't be possible to reach, but is safer.
         return
     end
-    global.teleport.surfaceBiterNests[spawner.surface.index][spawner.unit_number] = nil
+    thisSurfaceBiterNests[spawner.unit_number] = nil
 end
 
 Teleport.FindExistingSurfacesSpawners = function()
