@@ -70,7 +70,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local accuracyRadiusMin = 0
     if commandData.accuracyRadiusMin ~= nil then
         accuracyRadiusMin = tonumber(commandData.accuracyRadiusMin)
-        if accuracyRadiusMin == nil or accuracyRadiusMin < 0 then
+       if accuracyRadiusMin == nil or accuracyRadiusMin < 0 then
             Logging.LogPrint(errorMessageStart .. "accuracyRadiusMin is Optional, but must be a non-negative number if supplied")
             return
         end
@@ -85,8 +85,22 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         end
     end
 
-    global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target, targetPosition = targetPosition})
+    local explosiveCountRemaining = explosiveCount
+	local salvoDelay = 0
+	local targetPlayer = game.get_player(target)
+	targetPosition = targetPlayer.position
+	repeat
+		--Change this 10 to the size of the salvo you want
+		explosiveCount = math.min(10,explosiveCountRemaining)
+		
+		global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
+		--Change this 60 to the number of ticks you want between salvos
+		EventScheduler.ScheduleEvent(command.tick + delay + salvoDelay * 60, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target, targetPosition = targetPosition})
+		
+		salvoDelay = salvoDelay + 1
+		
+		explosiveCountRemaining = explosiveCountRemaining - explosiveCount
+	until( explosiveCountRemaining == 0 )
 end
 
 ExplosiveDelivery.DeliverExplosives = function(eventData)
@@ -108,8 +122,9 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     for i = 1, data.explosiveCount do
         local targetEntityPos = Utils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
         local targetEntity = surface.create_entity {name = "muppet_streamer-explosive-delivery-target", position = targetEntityPos}
-
-        local explosiveCreatePos = Utils.RandomLocationInRadius(targetPos, math.max(100, data.accuracyRadiusMax * 2), math.max(100, data.accuracyRadiusMax * 2))
+		
+		-- This was causing the nukes to go detonate in a doughnut shape at large values. Hardcoded values seem to fix this.
+        local explosiveCreatePos = Utils.RandomLocationInRadius(targetPos, 101, 100)
         if explosiveType.projectileName ~= nil then
             surface.create_entity {name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed}
         elseif explosiveType.beamName ~= nil then
