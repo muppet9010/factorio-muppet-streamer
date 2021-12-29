@@ -2,7 +2,7 @@
 Version: 20.0.14
 Date: 2021-12-29
   Features:
-    - Added pants on fire feature
+    - Added pants on fire feature - courtesy of andrewreds and inspired by Comfy.
   Changes:
   Bugfixes:
   Info:

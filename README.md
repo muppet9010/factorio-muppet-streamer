@@ -206,14 +206,14 @@ Notes:
 Pants On Fire
 ------------
 
-Sets the ground on fire behind a player as they run
+Sets the ground on fire behind a player forcing them to run.
 
 - Command syntax: `/muppet_streamer_pants_on_fire [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - duration: NUMBER - Mandatory: how many seconds the effect lasts on the player.
-    - fireSleep: NUMBER - Optional: how many tick gap should be between each fire entity
-    - fireGap: NUMBER - Optional: how many fire entites does the player have a head start on
-- Example command : `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
-
+    - fireGap: NUMBER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
+    - fireHeadStart: NUMBER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continous running.
+- Example command continous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
+- Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireGap": 30, "fireHeadStart": 6}`

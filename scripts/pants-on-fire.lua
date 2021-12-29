@@ -1,8 +1,9 @@
+-- Provided by andredrews (JD-Plays community) and inspired by Comfy scenario.
+
 local PantsOnFire = {}
 local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
-local Utils = require("utility/utils")
 local Events = require("utility/events")
 
 local EffectEndStatus = {completed = "completed", died = "died", invalid = "invalid"}
@@ -50,33 +51,33 @@ PantsOnFire.PantsOnFireCommand = function(command)
         return
     end
 
-    local duration = tonumber(commandData.duration)
-    if duration == nil then
+    local durationSeconds = tonumber(commandData.duration)
+    if durationSeconds == nil then
         Logging.LogPrint(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
         return
     end
-    duration = duration * 60
+    local finishTick = command.tick + (durationSeconds * 60)
 
-    local fireGap = 3
-    if commandData.fireGap ~= nil then
-        fireGap = tonumber(commandData.fireGap)
-        if fireGap == nil or fireGap < 0 then
-            Logging.LogPrint(errorMessageStart .. "fireGap is Optional, but must be 0 or greater if supplied")
+    local fireHeadStart = 3
+    if commandData.fireHeadStart ~= nil then
+        fireHeadStart = tonumber(commandData.fireHeadStart)
+        if fireHeadStart == nil or fireHeadStart < 0 then
+            Logging.LogPrint(errorMessageStart .. "fireHeadStart is Optional, but must be 0 or greater if supplied")
             return
         end
     end
 
-    local fireSleep = 6
-    if commandData.fireSleep ~= nil then
-        fireSleep = tonumber(commandData.fireSleep)
-        if fireSleep == nil or fireSleep <= 0 then
-            Logging.LogPrint(errorMessageStart .. "fireSleep is Optional, but must be 1 or greater if supplied")
+    local fireGap = 6
+    if commandData.fireGap ~= nil then
+        fireGap = tonumber(commandData.fireGap)
+        if fireGap == nil or fireGap <= 0 then
+            Logging.LogPrint(errorMessageStart .. "fireGap is Optional, but must be 1 or greater if supplied")
             return
         end
     end
 
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, {target = target, duration = duration, fireGap = fireGap, fireSleep = fireSleep})
+    EventScheduler.ScheduleEvent(command.tick + delay, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, {target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap})
 end
 
 PantsOnFire.ApplyToPlayer = function(eventData)
@@ -93,16 +94,17 @@ PantsOnFire.ApplyToPlayer = function(eventData)
         return
     end
 
+    -- Effect is already applied to player so don't start a new one.
     if global.PantsOnFire.playerSteps[targetPlayer.index] ~= nil then
         return
     end
 
+    -- Start the process on the player.
     global.PantsOnFire.playerSteps[targetPlayer.index] = {}
-
     game.print({"message.muppet_streamer_pants_on_fire_start", targetPlayer.name})
 
     -- stepPos starts at 0 so the first step happens at offset 1
-    PantsOnFire.WalkCheck({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, duration = data.duration, fireGap = data.fireGap, fireSleep = data.fireSleep, startFire = false, stepPos = 0}})
+    PantsOnFire.WalkCheck({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, startFire = false, stepPos = 0}})
 end
 
 PantsOnFire.WalkCheck = function(eventData)
@@ -119,27 +121,30 @@ PantsOnFire.WalkCheck = function(eventData)
         return
     end
 
+    -- Increment position in step buffer.
     data.stepPos = data.stepPos + 1
-    if data.stepPos >= data.fireGap then
+
+    if data.stepPos >= data.fireHeadStart then
+        -- Restart the circular buffer cycle and start the fire creation if not already (first cycle without).
         data.stepPos = 1
-        data.start_fire = true
+        data.startFire = true
     end
 
-    if data.start_fire then
+    -- Create the fire entity if approperiate.
+    if data.startFire then
         local step = steps[data.stepPos]
-
         if step.surface.valid then
             -- factorio auto deletes the fire-flame entity for us
-            step.surface.create_entity({name = 'fire-flame', position = step.position})
+            step.surface.create_entity({name = "fire-flame", position = step.position})
         end
     end
 
-    -- We must store both surface and position as player's surface may change
+    -- We must store both surface and position as player's surface may change.
     steps[data.stepPos] = {surface = player.surface, position = player.position}
 
-    data.duration = data.duration - data.fireSleep
-    if data.duration >= 0 then
-        EventScheduler.ScheduleEvent(eventData.tick + data.fireSleep, "PantsOnFire.WalkCheck", playerIndex, data)
+    -- Schedule the next loop if not finished yet.
+    if eventData.tick < data.finishTick then
+        EventScheduler.ScheduleEvent(eventData.tick + data.fireGap, "PantsOnFire.WalkCheck", playerIndex, data)
     else
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end
