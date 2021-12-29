@@ -15,6 +15,7 @@ Features
 - Make the player an aggressive driver via command.
 - Call other players to help by teleporting them in via command.
 - Teleport the player to a range of possible target types via command.
+- Sets the ground on fire behind a player via command.
 
 At present a time duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
 
@@ -201,3 +202,18 @@ Notes:
 - The reachableOnly will give up on a target if it gets a failed pathfinder request and find a new target to repeat the process with up to the 5 times. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations.
 - The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
 - A player teleported comes with their vehicle if they have one.
+
+Pants On Fire
+------------
+
+Sets the ground on fire behind a player forcing them to run.
+
+- Command syntax: `/muppet_streamer_pants_on_fire [DETAILS JSON STRING]`
+- Details in JSON string supports the arguments:
+    - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - target: STRING - Mandatory: the player name to target.
+    - duration: NUMBER - Mandatory: how many seconds the effect lasts on the player.
+    - fireGap: NUMBER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
+    - fireHeadStart: NUMBER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continous running.
+- Example command continous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
+- Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireGap": 30, "fireHeadStart": 6}`
