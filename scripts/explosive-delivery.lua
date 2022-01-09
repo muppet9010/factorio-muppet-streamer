@@ -86,7 +86,6 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
 	
 	local salvoSize = explosiveCount
-	local salvoDelay = 0
     if commandData.salvoSize ~= nil then
         salvoSize = tonumber(commandData.salvoSize)
         if salvoSize == nil or salvoSize < 0 then
@@ -95,7 +94,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         end
     end
 	
-    if commandData.salvoSize ~= nil then
+	local salvoDelay = 0
+    if commandData.salvoDelay ~= nil then
         salvoDelay = tonumber(commandData.salvoDelay)
         if salvoDelay == nil or salvoDelay < 0 then
             Logging.LogPrint(errorMessageStart .. "salvoDelay is Optional, but must be a non-negative number if supplied")
