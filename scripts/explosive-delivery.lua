@@ -84,20 +84,36 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             return
         end
     end
+	
+	local salvoSize = explosiveCount
+	local salvoDelay = 0
+    if commandData.salvoSize ~= nil then
+        salvoSize = tonumber(commandData.salvoSize)
+        if salvoSize == nil or salvoSize < 0 then
+            Logging.LogPrint(errorMessageStart .. "salvoSize is Optional, but must be a non-negative number if supplied")
+            return
+        end
+    end
+	
+    if commandData.salvoSize ~= nil then
+        salvoDelay = tonumber(commandData.salvoDelay)
+        if salvoDelay == nil or salvoDelay < 0 then
+            Logging.LogPrint(errorMessageStart .. "salvoDelay is Optional, but must be a non-negative number if supplied")
+            return
+        end
+    end
 
     local explosiveCountRemaining = explosiveCount
-	local salvoDelay = 0
+	local batchNumber = 0
 	local targetPlayer = game.get_player(target)
 	targetPosition = targetPlayer.position
 	repeat
-		--Change this 10 to the size of the salvo you want
-		explosiveCount = math.min(10,explosiveCountRemaining)
+		explosiveCount = math.min(salvoSize,explosiveCountRemaining)
 		
 		global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
-		--Change this 60 to the number of ticks you want between salvos
-		EventScheduler.ScheduleEvent(command.tick + delay + salvoDelay * 60, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target, targetPosition = targetPosition})
+		EventScheduler.ScheduleEvent(command.tick + delay + batchNumber * salvoDelay, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, {explosiveCount = explosiveCount, explosiveType = explosiveType, accuracyRadiusMin = accuracyRadiusMin, accuracyRadiusMax = accuracyRadiusMax, target = target, targetPosition = targetPosition})
 		
-		salvoDelay = salvoDelay + 1
+		batchNumber = batchNumber + 1
 		
 		explosiveCountRemaining = explosiveCountRemaining - explosiveCount
 	until( explosiveCountRemaining == 0 )
