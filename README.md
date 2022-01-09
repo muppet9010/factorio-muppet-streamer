@@ -49,8 +49,11 @@ Can deliver a highly customisable explosive delivery to the player.
     - targetPosition: STRING - Optional: a position as a table to target instead of the players position. Will come on to the target players map (surface).
     - accuracyRadiusMin: NUMBER - Optional: the minimum distance from the target that can be randomly selected within. If not specified defaults to 0.
     - accuracyRadiusMax: NUMBER - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
+    - salvoSize: NUMBER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent server crash.
+    - salvoDelay: NUMBER - Optional: use with salvoSize. Sets the delay between salvo deliveries in game ticks (60 ticks = 1 second)
 - Example command atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"delay":1, "explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command grenades: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
+- Example command large count of atomic rockets with salvo: `/muppet_streamer_schedule_explosive_delivery {"delay":1, "explosiveCount":150, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":60}`
 
 Notes:
 
