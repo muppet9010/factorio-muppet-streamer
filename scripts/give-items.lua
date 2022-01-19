@@ -122,7 +122,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         return
     end
 
-    local weaponTypeString, weaponType = commandData.weaponType
+    local weaponTypeString, weaponType = commandData.weaponType, nil
     if weaponTypeString ~= nil and weaponTypeString ~= "" then
         weaponType = game.item_prototypes[weaponTypeString]
         if weaponType == nil or weaponType.type ~= "gun" then
@@ -149,7 +149,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         end
     end
 
-    local ammoTypeString, ammoType = commandData.ammoType
+    local ammoTypeString, ammoType = commandData.ammoType, nil
     if ammoTypeString ~= nil and ammoTypeString ~= "" then
         ammoType = game.item_prototypes[ammoTypeString]
         if ammoType == nil or ammoType.type ~= "ammo" then

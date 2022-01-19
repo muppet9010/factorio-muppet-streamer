@@ -74,7 +74,8 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         control = ControlTypes.full
     end
 
-    local teleportDistanceString, teleportDistance = commandData.teleportDistance
+    local teleportDistanceString = commandData.teleportDistance
+    local teleportDistance
     if teleportDistanceString ~= nil then
         teleportDistance = tonumber(teleportDistanceString)
         if teleportDistance == nil or teleportDistance < 0 then
