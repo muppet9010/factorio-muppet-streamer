@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.15
+Date: 2022-01-19
+  Features:
+    - Added salvo option to explosive delivery feature - courtesy of Omnituens.
+  Changes:
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.14
 Date: 2021-12-29
   Features:
