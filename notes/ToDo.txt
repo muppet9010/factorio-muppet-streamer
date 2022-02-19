@@ -1,6 +1,7 @@
 TODO:
 	- Check teleporting self and other players when any/all are in trains.
     - Check all filtered events are safe if other filters are added in future.
+	- Check if Teleport walkable check doesn't work with some of the target types as the readme implies this. If so I don't know why it doesn't, add a note to say why if not resolvable.
 
 Future:
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
