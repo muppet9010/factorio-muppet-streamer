@@ -2,6 +2,7 @@
 local Data = {}
 
 Data.GetTileData = function()
+    -- Any tile not listed will have a random tree placed on it assuming the player can walk on the tile, otherwise no tree.
     return {
         ["grass-1"] = {"allow-trees", {{0, 0.7}, {1, 1}}},
         ["grass-2"] = {"allow-trees", {{0.45, 0.45}, {1, 0.8}}},

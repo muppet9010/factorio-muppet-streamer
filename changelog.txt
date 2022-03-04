@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.16
+Date: 2022-03-04
+  Features:
+  Changes:
+  Bugfixes:
+    - Creating random trees on tiles without specific climate data no longer errors. If the player can walk on the tile they get a random tree, if they can't it gets no tree.
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.15
 Date: 2022-01-19
   Features:

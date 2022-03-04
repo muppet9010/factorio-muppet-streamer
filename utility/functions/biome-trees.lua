@@ -111,7 +111,7 @@ BiomeTrees.GetTruelyRandomTree = function(tile)
         -- Is a non-land tile
         return nil
     else
-        return global.UTILITYBIOMETREES.treeData[math.random(#global.UTILITYBIOMETREES.treeData)]
+        return global.UTILITYBIOMETREES.treeData[math.random(#global.UTILITYBIOMETREES.treeData)].name
     end
 end
 
@@ -213,7 +213,7 @@ BiomeTrees._GetEnvironmentData = function()
 end
 
 BiomeTrees._GetTreeData = function()
-    local treeData = {}
+    local treeDataArray, treeData = {}, {}
     local environmentData = global.UTILITYBIOMETREES.environmentData
     local moistureRangeAttributeName = global.UTILITYBIOMETREES.environmentData.moistureRangeAttributeName
     local treeEntities = game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}, {mode = "and", filter = "autoplace"}})
@@ -230,7 +230,7 @@ BiomeTrees._GetTreeData = function()
 
         if autoplace ~= nil then
             -- Use really wide range defaults for missing moisture values as likely unspecified by mods to mean ALL.
-            treeData[prototype.name] = {
+            treeData = {
                 name = prototype.name,
                 tempRange = {
                     (autoplace.temperature_optimal or 0) - (autoplace.temperature_range or 0),
@@ -243,13 +243,14 @@ BiomeTrees._GetTreeData = function()
                 probability = prototype.autoplace_specification.max_probability or 0.01
             }
             if environmentData.treeMetaData[prototype.name] ~= nil then
-                treeData[prototype.name].tags = environmentData.treeMetaData[prototype.name][1]
-                treeData[prototype.name].tile_restrictions = environmentData.treeMetaData[prototype.name][2]
+                treeData.tags = environmentData.treeMetaData[prototype.name][1]
+                treeData.tile_restrictions = environmentData.treeMetaData[prototype.name][2]
             end
+            table.insert(treeDataArray, treeData)
         end
     end
 
-    return treeData
+    return treeDataArray
 end
 
 BiomeTrees._AddTileDetails = function(tileDetails, tileName, type, range1, range2, tags)
