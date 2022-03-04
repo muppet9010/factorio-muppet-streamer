@@ -9,6 +9,7 @@ Date: 2022-03-04
     - Call For Help - Changed callRadius is now optional and if left undefined will call players from unlimited distance away. Saves having to provide a very large number for these scenarios and is the default.
   Bugfixes:
     - Creating random trees on tiles without specific climate data no longer errors. If the player can walk on the tile they get a random tree, if they can't it gets no tree.
+    - Call For Help intermittent error fixed when multiple players trying to be teleported in to a difficult to place situation. Bug reports indicated this was related to being in trains, but not the case.
   Info:
     - Readme text for Teleport and Call For Help clarified in places. No functional changes, but additional pre-existing exceptions are now listed.
 ---------------------------------------------------------------------------------------------------
