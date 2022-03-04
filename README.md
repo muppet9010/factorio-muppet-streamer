@@ -19,6 +19,8 @@ Features
 
 At present a time duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
 
+Argument that are listed as type NUMBER really expect a whole number (integer).
+
 
 Team Member Limit
 ------------
@@ -201,8 +203,8 @@ Notes:
 
 - destinationType of position expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
 - destinationType of enemyUnit does a search for the nearest enemy unit within the maxDistance. If this is a very large area (3000+) this may be slow.
-- All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will repeat the whole activity up to 5 times before giving up. The destinationType target will be re-calculated for each attempt.
-- The reachableOnly will give up on a target if it gets a failed pathfinder request and find a new target to repeat the process with up to the 5 times. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations.
+- All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a differnet target 5 times before giving up for the `random` and `biterNest` destinationType.
+- The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
 - The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
 - A player teleported comes with their vehicle if they have one (excludes trains).
 
@@ -219,5 +221,6 @@ Sets the ground on fire behind a player forcing them to run.
     - duration: NUMBER - Mandatory: how many seconds the effect lasts on the player.
     - fireGap: NUMBER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
     - fireHeadStart: NUMBER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continous running.
+    - flameCount: NUMBER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire.
 - Example command continous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
 - Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireGap": 30, "fireHeadStart": 6}`

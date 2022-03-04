@@ -2,10 +2,12 @@
 Version: 20.0.16
 Date: 2022-03-04
   Features:
+    - Pants On Fire - Added optional Flame Count option that affects how much damage and the burn time of each fire entity. Defaults to 20 which is the minimum for a tree to catch on fire.
   Changes:
   Bugfixes:
     - Creating random trees on tiles without specific climate data no longer errors. If the player can walk on the tile they get a random tree, if they can't it gets no tree.
   Info:
+    - Readme text for Teleport and Call For Help clarified in places. No functional changes, but additional pre-existing exceptions are now listed.
 ---------------------------------------------------------------------------------------------------
 Version: 20.0.15
 Date: 2022-01-19

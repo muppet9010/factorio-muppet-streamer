@@ -274,7 +274,7 @@ Teleport.PlanTeleportLocation = function(data)
     if data.reachableOnly then
         local pathRequestId =
             targetPlayer.surface.request_path {
-            bounding_box = targetPlayerPathingEntity.prototype.collision_box, -- Work around for: https://forums.factorio.com/viewtopic.php?f=182&t=90146
+            bounding_box = targetPlayerPathingEntity.prototype.collision_box, -- Work around for (unknown what the non-workaround code logic would be): https://forums.factorio.com/viewtopic.php?f=182&t=90146
             collision_mask = targetPlayerPathingEntity.prototype.collision_mask,
             start = arrivalPos,
             goal = targetPlayer.position,
