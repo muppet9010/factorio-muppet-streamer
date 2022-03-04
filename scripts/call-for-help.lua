@@ -10,11 +10,24 @@ local SPTesting = false -- Set to true to let yourself go to your own support.
 local MaxRandomPositionsAroundTarget = 10
 local MaxDistancePositionAroundTarget = 10
 
+---@class CallForHelpObject
+---@field callForHelpId Id
+---@field pendingPathRequests table<Id, PathRequestObject>
+
+---@class PathRequestObject @ Details on a path request so that when it completes its results can be handled and back traced to the Call For Help it relates too.
+---@field callForHelpId Id
+---@field pathRequestId Id
+---@field helpPlayer LuaPlayer
+---@field targetPlayer LuaPlayer
+---@field position Position
+---@field attempt uint
+---@field arrivalRadius double
+
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
-    global.callForHelp.nextId = global.callForHelp.nextId or 0
-    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {}
-    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {}
+    global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type Id
+    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<Id, PathRequestObject>
+    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<Id, CallForHelpObject>
 end
 
 CallForHelp.OnLoad = function()
@@ -123,11 +136,13 @@ CallForHelp.CallForHelp = function(eventData)
         return
     end
 
+    local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
+
     local helpPlayers, helpPlayersInRange = {}, {}
     for _, helpPlayer in pairs(connectedPlayers) do
         if SPTesting or helpPlayer ~= targetPlayer then
-            if helpPlayer.surface == targetPlayer.surface and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
-                local distance = Utils.GetDistance(targetPlayer.position, helpPlayer.position)
+            if helpPlayer.surface == targetPlayerSurface and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
+                local distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
                 if distance <= data.callRadius then
                     table.insert(helpPlayersInRange, {player = helpPlayer, distance = distance})
                 end
@@ -165,24 +180,35 @@ CallForHelp.CallForHelp = function(eventData)
 
     game.print({"message.muppet_streamer_call_for_help_start", targetPlayer.name})
     global.callForHelp.callForHelpIds[data.callForHelpId] = {callForHelpId = data.callForHelpId, pendingPathRequests = {}}
+    local targetPlayerEntity
+    local targetPlayerVehicle = targetPlayer.vehicle
+    if targetPlayerVehicle ~= nil and targetPlayerVehicle.valid then
+        -- Player in vehicle so target it.
+        targetPlayerEntity = targetPlayerVehicle
+    else
+        -- Player not in a vehicle.
+        targetPlayerEntity = targetPlayer.character
+    end
     for _, helpPlayer in pairs(helpPlayers) do
-        CallForHelp.PlanTeleportHelpPlayer(helpPlayer, data.arrivalRadius, targetPlayer, data.callForHelpId, 1)
+        CallForHelp.PlanTeleportHelpPlayer(helpPlayer, data.arrivalRadius, targetPlayer, targetPlayerPosition, targetPlayerSurface, targetPlayerEntity, data.callForHelpId, 1)
     end
 end
 
+--- Confirms if the vehicle is teleportable (non train).
+---@param vehicle LuaEntity
+---@return boolean isVehicleTeleportable
 CallForHelp.IsTeleportableVehicle = function(vehicle)
     return vehicle ~= nil and vehicle.valid and (vehicle.name == "car" or vehicle.name == "tank" or vehicle.name == "spider-vehicle")
 end
 
-CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetPlayer, callForHelpId, attempt)
-    local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
-    local targetPlayerEntity = targetPlayer.character
-    if targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid then
-        targetPlayerEntity = targetPlayer.vehicle
-    end
-    local helpPlayerPathingEntity, helpPlayerPlacementEntity = helpPlayer.character, helpPlayer.character
+CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetPlayer, targetPlayerPosition, targetPlayerSurface, targetPlayerEntity, callForHelpId, attempt)
+    local helpPlayerPathingEntity = helpPlayer.character
+
+    local helpPlayerPlacementEntity
     if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then
         helpPlayerPlacementEntity = helpPlayer.vehicle
+    else
+        helpPlayerPlacementEntity = helpPlayer.character
     end
 
     local arrivalPos
@@ -199,9 +225,10 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         return
     end
 
+    -- Create the path request.
     local pathRequestId =
         targetPlayerSurface.request_path {
-        bounding_box = helpPlayerPathingEntity.prototype.collision_box, -- Work around for: https://forums.factorio.com/viewtopic.php?f=182&t=90146
+        bounding_box = helpPlayerPathingEntity.prototype.collision_box, -- Work around for (but unknown what the non work-around logic was): https://forums.factorio.com/viewtopic.php?f=182&t=90146
         collision_mask = helpPlayerPathingEntity.prototype.collision_mask,
         start = arrivalPos,
         goal = targetPlayerPosition,
@@ -211,7 +238,9 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         entity_to_ignore = targetPlayerEntity,
         pathfind_flags = {allow_paths_through_own_entities = true, cache = false}
     }
-    global.callForHelp.pathingRequests[pathRequestId] = {
+
+    -- Record the path request to globals.
+    local pathRequestObject = {
         callForHelpId = callForHelpId,
         pathRequestId = pathRequestId,
         helpPlayer = helpPlayer,
@@ -220,11 +249,16 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         attempt = attempt,
         arrivalRadius = arrivalRadius
     }
-    global.callForHelp.callForHelpIds[callForHelpId].pendingPathRequests[pathRequestId] = global.callForHelp.pathingRequests[pathRequestId]
+    global.callForHelp.pathingRequests[pathRequestId] = pathRequestObject
+    global.callForHelp.callForHelpIds[callForHelpId].pendingPathRequests[pathRequestId] = pathRequestObject
 end
 
+--- Triggered when a path request completes to check and handle the results.
+---@param event on_script_path_request_finished
 CallForHelp.OnScriptPathRequestFinished = function(event)
     local pathRequest = global.callForHelp.pathingRequests[event.id]
+
+    -- Check if this path request related to a Call For Help.
     if pathRequest == nil then
         -- Not our path request
         return
@@ -267,7 +301,8 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         end
     end
 
-    if #global.callForHelp.callForHelpIds[pathRequest.callForHelpId].pendingPathRequests == 0 then
+    -- If theres no pending path requests left then this call for help is completed.
+    if next(global.callForHelp.callForHelpIds[pathRequest.callForHelpId].pendingPathRequests) == nil then
         game.print({"message.muppet_streamer_call_for_help_stop", pathRequest.targetPlayer.name})
         global.callForHelp.callForHelpIds[pathRequest.callForHelpId] = nil
     end

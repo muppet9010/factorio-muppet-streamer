@@ -6,3 +6,4 @@ Created by Muppet9010: https://github.com/muppet9010/Factorio-Utils
 Hotfixs:
 	- biome-trees.lua - patched up to 20.7.37 - Muppet Streamer 20.0.16
     - biome-trees.lua and biome-trees-data\base-game.lua - changes made to fix non defined tile crash and updated in to Utility 20.7.37 as being modified in Railway Tunnel's mod - Muppet Streamer 20.0.16
+    - emmylua-classes.lua - patched up to 20.7.37 - Muppet Streamer 20.0.16

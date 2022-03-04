@@ -174,7 +174,7 @@ Notes:
 
 - The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
-- A player teleported comes with their vehicle if they have one.
+- A player teleported comes with their vehicle if they have one (excludes trains).
 
 
 Teleport
@@ -204,7 +204,8 @@ Notes:
 - All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will repeat the whole activity up to 5 times before giving up. The destinationType target will be re-calculated for each attempt.
 - The reachableOnly will give up on a target if it gets a failed pathfinder request and find a new target to repeat the process with up to the 5 times. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations.
 - The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
-- A player teleported comes with their vehicle if they have one.
+- A player teleported comes with their vehicle if they have one (excludes trains).
+
 
 Pants On Fire
 ------------
