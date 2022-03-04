@@ -4,6 +4,7 @@ Date: 2022-03-04
   Features:
     - Pants On Fire - Added optional Flame Count option that affects how much damage and the burn time of each fire entity. Defaults to 20 which is the minimum for a tree to catch on fire.
     - Call For Help - Added optional Same Surface Only option to allow calling players from other surfaces. Useful for some scenarios. Defaults to true (as per old behaviour).
+    - Call For Help - Added optional blacklisted and whitelisted player name lists to refine which players can be teleported to help.
   Changes:
     - Call For Help - Changed callRadius is now optional and if left undefined will call players from unlimited distance away. Saves having to provide a very large number for these scenarios and is the default.
   Bugfixes:

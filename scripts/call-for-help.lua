@@ -99,6 +99,18 @@ CallForHelp.CallForHelpCommand = function(command)
         callRadius = nil
     end
 
+    local blacklistedPlayerNames_string = commandData.blacklistedPlayerNames
+    local blacklistedPlayerNames  ---@type table<string, True>|null
+    if blacklistedPlayerNames_string ~= nil and blacklistedPlayerNames_string ~= "" then
+        blacklistedPlayerNames = Utils.SplitStringOnCharacters(blacklistedPlayerNames_string, ",", true)
+    end
+
+    local whitelistedPlayerNames_string = commandData.whitelistedPlayerNames
+    local whitelistedPlayerNames  ---@type table<string, True>|null
+    if whitelistedPlayerNames_string ~= nil and whitelistedPlayerNames_string ~= "" then
+        whitelistedPlayerNames = Utils.SplitStringOnCharacters(whitelistedPlayerNames_string, ",", true)
+    end
+
     local callSelection = CallSelection[commandData.callSelection]
     if callSelection == nil then
         Logging.LogPrint(errorMessageStart .. "callSelection is Mandatory and must be a valid type")
@@ -134,7 +146,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     global.callForHelp.nextId = global.callForHelp.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "CallForHelp.CallForHelp", global.callForHelp.nextId, {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameSurfaceOnly = sameSurfaceOnly, callSelection = callSelection, number = number, activePercentage = activePercentage})
+    EventScheduler.ScheduleEvent(command.tick + delay, "CallForHelp.CallForHelp", global.callForHelp.nextId, {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameSurfaceOnly = sameSurfaceOnly, blacklistedPlayerNames = blacklistedPlayerNames, whitelistedPlayerNames = whitelistedPlayerNames, callSelection = callSelection, number = number, activePercentage = activePercentage})
 end
 
 CallForHelp.CallForHelp = function(eventData)
@@ -151,16 +163,43 @@ CallForHelp.CallForHelp = function(eventData)
         return
     end
 
-    local connectedPlayers = game.connected_players
-    local maxPlayers = math.max(data.number, math.floor(data.activePercentage * #connectedPlayers))
+    local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
+
+    -- Work out the initial available players list.
+    local availablePlayers  ---@type LuaPlayer[]
+    if data.whitelistedPlayerNames == nil then
+        -- No whitelist so all online players is the starting list.
+        availablePlayers = game.connected_players
+    else
+        -- Only whitelisted online players are in the starting list.
+        availablePlayers = {}
+        for _, onlinePlayer in pairs(game.connected_players) do
+            if data.whitelistedPlayerNames[onlinePlayer.name] then
+                table.insert(availablePlayers, onlinePlayer)
+            end
+        end
+    end
+
+    -- remove any black listed players from the list.
+    if data.blacklistedPlayerNames ~= nil then
+        -- Iterate the list backwards so we can safely remove from it without skipping subsequent entries due to messing up the index placement.
+        for i = #availablePlayers, 1, -1 do
+            if data.blacklistedPlayerNames[availablePlayers[i].name] then
+                table.remove(availablePlayers, i)
+            end
+        end
+    end
+
+    -- Work out the max number of players that can be called to help at present.
+    local maxPlayers = math.max(data.number, math.floor(data.activePercentage * #availablePlayers))
     if maxPlayers <= 0 then
+        game.print({"message.muppet_streamer_call_for_help_no_players_found", targetPlayer.name})
         return
     end
 
-    local targetPlayerPosition, targetPlayerSurface = targetPlayer.position, targetPlayer.surface
-
+    -- Check the available players distance and viability for teleporting to help.
     local helpPlayers, helpPlayersInRange = {}, {}
-    for _, helpPlayer in pairs(connectedPlayers) do
+    for _, helpPlayer in pairs(availablePlayers) do
         if SPTesting or helpPlayer ~= targetPlayer then
             if (not data.sameSurfaceOnly or helpPlayer.surface == targetPlayerSurface) and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
                 local distance
@@ -181,6 +220,7 @@ CallForHelp.CallForHelp = function(eventData)
         return
     end
 
+    -- Select the players to teleport to help.
     if data.callSelection == CallSelection.random then
         for i = 1, maxPlayers do
             local random = math.random(1, #helpPlayersInRange)
@@ -205,6 +245,7 @@ CallForHelp.CallForHelp = function(eventData)
         end
     end
 
+    -- Store the initial details for the call and start the process for each player trying to come to help.
     game.print({"message.muppet_streamer_call_for_help_start", targetPlayer.name})
     global.callForHelp.callForHelpIds[data.callForHelpId] = {callForHelpId = data.callForHelpId, pendingPathRequests = {}}
     local targetPlayerEntity

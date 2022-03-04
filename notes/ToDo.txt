@@ -1,6 +1,4 @@
 DOING NOW:
-    - Call for Help - add:
-        - named player list of players to explicitly excluded or included.
 
 
 BUGS:

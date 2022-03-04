@@ -159,8 +159,8 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 Notes:
 
 - This feature uses a custom permission group when active.
-- If the vehicle comes to a stop during the time it will automatically start going the opposite direction.
-- This feature affects all types of cars, tanks and locomotive vehicles, but not the Spider Vehicle.
+- If the vehicle comes to a stop during the time (due to hitting something) it will automatically start going the opposite direction.
+- This feature affects all types of cars, tanks and train vehicles, but not the Spider Vehicle.
 
 
 Call For Help
@@ -175,10 +175,12 @@ Teleports other players on the server to near your position.
     - arrivalRadius - NUMBER - Mandatory: players teleported to the target player will be placed within this max distance.
     - callRadius - NUMBER - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a palyer at any distance can be teleported to the target player. If `sameSurfaceOnly` argument is set to `false` then the `callRadius` argument is ignored entirely.
     - sameSurfaceOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same surface as the target player or not. If `false` then the `callRadius` argument is ignored as it can't logically be applied. Defaults to `true`.
-    - callSelection - STRING - Mandatory: the logic to select which players in the callRadius are teleported, either: `random`, `nearest`.
+    - blacklistedPlayerNames - STRING - Optional: comma seperated list of player names who will never be teleported to the target player. These are removed from the available players lists and counts.
+    - whitelistedPlayerNames - STRING - Optional: comma seperated list of player names who will only be the ones teleported to the target player if provided. If provided these whitelisted players who are online constitute the entire available player list. If not provided then all online players not blacklisted are valid players to select from.
+    - callSelection - STRING - Mandatory: the logic to select which available players in the callRadius are teleported, either: `random`, `nearest`.
     - number - NUMBER - Mandatory Special: how many players to call. Either `number` or `activePercentage` must be supplied.
-    - activePercentage - NUMBER - Mandatory Special: the percentage of currently online players to call, i.e. 90. Either `number` or `activePercentage` must be supplied.
-- Example command : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":20, "callRadius": 1000, "callSelection": "random", "number": 3, "activePercentage": 50}`
+    - activePercentage - NUMBER - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting number of available players. Either `number` or `activePercentage` must be supplied.
+- Example command : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":10, "callSelection": "random", "number": 3, "activePercentage": 50}`
 
 Notes:
 
@@ -186,6 +188,7 @@ Notes:
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
 - CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be lowest priority.
 - A player teleported comes with their vehicle if they have one (excludes trains).
+- The whitelistedPlayerNames and blacklistedPlayerNames both accept a comma seperated list of player names in a single string, i.e. `"Player1,Player2, Player3  "`. Any leading or trailing spaces from player names will be removed. The player names case must match the Facotrio username exactly.
 
 
 Teleport
