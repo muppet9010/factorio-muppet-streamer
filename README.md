@@ -17,9 +17,15 @@ Features
 - Teleport the player to a range of possible target types via command.
 - Sets the ground on fire behind a player via command.
 
+
+General Usage Notes
+---------------
+
 At present a time duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
 
 Argument that are listed as type NUMBER really expect a whole number (integer).
+
+When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible whne new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
 
 
 Team Member Limit
@@ -63,6 +69,7 @@ Notes:
 - Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
 - Weapons are on the "enemy" team and so don't get affected by your research.
 - targetPosition expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
+
 
 Leaky Flamethrower
 ------------------
@@ -165,9 +172,10 @@ Teleports other players on the server to near your position.
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
-    - arrivalRadius - NUMBER - Mandatory: the max distance players will be teleported to from the target player.
-    - callRadius - NUMBER - Mandatory: the max distance to call players from.
-    - callSelection - STRING - Mandatory: the logic to select which players in the callRadius are teleported, either: 'random', 'nearest'.
+    - arrivalRadius - NUMBER - Mandatory: players teleported to the target player will be placed within this max distance.
+    - callRadius - NUMBER - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a palyer at any distance can be teleported to the target player. If `sameSurfaceOnly` argument is set to `false` then the `callRadius` argument is ignored entirely.
+    - sameSurfaceOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same surface as the target player or not. If `false` then the `callRadius` argument is ignored as it can't logically be applied. Defaults to `true`.
+    - callSelection - STRING - Mandatory: the logic to select which players in the callRadius are teleported, either: `random`, `nearest`.
     - number - NUMBER - Mandatory Special: how many players to call. Either `number` or `activePercentage` must be supplied.
     - activePercentage - NUMBER - Mandatory Special: the percentage of currently online players to call, i.e. 90. Either `number` or `activePercentage` must be supplied.
 - Example command : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":20, "callRadius": 1000, "callSelection": "random", "number": 3, "activePercentage": 50}`
@@ -176,6 +184,7 @@ Notes:
 
 - The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
+- CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be lowest priority.
 - A player teleported comes with their vehicle if they have one (excludes trains).
 
 

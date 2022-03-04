@@ -19,6 +19,7 @@ local MaxDistancePositionAroundTarget = 10
 ---@field pathRequestId Id
 ---@field helpPlayer LuaPlayer
 ---@field targetPlayer LuaPlayer
+---@field surface LuaSurface
 ---@field position Position
 ---@field attempt uint
 ---@field arrivalRadius double
@@ -67,15 +68,35 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local arrivalRadius = tonumber(commandData.arrivalRadius)
-    if arrivalRadius == nil then
-        Logging.LogPrint(errorMessageStart .. "arrivalRadius is Mandatory, must be 0 or greater")
+    if arrivalRadius == nil or arrivalRadius <= 0 then
+        Logging.LogPrint(errorMessageStart .. "arrivalRadius is Mandatory, and must be greater than 0")
         return
     end
 
+    -- Nil is a valid final value if the argument isn't provided.
     local callRadius = tonumber(commandData.callRadius)
-    if callRadius == nil then
-        Logging.LogPrint(errorMessageStart .. "callRadius is Mandatory, must be 0 or greater")
-        return
+    if callRadius ~= nil then
+        callRadius = tonumber(callRadius)
+        if callRadius == nil or callRadius <= 0 then
+            Logging.LogPrint(errorMessageStart .. "callRadius is Optional, but if provided must be greater than 0")
+            return
+        end
+    end
+
+    local sameSurfaceOnly = commandData.sameSurfaceOnly
+    if sameSurfaceOnly ~= nil then
+        sameSurfaceOnly = Utils.ToBoolean(sameSurfaceOnly)
+        if sameSurfaceOnly == nil then
+            Logging.LogPrint(errorMessageStart .. "sameSurfaceOnly is Optional, but must be a valid boolean if provided")
+            return
+        end
+    else
+        sameSurfaceOnly = true
+    end
+
+    -- If not same surface then there's no callRadius result to be processed.
+    if not sameSurfaceOnly then
+        callRadius = nil
     end
 
     local callSelection = CallSelection[commandData.callSelection]
@@ -113,7 +134,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     global.callForHelp.nextId = global.callForHelp.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "CallForHelp.CallForHelp", global.callForHelp.nextId, {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, callSelection = callSelection, number = number, activePercentage = activePercentage})
+    EventScheduler.ScheduleEvent(command.tick + delay, "CallForHelp.CallForHelp", global.callForHelp.nextId, {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameSurfaceOnly = sameSurfaceOnly, callSelection = callSelection, number = number, activePercentage = activePercentage})
 end
 
 CallForHelp.CallForHelp = function(eventData)
@@ -141,9 +162,15 @@ CallForHelp.CallForHelp = function(eventData)
     local helpPlayers, helpPlayersInRange = {}, {}
     for _, helpPlayer in pairs(connectedPlayers) do
         if SPTesting or helpPlayer ~= targetPlayer then
-            if helpPlayer.surface == targetPlayerSurface and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
-                local distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
-                if distance <= data.callRadius then
+            if (not data.sameSurfaceOnly or helpPlayer.surface == targetPlayerSurface) and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
+                local distance
+                if data.callRadius == nil then
+                    distance = 4294967295 -- Maximum distance away
+                else
+                    distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
+                end
+
+                if data.callRadius == nil or distance <= data.callRadius then
                     table.insert(helpPlayersInRange, {player = helpPlayer, distance = distance})
                 end
             end
@@ -245,6 +272,7 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         pathRequestId = pathRequestId,
         helpPlayer = helpPlayer,
         targetPlayer = targetPlayer,
+        surface = targetPlayerSurface,
         position = arrivalPos,
         attempt = attempt,
         arrivalRadius = arrivalRadius
@@ -289,7 +317,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
                 end
                 helpPlayer.driving = false
             end
-            local teleportResult = helpPlayer.teleport(pathRequest.position)
+            local teleportResult = helpPlayer.teleport(pathRequest.position, pathRequest.surface)
             if not teleportResult then
                 if wasDriving then
                     wasDriving.set_driver(helpPlayer)

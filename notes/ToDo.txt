@@ -1,7 +1,6 @@
 DOING NOW:
     - Call for Help - add:
         - named player list of players to explicitly excluded or included.
-        - option to ignore players surface and distance.
 
 
 BUGS:
