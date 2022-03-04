@@ -7,11 +7,11 @@
         - Call the desired functions when needed (non _ functions at top of file).
     Supports specifically coded modded trees with meta data. If a tree has tile restrictions this is used for selection after temp and water, otherwise the tags of tile and tree are checked. This logic comes from suppporting alien biomes.
 ]]
-local Utils = require("utility/utils")
-local Logging = require("utility/logging")
+local Utils = require("utility.utils")
+local Logging = require("utility.logging")
 
-local BaseGameData = require("utility/functions/biome-trees-data/base-game")
-local AlienBiomesData = require("utility/functions/biome-trees-data/alien-biomes")
+local BaseGameData = require("utility.functions.biome-trees-data.base-game")
+local AlienBiomesData = require("utility.functions.biome-trees-data.alien-biomes")
 
 local BiomeTrees = {}
 local logNonPositives = false
@@ -88,7 +88,7 @@ BiomeTrees.AddBiomeTreeNearPosition = function(surface, position, distance)
         Logging.LogPrint("No position for new tree found", logNonPositives)
         return nil
     end
-    local newTree = surface.create_entity {name = treeType, position = newPosition, force = "neutral", raise_built = true}
+    local newTree = surface.create_entity {name = treeType, position = newPosition, force = "neutral", raise_built = true, create_build_effect_smoke = false}
     if newTree == nil then
         Logging.LogPrint("Failed to create tree at found position")
         return nil
@@ -167,6 +167,7 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
             break
         end
     end
+
     return suitableTrees
 end
 
@@ -207,6 +208,7 @@ BiomeTrees._GetEnvironmentData = function()
         environmentData.deadTreeNames = {"dead-tree-desert", "dead-grey-trunk", "dead-dry-hairy-tree", "dry-hairy-tree", "dry-tree"}
         environmentData.randomTreeLastResort = "GetTruelyRandomTree"
     end
+
     return environmentData
 end
 
@@ -215,6 +217,7 @@ BiomeTrees._GetTreeData = function()
     local environmentData = global.UTILITYBIOMETREES.environmentData
     local moistureRangeAttributeName = global.UTILITYBIOMETREES.environmentData.moistureRangeAttributeName
     local treeEntities = game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}, {mode = "and", filter = "autoplace"}})
+
     for _, prototype in pairs(treeEntities) do
         Logging.LogPrint(prototype.name, logData)
         local autoplace = nil
@@ -224,6 +227,7 @@ BiomeTrees._GetTreeData = function()
                 break
             end
         end
+
         if autoplace ~= nil then
             -- Use really wide range defaults for missing moisture values as likely unspecified by mods to mean ALL.
             treeData[prototype.name] = {
@@ -244,6 +248,7 @@ BiomeTrees._GetTreeData = function()
             end
         end
     end
+
     return treeData
 end
 

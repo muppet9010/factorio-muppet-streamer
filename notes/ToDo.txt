@@ -1,3 +1,8 @@
+BUGS:
+    - Spawn trees on lab tiles errors:
+      biome-tree.lua: 114
+      Bad argument #1 of 1 to 'random' (interval is empty).
+
 TODO:
 	- Check teleporting self and other players when any/all are in trains.
     - Check all filtered events are safe if other filters are added in future.
