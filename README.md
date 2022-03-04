@@ -17,7 +17,15 @@ Features
 - Teleport the player to a range of possible target types via command.
 - Sets the ground on fire behind a player via command.
 
+
+General Usage Notes
+---------------
+
 At present a time duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
+
+Argument that are listed as type NUMBER really expect a whole number (integer).
+
+When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible whne new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
 
 
 Team Member Limit
@@ -61,6 +69,7 @@ Notes:
 - Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
 - Weapons are on the "enemy" team and so don't get affected by your research.
 - targetPosition expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
+
 
 Leaky Flamethrower
 ------------------
@@ -150,8 +159,8 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 Notes:
 
 - This feature uses a custom permission group when active.
-- If the vehicle comes to a stop during the time it will automatically start going the opposite direction.
-- This feature affects all types of cars, tanks and locomotive vehicles, but not the Spider Vehicle.
+- If the vehicle comes to a stop during the time (due to hitting something) it will automatically start going the opposite direction.
+- This feature affects all types of cars, tanks and train vehicles, but not the Spider Vehicle.
 
 
 Call For Help
@@ -163,18 +172,23 @@ Teleports other players on the server to near your position.
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
-    - arrivalRadius - NUMBER - Mandatory: the max distance players will be teleported to from the target player.
-    - callRadius - NUMBER - Mandatory: the max distance to call players from.
-    - callSelection - STRING - Mandatory: the logic to select which players in the callRadius are teleported, either: 'random', 'nearest'.
+    - arrivalRadius - NUMBER - Mandatory: players teleported to the target player will be placed within this max distance.
+    - callRadius - NUMBER - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a palyer at any distance can be teleported to the target player. If `sameSurfaceOnly` argument is set to `false` then the `callRadius` argument is ignored entirely.
+    - sameSurfaceOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same surface as the target player or not. If `false` then the `callRadius` argument is ignored as it can't logically be applied. Defaults to `true`.
+    - blacklistedPlayerNames - STRING - Optional: comma seperated list of player names who will never be teleported to the target player. These are removed from the available players lists and counts.
+    - whitelistedPlayerNames - STRING - Optional: comma seperated list of player names who will only be the ones teleported to the target player if provided. If provided these whitelisted players who are online constitute the entire available player list. If not provided then all online players not blacklisted are valid players to select from.
+    - callSelection - STRING - Mandatory: the logic to select which available players in the callRadius are teleported, either: `random`, `nearest`.
     - number - NUMBER - Mandatory Special: how many players to call. Either `number` or `activePercentage` must be supplied.
-    - activePercentage - NUMBER - Mandatory Special: the percentage of currently online players to call, i.e. 90. Either `number` or `activePercentage` must be supplied.
-- Example command : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":20, "callRadius": 1000, "callSelection": "random", "number": 3, "activePercentage": 50}`
+    - activePercentage - NUMBER - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting number of available players. Either `number` or `activePercentage` must be supplied.
+- Example command : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":10, "callSelection": "random", "number": 3, "activePercentage": 50}`
 
 Notes:
 
 - The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
-- A player teleported comes with their vehicle if they have one.
+- CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be lowest priority.
+- A player teleported comes with their vehicle if they have one (excludes trains).
+- The whitelistedPlayerNames and blacklistedPlayerNames both accept a comma seperated list of player names in a single string, i.e. `"Player1,Player2, Player3  "`. Any leading or trailing spaces from player names will be removed. The player names case must match the Facotrio username exactly.
 
 
 Teleport
@@ -201,10 +215,11 @@ Notes:
 
 - destinationType of position expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
 - destinationType of enemyUnit does a search for the nearest enemy unit within the maxDistance. If this is a very large area (3000+) this may be slow.
-- All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will repeat the whole activity up to 5 times before giving up. The destinationType target will be re-calculated for each attempt.
-- The reachableOnly will give up on a target if it gets a failed pathfinder request and find a new target to repeat the process with up to the 5 times. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations.
+- All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a differnet target 5 times before giving up for the `random` and `biterNest` destinationType.
+- The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
 - The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
-- A player teleported comes with their vehicle if they have one.
+- A player teleported comes with their vehicle if they have one (excludes trains).
+
 
 Pants On Fire
 ------------
@@ -218,5 +233,6 @@ Sets the ground on fire behind a player forcing them to run.
     - duration: NUMBER - Mandatory: how many seconds the effect lasts on the player.
     - fireGap: NUMBER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
     - fireHeadStart: NUMBER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continous running.
+    - flameCount: NUMBER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire.
 - Example command continous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
 - Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireGap": 30, "fireHeadStart": 6}`

@@ -76,8 +76,17 @@ PantsOnFire.PantsOnFireCommand = function(command)
         end
     end
 
+    local flameCount = 20
+    if commandData.flameCount ~= nil then
+        flameCount = tonumber(commandData.flameCount)
+        if flameCount == nil or flameCount <= 0 then
+            Logging.LogPrint(errorMessageStart .. "flameCount is Optional, but must be 1 or greater if supplied")
+            return
+        end
+    end
+
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, {target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap})
+    EventScheduler.ScheduleEvent(command.tick + delay, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, {target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount})
 end
 
 PantsOnFire.ApplyToPlayer = function(eventData)
@@ -104,7 +113,7 @@ PantsOnFire.ApplyToPlayer = function(eventData)
     game.print({"message.muppet_streamer_pants_on_fire_start", targetPlayer.name})
 
     -- stepPos starts at 0 so the first step happens at offset 1
-    PantsOnFire.WalkCheck({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, startFire = false, stepPos = 0}})
+    PantsOnFire.WalkCheck({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0}})
 end
 
 PantsOnFire.WalkCheck = function(eventData)
@@ -134,8 +143,9 @@ PantsOnFire.WalkCheck = function(eventData)
     if data.startFire then
         local step = steps[data.stepPos]
         if step.surface.valid then
-            -- factorio auto deletes the fire-flame entity for us
-            step.surface.create_entity({name = "fire-flame", position = step.position})
+            -- Factorio auto deletes the fire-flame entity for us.
+            -- 20 flames seems the minimum to set a tree on fire.
+            step.surface.create_entity({name = "fire-flame", position = step.position, initial_ground_flame_count = data.flameCount})
         end
     end
 
