@@ -20,7 +20,7 @@ local MaxDistancePositionAroundTarget = 10
 ---@field helpPlayer LuaPlayer
 ---@field targetPlayer LuaPlayer
 ---@field surface LuaSurface
----@field position Position
+---@field position MapPosition
 ---@field attempt uint
 ---@field arrivalRadius double
 

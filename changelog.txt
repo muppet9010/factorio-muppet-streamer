@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.17
+Date: 2022-03-12
+  Features:
+  Changes:
+  Bugfixes:
+    - Added work around for API bug introduced in Factorio 1.1.56. The work around fixes base game trees, but alien biomes will probably error and is untested. Utilising temporary hard coded values obtained in 1.1.54. https://forums.factorio.com/viewtopic.php?f=7&t=101833
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.16
 Date: 2022-03-04
   Features:
