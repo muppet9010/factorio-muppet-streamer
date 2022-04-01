@@ -1,13 +1,13 @@
 {
     "name": "muppet_streamer",
-    "version": "20.0.17",
+    "version": "20.0.18",
     "title": "Muppet Streamer",
     "author": "Muppet9010",
     "contact": "",
     "homepage": "https://mods.factorio.com/mod/muppet_streamer",
     "factorio_version": "1.1",
     "dependencies": [
-        "base >= 1.1.56"
+        "base >= 1.1.57"
     ],
     "description": "Adds actions that a streamer can let chat activate to make their games more dynamic and interactive."
 }

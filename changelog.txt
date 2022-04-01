@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.18
+Date: 2022-04-01
+  Features:
+  Changes:
+  Bugfixes:
+    - Removed work around introduced in previous mod version to mitigate core Factrio bug present only in 1.1.56.
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.17
 Date: 2022-03-12
   Features:

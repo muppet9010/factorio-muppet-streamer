@@ -3,9 +3,6 @@
 Created by Muppet9010: https://github.com/muppet9010/Factorio-Utils
 
 
-TEMPORARY CHANGES:
-    - biome-trees.lua and biome-trees-data\base-game.lua changed to address API bug added in Factorio 1.1.56. This is not being back merged in to Utils library at this point as should be very short term fix.
-
 Hotfixs:
 	- biome-trees.lua - patched up to 20.7.37 - Muppet Streamer 20.0.16
     - biome-trees.lua and biome-trees-data\base-game.lua - changes made to fix non defined tile crash and updated in to Utility 20.7.37 as being modified in Railway Tunnel's mod - Muppet Streamer 20.0.16

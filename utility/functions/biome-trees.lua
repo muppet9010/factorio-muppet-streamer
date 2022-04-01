@@ -217,47 +217,39 @@ BiomeTrees._GetTreeData = function()
     local environmentData = global.UTILITYBIOMETREES.environmentData
     local moistureRangeAttributeName = global.UTILITYBIOMETREES.environmentData.moistureRangeAttributeName
     local treeEntities = game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}, {mode = "and", filter = "autoplace"}})
-    local vanillaTreeData_hardcoded = BaseGameData.GetTreeData()
 
     for _, prototype in pairs(treeEntities) do
         Logging.LogPrint(prototype.name, logData)
 
-        -- Work around core Factorio bug introduced in 1.1.56. Check for hard coded vlaues before trying to get data via API as the game crashes on checking if autoplace_specification is nil.
-        local hardcodedTreeData = vanillaTreeData_hardcoded[prototype.name]
-        if hardcodedTreeData ~= nil then
-            -- Hard coded tree data exists for this vanilla tree so use it and don't query the API due to bug.
-            table.insert(treeDataArray, hardcodedTreeData)
-        else
-            -- Only check for autoplace if the fields exist. Was previously always assumed they would, but added for extra protection just incase.
-            if prototype.autoplace_specification ~= nil and prototype.autoplace_specification.peaks ~= nil then
-                local autoplace = nil
-                for _, peak in pairs(prototype.autoplace_specification.peaks) do
-                    if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeName.optimal] ~= nil then
-                        autoplace = peak
-                        break
-                    end
+        -- Only check for autoplace if the fields exist. Was previously always assumed they would, but added for extra protection just incase.
+        if prototype.autoplace_specification ~= nil and prototype.autoplace_specification.peaks ~= nil then
+            local autoplace = nil
+            for _, peak in pairs(prototype.autoplace_specification.peaks) do
+                if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeName.optimal] ~= nil then
+                    autoplace = peak
+                    break
                 end
+            end
 
-                if autoplace ~= nil then
-                    -- Use really wide range defaults for missing moisture values as likely unspecified by mods to mean ALL.
-                    treeData = {
-                        name = prototype.name,
-                        tempRange = {
-                            (autoplace.temperature_optimal or 0) - (autoplace.temperature_range or 0),
-                            (autoplace.temperature_optimal or 1) + (autoplace.temperature_range or 0)
-                        },
-                        moistureRange = {
-                            (autoplace[moistureRangeAttributeName.optimal] or 0) - (autoplace[moistureRangeAttributeName.range] or 0),
-                            (autoplace[moistureRangeAttributeName.optimal] or 1) + (autoplace[moistureRangeAttributeName.range] or 0)
-                        },
-                        probability = prototype.autoplace_specification.max_probability or 0.01
-                    }
-                    if environmentData.treeMetaData[prototype.name] ~= nil then
-                        treeData.tags = environmentData.treeMetaData[prototype.name][1]
-                        treeData.tile_restrictions = environmentData.treeMetaData[prototype.name][2]
-                    end
-                    table.insert(treeDataArray, treeData)
+            if autoplace ~= nil then
+                -- Use really wide range defaults for missing moisture values as likely unspecified by mods to mean ALL.
+                treeData = {
+                    name = prototype.name,
+                    tempRange = {
+                        (autoplace.temperature_optimal or 0) - (autoplace.temperature_range or 0),
+                        (autoplace.temperature_optimal or 1) + (autoplace.temperature_range or 0)
+                    },
+                    moistureRange = {
+                        (autoplace[moistureRangeAttributeName.optimal] or 0) - (autoplace[moistureRangeAttributeName.range] or 0),
+                        (autoplace[moistureRangeAttributeName.optimal] or 1) + (autoplace[moistureRangeAttributeName.range] or 0)
+                    },
+                    probability = prototype.autoplace_specification.max_probability or 0.01
+                }
+                if environmentData.treeMetaData[prototype.name] ~= nil then
+                    treeData.tags = environmentData.treeMetaData[prototype.name][1]
+                    treeData.tile_restrictions = environmentData.treeMetaData[prototype.name][2]
                 end
+                table.insert(treeDataArray, treeData)
             end
         end
     end
