@@ -1,12 +1,17 @@
 DOING NOW:
-
+    - Player inventory mixup - Takes all of the inventory and gear from named or all players and re-distributes them across the same players.
+        - Will get the total count of each item type and the number of player sources each item type came from.
+        - Then distributing back a reasonable chunk to a random percentage of source player count and randoming the rest between all players in chunks (maybe weighted towards the players who already received some). This should ensure a somewhat distribution back based on what came in, while avoiding a boring equal spread across everyone or a complete concentration of all of an item type in to just 1 player. i.e.
+            - all 5 players have between 1 and 2 machine guns each = 4 players would get 1 machine gun each plus some would have 1 or 2 extra (random part). The 4 players is the random receiving players (down from starting number here).
+            - 2 of 5 players have 50 and 250 inserters = 3 players would get inserters each. Some random chance of the extra inserters being spread (in random chunk sizes) across those 3 players or to the other 2 players.  The 3 players who will definitely get inserters is randomly up from the starting player count with that item.
+    - Player item drop - Drops a number of items from a players inventory on the ground. Can have a frequency and a duration set to continously do it over time. Can set the item dropping method to be either stacks or individual items. Can set the number of items dropped per iteration as either: a static number, a percentage of initial count (based on dropping method), a percentage of current count (based on method). Option if to drop on to belts or not. Only supports targetting 1 named player.
 
 BUGS:
     - If another player is in train then "flooring it" doesn't force speed in some cases. Seen when other player is in loco and streamer is in a random wagon. But there may be other cases as well.
 	- Leaky Flamethrower doesn't move filtered weapons out of the way. https://mods.factorio.com/mod/muppet_streamer/discussion/6039c2cd2ea185676222f064
 	- If Leaky Flamethrower clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards if available.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room. Should never be "lost".
-    - Many of the NUMBER arguments will accept a double, but this will fail/error whne trying to be used. They should really for a type Integer and the readme should list this. Brief note added to readme in mean time. New Utility library version has functions to validate types of numbers.
+    - Many of the NUMBER arguments will accept a double, but this will fail/error when trying to be used. They should really for a type Integer and the readme should list this. Brief note added to readme in mean time. New Utility library version has functions to validate types of numbers.
 
 
 Future:
