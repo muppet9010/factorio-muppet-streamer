@@ -23,6 +23,7 @@ PlayerDropInventory.OnLoad = function()
     EventScheduler.RegisterScheduledEventType("PlayerDropInventory.ApplyToPlayer", PlayerDropInventory.ApplyToPlayer)
 end
 
+---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     local commandData
     if command.parameter ~= nil then

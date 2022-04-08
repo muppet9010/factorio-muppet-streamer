@@ -17,7 +17,8 @@ Features
 - Call other players to help by teleporting them in via command.
 - Teleport the player to a range of possible target types via command.
 - Sets the ground on fire behind a player via command.
-- Drop a players inventory on the ground over time via command.
+- Drop a player's inventory on the ground over time via command.
+- Mix up players inventories between them via command.
 
 
 
@@ -273,3 +274,23 @@ Notes:
 - Not intended to empty a player's inventory all in in 1 go. A direct Lua script could be used for that.
 - For percentage based quantity values it will drop a minimum of 1 item per cycle. So that very low values/inventory sizes don't drop nothing.
 - If the player doesn't have any items to drop for any given drop event then that occurence is marked as completed and the effect continues until all occurences have occured at their set gaps. The event does not not stop unless the player dies or all occurences have been completed.
+
+
+
+Player Inventory Shuffle
+------------------------
+
+Takes the inventories from the target players, shuffles them and then distributes the items back between those players. Will keep the different types of items in roughly the same number of players inventories as they started and will spread the quantities in a random distribution between them (not even).
+
+- Command syntax: `/muppet_streamer_player_inventory_shuffle [DETAILS JSON STRING]`
+- Details in JSON string supports the arguments:
+    - delay: NUMBER - Optional: how many seconds before the effects start. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - targets: STRING - Mandatory: a comma seperated list of the player names to target (assuming they are online at the time), or `[ALL]` to target all online players on the server.
+    - includeEquipment: BOOLEAN - Optional: if the player's armour and weapons are included for shuffling or not. Defaults to True.
+- Example command for 3 players: `/muppet_streamer_player_inventory_shuffle {"targets":"muppet9010,bob54,dave_76"}`
+- Example command for all active players: `/muppet_streamer_player_inventory_shuffle {"targets":"[ALL]"}`
+
+
+Notes:
+
+- The targets accept a comma seperated list of player names in a single string, i.e. `"Player1,Player2, Player3  "`. Any leading or trailing spaces from player names will be removed. The player names case must match the Facotrio username exactly.
