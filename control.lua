@@ -9,6 +9,7 @@ local AggressiveDriver = require("scripts/aggressive-driver")
 local CallForHelp = require("scripts/call-for-help")
 local Teleport = require("scripts/teleport")
 local PantsOnFire = require("scripts/pants-on-fire")
+local PlayerDropInventory = require("scripts.player-drop-inventory")
 
 local function CreateGlobals()
     global.origionalPlayersPermissionGroup = global.origionalPlayersPermissionGroup or {} -- Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
@@ -22,6 +23,7 @@ local function CreateGlobals()
     CallForHelp.CreateGlobals()
     Teleport.CreateGlobals()
     PantsOnFire.CreateGlobals()
+    PlayerDropInventory.CreateGlobals()
 end
 
 local function OnLoad()
@@ -36,9 +38,10 @@ local function OnLoad()
     CallForHelp.OnLoad()
     Teleport.OnLoad()
     PantsOnFire.OnLoad()
+    PlayerDropInventory.OnLoad()
 end
 
-local function OnSettingChanged()
+local function OnSettingChanged(event)
     TeamMember.OnSettingChanged()
     SpawnAroundPlayer.OnStartup()
 end

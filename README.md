@@ -3,6 +3,7 @@
 Adds actions that a streamer can let chat activate to make their games more dynamic and interactive. These features are more complicated than can be achived via simple RCON commands.
 
 
+
 Features
 -----------
 
@@ -16,6 +17,8 @@ Features
 - Call other players to help by teleporting them in via command.
 - Teleport the player to a range of possible target types via command.
 - Sets the ground on fire behind a player via command.
+- Drop a players inventory on the ground over time via command.
+
 
 
 General Usage Notes
@@ -26,6 +29,7 @@ At present a time duration event will interrupt a different type of time duratio
 Argument that are listed as type NUMBER really expect a whole number (integer).
 
 When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible whne new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
+
 
 
 Team Member Limit
@@ -41,6 +45,7 @@ A way to soft limit players on the map and have research to increase it.
 - Command:
     - syntax: `/muppet_streamer_change_team_member_max CHANGENUMBER`
     - example to increase by 2: `/muppet_streamer_change_team_member_max 2`
+
 
 
 Schedule Explosive Delivery to player
@@ -59,7 +64,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
     - accuracyRadiusMax: NUMBER - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
     - salvoSize: NUMBER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
     - salvoDelay: NUMBER - Optional: use with salvoSize. Sets the delay between salvo deliveries in game ticks (60 ticks = 1 second). Each salvo will target the same player position and not re-target the player's new position.
-- Example command atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"delay":1, "explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
+- Example command atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command grenades: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
 - Example command large count of atomic rockets with salvo: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":150, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":180}`
 
@@ -69,6 +74,7 @@ Notes:
 - Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
 - Weapons are on the "enemy" team and so don't get affected by your research.
 - targetPosition expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
+
 
 
 Leaky Flamethrower
@@ -81,16 +87,17 @@ Gives the targeted player a flamethrower that shoots in random directions for sh
     - delay: NUMBER - Optional: how many seconds the flamethrower and effects are delayed for before starting. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - ammoCount: NUMBER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired, if 0 then the command is ignored.
     - target: STRING - Mandatory: the player name to target.
-- Example command: `/muppet_streamer_leaky_flamethrower {"delay":1, "ammoCount":5, "target":"muppet9010"}`
+- Example command: `/muppet_streamer_leaky_flamethrower {"ammoCount":5, "target":"muppet9010"}`
 
 Notes:
 
-- This feature uses a custom permission group when active.
+- This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one.
 - While activated the player will loose control over their weapons targeting and firing behaviour.
 - While activated the player can not change active gun via the switch to next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to do. However, this is such an active countering of the mods behaviour.
 - The flamethrower is yours and so any of your damage upgrades will affect it.
+
 
 
 Give Weapon & Ammo
@@ -107,11 +114,12 @@ Ensures the target player has a specific weapon and can give ammo and force thei
     - selectWeapon: BOOLEAN - Optional: if true the player will have this weaponType selected as active if its equipped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
     - ammoType: STRING - Optional: the name of the ammo type to be given to the player.
     - ammoCount: NUMBER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
-- Example command: `/muppet_streamer_give_player_weapon_ammo {"delay":1, "target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
+- Example command: `/muppet_streamer_give_player_weapon_ammo {"target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
 
 Notes:
 
 - If there isn't room in the character inventory for items they will be dropped on the ground at the players feet.
+
 
 
 Spawn Around Player
@@ -142,6 +150,7 @@ Notes:
 - For entityType of tree, if placed on a vanilla game tile or with Alien Biomes mod a biome specific tree will be selected, otherwise the tree will be random on other modded tiles. Should support and handle fully defined custom tree types, otherwise they will be ignored.
 
 
+
 Aggressive Driver
 ---------------
 
@@ -158,9 +167,10 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 
 Notes:
 
-- This feature uses a custom permission group when active.
+- This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
 - If the vehicle comes to a stop during the time (due to hitting something) it will automatically start going the opposite direction.
 - This feature affects all types of cars, tanks and train vehicles, but not the Spider Vehicle.
+
 
 
 Call For Help
@@ -189,6 +199,7 @@ Notes:
 - CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be lowest priority.
 - A player teleported comes with their vehicle if they have one (excludes trains).
 - The whitelistedPlayerNames and blacklistedPlayerNames both accept a comma seperated list of player names in a single string, i.e. `"Player1,Player2, Player3  "`. Any leading or trailing spaces from player names will be removed. The player names case must match the Facotrio username exactly.
+
 
 
 Teleport
@@ -221,6 +232,7 @@ Notes:
 - A player teleported comes with their vehicle if they have one (excludes trains).
 
 
+
 Pants On Fire
 ------------
 
@@ -236,3 +248,28 @@ Sets the ground on fire behind a player forcing them to run.
     - flameCount: NUMBER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire.
 - Example command continous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
 - Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireGap": 30, "fireHeadStart": 6}`
+
+
+
+Player Drop Inventory
+---------------------
+
+Schedules the targeted player to drop their inventory on the ground over time.
+
+- Command syntax: `/muppet_streamer_player_drop_inventory [DETAILS JSON STRING]`
+- Details in JSON string supports the arguments:
+    - delay: NUMBER - Optional: how many seconds before the effects start. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - target: STRING - Mandatory: the player name to target.
+    - quantityType: STRING - Mandatory: the way quantity value is interpreted to calculate the number of items to drop per drop event, either `constant`, `startingPercentage` or `realtimePercentage`. Constant uses quantityValue as a static number of items. StartingPercentage means a percentage of the item count at the start of the effect is dropped from the player every drop event. RealtimePercentage means that every time a drop event occurs the player's current inventory item count is used to calculate how many items to drop this event.
+    - quantityValue: NUMBER - Mandatory: the number of items to drop. When quantityType is `startingPercentage`, or `realtimePercentage` this number is used as the percentage (0-100).
+    - dropOnBelts: BOOLEAN - Optional: if the dropped items should be placed on belts or not. Defaults to False.
+    - gap: NUMBER - Mandatory: how many seconds between each drop event.
+    - occurences: NUMBER - Mandatory: how many times the drop events are done.
+    - dropEquipment: BOOLEAN - Optional: if the player's armour and weapons are dropped or not. Defaults to True.
+- Example command: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurences":5}`
+
+Notes:
+
+- Not intended to empty a player's inventory all in in 1 go. A direct Lua script could be used for that.
+- For percentage based quantity values it will drop a minimum of 1 item per cycle. So that very low values/inventory sizes don't drop nothing.
+- If the player doesn't have any items to drop for any given drop event then that occurence is marked as completed and the effect continues until all occurences have occured at their set gaps. The event does not not stop unless the player dies or all occurences have been completed.
