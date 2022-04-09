@@ -2,7 +2,7 @@ DOING NOW:
     - Player Inventory Shuffle:
         - Not tested with inventories that would fill up.
         - Not tested in MP.
-        - Remaining items from full inventories has TODO left. Think this could happen reasonably often if players have fullish inventories and fullish trash slots as the randomisation would likely overload 1 player and leave others partly empty.
+        - Not tested the full inventory logic.
 
 BUGS:
     - If another player is in train then "flooring it" doesn't force speed in some cases. Seen when other player is in loco and streamer is in a random wagon. But there may be other cases as well.

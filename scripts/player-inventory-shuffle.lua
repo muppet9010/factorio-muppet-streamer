@@ -6,7 +6,7 @@ local EventScheduler = require("utility/event-scheduler")
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 
 local ErrorMessageStart = "ERROR: muppet_streamer_player_inventory_shuffle command "
-local ItemDestinationPlayerCountRange = 0.25
+local debugStatusMessages = true
 
 PlayerInventoryShuffle.CreateGlobals = function()
     global.playerInventoryShuffle = global.playerInventoryShuffle or {}
@@ -68,11 +68,64 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         end
     end
 
+    local destinationPlayersMinimumVarianceString = commandData.destinationPlayersMinimumVariance
+    local destinationPlayersMinimumVariance  ---@type uint
+    if destinationPlayersMinimumVarianceString == nil then
+        destinationPlayersMinimumVariance = 1
+    else
+        destinationPlayersMinimumVariance = Utils.ToNumber(destinationPlayersMinimumVarianceString)
+        if destinationPlayersMinimumVariance == nil then
+            Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersMinimumVariance is supplied it must be a number.")
+            return
+        end
+        destinationPlayersMinimumVariance = math_floor(destinationPlayersMinimumVariance)
+        if destinationPlayersMinimumVariance < 0 then
+            Logging.LogPrint(ErrorMessageStart .. "destinationPlayersMinimumVariance must be a number >= 0.")
+            return
+        end
+    end
+
+    local destinationPlayersVarianceFactorString = commandData.destinationPlayersVarianceFactor
+    local destinationPlayersVarianceFactor  ---@type uint
+    if destinationPlayersVarianceFactorString == nil then
+        destinationPlayersVarianceFactor = 0.25
+    else
+        destinationPlayersVarianceFactor = Utils.ToNumber(destinationPlayersVarianceFactorString)
+        if destinationPlayersVarianceFactor == nil then
+            Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersVarianceFactor is supplied it must be a number.")
+            return
+        end
+        if destinationPlayersVarianceFactor < 0 then
+            Logging.LogPrint(ErrorMessageStart .. "destinationPlayersVarianceFactor must be a number >= 0.")
+            return
+        end
+    end
+
+    local recipientItemMinToMaxRatioString = commandData.recipientItemMinToMaxRatio
+    local recipientItemMinToMaxRatio  ---@type uint
+    if recipientItemMinToMaxRatioString == nil then
+        recipientItemMinToMaxRatio = 4
+    else
+        recipientItemMinToMaxRatio = Utils.ToNumber(recipientItemMinToMaxRatioString)
+        if recipientItemMinToMaxRatio == nil then
+            Logging.LogPrint(ErrorMessageStart .. "if recipientItemMinToMaxRatio is supplied it must be a number.")
+            return
+        end
+        recipientItemMinToMaxRatio = math_floor(recipientItemMinToMaxRatio)
+        if recipientItemMinToMaxRatio < 1 then
+            Logging.LogPrint(ErrorMessageStart .. "recipientItemMinToMaxRatio must be a number >= 1.")
+            return
+        end
+    end
+
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
     ---@class PlayerInventoryShuffle_RequestData
     local data = {
         playerNames = playerNames,
-        includeEquipment = includeEquipment
+        includeEquipment = includeEquipment,
+        destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
+        destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
+        recipientItemMinToMaxRatio = recipientItemMinToMaxRatio
     }
     EventScheduler.ScheduleEvent(command.tick + delay, "PlayerInventoryShuffle.MixupPlayerInventories", global.playerInventoryShuffle.nextId, data)
 end
@@ -83,13 +136,17 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     -- Get the active players to shuffle.
     local players  ---@type LuaPlayer[]
     if data.playerNames == nil then
-        players = game.connected_players
+        for _, player in pairs(game.connected_players) do
+            if player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
+                table.insert(players, player)
+            end
+        end
     else
         players = {}
         local player  ---@type LuaPlayer
         for _, playerName in pairs(data.playerNames) do
             player = game.get_player(playerName)
-            if player ~= nil and player.connected and player.controller_type == defines.controllers.character and player.character ~= nil then
+            if player ~= nil and player.connected and player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
                 table.insert(players, player)
             end
         end
@@ -99,12 +156,10 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     players = {game.players[1], game.players[1], game.players[1]}
 
     local playersCount = #players
-    --TODO: removed for testing
-    --[[if playersCount <= 1 then
+    if playersCount <= 1 then
         game.print({"message.muppet_streamer_player_inventory_shuffle_not_enough_players"})
         return
-    end]]
-    --
+    end
 
     -- Track the number of player sources for each item type when moving the items in to the shared inventory.
     local storageInventory = game.create_inventory(65535)
@@ -119,8 +174,8 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     local playerInventoryStack, playersInventory, stackItemName
     -- Loop over each player.
     for _, player in pairs(players) do
-        -- Release the players cursor first so any item in it is returned to their inventory.
-        player.cursor_stack.clear()
+        -- Return the players cursor stack to their inventory before handling.
+        player.clear_cursor()
 
         -- Move each inventory for this player.
         for _, inventoryName in pairs(inventoryNamesToCheck) do
@@ -157,15 +212,15 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     for itemName, itemCount in pairs(itemsToDistribute) do
         sourcesCount = itemSources[stackItemName]
 
-        -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random between +/- of the ItemDestinationPlayerCountRange.
-        destinationCountMin = math_min(-1, -math_floor((sourcesCount * ItemDestinationPlayerCountRange)))
-        destinationCountMax = math_max(1, math_ceil((sourcesCount * ItemDestinationPlayerCountRange)))
+        -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random +/- of the greatest between the ItemDestinationPlayerCountRange and destinationPlayersMinimumVariance.
+        destinationCountMin = math_min(-data.destinationPlayersMinimumVariance, -math_floor((sourcesCount * data.destinationPlayersVarianceFactor)))
+        destinationCountMax = math_max(data.destinationPlayersMinimumVariance, math_ceil((sourcesCount * data.destinationPlayersVarianceFactor)))
         destinationCount = math_min(math_max(sourcesCount + math_random(destinationCountMin, destinationCountMax), 1), playersCount)
 
         -- Work out the raw percentage of items each destination will get.
         totalAssignedPercentage, destinationPercentages = 0, {}
         for i = 1, destinationCount do
-            destinationPercentage = math_random()
+            destinationPercentage = math_random(1, data.recipientItemMinToMaxRatio)
             destinationPercentages[i] = destinationPercentage
             totalAssignedPercentage = totalAssignedPercentage + destinationPercentage
         end
@@ -199,79 +254,75 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     end
 
     -- Distribute the items to the actual players.
-    ---@typelist LuaPlayer, LuaItemStack, uint, boolean, ItemStackDefinition, uint
-    local player, itemStackToTakeFrom, itemsInserted, playersInventoryIsFull, itemToInsert, itemCountToTakeFromThisStack
-    local playerIndexsWithFreeInventorySpace = Utils.DeepCopy(players)
+    local playerIndexsWithFreeInventorySpace = Utils.DeepCopy(players) ---@type table<uint, LuaPlayer>|LuaPlayer[] -- Starts as a table as we remove keys without re-ordering. Later on it is rebuilt as an array and then managed as such (remove() not =nil).
     for i, playerItemCounts in pairs(playersItemCounts) do
-        player = players[i]
-        playersInventoryIsFull = false
+        local player = players[i]
         for itemName, itemCount in pairs(playerItemCounts) do
-            -- Keep on taking items fromn the storage inventories stacks until we have moved the required number of items or filled up the players inventory.
-            while itemCount > 0 do
-                itemStackToTakeFrom = storageInventory.find_item_stack(itemName)
-                itemStackToTakeFrom_count = itemStackToTakeFrom.count
-
-                if itemStackToTakeFrom_count == 1 then
-                    -- Single item in the stack so just transfer it and all done. This handles any extra attributes the stack may have naturally.
-                    itemsInserted = player.insert(itemStackToTakeFrom)
-                    if itemsInserted ~= 1 then
-                        playersInventoryIsFull = true
-                        break
-                    end
-                else
-                    -- Multiple items in the stack so can just move the required numberand update the count. Have to check if we include the last item in the stack as then some extra attributes need to be handled.
-                    itemCountToTakeFromThisStack = math.min(itemCount, itemStackToTakeFrom_count)
-                    itemToInsert = {name = itemName, count = itemCountToTakeFromThisStack, health = itemStackToTakeFrom.health}
-                    if itemStackToTakeFrom.is_item_with_tags then
-                        itemToInsert.tags = itemStackToTakeFrom.tags
-                    end
-                    if itemCountToTakeFromThisStack == itemStackToTakeFrom_count then
-                        -- We are taking the last item in the stack.
-                        if itemStackToTakeFrom.type == "ammo" then
-                            itemToInsert.ammo = itemStackToTakeFrom.ammo
-                        end
-                        itemToInsert.durability = itemStackToTakeFrom.durability
-                    end
-
-                    itemsInserted = player.insert(itemToInsert)
-                    if itemsInserted ~= itemCountToTakeFromThisStack then
-                        playersInventoryIsFull = true
-                        break
-                    end
-                end
-
-                itemStackToTakeFrom.count = itemStackToTakeFrom_count - itemsInserted
-                itemCount = itemCount - itemsInserted
-            end
-
+            local playersInventoryIsFull = PlayerInventoryShuffle.InsertItemsInToPlayer(storageInventory, itemName, itemCount, player)
             if playersInventoryIsFull then
-                -- Players inventory is full so stop trying to add more things to do. Will catch the left over items in the storage inventory later.
-                playerIndexsWithFreeInventorySpace[i] = nil
+                -- Player's inventory is full so stop trying to add more things to do. Will catch the left over items in the storage inventory later.
+                playerIndexsWithFreeInventorySpace[i] = nil -- This will make it a gappy array, but we will squash it down later.
+                Logging.LogPrint("Player list index " .. i .. "'s inventory is full", debugStatusMessages)
                 break
             end
         end
     end
 
-    -- Check the storage inventory is empty, distribute anything left and then remove it.
+    -- Check the storage inventory is empty, distribute anything left or just dump it on the ground.
     local itemsLeftInStorage = storageInventory.get_contents()
     if next(itemsLeftInStorage) ~= nil then
-        -- Stuff left in storage, this shouldn't happen, but check, warn and handle if it does.
-        Logging.LogPrint(ErrorMessageStart .. "stuff left to be distributed, dumped at player " .. players[1].name .. "'s feet.")
-        storageInventory.sort_and_merge()
-        local storageItemStack  ---@type LuaItemStack
-        local position, surface = players[1].position, players[1].surface
-        -- Just drop it all on the floor at player 1's feet. No need to remove it from the inventory as we will destroy it next.
-        -- TODO: shove it in some players inventories that aren't full first, then drop it on the ground. playerIndexsWithFreeInventorySpace
-        for i = 1, #storageInventory do
-            storageItemStack = storageInventory[i]
-            if storageItemStack.valid_for_read then
-                surface.spill_item_stack(position, storageItemStack, false, nil, false)
-            else
-                -- As we sorted and merged all the items are at the start and all the free space at the end. So no need to check each free slot.
+        -- playerIndexsWithFreeInventorySpace is a gappy array so have to make it consistent to allow easier usage in this phase.
+        local gappyPlayerIndexsWithFreeInventorySpace = playerIndexsWithFreeInventorySpace
+        playerIndexsWithFreeInventorySpace = {}
+        for _, player in pairs(gappyPlayerIndexsWithFreeInventorySpace) do
+            table.insert(playerIndexsWithFreeInventorySpace, player)
+        end
+
+        -- Try and shove the items in players inventories that aren't full first
+        local playersInventoryIsFull
+        for itemName, itemCount in pairs(itemsLeftInStorage) do
+            -- Keep on trying to insert these items across all available players until its all inserted or no players have any room left.
+            while itemCount > 0 do
+                if #playerIndexsWithFreeInventorySpace == 0 then
+                    -- No more players with free inventory space so stop this item.
+                    break
+                end
+                local playerListIndex = math_random(1, #playerIndexsWithFreeInventorySpace)
+                local player = playerIndexsWithFreeInventorySpace[playerListIndex]
+                playersInventoryIsFull, itemCount = PlayerInventoryShuffle.InsertItemsInToPlayer(storageInventory, itemName, itemCount, player)
+                if playersInventoryIsFull then
+                    -- Player's inventory is full so prevent trying to add anything else to this player in the future.
+                    table.remove(playerIndexsWithFreeInventorySpace, playerListIndex)
+                end
+            end
+
+            if #playerIndexsWithFreeInventorySpace == 0 then
+                -- No more players with free inventory space so stop all items.
                 break
             end
         end
+
+        -- Check if anything is still left, if it is just dump it on the ground so its not lost.
+        itemsLeftInStorage = storageInventory.get_contents()
+        if next(itemsLeftInStorage) ~= nil then
+            -- Just drop it all on the floor at player 1's feet. No need to remove it from the inventory as we will destroy it next.
+            Logging.LogPrint(ErrorMessageStart .. "stuff left to be distributed, dumped at player " .. players[1].name .. "'s feet.")
+            storageInventory.sort_and_merge()
+            local storageItemStack  ---@type LuaItemStack
+            local position, surface = players[1].position, players[1].surface
+            for i = 1, #storageInventory do
+                storageItemStack = storageInventory[i]
+                if storageItemStack.valid_for_read then
+                    surface.spill_item_stack(position, storageItemStack, false, nil, false)
+                else
+                    -- As we sorted and merged all the items are at the start and all the free space at the end. So no need to check each free slot.
+                    break
+                end
+            end
+        end
     end
+
+    -- Remove the now empty storage inventory
     storageInventory.destroy()
 
     -- Announce that the shuffle has been done and to which active players.
@@ -288,6 +339,59 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
         playerNamePrettyList = string.sub(playerNamePrettyList, 3)
     end
     game.print({"message.muppet_streamer_player_inventory_shuffle_start", playerNamePrettyList})
+end
+
+--- Try and insert the item count in to the player from the storage inventory.
+---@param storageInventory LuaInventory
+---@param itemName string
+---@param itemCount uint
+---@param player LuaPlayer
+---@return boolean playersInventoryIsFull
+---@return uint itemCountNotInserted
+PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemName, itemCount, player)
+    ---@typelist LuaItemStack, uint, boolean, ItemStackDefinition, uint
+    local itemStackToTakeFrom, itemsInserted, itemToInsert, itemCountToTakeFromThisStack
+    local playersInventoryIsFull = false
+
+    -- Keep on taking items from the storage inventories stacks until we have moved the required number of items or filled up the player's inventory.
+    while itemCount > 0 do
+        itemStackToTakeFrom = storageInventory.find_item_stack(itemName)
+        itemStackToTakeFrom_count = itemStackToTakeFrom.count
+        itemCountToTakeFromThisStack = math_min(itemCount, itemStackToTakeFrom_count)
+
+        if itemCountToTakeFromThisStack == itemStackToTakeFrom_count then
+            -- We want the whole stack so just transfer it and all done. This handles any extra attributes the stack may have naturally.
+            itemsInserted = player.insert(itemStackToTakeFrom)
+            if itemsInserted ~= itemCountToTakeFromThisStack then
+                playersInventoryIsFull = true
+            end
+        else
+            -- We want some of the items from the stack, so add the required number with attributes to the player.
+            itemToInsert = {name = itemName, count = itemCountToTakeFromThisStack, health = itemStackToTakeFrom.health, durability = itemStackToTakeFrom.durability}
+            if itemStackToTakeFrom.type == "ammo" then
+                itemToInsert.ammo = itemStackToTakeFrom.ammo
+            end
+            if itemStackToTakeFrom.is_item_with_tags then
+                itemToInsert.tags = itemStackToTakeFrom.tags
+            end
+            itemsInserted = player.insert(itemToInsert)
+            if itemsInserted ~= itemCountToTakeFromThisStack then
+                playersInventoryIsFull = true
+            end
+        end
+
+        -- Update the old storage stack count for how many we removed.
+        itemStackToTakeFrom.count = itemStackToTakeFrom_count - itemsInserted
+
+        -- Update the count remaining to be moved based on how many were actually moved.
+        itemCount = itemCount - itemsInserted
+
+        if playersInventoryIsFull then
+            break
+        end
+    end
+
+    return playersInventoryIsFull, itemCount
 end
 
 return PlayerInventoryShuffle

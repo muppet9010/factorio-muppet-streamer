@@ -267,8 +267,8 @@ Schedules the targeted player to drop their inventory on the ground over time.
     - gap: NUMBER - Mandatory: how many seconds between each drop event.
     - occurences: NUMBER - Mandatory: how many times the drop events are done.
     - dropEquipment: BOOLEAN - Optional: if the player's armour and weapons are dropped or not. Defaults to True.
-- Example command for 50% of starting inventory items: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurences":5}`
-- Example command for 5 items each event and drop on belts: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"constant", "quantityValue":5, "gap":2, "occurences":10, "dropOnBelts":true}`
+- Example command for 50% of starting inventory items over 5 drops: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurences":5}`
+- Example command for 10 drops of 5 items, including on belts: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"constant", "quantityValue":5, "gap":2, "occurences":10, "dropOnBelts":true}`
 
 Notes:
 
@@ -281,17 +281,25 @@ Notes:
 Player Inventory Shuffle
 ------------------------
 
-Takes the inventories from the target players, shuffles them and then distributes the items back between those players. Will keep the different types of items in roughly the same number of players inventories as they started and will spread the quantities in a random distribution between them (not even).
+Takes all the inventory item from the target players, shuffles them and then distributes the items back between those players. Will keep the different types of items in roughly the same number of players inventories as they started, and will spread the quantities in a random distribution between them (not evenly).
 
 - Command syntax: `/muppet_streamer_player_inventory_shuffle [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: NUMBER - Optional: how many seconds before the effects start. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - targets: STRING - Mandatory: a comma seperated list of the player names to target (assuming they are online at the time), or `[ALL]` to target all online players on the server.
     - includeEquipment: BOOLEAN - Optional: if the player's armour and weapons are included for shuffling or not. Defaults to True.
+    - destinationPlayersMinimumVariance: NUMBER - Optional: The minimum number of destination player's inventories that the items should end up in above/below the number of source player inventories. Defaults to 1. See notes for logic on item distribution.
+    - destinationPlayersVarianceFactor: NUMBER - Optional: The factor applied to each item type's number of source players when calculating the range of the random destination player count. Defaults to 0.25. See notes for logic on item distribution.
+    - recipientItemMinToMaxRatio: NUMBER - Optional: The approximate min/max range of the number of items a destination player will recieve compared to others. Defaults to 4. See notes for logic on item distribution.
 - Example command for 3 players: `/muppet_streamer_player_inventory_shuffle {"targets":"muppet9010,bob54,dave_76"}`
 - Example command for all active players: `/muppet_streamer_player_inventory_shuffle {"targets":"[ALL]"}`
-
 
 Notes:
 
 - The targets accept a comma seperated list of player names in a single string, i.e. `"Player1,Player2, Player3  "`. Any leading or trailing spaces from player names will be removed. The player names case must match the Facotrio username exactly.
+- The distribution logic is a bit convoluted, but works as per:
+    - All targets online have all thier inventories taken. Each item type has the number of source players recorded.
+    - A random number of new players to recieve each item type is worked out. This is based on the number of source players for that item type, with a +/- random value based on the greatest between the destinationPlayersMinimumVariance setting and the destinationPlayersVarianceFactor setting. This allows a minimum variation to be enforced even when very small player targets are online. The final value of new players for the items to be split across will never be less than 1 or greater than all of the online target players.
+    - The number of each item each selected player will recieve is a random perportion of the total. This is controlled by the recipientItemMinToMaxRatio setting. This setting defines the minimum to maximum ratio between 2 players, i.e. setting of 4 means a player recieveing the maximum number can recieve up to 4 times as many as a player recieveing the minimum. This setting's implimentation isn't quite exact and should be viewed as a rought guide.
+    - Any items that can't be fitted in to the intended destination player will be given to another online targetted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targetted player then they will be dropped on the floor at a targetted players feet. This situation can occur as items are taken from player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
+- Players are given items using Factorios default item assignment logic. This will mean that equipment will be loaded based on the random order it is recieved and any auto trashing, etc will happen based on Factorio's default behaviour.
