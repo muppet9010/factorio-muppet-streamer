@@ -267,7 +267,8 @@ Schedules the targeted player to drop their inventory on the ground over time.
     - gap: NUMBER - Mandatory: how many seconds between each drop event.
     - occurences: NUMBER - Mandatory: how many times the drop events are done.
     - dropEquipment: BOOLEAN - Optional: if the player's armour and weapons are dropped or not. Defaults to True.
-- Example command: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurences":5}`
+- Example command for 50% of starting inventory items: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurences":5}`
+- Example command for 5 items each event and drop on belts: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"constant", "quantityValue":5, "gap":2, "occurences":10, "dropOnBelts":true}`
 
 Notes:
 

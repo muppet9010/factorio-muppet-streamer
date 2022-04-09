@@ -241,15 +241,13 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             end
             local itemStackToDropFrom_count = itemStackToDropFrom.count
             if itemStackToDropFrom_count == 1 then
-                -- Single item stack so drop it and all done.
+                -- Single item in the stack so drop it and all done. This handles any extra attributes the stack may have naturally.
                 surface.spill_item_stack(position, itemStackToDropFrom, false, nil, data.dropOnBelts)
                 itemStackToDropFrom.count = 0
             else
                 -- Multiple items in the stack so can just drop 1 copy of the stack details and remove 1 from count.
-                local itemToDrop = {name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability}
-                if itemStackToDropFrom.type == "ammo" then
-                    itemToDrop.ammo = itemStackToDropFrom.ammo
-                end
+                -- CODE NOTE: as this is never the last item in the stack and we only ever drop 1 item at a time the ammo and durability attrbute can be ignored in this leg. The other spill will handle it as it does the whole stack item. Health must be handled here as the stacks health is the averaged health of all items in the stack.
+                local itemToDrop = {name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health}
                 if itemStackToDropFrom.is_item_with_tags then
                     itemToDrop.tags = itemStackToDropFrom.tags
                 end
