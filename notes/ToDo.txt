@@ -6,7 +6,7 @@ BUGS:
 	- Leaky Flamethrower doesn't move filtered weapons out of the way. https://mods.factorio.com/mod/muppet_streamer/discussion/6039c2cd2ea185676222f064
 	- If Leaky Flamethrower clears a filter or moves a weapon/ammo, have it put the filter and weapon + ammo back afterwards if available.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room. Should never be "lost".
-    - Many of the NUMBER arguments will accept a double, but this will fail/error whne trying to be used. They should really for a type Integer and the readme should list this. Brief note added to readme in mean time. New Utility library version has functions to validate types of numbers.
+    - Many of the NUMBER arguments will accept a double, but this will fail/error when trying to be used. They should really for a type Integer and the readme should list this. Brief note added to readme in mean time. New Utility library version has functions to validate types of numbers.
 
 
 Future:

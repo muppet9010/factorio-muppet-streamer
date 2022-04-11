@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.19
+Date: 2022-04-11
+  Features:
+    - Add Player Drop Inventory feature.
+    - Add Player Inventory Shuffle feature.
+  Changes:
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.18
 Date: 2022-04-01
   Features:
