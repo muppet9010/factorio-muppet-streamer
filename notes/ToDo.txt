@@ -1,8 +1,6 @@
 DOING NOW:
-    - Player Inventory Shuffle:
-        - Not tested with inventories that would fill up.
-        - Not tested in MP.
-        - Not tested the full inventory logic.
+    - Redo MP testing and test palyer inventory drop once more.
+
 
 BUGS:
     - If another player is in train then "flooring it" doesn't force speed in some cases. Seen when other player is in loco and streamer is in a random wagon. But there may be other cases as well.

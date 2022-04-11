@@ -89,9 +89,9 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
     gap = math.max(gap * 60, 0)
 
-    local occurences = tonumber(commandData.occurences)
-    if occurences == nil then
-        Logging.LogPrint(ErrorMessageStart .. "occurences is mandatory as a number")
+    local occurrences = tonumber(commandData.occurrences)
+    if occurrences == nil then
+        Logging.LogPrint(ErrorMessageStart .. "occurrences is mandatory as a number")
         return
     end
 
@@ -115,7 +115,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         quantityValue = quantityValue,
         dropOnBelts = dropOnBelts,
         gap = gap,
-        occurences = occurences,
+        occurrences = occurrences,
         dropEquipment = dropEquipment
     }
     EventScheduler.ScheduleEvent(command.tick + delay, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, data)
@@ -158,12 +158,12 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     local data = {
         player = targetPlayer,
         gap = data.gap,
-        totalOccurences = data.occurences,
+        totaloccurrences = data.occurrences,
         dropOnBelts = data.dropOnBelts,
         dropEquipment = data.dropEquipment,
         staticItemCount = staticItemCount,
         dynamicPercentageItemCount = dynamicPercentageItemCount,
-        currentOccurences = 0
+        currentoccurrences = 0
     }
     PlayerDropInventory.PlayerDropItems_Scheduled({tick = event.tick, instanceId = targetPlayer.index, data = data})
 end
@@ -269,8 +269,8 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     end
 
     -- Schedule the next occurence if we haven't completed them all yet.
-    data.currentOccurences = data.currentOccurences + 1
-    if data.currentOccurences < data.totalOccurences then
+    data.currentoccurrences = data.currentoccurrences + 1
+    if data.currentoccurrences < data.totaloccurrences then
         EventScheduler.ScheduleEvent(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)

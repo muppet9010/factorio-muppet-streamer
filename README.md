@@ -1,6 +1,6 @@
 # factorio-muppet-streamer
 
-Adds actions that a streamer can let chat activate to make their games more dynamic and interactive. These features are more complicated than can be achived via simple RCON commands.
+Adds actions that a streamer can let chat activate to make their games more dynamic and interactive. These features are more complicated than can be achieved via simple RCON commands.
 
 
 
@@ -11,14 +11,14 @@ Features
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
 - Can schedule the delivery of some explosives to a player at speed via command.
 - A leaky flamethrower that shoots for short bursts intermittently via command.
-- Give a player a weapon and ammo, plus options to force it as active weapon via command.
+- Give a player a weapon and ammo, plus options to force it as an active weapon via command.
 - Spawn entities around the player with various placement options via command.
 - Make the player an aggressive driver via command.
 - Call other players to help by teleporting them in via command.
 - Teleport the player to a range of possible target types via command.
 - Sets the ground on fire behind a player via command.
 - Drop a player's inventory on the ground over time via command.
-- Mix up players inventories between them via command.
+- Mix up players' inventories between them via command.
 
 
 
@@ -27,9 +27,9 @@ General Usage Notes
 
 At present a time duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
 
-Argument that are listed as type NUMBER really expect a whole number (integer).
+Arguments that are listed as type NUMBER really expect a whole number (integer).
 
-When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible whne new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
+When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
 
 
 
@@ -56,11 +56,11 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 
 - Command syntax: `/muppet_streamer_schedule_explosive_delivery [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds the creation of the explosives will be delayed for. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay. This doesn't include the in-flight time.
+    - delay: NUMBER - Optional: how many seconds the creation of the explosives will be delayed for. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay. This doesn't include the in-flight time.
     - explosiveCount: NUMBER - Mandatory: the quantity of explosives to be delivered, if 0 then the command is ignored.
     - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "slowdownCapsule", "poisonCapsule", "artilleryShell", "explosiveRocket", "atomicRocket", "smallSpit", "mediumSpit", "largeSpit"
     - target: STRING - Mandatory: a player name to target.
-    - targetPosition: STRING - Optional: a position as a table to target instead of the players position. Will come on to the target players map (surface).
+    - targetPosition: STRING - Optional: a position as a table to target instead of the player's position. Will come on to the target players map (surface).
     - accuracyRadiusMin: NUMBER - Optional: the minimum distance from the target that can be randomly selected within. If not specified defaults to 0.
     - accuracyRadiusMax: NUMBER - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
     - salvoSize: NUMBER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
@@ -71,7 +71,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 
 Notes:
 
-- Explosives will fly in from offscreen to random location around the target player. They may take a few seconds to complete their delivery.
+- Explosives will fly in from offscreen to random locations around the target player. They may take a few seconds to complete their delivery.
 - Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
 - Weapons are on the "enemy" team and so don't get affected by your research.
 - targetPosition expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
@@ -85,7 +85,7 @@ Gives the targeted player a flamethrower that shoots in random directions for sh
 
 - Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds the flamethrower and effects are delayed for before starting. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - delay: NUMBER - Optional: how many seconds the flamethrower and effects are delayed for before starting. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - ammoCount: NUMBER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired, if 0 then the command is ignored.
     - target: STRING - Mandatory: the player name to target.
 - Example command: `/muppet_streamer_leaky_flamethrower {"ammoCount":5, "target":"muppet9010"}`
@@ -94,9 +94,9 @@ Notes:
 
 - This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one.
-- While activated the player will loose control over their weapons targeting and firing behaviour.
-- While activated the player can not change active gun via the switch to next weapon key.
-- The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to do. However, this is such an active countering of the mods behaviour.
+- While activated the player will lose control over their weapons targeting and firing behaviour.
+- While activated the player can not change the active gun via the switch to next weapon key.
+- The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to do. However, this is such an active countering of the mod's behaviour.
 - The flamethrower is yours and so any of your damage upgrades will affect it.
 
 
@@ -108,11 +108,11 @@ Ensures the target player has a specific weapon and can give ammo and force thei
 
 - Command syntax: `/muppet_streamer_give_player_weapon_ammo [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds before the items are given. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - delay: NUMBER - Optional: how many seconds before the items are given. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - weaponType: STRING - Optional: the name of a weapon to ensure the player has 1 of. Can be either in their weapon inventory or in their character inventory. If not provided no weapon is given or selected.
     - forceWeaponToSlot: BOOLEAN - Optional: if true the weaponType will be placed/moved to the players weapon inventory. If there's no room a current weapon will be placed in the character inventory to make room. If not provided then the weapon will be placed in a free slot, otherwise the character inventory.
-    - selectWeapon: BOOLEAN - Optional: if true the player will have this weaponType selected as active if its equipped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
+    - selectWeapon: BOOLEAN - Optional: if true the player will have this weaponType selected as active if it's equipped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
     - ammoType: STRING - Optional: the name of the ammo type to be given to the player.
     - ammoCount: NUMBER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
 - Example command: `/muppet_streamer_give_player_weapon_ammo {"target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
@@ -130,16 +130,16 @@ Spawns entities in the game around the named player on their side. Includes both
 
 - Command syntax: `/muppet_streamer_spawn_around_player [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds before the spawning occurs. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - delay: NUMBER - Optional: how many seconds before the spawning occurs. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to center upon.
-    - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player` or `enemy`), or leave blank for the force of the targeted player. Certain entity types are hardcoded like trees, rocks and fire to be neutral.
+    - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player` or `enemy`), or left blank for the force of the targeted player. Certain entity types are hardcoded like trees, rocks and fire to be neutral.
 	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, wall, fire, defenderBot, distractorBot, destroyerBot.
 	- radiusMax: NUMBER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: NUMBER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then 0 is used.
     - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
-	- quantity: NUMBER - Optional: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a near by valid spot. Intended for small quantities.
+	- quantity: NUMBER - Optional: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities.
 	- density: FLOAT - Optional: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities.
-    - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets its the ammo count and ammo over the turrets max storage is ignored. For fire it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
+    - ammoCount: NUMBER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets it's the ammo count and ammo over the turrets max storage is ignored. For fire it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
     - followPlayer: BOOLEAN - Optional: if true the entities that can move will follow the player. If false they will be unmanaged. Some entities like defender combat bots have a maximum follow number, the remainder will not follow the player.
 - Example command tree ring: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
 - Example command gun turrets: `/muppet_streamer_spawn_around_player {"delay":1, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount":10}`
@@ -159,11 +159,11 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 
 - Command syntax: `/muppet_streamer_aggressive_driver [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - delay: NUMBER - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - duration: NUMBER - Mandatory: how many seconds the effect lasts on the player.
     - control: STRING - Optional: if the player has control over steering, either: `full` or `random`. Full allows control over left/right steering, random switches between left, right, straight for short periods. If not specified then full is applied.
-    - teleportDistance: Number - Optional: the max distance of tiles that the player will be teleported in to the nearest suitable drivable vehicle. If not supplied is treated as 0 distance and so player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
+    - teleportDistance: Number - Optional: the max distance of tiles that the player will be teleported into the nearest suitable drivable vehicle. If not supplied it is treated as 0 distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
 - Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"10", "control": "full", "teleportDistance": 100}`
 
 Notes:
@@ -181,25 +181,25 @@ Teleports other players on the server to near your position.
 
 - Command syntax: `/muppet_streamer_call_for_help [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - delay: NUMBER - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - arrivalRadius - NUMBER - Mandatory: players teleported to the target player will be placed within this max distance.
-    - callRadius - NUMBER - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a palyer at any distance can be teleported to the target player. If `sameSurfaceOnly` argument is set to `false` then the `callRadius` argument is ignored entirely.
+    - callRadius - NUMBER - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a player at any distance can be teleported to the target player. If `sameSurfaceOnly` argument is set to `false` then the `callRadius` argument is ignored entirely.
     - sameSurfaceOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same surface as the target player or not. If `false` then the `callRadius` argument is ignored as it can't logically be applied. Defaults to `true`.
-    - blacklistedPlayerNames - STRING - Optional: comma seperated list of player names who will never be teleported to the target player. These are removed from the available players lists and counts.
-    - whitelistedPlayerNames - STRING - Optional: comma seperated list of player names who will only be the ones teleported to the target player if provided. If provided these whitelisted players who are online constitute the entire available player list. If not provided then all online players not blacklisted are valid players to select from.
+    - blacklistedPlayerNames - STRING - Optional: comma separated list of player names who will never be teleported to the target player. These are removed from the available players lists and counts.
+    - whitelistedPlayerNames - STRING - Optional: comma separated list of player names who will only be the ones teleported to the target player if provided. If provided these whitelisted players who are online constitute the entire available player list. If not provided then all online players not blacklisted are valid players to select from.
     - callSelection - STRING - Mandatory: the logic to select which available players in the callRadius are teleported, either: `random`, `nearest`.
     - number - NUMBER - Mandatory Special: how many players to call. Either `number` or `activePercentage` must be supplied.
-    - activePercentage - NUMBER - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting number of available players. Either `number` or `activePercentage` must be supplied.
+    - activePercentage - NUMBER - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting the number of available players. Either `number` or `activePercentage` must be supplied.
 - Example command : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":10, "callSelection": "random", "number": 3, "activePercentage": 50}`
 
 Notes:
 
 - The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
-- CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be lowest priority.
+- CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be the lowest priority.
 - A player teleported comes with their vehicle if they have one (excludes trains).
-- The whitelistedPlayerNames and blacklistedPlayerNames both accept a comma seperated list of player names in a single string, i.e. `"Player1,Player2, Player3  "`. Any leading or trailing spaces from player names will be removed. The player names case must match the Facotrio username exactly.
+- The whitelistedPlayerNames and blacklistedPlayerNames both accept a comma separated list of player names in a single string, i.e. `"Player1,player2, Player3  "`. Any leading or trailing spaces from player names will be removed. The player names case must match the Facotrio username exactly.
 
 
 
@@ -210,11 +210,11 @@ Teleports the player to the nearest type of thing.
 
 - Command syntax: `/muppet_streamer_teleport [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - delay: NUMBER - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - destinationType: STRING - Mandatory: the type of teleport to do, either `random`, `biterNest`, `enemyUnit`, `spawn` or a specific position as a table. For biterNest and enemyUnit it will be the nearest one found within range.
     - arrivalRadius - NUMBER - Optional: the max distance the player will be teleported to from the targeted destinationType. Defaults to 10.
-    - minDistance: NUMBER - Optional: the minimum distance to teleport. If not provided then value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `enemyUnit`.
+    - minDistance: NUMBER - Optional: the minimum distance to teleport. If not provided then the value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `enemyUnit`.
     - maxDistance: NUMBER - Mandatory: the maximum distance to teleport. Is ignored for destinationType of `spawn` or specific position.
     - reachableOnly: BOOLEAN - Optional: if the place you are teleported must be walkable back to where you were. Defaults to false. Only applicable for destinationType of `random` and `biterNest`.
     - backupTeleportSettings: Teleport details in JSON string - Optional: a backup complete teleport action that will be done if the main destinationType is unsuccessful. Is a complete copy of the main muppet_streamer_teleport settings as a JSON object.
@@ -227,9 +227,9 @@ Notes:
 
 - destinationType of position expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
 - destinationType of enemyUnit does a search for the nearest enemy unit within the maxDistance. If this is a very large area (3000+) this may be slow.
-- All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a differnet target 5 times before giving up for the `random` and `biterNest` destinationType.
+- All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a different target 5 times before giving up for the `random` and `biterNest` destinationType.
 - The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
-- The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
+- The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be a biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
 - A player teleported comes with their vehicle if they have one (excludes trains).
 
 
@@ -241,13 +241,13 @@ Sets the ground on fire behind a player forcing them to run.
 
 - Command syntax: `/muppet_streamer_pants_on_fire [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds before the effect starts. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - delay: NUMBER - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - duration: NUMBER - Mandatory: how many seconds the effect lasts on the player.
     - fireGap: NUMBER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
-    - fireHeadStart: NUMBER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continous running.
+    - fireHeadStart: NUMBER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continuous running.
     - flameCount: NUMBER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire.
-- Example command continous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
+- Example command continuous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
 - Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireGap": 30, "fireHeadStart": 6}`
 
 
@@ -259,47 +259,47 @@ Schedules the targeted player to drop their inventory on the ground over time.
 
 - Command syntax: `/muppet_streamer_player_drop_inventory [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds before the effects start. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - delay: NUMBER - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - quantityType: STRING - Mandatory: the way quantity value is interpreted to calculate the number of items to drop per drop event, either `constant`, `startingPercentage` or `realtimePercentage`. Constant uses quantityValue as a static number of items. StartingPercentage means a percentage of the item count at the start of the effect is dropped from the player every drop event. RealtimePercentage means that every time a drop event occurs the player's current inventory item count is used to calculate how many items to drop this event.
     - quantityValue: NUMBER - Mandatory: the number of items to drop. When quantityType is `startingPercentage`, or `realtimePercentage` this number is used as the percentage (0-100).
     - dropOnBelts: BOOLEAN - Optional: if the dropped items should be placed on belts or not. Defaults to False.
     - gap: NUMBER - Mandatory: how many seconds between each drop event.
-    - occurences: NUMBER - Mandatory: how many times the drop events are done.
+    - occurrences: NUMBER - Mandatory: how many times the drop events are done.
     - dropEquipment: BOOLEAN - Optional: if the player's armour and weapons are dropped or not. Defaults to True.
-- Example command for 50% of starting inventory items over 5 drops: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurences":5}`
-- Example command for 10 drops of 5 items, including on belts: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"constant", "quantityValue":5, "gap":2, "occurences":10, "dropOnBelts":true}`
+- Example command for 50% of starting inventory items over 5 drops: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurrences":5}`
+- Example command for 10 drops of 5 items, including on belts: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"constant", "quantityValue":5, "gap":2, "occurrences":10, "dropOnBelts":true}`
 
 Notes:
 
-- Not intended to empty a player's inventory all in in 1 go. A direct Lua script could be used for that.
-- For percentage based quantity values it will drop a minimum of 1 item per cycle. So that very low values/inventory sizes don't drop nothing.
-- If the player doesn't have any items to drop for any given drop event then that occurence is marked as completed and the effect continues until all occurences have occured at their set gaps. The event does not not stop unless the player dies or all occurences have been completed.
+- Not intended to empty a player's inventory all in 1 go. A direct Lua script could be used for that.
+- For percentage based quantity values it will drop a minimum of 1 item per cycle. So that very low values/inventory sizes don't drop anything.
+- If the player doesn't have any items to drop for any given drop event then that occurence is marked as completed and the effect continues until all occurrences have occurred at their set gaps. The event does not not stop unless the player dies or all occurrences have been completed.
 
 
 
 Player Inventory Shuffle
 ------------------------
 
-Takes all the inventory item from the target players, shuffles them and then distributes the items back between those players. Will keep the different types of items in roughly the same number of players inventories as they started, and will spread the quantities in a random distribution between them (not evenly).
+Takes all the inventory items from the target players, shuffles them and then distributes the items back between those players. Will keep the different types of items in roughly the same number of players inventories as they started, and will spread the quantities in a random distribution between them (not evenly).
 
 - Command syntax: `/muppet_streamer_player_inventory_shuffle [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
-    - delay: NUMBER - Optional: how many seconds before the effects start. 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
-    - targets: STRING - Mandatory: a comma seperated list of the player names to target (assuming they are online at the time), or `[ALL]` to target all online players on the server.
+    - delay: NUMBER - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
+    - targets: STRING - Mandatory: a comma separated list of the player names to target (assuming they are online at the time), or `[ALL]` to target all online players on the server.
     - includeEquipment: BOOLEAN - Optional: if the player's armour and weapons are included for shuffling or not. Defaults to True.
     - destinationPlayersMinimumVariance: NUMBER - Optional: The minimum number of destination player's inventories that the items should end up in above/below the number of source player inventories. Defaults to 1. See notes for logic on item distribution.
     - destinationPlayersVarianceFactor: NUMBER - Optional: The factor applied to each item type's number of source players when calculating the range of the random destination player count. Defaults to 0.25. See notes for logic on item distribution.
-    - recipientItemMinToMaxRatio: NUMBER - Optional: The approximate min/max range of the number of items a destination player will recieve compared to others. Defaults to 4. See notes for logic on item distribution.
-- Example command for 3 players: `/muppet_streamer_player_inventory_shuffle {"targets":"muppet9010,bob54,dave_76"}`
+    - recipientItemMinToMaxRatio: NUMBER - Optional: The approximate min/max range of the number of items a destination player will receive compared to others. Defaults to 4. See notes for logic on item distribution.
+- Example command for 3 players: `/muppet_streamer_player_inventory_shuffle {"targets":"muppet9010,Test_1,Test_2"}`
 - Example command for all active players: `/muppet_streamer_player_inventory_shuffle {"targets":"[ALL]"}`
 
 Notes:
 
-- The targets accept a comma seperated list of player names in a single string, i.e. `"Player1,Player2, Player3  "`. Any leading or trailing spaces from player names will be removed. The player names case must match the Facotrio username exactly.
+- The targets accept a comma separated list of player names in a single string, i.e. `"Player1,player2, Player3  "`. Any leading or trailing spaces from player names will be removed. The player names case must match the Facotrio username exactly.
 - The distribution logic is a bit convoluted, but works as per:
-    - All targets online have all thier inventories taken. Each item type has the number of source players recorded.
-    - A random number of new players to recieve each item type is worked out. This is based on the number of source players for that item type, with a +/- random value based on the greatest between the destinationPlayersMinimumVariance setting and the destinationPlayersVarianceFactor setting. This allows a minimum variation to be enforced even when very small player targets are online. The final value of new players for the items to be split across will never be less than 1 or greater than all of the online target players.
-    - The number of each item each selected player will recieve is a random perportion of the total. This is controlled by the recipientItemMinToMaxRatio setting. This setting defines the minimum to maximum ratio between 2 players, i.e. setting of 4 means a player recieveing the maximum number can recieve up to 4 times as many as a player recieveing the minimum. This setting's implimentation isn't quite exact and should be viewed as a rought guide.
-    - Any items that can't be fitted in to the intended destination player will be given to another online targetted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targetted player then they will be dropped on the floor at a targetted players feet. This situation can occur as items are taken from player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
-- Players are given items using Factorios default item assignment logic. This will mean that equipment will be loaded based on the random order it is recieved and any auto trashing, etc will happen based on Factorio's default behaviour.
+    - All targets online have all their inventories taken. Each item type has the number of source players recorded.
+    - A random number of new players to receive each item type is worked out. This is based on the number of source players for that item type, with a +/- random value based on the greatest between the destinationPlayersMinimumVariance setting and the destinationPlayersVarianceFactor setting. This allows a minimum variation to be enforced even when very small player targets are online. The final value of new players for the items to be split across will never be less than 1 or greater than all of the online target players.
+    - The number of each item each selected player will receive is a random proportion of the total. This is controlled by the recipientItemMinToMaxRatio setting. This setting defines the minimum to maximum ratio between 2 players, i.e. setting of 4 means a player receiving the maximum number can receive up to 4 times as many as a player receiving the minimum. This setting's implementation isn't quite exact and should be viewed as a rough guide.
+    - Any items that can't be fitted into the intended destination player will be given to another online targeted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targeted player then they will be dropped on the floor at the targeted players’ feet. This situation can occur as items are taken from player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
+- Players are given items using Factorios default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
