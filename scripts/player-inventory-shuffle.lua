@@ -6,6 +6,8 @@ local EventScheduler = require("utility/event-scheduler")
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 
 local ErrorMessageStart = "ERROR: muppet_streamer_player_inventory_shuffle command "
+
+------------------------        DEBUG OPTIONS - MAKE SURE ARE FALE ON RELEASE       ------------------------
 local debugStatusMessages = false
 local singlePlayerTesting = false -- Set to TRUE to force the mod to work for one player with false copies of the one player.
 
@@ -135,7 +137,7 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     local data = event.data ---@type PlayerInventoryShuffle_RequestData
 
     -- Get the active players to shuffle.
-    local players  ---@type LuaPlayer[]
+    local players = {} ---@type LuaPlayer[]
     if data.playerNames == nil then
         for _, player in pairs(game.connected_players) do
             if player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
@@ -143,7 +145,6 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
             end
         end
     else
-        players = {}
         local player  ---@type LuaPlayer
         for _, playerName in pairs(data.playerNames) do
             player = game.get_player(playerName)
@@ -291,12 +292,13 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
         playersItemCounts[playerIndex] = randomItemCountsList
     end
 
-    -- Distribute any armors first to the players as these will affect players inventory sizes for the rest of the items.
+    -- Distribute any armors and guns first to the players as these will affect players inventory sizes and usage of ammo slots for the rest of the items.
     local armorItemNames = game.get_filtered_item_prototypes({{filter = "type", type = "armor"}})
+    local gunItemNames = game.get_filtered_item_prototypes({{filter = "type", type = "gun"}})
     for playerIndex, orderedPlayerItemCountList in pairs(playersItemCounts) do
         local player = players[playerIndex]
         for order, itemCounts in pairs(orderedPlayerItemCountList) do
-            if armorItemNames[itemCounts.name] ~= nil then
+            if armorItemNames[itemCounts.name] ~= nil or gunItemNames[itemCounts.name] ~= nil then
                 PlayerInventoryShuffle.InsertItemsInToPlayer(storageInventory, itemCounts.name, itemCounts.count, player)
                 orderedPlayerItemCountList[order] = nil
             end

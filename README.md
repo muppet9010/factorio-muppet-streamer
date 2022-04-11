@@ -7,8 +7,6 @@ Adds actions that a streamer can let chat activate to make their games more dyna
 Features
 -----------
 
-- Mod options to disable freeplay's introduction message, rocket win condition and set the starting map reveal area.
-- Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
 - Can schedule the delivery of some explosives to a player at speed via command.
 - A leaky flamethrower that shoots for short bursts intermittently via command.
 - Give a player a weapon and ammo, plus options to force it as an active weapon via command.
@@ -19,6 +17,8 @@ Features
 - Sets the ground on fire behind a player via command.
 - Drop a player's inventory on the ground over time via command.
 - Mix up players' inventories between them via command.
+- Mod options to disable freeplay's introduction message, rocket win condition and set the starting map reveal area.
+- Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
 
 
 

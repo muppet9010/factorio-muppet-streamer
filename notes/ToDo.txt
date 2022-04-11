@@ -1,5 +1,4 @@
 DOING NOW:
-    - Redo MP testing and test palyer inventory drop once more.
 
 
 BUGS:
