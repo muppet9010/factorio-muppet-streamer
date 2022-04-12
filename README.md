@@ -17,8 +17,8 @@ Features
 - Sets the ground on fire behind a player via command.
 - Drop a player's inventory on the ground over time via command.
 - Mix up players' inventories between them via command.
-- Mod options to disable freeplay's introduction message, rocket win condition and set the starting map reveal area.
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
+- Mod options to disable freeplay's introduction message, rocket win condition and set the starting map reveal area.
 
 
 
@@ -30,22 +30,6 @@ At present a time duration event will interrupt a different type of time duratio
 Arguments that are listed as type NUMBER really expect a whole number (integer).
 
 When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
-
-
-
-Team Member Limit
-------------
-
-A way to soft limit players on the map and have research to increase it.
-
-- Includes a simple one line GUI in the top left that says the current number of team members (players - 1) and the current max team members.
-- Option to have research to increase the number of team members. Cost is configurable and the research levels increase in science pack complexity. Infinite options that double in cost each time.
-- Set the "Team member technology pack count" setting to 0 to hide the tech, but keep the feature active for use via mod or command.
-- Set the "Team member technology pack count" setting to -1 to disable the feature entirely and remove it from the screen/shortcut bar.
-- Modding interface and command to increase the max team member count by a set amount. For use with other mods/streaming integrations when the research option isn't being used.
-- Command:
-    - syntax: `/muppet_streamer_change_team_member_max CHANGENUMBER`
-    - example to increase by 2: `/muppet_streamer_change_team_member_max 2`
 
 
 
@@ -74,7 +58,7 @@ Notes:
 - Explosives will fly in from offscreen to random locations around the target player. They may take a few seconds to complete their delivery.
 - Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
 - Weapons are on the "enemy" team and so don't get affected by your research.
-- targetPosition expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
+- targetPosition expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 
 
 
@@ -225,7 +209,7 @@ Teleports the player to the nearest type of thing.
 
 Notes:
 
-- destinationType of position expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (array or list): `{"x": 10, "y": 5}` or `[10, 5]`.
+- destinationType of position expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 - destinationType of enemyUnit does a search for the nearest enemy unit within the maxDistance. If this is a very large area (3000+) this may be slow.
 - All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a different target 5 times before giving up for the `random` and `biterNest` destinationType.
 - The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
@@ -303,3 +287,19 @@ Notes:
     - The number of each item each selected player will receive is a random proportion of the total. This is controlled by the recipientItemMinToMaxRatio setting. This setting defines the minimum to maximum ratio between 2 players, i.e. setting of 4 means a player receiving the maximum number can receive up to 4 times as many as a player receiving the minimum. This setting's implementation isn't quite exact and should be viewed as a rough guide.
     - Any items that can't be fitted into the intended destination player will be given to another online targeted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targeted player then they will be dropped on the floor at the targeted players’ feet. This situation can occur as items are taken from player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
 - Players are given items using Factorios default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
+
+
+
+Team Member Limit
+------------
+
+A way to soft limit players on the map and have research to increase it.
+
+- Includes a simple one line GUI in the top left that says the current number of team members (players - 1) and the current max team members.
+- Option to have research to increase the number of team members. Cost is configurable and the research levels increase in science pack complexity. Infinite options that double in cost each time.
+- Set the "Team member technology pack count" setting to 0 to hide the tech, but keep the feature active for use via mod or command.
+- Set the "Team member technology pack count" setting to -1 to disable the feature entirely and remove it from the screen/shortcut bar.
+- Modding interface and command to increase the max team member count by a set amount. For use with other mods/streaming integrations when the research option isn't being used.
+- Command:
+    - syntax: `/muppet_streamer_change_team_member_max CHANGENUMBER`
+    - example to increase by 2: `/muppet_streamer_change_team_member_max 2`
