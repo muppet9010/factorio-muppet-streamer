@@ -56,7 +56,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         Logging.LogPrint(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
         return
     end
-    local finishTick = command.tick + (durationSeconds * 60)
+    local finishTick = command.tick + (math.ceil(durationSeconds * 60))
 
     local fireHeadStart = 3
     if commandData.fireHeadStart ~= nil then

@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.20
+Date: 2022-04-XXX
+  Features:
+  Changes:
+  Bugfixes:
+  Info:
+    - Readme / mod portal description argument types clarified with more specific examples and data types.
+---------------------------------------------------------------------------------------------------
 Version: 20.0.19
 Date: 2022-04-11
   Features:

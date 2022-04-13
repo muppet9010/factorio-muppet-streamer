@@ -61,7 +61,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         Logging.LogPrint(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
         return
     end
-    duration = duration * 60
+    duration = math.floor(duration * 60)
 
     local control = commandData.control
     if control ~= nil then

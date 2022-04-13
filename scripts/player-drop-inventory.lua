@@ -83,15 +83,15 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local gap = tonumber(commandData.gap)
-    if quantityValue == nil then
-        Logging.LogPrint(ErrorMessageStart .. "gap is mandatory as a number")
+    if quantityValue == nil or gap < 0 then
+        Logging.LogPrint(ErrorMessageStart .. "gap is mandatory as a number and must be 0 or greater")
         return
     end
-    gap = math.max(gap * 60, 0)
+    gap = math.ceil(gap * 60)
 
     local occurrences = tonumber(commandData.occurrences)
-    if occurrences == nil then
-        Logging.LogPrint(ErrorMessageStart .. "occurrences is mandatory as a number")
+    if occurrences == nil or occurrences < 1 then
+        Logging.LogPrint(ErrorMessageStart .. "occurrences is mandatory as a number and must be 1 or greater")
         return
     end
 
