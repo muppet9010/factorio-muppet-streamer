@@ -3,6 +3,7 @@ Version: 20.0.20
 Date: 2022-04-XXX
   Features:
   Changes:
+    - Call For Help feature - added option to only call players on same force, defaults to true. Previously any player on the server could be called.
   Bugfixes:
   Info:
     - Readme / mod portal description argument types clarified with more specific examples and data types.

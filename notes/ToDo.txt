@@ -1,5 +1,5 @@
 DOING NOW:
-
+    - Make sure anything that monitors biter nests or teleports to enemies handles non default enemy forces and will respect cease fires/allies and thus target a further away true enemy base.
 
 BUGS:
     - If another player is in train then "flooring it" doesn't force speed in some cases. Seen when other player is in loco and streamer is in a random wagon. But there may be other cases as well.
@@ -16,6 +16,7 @@ Future Confirmed:
 
 
 Future Concepts:
+	- Inventory Shuffle - have it cancel the players crafting queue and shuffle those items as well. To avoid inventory spilling do after the initial inventory empty and check that it isn't going to fill up if the player has some ridiclious crafting queue, i.e. chunk the cancelling?
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
     - Spawn around player to support biters, spitters or both. Allow named or evo specific.
     - Call for Help - add:
