@@ -1,5 +1,6 @@
 DOING NOW:
-    - Make sure anything that monitors biter nests or teleports to enemies handles non default enemy forces and will respect cease fires/allies and thus target a further away true enemy base.
+    - Look to cache a biter nests force 1 tick after chunk generation in to the data stored. Then use this at command run time rather than having to get the spawners force within the distance lookup. As in the divided map there could be hundreds/thousands of friendly biter bases nearer than an enemy one.
+    - Add data migration for existing mod biter nest data.
 
 BUGS:
     - If another player is in train then "flooring it" doesn't force speed in some cases. Seen when other player is in loco and streamer is in a random wagon. But there may be other cases as well.

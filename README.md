@@ -216,9 +216,9 @@ Teleports the player to the nearest type of thing.
 Notes:
 
 - destinationType of position expects an object of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
-- destinationType of enemyUnit does a search for the nearest enemy unit within the maxDistance. If this is a very large area (3000+) this may be slow.
+- destinationType of enemyUnit and biterNests does a search for the nearest opposing force (not friend or cease-fire) unit/nest within the maxDistance. If this is a very large area (3000+) this may cause a small UPS spike.
 - All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a different target 5 times before giving up for the `random` and `biterNest` destinationType.
-- The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
+- The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request and try another target. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases, based on walkable check. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
 - The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be a biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
 - A player teleported comes with their vehicle if they have one (excludes trains).
 
