@@ -41,7 +41,7 @@ local MaxDistancePositionAroundTarget = 10
 ---@field backupTeleportSettings Teleport_CommandDetails|null
 ---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
 ---@field thisAttemptPosition MapPosition|null @ The map position of the current teleport attempt.
----@field spawnerDistances Teleport_TargetPlayerSpawnerDistanceDetails[] @ If destinationType is biterNest then populated when looking for a spawner to target, otherwise empty. The enemy spawners found on this surface from our spawner list and the distance they are from the player's current position.
+---@field spawnerDistances table<uint, Teleport_TargetPlayerSpawnerDistanceDetails> @ If destinationType is biterNest then populated when looking for a spawner to target, otherwise empty. Key'd as a gappy numerial order. The enemy spawners found on this surface from our spawner list and the distance they are from the player's current position.
 
 ---@class Teleport_TargetPlayerSpawnerDistanceDetails
 ---@field distance double
@@ -53,13 +53,14 @@ local MaxDistancePositionAroundTarget = 10
 ---@field position MapPosition
 ---@field forceName string
 
----@alias surfaceBiterNests table<Id, table<UnitNumber, Teleport_SpawnerDetails>>
+---@alias surfaceForceBiterNests table<Id, table<string, table<UnitNumber, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then bacth ignoring of non-enemy spawners.
 
 Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
     global.teleport.nextId = global.teleport.nextId or 0 ---@type uint
     global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<Id, Teleport_TeleportDetails> @ The path request Id to its teleport details for whne the path request completes.
-    global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSpawnersOnAllSurfaces() ---@type surfaceBiterNests @ A table of surface index numbers to tables of spawner's details key'd by their unit number.
+    global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSpawnersOnAllSurfaces() ---@type surfaceForceBiterNests
+    global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId or 0 ---@type uint
 end
 
 Teleport.OnLoad = function()
@@ -71,6 +72,7 @@ Teleport.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_chunk_generated, "Teleport.OnChunkGenerated", Teleport.OnChunkGenerated)
     Events.RegisterHandlerEvent(defines.events.on_entity_died, "Teleport.OnEntityDied", Teleport.OnEntityDied, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
     Events.RegisterHandlerEvent(defines.events.script_raised_destroy, "Teleport.ScriptRaisedDestroy", Teleport.ScriptRaisedDestroy, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
+    EventScheduler.RegisterScheduledEventType("Teleport.OnChunkGenerated_Scheduled", Teleport.OnChunkGenerated_Scheduled)
 end
 
 --- Triggered when the RCON command is run.
@@ -235,45 +237,44 @@ Teleport.PlanTeleportTarget = function(eventData)
     elseif data.destinationType == DestinationTypeSelection.random then
         data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer.position, data.maxDistance, data.minDistance)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
+        ---@typelist uint, LuaForce, MapPosition
         local targetPlayer_surface_index, targetPlayer_force, targetPlayer_position = targetPlayer.surface.index, targetPlayer.force, targetPlayer.position
+        local targetPlayer_force_name = targetPlayer_force.name
 
         -- Populate data.spawnerDistance with valid enemy spawners on the player's current surface if needed, otherwise handle last bad result.
         if data.targetAttempt > 1 then
             -- This target position has been found to be bad so remove any spawners too close to this bad location for this player.
+            ---@typelist double, double
+            local distanceXDiff, distanceYDiff
             for index, spawnerDistanceDetails in pairs(data.spawnerDistances) do
-                if Utils.GetDistance(data.destinationTargetPosition, spawnerDistanceDetails.spawnerDetails.position) < 30 then
+                -- CODE NOTE: Do locally rather than via function call as we call this a lot and its so simple logic.
+                distanceXDiff = targetPlayer_position.x - spawnerDistanceDetails.spawnerDetails.position.x
+                distanceYDiff = targetPlayer_position.y - spawnerDistanceDetails.spawnerDetails.position.y
+                spawnerDistance = math.sqrt(distanceXDiff * distanceXDiff + distanceYDiff * distanceYDiff)
+                --if Utils.GetDistance(data.destinationTargetPosition, spawnerDistanceDetails.spawnerDetails.position) < 30 then
+                if spawnerDistance < 30 then
                     -- Potential spawner is too close to a bad previous target attempt, so remove it from our list.
                     data.spawnerDistances[index] = nil
-                    break
                 end
             end
         else
             -- Is a first loop for this target player so build up the spawner list.
-            local forceNameIsEnemyToPlayer = {} ---@type table<uint, boolean> @ If the named force of the spawner is an enemy to the target player.
-            ---@typelist double, boolean
-            local spawnerDistance, isEnemyForce
-            for unitNumber, spawnerDetails in pairs(global.teleport.surfaceBiterNests[targetPlayer_surface_index]) do
-                if not spawnerDetails.entity.valid then
-                    -- As this can loop over the same data with time gaps in between due to path checks we have to ensure the spawner hasn't been removed during the process.
-                    global.teleport.surfaceBiterNests[targetPlayer_surface_index][unitNumber] = nil
-                else
-                    -- Check if this spawner is an enemy force to the player.
-                    isEnemyForce = forceNameIsEnemyToPlayer[spawnerDetails.forceName]
-                    if isEnemyForce == nil then
-                        -- Force isn't know if enemy or not, so find out.
-                        if targetPlayer_force.get_cease_fire(spawnerDetails.forceName) or targetPlayer_force.get_friend(spawnerDetails.forceName) then
-                            isEnemyForce = true
-                        else
-                            isEnemyForce = false
-                        end
-                        forceNameIsEnemyToPlayer[spawnerDetails.forceName] = isEnemyForce
-                    end
+            ---@typelist double, double, double
+            local spawnerDistance, distanceXDiff, distanceYDiff
+            for spawnersForceName, forcesSpawnerDetails in pairs(global.teleport.surfaceBiterNests[targetPlayer_surface_index]) do
+                -- Check the force is an enemy. So we ignore all non-enemy spawners in bulk.
+                if targetPlayer_force_name ~= spawnersForceName and spawnersForceName ~= "neutral" and not targetPlayer_force.get_cease_fire(spawnersForceName) and not targetPlayer_force.get_friend(spawnersForceName) then
+                    for _, spawnerDetails in pairs(forcesSpawnerDetails) do
+                        -- Work out it's distance from the target player and add it to our table.
 
-                    -- If the spawner is on an enemy force then work out it's distance from the target player and add it to our table.
-                    if isEnemyForce then
-                        spawnerDistance = Utils.GetDistance(targetPlayer_position, spawnerDetails.position)
+                        -- CODE NOTE: Do locally rather than via function call as we call this a lot and its so simple logic.
+                        distanceXDiff = targetPlayer_position.x - spawnerDetails.position.x
+                        distanceYDiff = targetPlayer_position.y - spawnerDetails.position.y
+                        spawnerDistance = math.sqrt(distanceXDiff * distanceXDiff + distanceYDiff * distanceYDiff)
+                        --spawnerDistance = Utils.GetDistance(targetPlayer_position, spawnerDetails.position)
+
                         if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
-                            table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails})
+                            table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails}) -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
                         end
                     end
                 end
@@ -281,7 +282,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
 
         -- Handle if no valid spawners to try.
-        if #data.spawnerDistances == 0 then
+        if next(data.spawnerDistances) == nil then
             game.print({"message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name})
             Teleport.DoBackupTeleport(data)
             return
@@ -296,7 +297,35 @@ Teleport.PlanTeleportTarget = function(eventData)
                 end
             )
         end
-        data.destinationTargetPosition = Utils.GetFirstTableValue(data.spawnerDistances).spawnerDetails.position
+
+        -- Check the nearest one is still valid. Do this way as unless its the spawner we are aiming for it doesn't matter if its invalid.
+        ---@typelist uint, Teleport_TargetPlayerSpawnerDistanceDetails
+        local firstSpawnerDistancesIndex, nearestSpawnerDistanceDetails
+        while nearestSpawnerDistanceDetails == nil do
+            firstSpawnerDistancesIndex = next(data.spawnerDistances)
+            nearestSpawnerDistanceDetails = data.spawnerDistances[firstSpawnerDistancesIndex]
+            if nearestSpawnerDistanceDetails == nil then
+                -- Have already removed the last possible spawner as its invalid, so no valid targets.
+                game.print({"message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name})
+                Teleport.DoBackupTeleport(data)
+                return
+            end
+
+            -- Check if the nearest spawner is still valid. Its possible to remove spawners without us knowing about it, i.e. via Editor or via script and not raising an event for it. So we have to check.
+            if not nearestSpawnerDistanceDetails.spawnerDetails.entity.valid then
+                -- Remove the spawner from this search.
+                data.spawnerDistances[firstSpawnerDistancesIndex] = nil
+
+                -- Remove the spawner from the global spawner lsit.
+                global.teleport.surfaceBiterNests[targetPlayer_surface_index][nearestSpawnerDistanceDetails.spawnerDetails.forceName][nearestSpawnerDistanceDetails.spawnerDetails.unitNumber] = nil
+
+                -- Clear the spawner result so the while loop continues to look at the nearest remaining one.
+                nearestSpawnerDistanceDetails = nil
+            end
+        end
+
+        -- Set the target position to the valid spawner.
+        data.destinationTargetPosition = nearestSpawnerDistanceDetails.spawnerDetails.position
     elseif data.destinationType == DestinationTypeSelection.enemyUnit then
         data.destinationTargetPosition = targetPlayer.surface.find_nearest_enemy {position = targetPlayer.position, max_distance = data.maxDistance, force = targetPlayer.force}
         if data.destinationTargetPosition == nil then
@@ -462,8 +491,16 @@ end
 
 ---@param event on_chunk_generated
 Teleport.OnChunkGenerated = function(event)
-    local area, surface = event.area, event.surface
-    local spawners = surface.find_entities_filtered {area = area, type = "unit-spawner"}
+    global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId + 1
+    -- Check the chunk in 1 ticks time to let any other mod or scenario complete its actions first.
+    EventScheduler.ScheduleEvent(event.tick + 1, "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
+end
+
+--- When a chunk is generated we wait for 1 tick and then this function is called. Lets any other mod/scenario mess with the spawner prior to use caching its details.
+---@param eventData any
+Teleport.OnChunkGenerated_Scheduled = function(eventData)
+    local event = eventData.data ---@type on_chunk_generated
+    local spawners = event.surface.find_entities_filtered {area = event.area, type = "unit-spawner"}
     for _, spawner in pairs(spawners) do
         Teleport.SpawnerCreated(spawner)
     end
@@ -494,8 +531,9 @@ Teleport.SpawnerCreated = function(spawner)
     local spawner_surface_index = spawner.surface.index
     global.teleport.surfaceBiterNests[spawner_surface_index] = global.teleport.surfaceBiterNests[spawner_surface_index] or {}
     -- Record the spawner.
-    local spawner_unitNumber = spawner.unit_number
-    global.teleport.surfaceBiterNests[spawner_surface_index][spawner_unitNumber] = {unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner.force.name, position = spawner.position}
+    local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name
+    global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name] = global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name] or {}
+    global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name][spawner_unitNumber] = {unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position}
 end
 
 --- Called when a spawner has been removed from the map and we need to remove it from our records.
@@ -506,20 +544,26 @@ Teleport.SpawnerRemoved = function(spawner)
         -- No records for this surface so nothing to remove. Shouldn't be possible to reach, but is safer.
         return
     end
-    thisSurfaceBiterNests[spawner.unit_number] = nil
+    local thisSurfaceForceBiterNests = thisSurfaceBiterNests[spawner.force.name]
+    if thisSurfaceForceBiterNests == nil then
+        -- No records for this force on this surface so nothing to remove. Shouldn't be possible to reach, but is safer.
+        return
+    end
+    thisSurfaceForceBiterNests[spawner.unit_number] = nil
 end
 
 --- Find all existing spawners on all surfaces and record them. For use at mods initial load to handle being added to a map mid game.
----@return surfaceBiterNests surfacesSpawners
+---@return surfaceForceBiterNests surfacesSpawners
 Teleport.FindExistingSpawnersOnAllSurfaces = function()
-    local surfacesSpawners = {} ---@type surfaceBiterNests
+    local surfacesSpawners = {} ---@type surfaceForceBiterNests
     for _, surface in pairs(game.surfaces) do
         local surface_index = surface.index
         surfacesSpawners[surface_index] = {}
         local spawners = surface.find_entities_filtered {type = "unit-spawner"}
         for _, spawner in pairs(spawners) do
-            local spawner_unitNumber = spawner.unit_number
-            surfacesSpawners[surface_index][spawner_unitNumber] = {unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner.force.name, position = spawner.position}
+            local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name
+            surfacesSpawners[surface_index][spawner_force_name] = surfacesSpawners[surface_index][spawner_force_name] or {}
+            surfacesSpawners[surface_index][spawner_force_name][spawner_unitNumber] = {unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position}
         end
     end
     return surfacesSpawners

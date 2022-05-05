@@ -1,5 +1,4 @@
 DOING NOW:
-    - Look to cache a biter nests force 1 tick after chunk generation in to the data stored. Then use this at command run time rather than having to get the spawners force within the distance lookup. As in the divided map there could be hundreds/thousands of friendly biter bases nearer than an enemy one.
     - Add data migration for existing mod biter nest data.
 
 BUGS:

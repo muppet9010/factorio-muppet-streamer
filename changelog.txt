@@ -4,6 +4,7 @@ Date: 2022-04-XXX
   Features:
   Changes:
     - Call For Help feature - added option to only call players on same force, defaults to true. Previously any player on the server could be called.
+    - Teleport - optimised to handle large numbers of biter nests (spawners) being on a non-enemy force and thus ignored. General optimisations to UPS usage across biter nest searching.
   Bugfixes:
   Info:
     - Readme / mod portal description argument types clarified with more specific examples and data types.
