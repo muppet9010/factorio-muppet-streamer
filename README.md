@@ -86,7 +86,7 @@ Notes:
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one.
 - While activated the player will lose control over their weapons targeting and firing behaviour.
 - While activated the player can not change the active gun via the switch to next weapon key.
-- The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to do. However, this is such an active countering of the mod's behaviour.
+- The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishs to do this then thats their choice.
 - The flamethrower is yours and so any of your damage upgrades will affect it.
 
 
@@ -101,8 +101,8 @@ Ensures the target player has a specific weapon and can give ammo and force thei
     - delay: FLOAT - Optional: how many seconds before the items are given. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target.
     - weaponType: STRING - Optional: the name of a weapon to ensure the player has 1 of. Can be either in their weapon inventory or in their character inventory. If not provided no weapon is given or selected.
-    - forceWeaponToSlot: BOOLEAN - Optional: if true the weaponType will be placed/moved to the players weapon inventory. If there's no room a current weapon will be placed in the character inventory to make room. If not provided then the weapon will be placed in a free slot, otherwise the character inventory.
-    - selectWeapon: BOOLEAN - Optional: if true the player will have this weaponType selected as active if it's equipped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
+    - forceWeaponToSlot: BOOLEAN - Optional: if True the weaponType will be placed/moved to the players weapon inventory. If there's no room a current weapon will be placed in the character inventory to make room. If False then the weapon will be placed in a free slot, otherwise the character inventory. Defaults to False
+    - selectWeapon: BOOLEAN - Optional: if True the player will have this weaponType selected as active if it's equipped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
     - ammoType: STRING - Optional: the name of the ammo type to be given to the player.
     - ammoCount: INTEGER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
 - Example command: `/muppet_streamer_give_player_weapon_ammo {"target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
