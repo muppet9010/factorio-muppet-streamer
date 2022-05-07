@@ -71,7 +71,7 @@ Notes:
 Leaky Flamethrower
 ------------------
 
-Gives the targeted player a flamethrower that shoots in random directions for short bursts until the set ammo is used up. This is a Time Duration event.
+Forces the targeted player to wield a flamethrower that shoots in random directions for short bursts until the set ammo is used up. This is a Time Duration event.
 
 - Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
@@ -240,6 +240,9 @@ Sets the ground on fire behind a player forcing them to run.
 - Example command continuous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
 - Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireGap": 30, "fireHeadStart": 6}`
 
+Notes:
+
+- If a player is in a vehicle while the effect is active they take increaseing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armoured vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
 
 
 Player Drop Inventory

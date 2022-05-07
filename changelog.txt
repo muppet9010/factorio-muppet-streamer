@@ -7,6 +7,7 @@ Date: 2022-05-XXX
     - Teleport feature - optimised to handle large numbers of biter nests (spawners) being on a non-enemy force and thus ignored. General optimisations to UPS usage across biter nest searching.
     - Leaky flamethrower feature - if weapon/ammo items and/or filters were removed to equip the player with a flamethrower then these are restored unpon the effect completing or the player dieing.
     - Leaky flamethrower feature - random aiming a bit larger distribution area.
+    - Pants On Fire - if you stay in a vehicle you will take exponential damage until you get out. This will scale quickly to handle players from no armour up to heavily shielded players.
   Bugfixes:
     - Give Weapon & Ammo feature - when forceWeaponToSlot set to True it will force the weapon in to a filtered gun slot if needed.
     - Leaky flamethrower feature - handles if all slots are full/filtered by clearing one for the flamethrower.

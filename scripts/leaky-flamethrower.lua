@@ -109,7 +109,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     end
 
     targetPlayer.driving = false
-    -- removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
+    -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
     ---@typelist boolean, GiveItems_RemovedWeaponToEnsureWeapon
     local flamethrowerGiven, removedWeaponDetails = Interfaces.Call("GiveItems.EnsureHasWeapon", targetPlayer, "flamethrower", true, true)
 

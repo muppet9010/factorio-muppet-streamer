@@ -6,6 +6,25 @@ local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
 local Events = require("utility/events")
 
+---@class PantsOnFire_ScheduledEventDetails
+---@field target string @ Target player's name.
+---@field finishTick Tick
+---@field fireHeadStart uint
+---@field fireGap uint
+---@field flameCount uint
+
+---@class PantsOnFire_EffectDetails
+---@field player LuaPlayer
+---@field finishTick Tick
+---@field fireHeadStart uint
+---@field fireGap uint
+---@field flameCount uint
+---@field startFire boolean
+---@field stepPos uint
+---@field force LuaForce
+---@field ticksInVehicle uint
+
+---@class PantsOnFire_EffectEndStatus
 local EffectEndStatus = {completed = "completed", died = "died", invalid = "invalid"}
 
 PantsOnFire.CreateGlobals = function()
@@ -21,6 +40,7 @@ PantsOnFire.OnLoad = function()
     EventScheduler.RegisterScheduledEventType("PantsOnFire.ApplyToPlayer", PantsOnFire.ApplyToPlayer)
 end
 
+---@param command CustomCommandData
 PantsOnFire.PantsOnFireCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_pants_on_fire command "
     local commandData
@@ -56,7 +76,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         Logging.LogPrint(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
         return
     end
-    local finishTick = command.tick + (math.ceil(durationSeconds * 60))
+    local finishTick = command.tick + math.ceil((delay + durationSeconds) * 60)
 
     local fireHeadStart = 3
     if commandData.fireHeadStart ~= nil then
@@ -91,7 +111,7 @@ end
 
 PantsOnFire.ApplyToPlayer = function(eventData)
     local errorMessageStart = "ERROR: muppet_streamer_pants_on_fire command "
-    local data = eventData.data
+    local data = eventData.data ---@type PantsOnFire_ScheduledEventDetails
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil or not targetPlayer.valid then
@@ -102,21 +122,23 @@ PantsOnFire.ApplyToPlayer = function(eventData)
         game.print({"message.muppet_streamer_pants_on_fire_not_character_controller", data.target})
         return
     end
+    local targetPlayer_index = targetPlayer.index
 
     -- Effect is already applied to player so don't start a new one.
-    if global.PantsOnFire.playerSteps[targetPlayer.index] ~= nil then
+    if global.PantsOnFire.playerSteps[targetPlayer_index] ~= nil then
         return
     end
 
     -- Start the process on the player.
-    global.PantsOnFire.playerSteps[targetPlayer.index] = {}
+    global.PantsOnFire.playerSteps[targetPlayer_index] = {}
     game.print({"message.muppet_streamer_pants_on_fire_start", targetPlayer.name})
 
     -- stepPos starts at 0 so the first step happens at offset 1
-    PantsOnFire.WalkCheck({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0}})
+    PantsOnFire.WalkCheck({tick = game.tick, instanceId = targetPlayer_index, data = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, force = targetPlayer.force, ticksInVehicle = 0}})
 end
 
 PantsOnFire.WalkCheck = function(eventData)
+    ---@typelist PantsOnFire_EffectDetails, LuaPlayer, PlayerIndex
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId
     if player == nil or (not player.valid) then
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
@@ -124,7 +146,7 @@ PantsOnFire.WalkCheck = function(eventData)
     end
 
     -- steps is a circular buffer
-    local steps = global.PantsOnFire.playerSteps[player.index]
+    local steps = global.PantsOnFire.playerSteps[playerIndex]
     if steps == nil then
         -- player has died? stop the effect
         return
@@ -140,12 +162,25 @@ PantsOnFire.WalkCheck = function(eventData)
     end
 
     -- Create the fire entity if approperiate.
+    local fireEntity
     if data.startFire then
         local step = steps[data.stepPos]
         if step.surface.valid then
             -- Factorio auto deletes the fire-flame entity for us.
             -- 20 flames seems the minimum to set a tree on fire.
-            step.surface.create_entity({name = "fire-flame", position = step.position, initial_ground_flame_count = data.flameCount})
+            fireEntity = step.surface.create_entity({name = "fire-flame", position = step.position, initial_ground_flame_count = data.flameCount, force = data.force})
+
+            -- If the player is in a vehicle do direct health damage to stop them hiding from the effects in armoured vehicles.
+            if player.vehicle then
+                local playerCharacter = player.character
+                if playerCharacter then
+                    data.ticksInVehicle = data.ticksInVehicle + data.fireGap
+                    -- Damage is square of how long they are in a vehicle to give a scale between those with no shields/armour and heavily shielded players. Total damage is done as an amount per second regardless of how often the fire gap delay has the ground effect created and thus this function called.
+                    local secondsInVehicle = math.ceil(data.ticksInVehicle / 60)
+                    local damageForPeriodOfSecond = (secondsInVehicle ^ 4) / (60 / data.fireGap)
+                    playerCharacter.damage(damageForPeriodOfSecond, data.force, "fire", fireEntity)
+                end
+            end
         end
     end
 
@@ -160,10 +195,17 @@ PantsOnFire.WalkCheck = function(eventData)
     end
 end
 
+--- Called when a player has died, but before thier character is turned in to a corpse.
+---@param event on_pre_player_died
 PantsOnFire.OnPrePlayerDied = function(event)
     PantsOnFire.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)
 end
 
+--- Called when the effect has been stopped.
+--- Called when the player is alive or if they have died before their character has been affected.
+---@param playerIndex PlayerIndex
+---@param player LuaPlayer
+---@param status PantsOnFire_EffectEndStatus
 PantsOnFire.StopEffectOnPlayer = function(playerIndex, player, status)
     local steps = global.PantsOnFire.playerSteps[playerIndex]
     if steps == nil then
