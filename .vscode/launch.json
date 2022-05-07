@@ -15,7 +15,8 @@
             "hookControl": true,
             "hookData": false,
             "hookSettings": true,
-            "hookLog": true
+            "hookLog": true,
+            "hookMode": "debug"
         }
     ]
 }

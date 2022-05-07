@@ -5,17 +5,62 @@ local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
 local Events = require("utility/events")
 
+---@class Teleport_DestinationTypeSelection
 local DestinationTypeSelection = {random = "random", biterNest = "biterNest", enemyUnit = "enemyUnit", spawn = "spawn", position = "position"}
+
+---@class Teleport_DestinationTypeSelectionDescription
 local DestinationTypeSelectionDescription = {random = "Random Location", biterNest = "Nearest Biter Nest", enemyUnit = "Enemy Unit", spawn = "spawn", position = "Set Position"}
+
 local MaxTargetAttempts = 5
 local MaxRandomPositionsAroundTarget = 10
 local MaxDistancePositionAroundTarget = 10
 
+---@class Teleport_CommandDetails @ The details for a specific teleport event in an an RCON command.
+---@field delay uint
+---@field target string @ Target player's name.
+---@field arrivalRadius double
+---@field minDistance double
+---@field maxDistance double
+---@field destinationType Teleport_DestinationTypeSelection
+---@field destinationTargetPosition MapPosition|null
+---@field reachableOnly boolean
+---@field backupTeleportSettings Teleport_CommandDetails|null
+---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
+
+---@class Teleport_TeleportDetails @ The data on a teleport action being undertaken. This includes the attributes from the first Teleport_CommandDetails within it directly.
+---@field teleportId uint
+---@field target string
+---@field targetPlayer LuaPlayer
+---@field arrivalRadius double
+---@field minDistance double
+---@field maxDistance double
+---@field destinationType Teleport_DestinationTypeSelection
+---@field destinationTargetPosition MapPosition|null
+---@field reachableOnly boolean
+---@field targetAttempt uint
+---@field backupTeleportSettings Teleport_CommandDetails|null
+---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
+---@field thisAttemptPosition MapPosition|null @ The map position of the current teleport attempt.
+---@field spawnerDistances table<uint, Teleport_TargetPlayerSpawnerDistanceDetails> @ If destinationType is biterNest then populated when looking for a spawner to target, otherwise empty. Key'd as a gappy numerial order. The enemy spawners found on this surface from our spawner list and the distance they are from the player's current position.
+
+---@class Teleport_TargetPlayerSpawnerDistanceDetails
+---@field distance double
+---@field spawnerDetails Teleport_SpawnerDetails
+
+---@class Teleport_SpawnerDetails
+---@field unitNumber UnitNumber
+---@field entity LuaEntity
+---@field position MapPosition
+---@field forceName string
+
+---@alias surfaceForceBiterNests table<Id, table<string, table<UnitNumber, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then bacth ignoring of non-enemy spawners.
+
 Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
-    global.teleport.nextId = global.teleport.nextId or 0
-    global.teleport.pathingRequests = global.teleport.pathingRequests or {}
-    global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSurfacesSpawners()
+    global.teleport.nextId = global.teleport.nextId or 0 ---@type uint
+    global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<Id, Teleport_TeleportDetails> @ The path request Id to its teleport details for whne the path request completes.
+    global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSpawnersOnAllSurfaces() ---@type surfaceForceBiterNests
+    global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId or 0 ---@type uint
 end
 
 Teleport.OnLoad = function()
@@ -27,8 +72,11 @@ Teleport.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_chunk_generated, "Teleport.OnChunkGenerated", Teleport.OnChunkGenerated)
     Events.RegisterHandlerEvent(defines.events.on_entity_died, "Teleport.OnEntityDied", Teleport.OnEntityDied, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
     Events.RegisterHandlerEvent(defines.events.script_raised_destroy, "Teleport.ScriptRaisedDestroy", Teleport.ScriptRaisedDestroy, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
+    EventScheduler.RegisterScheduledEventType("Teleport.OnChunkGenerated_Scheduled", Teleport.OnChunkGenerated_Scheduled)
 end
 
+--- Triggered when the RCON command is run.
+---@param command CustomCommandData
 Teleport.TeleportCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_teleport command "
     local commandData
@@ -48,6 +96,11 @@ Teleport.TeleportCommand = function(command)
     Teleport.ScheduleTeleportCommand(commandValues)
 end
 
+--- Validates the data from an RCON commands's arguments in to a table of details.
+---@param commandData table @ Table of arguments passed in to the RCON command.
+---@param errorMessageStart string
+---@param depth uint @ Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
+---@return Teleport_CommandDetails commandDetails
 Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
     local depthErrorMessage = ""
     if depth > 0 then
@@ -133,6 +186,8 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
     return {delay = delay, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
 end
 
+--- Schedule a commands details to occur after the set delay.
+---@param commandValues Teleport_CommandDetails
 Teleport.ScheduleTeleportCommand = function(commandValues)
     global.teleport.nextId = global.teleport.nextId + 1
     EventScheduler.ScheduleEvent(
@@ -149,23 +204,19 @@ Teleport.ScheduleTeleportCommand = function(commandValues)
             destinationTargetPosition = commandValues.destinationTargetPosition,
             reachableOnly = commandValues.reachableOnly,
             targetAttempt = 0,
-            failedTargetPositions = {},
             backupTeleportSettings = commandValues.backupTeleportSettings,
-            destinationTypeDescription = commandValues.destinationTypeDescription
+            destinationTypeDescription = commandValues.destinationTypeDescription,
+            thisAttemptPosition = nil,
+            spawnerDistances = {}
         }
     )
 end
 
-Teleport.DoBackupTeleport = function(data)
-    if data.backupTeleportSettings ~= nil then
-        game.print({"message.muppet_streamer_teleport_doing_backup", data.backupTeleportSettings.destinationTypeDescription, data.backupTeleportSettings.target})
-        Teleport.ScheduleTeleportCommand(data.backupTeleportSettings)
-    end
-end
-
+--- When the actual teleport action needs to be planned and done (post scheduled delay).
+---@param eventData any
 Teleport.PlanTeleportTarget = function(eventData)
     local errorMessageStart = "ERROR: muppet_streamer_teleport command "
-    local data = eventData.data
+    local data = eventData.data ---@type Teleport_TeleportDetails
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil or not targetPlayer.valid then
@@ -186,37 +237,58 @@ Teleport.PlanTeleportTarget = function(eventData)
     elseif data.destinationType == DestinationTypeSelection.random then
         data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer.position, data.maxDistance, data.minDistance)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
+        ---@typelist uint, LuaForce, MapPosition
+        local targetPlayer_surface_index, targetPlayer_force, targetPlayer_position = targetPlayer.surface.index, targetPlayer.force, targetPlayer.position
+        local targetPlayer_force_name = targetPlayer_force.name
+
+        -- Populate data.spawnerDistance with valid enemy spawners on the player's current surface if needed, otherwise handle last bad result.
         if data.targetAttempt > 1 then
-            table.insert(data.failedTargetPositions, data.destinationTargetPosition)
+            -- This target position has been found to be bad so remove any spawners too close to this bad location for this player.
+            ---@typelist double, double
+            local distanceXDiff, distanceYDiff
+            for index, spawnerDistanceDetails in pairs(data.spawnerDistances) do
+                -- CODE NOTE: Do locally rather than via function call as we call this a lot and its so simple logic.
+                distanceXDiff = targetPlayer_position.x - spawnerDistanceDetails.spawnerDetails.position.x
+                distanceYDiff = targetPlayer_position.y - spawnerDistanceDetails.spawnerDetails.position.y
+                spawnerDistance = math.sqrt(distanceXDiff * distanceXDiff + distanceYDiff * distanceYDiff)
+                --if Utils.GetDistance(data.destinationTargetPosition, spawnerDistanceDetails.spawnerDetails.position) < 30 then
+                if spawnerDistance < 30 then
+                    -- Potential spawner is too close to a bad previous target attempt, so remove it from our list.
+                    data.spawnerDistances[index] = nil
+                end
+            end
         else
-            data.spawnerDistances = {}
-            for unitNumber, spawner in pairs(global.teleport.surfaceBiterNests[targetPlayer.surface.index]) do
-                if not spawner.valid then
-                    global.teleport.surfaceBiterNests[targetPlayer.surface.index][unitNumber] = nil
-                elseif (not targetPlayer.force.get_cease_fire(spawner.force)) and (not targetPlayer.force.get_friend(spawner.force)) then
-                    -- Not a friend or cease fire force, so enemy.
-                    -- potential spawner isn't too close to a bad location already tried.
-                    local spawnerDistance = Utils.GetDistance(targetPlayer.position, spawner.position)
-                    if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
-                        table.insert(data.spawnerDistances, {distance = spawnerDistance, spawner = spawner})
+            -- Is a first loop for this target player so build up the spawner list.
+            ---@typelist double, double, double
+            local spawnerDistance, distanceXDiff, distanceYDiff
+            for spawnersForceName, forcesSpawnerDetails in pairs(global.teleport.surfaceBiterNests[targetPlayer_surface_index]) do
+                -- Check the force is an enemy. So we ignore all non-enemy spawners in bulk.
+                if targetPlayer_force_name ~= spawnersForceName and spawnersForceName ~= "neutral" and not targetPlayer_force.get_cease_fire(spawnersForceName) and not targetPlayer_force.get_friend(spawnersForceName) then
+                    for _, spawnerDetails in pairs(forcesSpawnerDetails) do
+                        -- Work out it's distance from the target player and add it to our table.
+
+                        -- CODE NOTE: Do locally rather than via function call as we call this a lot and its so simple logic.
+                        distanceXDiff = targetPlayer_position.x - spawnerDetails.position.x
+                        distanceYDiff = targetPlayer_position.y - spawnerDetails.position.y
+                        spawnerDistance = math.sqrt(distanceXDiff * distanceXDiff + distanceYDiff * distanceYDiff)
+                        --spawnerDistance = Utils.GetDistance(targetPlayer_position, spawnerDetails.position)
+
+                        if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
+                            table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails}) -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
+                        end
                     end
                 end
             end
         end
-        for index, spawnerDetails in pairs(data.spawnerDistances) do
-            for _, badSpawnerPosition in pairs(data.failedTargetPositions) do
-                if Utils.GetDistance(badSpawnerPosition, spawnerDetails.spawner.position) < 30 then
-                    -- Target spawner is too close to a bad previous target attempt.
-                    data.spawnerDistances[index] = nil
-                    break
-                end
-            end
-        end
-        if #data.spawnerDistances == 0 then
+
+        -- Handle if no valid spawners to try.
+        if next(data.spawnerDistances) == nil then
             game.print({"message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name})
             Teleport.DoBackupTeleport(data)
             return
         end
+
+        -- Sort the spawners to find the nearest one and set it as the target position.
         if data.targetAttempt == 1 then
             table.sort(
                 data.spawnerDistances,
@@ -225,7 +297,35 @@ Teleport.PlanTeleportTarget = function(eventData)
                 end
             )
         end
-        data.destinationTargetPosition = Utils.GetFirstTableValue(data.spawnerDistances).spawner.position
+
+        -- Check the nearest one is still valid. Do this way as unless its the spawner we are aiming for it doesn't matter if its invalid.
+        ---@typelist uint, Teleport_TargetPlayerSpawnerDistanceDetails
+        local firstSpawnerDistancesIndex, nearestSpawnerDistanceDetails
+        while nearestSpawnerDistanceDetails == nil do
+            firstSpawnerDistancesIndex = next(data.spawnerDistances)
+            nearestSpawnerDistanceDetails = data.spawnerDistances[firstSpawnerDistancesIndex]
+            if nearestSpawnerDistanceDetails == nil then
+                -- Have already removed the last possible spawner as its invalid, so no valid targets.
+                game.print({"message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name})
+                Teleport.DoBackupTeleport(data)
+                return
+            end
+
+            -- Check if the nearest spawner is still valid. Its possible to remove spawners without us knowing about it, i.e. via Editor or via script and not raising an event for it. So we have to check.
+            if not nearestSpawnerDistanceDetails.spawnerDetails.entity.valid then
+                -- Remove the spawner from this search.
+                data.spawnerDistances[firstSpawnerDistancesIndex] = nil
+
+                -- Remove the spawner from the global spawner lsit.
+                global.teleport.surfaceBiterNests[targetPlayer_surface_index][nearestSpawnerDistanceDetails.spawnerDetails.forceName][nearestSpawnerDistanceDetails.spawnerDetails.unitNumber] = nil
+
+                -- Clear the spawner result so the while loop continues to look at the nearest remaining one.
+                nearestSpawnerDistanceDetails = nil
+            end
+        end
+
+        -- Set the target position to the valid spawner.
+        data.destinationTargetPosition = nearestSpawnerDistanceDetails.spawnerDetails.position
     elseif data.destinationType == DestinationTypeSelection.enemyUnit then
         data.destinationTargetPosition = targetPlayer.surface.find_nearest_enemy {position = targetPlayer.position, max_distance = data.maxDistance, force = targetPlayer.force}
         if data.destinationTargetPosition == nil then
@@ -239,15 +339,31 @@ Teleport.PlanTeleportTarget = function(eventData)
     Teleport.PlanTeleportLocation(data)
 end
 
+--- Confirms if the vehicle is teleportable (non train).
+---@param vehicle LuaEntity
+---@return boolean isVehicleTeleportable
 Teleport.IsTeleportableVehicle = function(vehicle)
-    return vehicle ~= nil and vehicle.valid and (vehicle.name == "car" or vehicle.name == "tank" or vehicle.name == "spider-vehicle")
+    if vehicle == nil or not vehicle.valid then
+        return false
+    end
+    local vehicle_name = vehicle.name
+    if vehicle_name == "car" or vehicle_name == "tank" or vehicle_name == "spider-vehicle" then
+        return true
+    else
+        return false
+    end
 end
 
+--- Find a position near the target for the player to go and start a pathing request if enabled.
+---@param data Teleport_TeleportDetails
 Teleport.PlanTeleportLocation = function(data)
     local targetPlayer = data.targetPlayer
-    local targetPlayerPathingEntity, targetPlayerPlacementEntity = targetPlayer.character, targetPlayer.character
-    if Teleport.IsTeleportableVehicle(targetPlayer.vehicle) then
-        targetPlayerPlacementEntity = targetPlayer.vehicle
+    local targetPlayer_character = targetPlayer.character
+    local targetPlayerPathingEntity, targetPlayerPlacementEntity = targetPlayer_character, targetPlayer_character
+
+    local targetPlayer_vehicle = targetPlayer.vehicle
+    if Teleport.IsTeleportableVehicle(targetPlayer_vehicle) then
+        targetPlayerPlacementEntity = targetPlayer_vehicle
     end
 
     local arrivalPos
@@ -290,6 +406,7 @@ Teleport.PlanTeleportLocation = function(data)
     end
 end
 
+---@param event on_script_path_request_finished
 Teleport.OnScriptPathRequestFinished = function(event)
     local data = global.teleport.pathingRequests[event.id]
     if data == nil then
@@ -312,23 +429,28 @@ Teleport.OnScriptPathRequestFinished = function(event)
     end
 end
 
+--- Do the actual teleport of the target to the valid location.
+---@param data Teleport_TeleportDetails
 Teleport.Teleport = function(data)
     local targetPlayer = data.targetPlayer
     local teleportResult, wasDriving, wasPassengerIn
-    if Teleport.IsTeleportableVehicle(targetPlayer.vehicle) then
-        teleportResult = targetPlayer.vehicle.teleport(data.thisAttemptPosition)
+    local targetPlayer_vehicle = targetPlayer.vehicle
+    if Teleport.IsTeleportableVehicle(targetPlayer_vehicle) then
+        teleportResult = targetPlayer_vehicle.teleport(data.thisAttemptPosition)
     else
-        if targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid then
+        if targetPlayer_vehicle ~= nil and targetPlayer_vehicle.valid then
             -- Player is in a non suitable vehicle, so get them out of it before teleporting.
-            if targetPlayer.vehicle.get_driver() then
-                wasDriving = targetPlayer.vehicle
-            elseif targetPlayer.vehicle.get_passenger() then
-                wasPassengerIn = targetPlayer.vehicle
+            if targetPlayer_vehicle.get_driver() then
+                wasDriving = targetPlayer_vehicle
+            elseif targetPlayer_vehicle.get_passenger() then
+                wasPassengerIn = targetPlayer_vehicle
             end
             targetPlayer.driving = false
         end
         teleportResult = targetPlayer.teleport(data.thisAttemptPosition)
     end
+
+    -- If the teleport failed then put the player back in their non teleportable vehicle.
     if not teleportResult then
         if wasDriving then
             wasDriving.set_driver(targetPlayer)
@@ -340,6 +462,16 @@ Teleport.Teleport = function(data)
     end
 end
 
+--- Called when a higher priority teleport has failed. If theres a backup teleprot action that will be tried next.
+---@param data Teleport_TeleportDetails
+Teleport.DoBackupTeleport = function(data)
+    if data.backupTeleportSettings ~= nil then
+        game.print({"message.muppet_streamer_teleport_doing_backup", data.backupTeleportSettings.destinationTypeDescription, data.backupTeleportSettings.target})
+        Teleport.ScheduleTeleportCommand(data.backupTeleportSettings)
+    end
+end
+
+---@param event on_biter_base_built
 Teleport.OnBiterBaseBuilt = function(event)
     local entity = event.entity
     if not entity.valid or entity.type ~= "unit-spawner" then
@@ -348,6 +480,7 @@ Teleport.OnBiterBaseBuilt = function(event)
     Teleport.SpawnerCreated(entity)
 end
 
+---@param event script_raised_built
 Teleport.ScriptRaisedBuilt = function(event)
     local entity = event.entity
     if not entity.valid or entity.type ~= "unit-spawner" then
@@ -356,14 +489,24 @@ Teleport.ScriptRaisedBuilt = function(event)
     Teleport.SpawnerCreated(entity)
 end
 
+---@param event on_chunk_generated
 Teleport.OnChunkGenerated = function(event)
-    local area, surface = event.area, event.surface
-    local spawners = surface.find_entities_filtered {area = area, type = "unit-spawner"}
+    global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId + 1
+    -- Check the chunk in 1 ticks time to let any other mod or scenario complete its actions first.
+    EventScheduler.ScheduleEvent(event.tick + 1, "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
+end
+
+--- When a chunk is generated we wait for 1 tick and then this function is called. Lets any other mod/scenario mess with the spawner prior to use caching its details.
+---@param eventData any
+Teleport.OnChunkGenerated_Scheduled = function(eventData)
+    local event = eventData.data ---@type on_chunk_generated
+    local spawners = event.surface.find_entities_filtered {area = event.area, type = "unit-spawner"}
     for _, spawner in pairs(spawners) do
         Teleport.SpawnerCreated(spawner)
     end
 end
 
+---@param event on_entity_died
 Teleport.OnEntityDied = function(event)
     local entity = event.entity
     if not entity.valid or entity.type ~= "unit-spawner" then
@@ -372,6 +515,7 @@ Teleport.OnEntityDied = function(event)
     Teleport.SpawnerRemoved(entity)
 end
 
+---@param event script_raised_destroy
 Teleport.ScriptRaisedDestroy = function(event)
     local entity = event.entity
     if not entity.valid or entity.type ~= "unit-spawner" then
@@ -380,36 +524,49 @@ Teleport.ScriptRaisedDestroy = function(event)
     Teleport.SpawnerRemoved(entity)
 end
 
+--- Called when a spawner has been created and we need to add it to our records.
+---@param spawner LuaEntity
 Teleport.SpawnerCreated = function(spawner)
     -- Create the surface table if it doesn't exist. Happens when the surface is created adhock during play.
-    local thisSurfaceBiterNests = global.teleport.surfaceBiterNests[spawner.surface.index]
-    if thisSurfaceBiterNests == nil then
-        global.teleport.surfaceBiterNests[spawner.surface.index] = {}
-        thisSurfaceBiterNests = global.teleport.surfaceBiterNests[spawner.surface.index]
-    end
+    local spawner_surface_index = spawner.surface.index
+    global.teleport.surfaceBiterNests[spawner_surface_index] = global.teleport.surfaceBiterNests[spawner_surface_index] or {}
     -- Record the spawner.
-    thisSurfaceBiterNests[spawner.unit_number] = spawner
+    local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name
+    global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name] = global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name] or {}
+    global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name][spawner_unitNumber] = {unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position}
 end
 
+--- Called when a spawner has been removed from the map and we need to remove it from our records.
+---@param spawner LuaEntity
 Teleport.SpawnerRemoved = function(spawner)
     local thisSurfaceBiterNests = global.teleport.surfaceBiterNests[spawner.surface.index]
     if thisSurfaceBiterNests == nil then
         -- No records for this surface so nothing to remove. Shouldn't be possible to reach, but is safer.
         return
     end
-    thisSurfaceBiterNests[spawner.unit_number] = nil
+    local thisSurfaceForceBiterNests = thisSurfaceBiterNests[spawner.force.name]
+    if thisSurfaceForceBiterNests == nil then
+        -- No records for this force on this surface so nothing to remove. Shouldn't be possible to reach, but is safer.
+        return
+    end
+    thisSurfaceForceBiterNests[spawner.unit_number] = nil
 end
 
-Teleport.FindExistingSurfacesSpawners = function()
-    local surfaceNests = global.teleport.surfaceBiterNests or {}
+--- Find all existing spawners on all surfaces and record them. For use at mods initial load to handle being added to a map mid game.
+---@return surfaceForceBiterNests surfacesSpawners
+Teleport.FindExistingSpawnersOnAllSurfaces = function()
+    local surfacesSpawners = {} ---@type surfaceForceBiterNests
     for _, surface in pairs(game.surfaces) do
-        surfaceNests[surface.index] = surfaceNests[surface.index] or {}
+        local surface_index = surface.index
+        surfacesSpawners[surface_index] = {}
         local spawners = surface.find_entities_filtered {type = "unit-spawner"}
         for _, spawner in pairs(spawners) do
-            surfaceNests[surface.index][spawner.unit_number] = spawner
+            local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name
+            surfacesSpawners[surface_index][spawner_force_name] = surfacesSpawners[surface_index][spawner_force_name] or {}
+            surfacesSpawners[surface_index][spawner_force_name][spawner_unitNumber] = {unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position}
         end
     end
-    return surfaceNests
+    return surfacesSpawners
 end
 
 return Teleport

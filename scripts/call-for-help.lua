@@ -5,30 +5,51 @@ local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
 local Events = require("utility/events")
 
+---@class CallForHelp_CallSelection
 local CallSelection = {random = "random", nearest = "nearest"}
+
 local SPTesting = false -- Set to true to let yourself go to your own support.
 local MaxRandomPositionsAroundTarget = 10
 local MaxDistancePositionAroundTarget = 10
 
----@class CallForHelpObject
+---@class CallForHelp_DelayedCommandDetails
 ---@field callForHelpId Id
----@field pendingPathRequests table<Id, PathRequestObject>
+---@field target string @ Player's name.
+---@field arrivalRadius double
+---@field callRadius double|null
+---@field sameTeamOnly boolean
+---@field sameSurfaceOnly boolean
+---@field blacklistedPlayerNames table<string, True> @ Table of player names as the key.
+---@field whitelistedPlayerNames table<string, True> @ Table of player names as the key.
+---@field callSelection CallForHelp_CallSelection
+---@field number uint
+---@field activePercentage double
 
----@class PathRequestObject @ Details on a path request so that when it completes its results can be handled and back traced to the Call For Help it relates too.
+---@class CallForHelp_CallForHelpObject
+---@field callForHelpId Id
+---@field pendingPathRequests table<Id, CallForHelp_PathRequestObject>
+
+---@class CallForHelp_PathRequestObject @ Details on a path request so that when it completes its results can be handled and back traced to the Call For Help it relates too.
 ---@field callForHelpId Id
 ---@field pathRequestId Id
 ---@field helpPlayer LuaPlayer
 ---@field targetPlayer LuaPlayer
+---@field targetPlayerPosition MapPosition
+---@field targetPlayerEntity LuaEntity
 ---@field surface LuaSurface
 ---@field position MapPosition
 ---@field attempt uint
 ---@field arrivalRadius double
 
+---@class CallForHelp_HelpPlayerInRange
+---@field player LuaPlayer
+---@field distance double
+
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
     global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type Id
-    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<Id, PathRequestObject>
-    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<Id, CallForHelpObject>
+    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<Id, CallForHelp_PathRequestObject>
+    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<Id, CallForHelp_CallForHelpObject>
 end
 
 CallForHelp.OnLoad = function()
@@ -37,6 +58,7 @@ CallForHelp.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "CallForHelp.OnScriptPathRequestFinished", CallForHelp.OnScriptPathRequestFinished)
 end
 
+---@param command CustomCommandData
 CallForHelp.CallForHelpCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_call_for_help command "
     local commandData
@@ -93,10 +115,20 @@ CallForHelp.CallForHelpCommand = function(command)
     else
         sameSurfaceOnly = true
     end
-
     -- If not same surface then there's no callRadius result to be processed.
     if not sameSurfaceOnly then
         callRadius = nil
+    end
+
+    local sameTeamOnly = commandData.sameTeamOnly
+    if sameTeamOnly ~= nil then
+        sameTeamOnly = Utils.ToBoolean(sameTeamOnly)
+        if sameTeamOnly == nil then
+            Logging.LogPrint(errorMessageStart .. "sameTeamOnly is Optional, but must be a valid boolean if provided")
+            return
+        end
+    else
+        sameTeamOnly = true
     end
 
     local blacklistedPlayerNames_string = commandData.blacklistedPlayerNames
@@ -124,6 +156,7 @@ CallForHelp.CallForHelpCommand = function(command)
             Logging.LogPrint(errorMessageStart .. "number is Optional, but must be a valid number if provided")
             return
         end
+        number = math.floor(number)
     else
         number = 0
     end
@@ -146,12 +179,12 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     global.callForHelp.nextId = global.callForHelp.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "CallForHelp.CallForHelp", global.callForHelp.nextId, {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameSurfaceOnly = sameSurfaceOnly, blacklistedPlayerNames = blacklistedPlayerNames, whitelistedPlayerNames = whitelistedPlayerNames, callSelection = callSelection, number = number, activePercentage = activePercentage})
+    EventScheduler.ScheduleEvent(command.tick + delay, "CallForHelp.CallForHelp", global.callForHelp.nextId, {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameTeamOnly = sameTeamOnly, sameSurfaceOnly = sameSurfaceOnly, blacklistedPlayerNames = blacklistedPlayerNames, whitelistedPlayerNames = whitelistedPlayerNames, callSelection = callSelection, number = number, activePercentage = activePercentage})
 end
 
 CallForHelp.CallForHelp = function(eventData)
     local errorMessageStart = "ERROR: muppet_streamer_call_for_help command "
-    local data = eventData.data
+    local data = eventData.data ---@type CallForHelp_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil or not targetPlayer.valid then
@@ -198,13 +231,16 @@ CallForHelp.CallForHelp = function(eventData)
     end
 
     -- Check the available players distance and viability for teleporting to help.
-    local helpPlayers, helpPlayersInRange = {}, {}
+
+    local helpPlayersInRange = {} ---@type CallForHelp_HelpPlayerInRange[]
+    local targetPlayerForce = targetPlayer.force
     for _, helpPlayer in pairs(availablePlayers) do
         if SPTesting or helpPlayer ~= targetPlayer then
-            if (not data.sameSurfaceOnly or helpPlayer.surface == targetPlayerSurface) and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
+            local helpPlayer_surface = helpPlayer.surface
+            if (not data.sameTeamOnly or helpPlayer.force == targetPlayerForce) and (not data.sameSurfaceOnly or helpPlayer_surface == targetPlayerSurface) and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
                 local distance
-                if data.callRadius == nil then
-                    distance = 4294967295 -- Maximum distance away
+                if helpPlayer_surface ~= targetPlayerSurface then
+                    distance = 4294967295 -- Maximum distance away to de-prioritise these players vs ones on the same surface.
                 else
                     distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
                 end
@@ -221,6 +257,7 @@ CallForHelp.CallForHelp = function(eventData)
     end
 
     -- Select the players to teleport to help.
+    local helpPlayers = {} ---@type LuaPlayer[]
     if data.callSelection == CallSelection.random then
         for i = 1, maxPlayers do
             local random = math.random(1, #helpPlayersInRange)
@@ -269,6 +306,15 @@ CallForHelp.IsTeleportableVehicle = function(vehicle)
     return vehicle ~= nil and vehicle.valid and (vehicle.name == "car" or vehicle.name == "tank" or vehicle.name == "spider-vehicle")
 end
 
+--- Finds somewhere to teleport the help player too and makes the pathing request for it.
+---@param helpPlayer LuaPlayer
+---@param arrivalRadius double
+---@param targetPlayer LuaPlayer
+---@param targetPlayerPosition MapPosition
+---@param targetPlayerSurface LuaSurface
+---@param targetPlayerEntity LuaEntity
+---@param callForHelpId Id
+---@param attempt uint
 CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetPlayer, targetPlayerPosition, targetPlayerSurface, targetPlayerEntity, callForHelpId, attempt)
     local helpPlayerPathingEntity = helpPlayer.character
 
@@ -308,11 +354,14 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
     }
 
     -- Record the path request to globals.
+    ---@type CallForHelp_PathRequestObject
     local pathRequestObject = {
         callForHelpId = callForHelpId,
         pathRequestId = pathRequestId,
         helpPlayer = helpPlayer,
         targetPlayer = targetPlayer,
+        targetPlayerPosition = targetPlayerPosition,
+        targetPlayerEntity = targetPlayerEntity,
         surface = targetPlayerSurface,
         position = arrivalPos,
         attempt = attempt,
@@ -342,19 +391,20 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         if pathRequest.attempt > 3 then
             game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", helpPlayer.name, pathRequest.targetPlayer.name})
         else
-            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.callForHelpId, pathRequest.attempt)
+            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, pathRequest.targetPlayerEntity, pathRequest.callForHelpId, pathRequest.attempt)
         end
     else
-        if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then
+        local helpPlayer_vehicle = helpPlayer.vehicle
+        if CallForHelp.IsTeleportableVehicle(helpPlayer_vehicle) then
             helpPlayer.vehicle.teleport(pathRequest.position)
         else
             local wasDriving, wasPassengerIn
-            if helpPlayer.vehicle ~= nil and helpPlayer.vehicle.valid then
+            if helpPlayer_vehicle ~= nil and helpPlayer_vehicle.valid then
                 -- Player is in a non suitable vehicle, so get them out of it before teleporting.
-                if helpPlayer.vehicle.get_driver() then
-                    wasDriving = helpPlayer.vehicle
-                elseif helpPlayer.vehicle.get_passenger() then
-                    wasPassengerIn = helpPlayer.vehicle
+                if helpPlayer_vehicle.get_driver() then
+                    wasDriving = helpPlayer_vehicle
+                elseif helpPlayer_vehicle.get_passenger() then
+                    wasPassengerIn = helpPlayer_vehicle
                 end
                 helpPlayer.driving = false
             end

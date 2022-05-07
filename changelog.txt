@@ -1,4 +1,20 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.20
+Date: 2022-05-07
+  Features:
+  Changes:
+    - Call For Help feature - added option to only call players on same force, defaults to true. Previously any player on the server could be called.
+    - Teleport feature - optimised to handle large numbers of biter nests (spawners) being on a non-enemy force and thus ignored. General optimisations to UPS usage across biter nest searching.
+    - Leaky flamethrower feature - if weapon/ammo items and/or filters were removed to equip the player with a flamethrower then these are restored unpon the effect completing or the player dieing.
+    - Leaky flamethrower feature - random aiming a bit larger distribution area.
+    - Pants On Fire - if you stay in a vehicle you will take exponential damage until you get out. This will scale quickly to handle players from no armour up to heavily shielded players.
+  Bugfixes:
+    - Give Weapon & Ammo feature - when forceWeaponToSlot set to True it will force the weapon in to a filtered gun slot if needed.
+    - Leaky flamethrower feature - handles if all slots are full/filtered by clearing one for the flamethrower.
+    - Aggressive Driver feature - if the player was in a train, but not a locomotive carriage then the code wouldn't have run correctly and could lead to partial or no control exerted over the train.
+  Info:
+    - Readme / mod portal description argument types clarified with more specific examples and data types.
+---------------------------------------------------------------------------------------------------
 Version: 20.0.19
 Date: 2022-04-11
   Features:
