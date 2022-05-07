@@ -2,8 +2,6 @@ DOING NOW:
 
 
 BUGS:
-    - If another player is in train then "flooring it" doesn't force speed in some cases. Seen when other player is in loco and streamer is in a random wagon. But there may be other cases as well.
-    - Make sure the various crazy driver commands can all be used at once and behave ok regardless of which vehicle type a player is in already or near.
 
 
 Future Confirmed:

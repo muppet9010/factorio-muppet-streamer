@@ -14,7 +14,7 @@ local MaxDistancePositionAroundTarget = 10
 
 ---@class CallForHelp_DelayedCommandDetails
 ---@field callForHelpId Id
----@field target string
+---@field target string @ Player's name.
 ---@field arrivalRadius double
 ---@field callRadius double|null
 ---@field sameTeamOnly boolean
@@ -34,6 +34,8 @@ local MaxDistancePositionAroundTarget = 10
 ---@field pathRequestId Id
 ---@field helpPlayer LuaPlayer
 ---@field targetPlayer LuaPlayer
+---@field targetPlayerPosition MapPosition
+---@field targetPlayerEntity LuaEntity
 ---@field surface LuaSurface
 ---@field position MapPosition
 ---@field attempt uint
@@ -358,6 +360,8 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         pathRequestId = pathRequestId,
         helpPlayer = helpPlayer,
         targetPlayer = targetPlayer,
+        targetPlayerPosition = targetPlayerPosition,
+        targetPlayerEntity = targetPlayerEntity,
         surface = targetPlayerSurface,
         position = arrivalPos,
         attempt = attempt,
@@ -387,19 +391,20 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         if pathRequest.attempt > 3 then
             game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", helpPlayer.name, pathRequest.targetPlayer.name})
         else
-            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.callForHelpId, pathRequest.attempt)
+            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, pathRequest.targetPlayerEntity, pathRequest.callForHelpId, pathRequest.attempt)
         end
     else
-        if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then
+        local helpPlayer_vehicle = helpPlayer.vehicle
+        if CallForHelp.IsTeleportableVehicle(helpPlayer_vehicle) then
             helpPlayer.vehicle.teleport(pathRequest.position)
         else
             local wasDriving, wasPassengerIn
-            if helpPlayer.vehicle ~= nil and helpPlayer.vehicle.valid then
+            if helpPlayer_vehicle ~= nil and helpPlayer_vehicle.valid then
                 -- Player is in a non suitable vehicle, so get them out of it before teleporting.
-                if helpPlayer.vehicle.get_driver() then
-                    wasDriving = helpPlayer.vehicle
-                elseif helpPlayer.vehicle.get_passenger() then
-                    wasPassengerIn = helpPlayer.vehicle
+                if helpPlayer_vehicle.get_driver() then
+                    wasDriving = helpPlayer_vehicle
+                elseif helpPlayer_vehicle.get_passenger() then
+                    wasPassengerIn = helpPlayer_vehicle
                 end
                 helpPlayer.driving = false
             end
