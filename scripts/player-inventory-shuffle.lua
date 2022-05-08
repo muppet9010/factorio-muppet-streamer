@@ -4,14 +4,28 @@ local Logging = require("utility/logging")
 local Utils = require("utility/utils")
 local EventScheduler = require("utility/event-scheduler")
 local Colors = require("utility.colors")
-local Events = require("utility.events")
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 
 local ErrorMessageStart = "ERROR: muppet_streamer_player_inventory_shuffle command "
 
 ------------------------        DEBUG OPTIONS - MAKE SURE ARE FALE ON RELEASE       ------------------------
-local debugStatusMessages = false
+local debugStatusMessages = true
 local singlePlayerTesting = true -- Set to TRUE to force the mod to work for one player with false copies of the one player.
+
+---@alias PlayerInventoryShuffle_playersItemCounts table<uint, PlayerInventoryShuffle_orderedItemCounts>
+
+---@alias PlayerInventoryShuffle_orderedItemCounts table<uint, PlayerInventoryShuffle_itemCounts>
+
+---@class PlayerInventoryShuffle_itemCounts
+---@field name string
+---@field count uint
+
+---@class PlayerInventoryShuffle_RequestData
+---@field playerNames string[]
+---@field includeEquipment boolean
+---@field destinationPlayersMinimumVariance uint
+---@field destinationPlayersVarianceFactor double
+---@field recipientItemMinToMaxRatio uint
 
 PlayerInventoryShuffle.CreateGlobals = function()
     global.playerInventoryShuffle = global.playerInventoryShuffle or {}
@@ -124,15 +138,18 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
-    ---@class PlayerInventoryShuffle_RequestData
-    local data = {
-        playerNames = playerNames,
-        includeEquipment = includeEquipment,
-        destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
-        destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
-        recipientItemMinToMaxRatio = recipientItemMinToMaxRatio
-    }
-    EventScheduler.ScheduleEvent(command.tick + delay, "PlayerInventoryShuffle.MixupPlayerInventories", global.playerInventoryShuffle.nextId, data)
+    EventScheduler.ScheduleEvent(
+        command.tick + delay,
+        "PlayerInventoryShuffle.MixupPlayerInventories",
+        global.playerInventoryShuffle.nextId,
+        {
+            playerNames = playerNames,
+            includeEquipment = includeEquipment,
+            destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
+            destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
+            recipientItemMinToMaxRatio = recipientItemMinToMaxRatio
+        }
+    )
 end
 
 PlayerInventoryShuffle.MixupPlayerInventories = function(event)
@@ -201,7 +218,7 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
 
     -- Loop over each player and handle their inventories.
     ---@typelist LuaItemStack, LuaInventory, string
-    local playerInventoryStack, playersInventory, stackItemName
+    local playerInventoryStack, playersInventory, stackItemName, playersInitialInventorySlotBonus
     for _, player in pairs(players) do
         -- Return the players cursor stack to their inventory before handling.
         player.clear_cursor()
@@ -210,11 +227,13 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
         for _, inventoryName in pairs(inventoryNamesToCheck) do
             playersInventory = player.get_inventory(inventoryName)
             -- Move each item stack in the inventory. As this is a players inventory there could be filtered item stacks at the end.
+            -- CODE NOTE: this is suitable for regular sized inventories as there shouldn't be too many stacks and we expect lots of random item types.
             for i = 1, #playersInventory do
                 playerInventoryStack = playersInventory[i] ---@type LuaItemStack
                 if playerInventoryStack.valid_for_read then
                     -- Record this player as an item source.
                     stackItemName = playerInventoryStack.name
+                    -- TODO: this needs to check if this player already registeed for this item name. Same for main inventories as some item types could come from multiple inventories of the same player, i.e. ammo from gun, main and trash.
                     if itemSources[stackItemName] == nil then
                         itemSources[stackItemName] = 1
                     else
@@ -248,62 +267,58 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
         if player.crafting_queue_size > 0 then
             playersInventory = player.get_inventory(defines.inventory.character_main)
 
-            -- Have to cancel each item one at a time while there still are some. As if you cancel a pre-requisite or final item then the other related items are auto cancelled and any attempt to iterate a cached list fails.
+            -- Grow the player's inventory to maximum size so that all cancelled craft ingredients are bound to fit in it.
+            playersInitialInventorySlotBonus = player.character_inventory_slots_bonus
+            player.character_inventory_slots_bonus = 65535 -- Will make it the maximum size.
+
+            -- Have to cancel each item one at a time while there still are some. As if you cancel a pre-requisite or final item then the other related items are auto cancelled and any attempt to iterate a cached list errors.
             while player.crafting_queue_size > 0 do
-                -- CODE NOTE: We assume that no single item takes more than 10 stacks to craft (power armour mk2 is 7). And a players inventory is 80 stacks or more. This is fine for small numbers, but a bit UPS wasteful for large numbers.
-                player.cancel_crafting {index = 1, count = 8}
+                player.cancel_crafting {index = 1, count = 99999999} -- Just a numebr to get all.
+            end
 
-                -- Move each item type in the player's inventory to the storage inventory until we have got them all. We expect only a few item types/stacks from the craft cancel, but due to filtered inventory slots we can't be sure they will be at the start of the inventory.
-                -- CODE NOTE: All items will end up in players main inventory as their other inventories have already been emptied.
-                -- CODE NOTE: We have to clear out their main inventory after each cancel as we have no way of knowing how full it may be now or after next cancel. As a single queued item multi-part craft can only come from 1 full inventory this should be safe and avoid spilling.
-                for name in pairs(playersInventory.get_contents()) do
-                    -- Record this player as a source for this item type.
-                    --TODO: this needs to check if this player already registeed for this item name. Same for main inventories as some item types could come from multiple inventories of the same player, i.e. ammo from gun, main and trash.
-                    if itemSources[name] == nil then
-                        itemSources[name] = 1
-                    else
-                        itemSources[name] = itemSources[name] + 1
-                    end
+            -- Move each item type in the player's inventory to the storage inventory until we have got them all. We expect only a few item types/stacks from the craft cancel, but due to filtered inventory slots we can't be sure they will be at the start of the inventory.
+            -- CODE NOTE: All items will end up in players main inventory as their other inventories have already been emptied.
+            -- CODE NOTE: this is suitable for tiny up to potentially maximum sized inventories as we iterate the numebr of item types and not the inventory size. Is more UPS per item type, but cheaper with thousands of empty slots.
+            for name in pairs(playersInventory.get_contents()) do
+                -- Record this player as a source for this item type.
+                --TODO: this needs to check if this player already registeed for this item name. Same for main inventories as some item types could come from multiple inventories of the same player, i.e. ammo from gun, main and trash.
+                if itemSources[name] == nil then
+                    itemSources[name] = 1
+                else
+                    itemSources[name] = itemSources[name] + 1
+                end
 
-                    -- Keep on moving each item stack until all are done. Some items can have mutliple stacks of pre-requisite items in their recipes.
-                    playerInventoryStack = playersInventory.find_item_stack(name)
-                    while playerInventoryStack ~= nil do
-                        -- Move the item stack to the storage inventory.
-                        storageInventory.insert(playerInventoryStack) -- This effectively sorts and merges the inventory as its made.
-                        playersInventory.remove(playerInventoryStack) -- Remove from the player as we go as otherwise we can't iterate our item count correctly.
-                        storageInventoryStackCount = storageInventoryStackCount + 1
-                        if storageInventoryStackCount == 65535 then
-                            storageInventoryFull = true
-                            -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
-                            game.print({"message.muppet_streamer_player_inventory_shuffle_item_limit_reached"}, Colors.lightred)
-                            break
-                        end
-
-                        -- Update ready for next loop.
-                        playerInventoryStack = playersInventory.find_item_stack(name)
-                    end
-
-                    if storageInventoryFull then
+                -- Keep on moving each item stack until all are done. Some items can have mutliple stacks of pre-requisite items in their recipes.
+                playerInventoryStack = playersInventory.find_item_stack(name)
+                while playerInventoryStack ~= nil do
+                    -- Move the item stack to the storage inventory.
+                    storageInventory.insert(playerInventoryStack) -- This effectively sorts and merges the inventory as its made.
+                    playersInventory.remove(playerInventoryStack) -- Remove from the player as we go as otherwise we can't iterate our item count correctly.
+                    storageInventoryStackCount = storageInventoryStackCount + 1
+                    if storageInventoryStackCount == 65535 then
+                        storageInventoryFull = true
+                        -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
+                        game.print({"message.muppet_streamer_player_inventory_shuffle_item_limit_reached"}, Colors.lightred)
                         break
                     end
+
+                    -- Update ready for next loop.
+                    playerInventoryStack = playersInventory.find_item_stack(name)
                 end
 
                 if storageInventoryFull then
                     break
                 end
             end
+
+            -- Return the players inventory back to its origional size.
+            player.character_inventory_slots_bonus = playersInitialInventorySlotBonus
         end
 
         if storageInventoryFull then
             break
         end
     end
-
-    ---@alias PlayerInventoryShuffle_playersItemCounts table<uint, PlayerInventoryShuffle_orderedItemCounts>
-    ---@alias PlayerInventoryShuffle_orderedItemCounts table<uint, PlayerInventoryShuffle_itemCounts>
-    ---@class PlayerInventoryShuffle_itemCounts
-    ---@field name string
-    ---@field count uint
 
     -- Set up the main player variable arrays, these are references to the players variable index and not the actual LuaPlayer index value.
     local itemsToDistribute = storageInventory.get_contents()
