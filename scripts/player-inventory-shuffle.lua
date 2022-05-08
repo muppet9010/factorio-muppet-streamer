@@ -3,6 +3,7 @@ local Commands = require("utility/commands")
 local Logging = require("utility/logging")
 local Utils = require("utility/utils")
 local EventScheduler = require("utility/event-scheduler")
+local Colors = require("utility.colors")
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 
 local ErrorMessageStart = "ERROR: muppet_streamer_player_inventory_shuffle command "
@@ -181,19 +182,25 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     end
     game.print({"message.muppet_streamer_player_inventory_shuffle_start", playerNamePrettyList})
 
-    -- Track the number of player sources for each item type when moving the items in to the shared inventory.
-    local storageInventory = game.create_inventory(65535)
-    local itemSources = {} ---@type table<string, int>, uint
-    local inventoryNamesToCheck  ---@typelist defines.inventory[], LuaItemStack
-    -- Empty main inventory before armour so no oddness with main inventory size changes.
+    -- Work out what inventories we will be emptying based on settings.
+    -- CODE NOTE: Empty main inventory before armour so no oddness with main inventory size changes.
+    local inventoryNamesToCheck  ---@type defines.inventory[]
     if data.includeEquipment then
         inventoryNamesToCheck = {defines.inventory.character_main, defines.inventory.character_trash, defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo}
     else
         inventoryNamesToCheck = {defines.inventory.character_main, defines.inventory.character_trash}
     end
+
+    -- We will track the number of player sources for each item type when moving the items in to the shared inventory.
+    local itemSources = {} ---@type table<string, uint>
+
+    -- Create a single storage invnetory (limited size). Track the maximum number of stacks that have gone in to it in a very simple way i.e. it doesn't account for stacks that merge togeather. It's used just to give a warning at present if the shared storageInventory may have filled up.
+    local storageInventory = game.create_inventory(65535)
+    local storageInventoryStackCount, storageInventoryFull = 0, false
+
+    -- Loop over each player and handle their inventories.
     ---@typelist LuaItemStack, LuaInventory, string
     local playerInventoryStack, playersInventory, stackItemName
-    -- Loop over each player.
     for _, player in pairs(players) do
         -- Return the players cursor stack to their inventory before handling.
         player.clear_cursor()
@@ -212,9 +219,25 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
                         itemSources[stackItemName] = itemSources[stackItemName] + 1
                     end
                     storageInventory.insert(playerInventoryStack) -- This effectively sorts and merges the inventory as its made.
+                    storageInventoryStackCount = storageInventoryStackCount + 1
+                    if storageInventoryStackCount == 65535 then
+                        storageInventoryFull = true
+                        break
+                    end
                 end
             end
+
+            if storageInventoryFull then
+                -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
+                game.print({"message.muppet_streamer_player_inventory_shuffle_item_limit_reached"}, Colors.lightred)
+                break
+            end
+
             playersInventory.clear()
+        end
+
+        if storageInventoryFull then
+            break
         end
     end
 
@@ -237,7 +260,7 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     ---@typelist uint, uint, double, double[], double, uint, double, uint[], uint, uint, uint, uint, uint
     local sourcesCount, destinationCount, totalAssignedPercentage, destinationPercentages, standardisedPercentageModifier, itemsLeftToAssign, destinationPercentage, playersAvailableToRecieveThisItem, playerIndex, playerIndexListIndex, itemCountForPlayerIndex, destinationCountMin, destinationCountMax
     for itemName, itemCount in pairs(itemsToDistribute) do
-        sourcesCount = itemSources[stackItemName]
+        sourcesCount = itemSources[itemName]
 
         -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random +/- of the greatest between the ItemDestinationPlayerCountRange and destinationPlayersMinimumVariance.
         destinationCountMin = math_min(-data.destinationPlayersMinimumVariance, -math_floor((sourcesCount * data.destinationPlayersVarianceFactor)))
