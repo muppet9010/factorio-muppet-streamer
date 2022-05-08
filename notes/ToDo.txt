@@ -13,7 +13,6 @@ Future Confirmed:
 
 
 Future Concepts:
-	- Inventory Shuffle - have it cancel the players crafting queue and shuffle those items as well. To avoid inventory spilling do after the initial inventory empty and check that it isn't going to fill up if the player has some ridiclious crafting queue, i.e. chunk the cancelling?
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
     - Spawn around player to support biters, spitters or both. Allow named or evo specific.
     - Call for Help - add:
