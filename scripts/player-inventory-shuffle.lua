@@ -12,7 +12,7 @@ local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements
 
 ------------------------        DEBUG OPTIONS - MAKE SURE ARE FALE ON RELEASE       ------------------------
 local debugStatusMessages = false
-local singlePlayerTesting = true -- Set to TRUE to force the mod to work for one player with false copies of the one player.
+local singlePlayerTesting = false -- Set to TRUE to force the mod to work for one player with false copies of the one player.
 
 ---@alias PlayerInventoryShuffle_playersItemCounts table<uint, PlayerInventoryShuffle_orderedItemCounts>
 
@@ -305,46 +305,51 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
             -- Have to cancel each item one at a time while there still are some. As if you cancel a pre-requisite or final item then the other related items are auto cancelled and any attempt to iterate a cached list errors.
             while player.crafting_queue_size > 0 do
                 player.cancel_crafting {index = 1, count = 99999999} -- Just a number to get all.
-            end
 
-            -- Move each item type in the player's inventory to the storage inventory until we have got them all. We expect only a few item types/stacks from the craft cancel, but due to filtered inventory slots we can't be sure they will be at the start of the inventory.
-            -- CODE NOTE: All items will end up in players main inventory as their other inventories have already been emptied.
-            -- CODE NOTE: this is suitable for tiny up to potentially maximum sized inventories as we iterate the numebr of item types and not the inventory size. Is more UPS per item type, but cheaper with thousands of empty slots.
-            for name in pairs(playersInventory.get_contents()) do
-                -- Record this player as an item source if they haven't already been counted for this item in another inventory.
-                if playersItemSources[name] == nil then
-                    playersItemSources[name] = true
-                    if itemSources[name] == nil then
-                        itemSources[name] = 1
-                    else
-                        itemSources[name] = itemSources[name] + 1
-                    end
-                end
-
-                -- Keep on moving each item stack until all are done. Some items can have mutliple stacks of pre-requisite items in their recipes.
-                playerInventoryStack = playersInventory.find_item_stack(name)
-                while playerInventoryStack ~= nil do
-                    -- Move the item stack to the storage inventory.
-                    storageInventory.insert(playerInventoryStack) -- This effectively sorts and merges the inventory as its made.
-                    playersInventory.remove(playerInventoryStack) -- Remove from the player as we go as otherwise we can't iterate our item count correctly.
-
-                    -- Track the inventory fullness very crudely. Grow it when its possibly close to full.
-                    storageInventoryStackCount = storageInventoryStackCount + 1
-                    if storageInventoryStackCount == storageInventorySize then
-                        if storageInventorySize < StorageInventoryMaxGrowthSize then
-                            -- Can just grow it. Assumes 1,000 increments.
-                            storageInventorySize = storageInventorySize + StorageInventorySizeIncrements
-                            storageInventory.resize(storageInventorySize)
+                -- Move each item type in the player's inventory to the storage inventory until we have got them all. We expect only a few item types/stacks from the craft cancel, but due to filtered inventory slots we can't be sure they will be at the start of the inventory.
+                -- CODE NOTE: All items will end up in players main inventory as their other inventories have already been emptied.
+                -- CODE NOTE: Empty the players inventory after each craftng cancel as this minimises risks from having grown the players inventory to a limited size. It does mean more runs of the inventory empty loop if lots of small craft jobs are cancelled, but the savings from handling a smaller overall inventory is well worth it.
+                -- CODE NOTE: This is suitable for tiny up to potentially maximum sized inventories as we iterate the number of item types and not the inventory size. Is more UPS per item type, but cheaper with thousands of empty slots.
+                for name in pairs(playersInventory.get_contents()) do
+                    -- Record this player as an item source if they haven't already been counted for this item in another inventory.
+                    if playersItemSources[name] == nil then
+                        playersItemSources[name] = true
+                        if itemSources[name] == nil then
+                            itemSources[name] = 1
                         else
-                            -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
-                            game.print({"message.muppet_streamer_player_inventory_shuffle_item_limit_reached"}, Colors.lightred)
-                            storageInventoryFull = true
-                            break
+                            itemSources[name] = itemSources[name] + 1
                         end
                     end
 
-                    -- Update ready for next loop.
+                    -- Keep on moving each item stack until all are done. Some items can have mutliple stacks of pre-requisite items in their recipes.
                     playerInventoryStack = playersInventory.find_item_stack(name)
+                    while playerInventoryStack ~= nil do
+                        -- Move the item stack to the storage inventory.
+                        storageInventory.insert(playerInventoryStack) -- This effectively sorts and merges the inventory as its made.
+                        playersInventory.remove(playerInventoryStack) -- Remove from the player as we go as otherwise we can't iterate our item count correctly.
+
+                        -- Track the inventory fullness very crudely. Grow it when its possibly close to full.
+                        storageInventoryStackCount = storageInventoryStackCount + 1
+                        if storageInventoryStackCount == storageInventorySize then
+                            if storageInventorySize < StorageInventoryMaxGrowthSize then
+                                -- Can just grow it. Assumes 1,000 increments.
+                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements
+                                storageInventory.resize(storageInventorySize)
+                            else
+                                -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
+                                game.print({"message.muppet_streamer_player_inventory_shuffle_item_limit_reached"}, Colors.lightred)
+                                storageInventoryFull = true
+                                break
+                            end
+                        end
+
+                        -- Update ready for next loop.
+                        playerInventoryStack = playersInventory.find_item_stack(name)
+                    end
+
+                    if storageInventoryFull then
+                        break
+                    end
                 end
 
                 if storageInventoryFull then
@@ -430,13 +435,13 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
     -- Randomly order the items we will be distributing as otherwise the same type of things are those forced in to inventories out of ratio or dropped on the ground. WIthout this also the worst armor was always assigned as well (lowest order).
     ---@typelist uint, PlayerInventoryShuffle_orderedItemCounts
     local randomOrderPosition, randomItemCountsList
-    for playerIndex, itemCountsList in pairs(playersItemCounts) do
+    for itemCountsPlayerIndex, itemCountsList in pairs(playersItemCounts) do
         randomItemCountsList = {}
         for _, itemCounts in ipairs(itemCountsList) do
             randomOrderPosition = math.random(1, #randomItemCountsList + 1)
             table.insert(randomItemCountsList, randomOrderPosition, itemCounts)
         end
-        playersItemCounts[playerIndex] = randomItemCountsList
+        playersItemCounts[itemCountsPlayerIndex] = randomItemCountsList
     end
 
     return playersItemCounts
@@ -555,7 +560,7 @@ end
 ---@return uint itemCountNotInserted
 PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemName, itemCount, player)
     ---@typelist LuaItemStack, uint, boolean, ItemStackDefinition, uint
-    local itemStackToTakeFrom, itemsInserted, itemToInsert, itemCountToTakeFromThisStack
+    local itemStackToTakeFrom, itemsInserted, itemToInsert, itemStackToTakeFrom_count, itemCountToTakeFromThisStack
     local playersInventoryIsFull = false
 
     -- Keep on taking items from the storage inventories stacks until we have moved the required number of items or filled up the player's inventory.

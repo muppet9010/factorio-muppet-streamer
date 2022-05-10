@@ -244,8 +244,8 @@ Teleport.PlanTeleportTarget = function(eventData)
         -- Populate data.spawnerDistance with valid enemy spawners on the player's current surface if needed, otherwise handle last bad result.
         if data.targetAttempt > 1 then
             -- This target position has been found to be bad so remove any spawners too close to this bad location for this player.
-            ---@typelist double, double
-            local distanceXDiff, distanceYDiff
+            ---@typelist double, double, double
+            local distanceXDiff, distanceYDiff, spawnerDistance
             for index, spawnerDistanceDetails in pairs(data.spawnerDistances) do
                 -- CODE NOTE: Do locally rather than via function call as we call this a lot and its so simple logic.
                 distanceXDiff = targetPlayer_position.x - spawnerDistanceDetails.spawnerDetails.position.x

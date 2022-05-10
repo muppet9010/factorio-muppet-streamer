@@ -155,7 +155,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     -- Do the first effect now.
     game.print({"message.muppet_streamer_player_drop_inventory_start", targetPlayer.name})
     ---@class PlayerDropInventory_ScheduledDropItemsData
-    local data = {
+    local scheduledDropItemsData = {
         player = targetPlayer,
         gap = data.gap,
         totaloccurrences = data.occurrences,
@@ -165,7 +165,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         dynamicPercentageItemCount = dynamicPercentageItemCount,
         currentoccurrences = 0
     }
-    PlayerDropInventory.PlayerDropItems_Scheduled({tick = event.tick, instanceId = targetPlayer.index, data = data})
+    PlayerDropInventory.PlayerDropItems_Scheduled({tick = event.tick, instanceId = targetPlayer.index, data = scheduledDropItemsData})
 end
 
 --- Apply the drop item effect to the player.
@@ -191,7 +191,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     if totalItemCount > 0 then
         -- Drop the number of items from across the range of inventories based on their proportional sizes.
         -- Updates the item stats as it loops.
-        itemCountDropped = 0
+        local itemCountDropped = 0
         local surface, position = player.surface, player.position
         while itemCountDropped < itemCountToDrop do
             -- Select the random item number to be dropped from all items.

@@ -26,6 +26,7 @@ Future Concepts:
         - lock player in spider (option)
         - option: spider keeps on walk towards a random location within a set radius
         - option: spider walks randomly around
+        - option: spider goes in search of water
         - option: walk towards nearest biter base (use teleport biter nest tracking).
         - option: walk towards nearest enemy unit group (use teleport to nearest biter logic).
     - Change player (named or all) characters to other things, i.e. biters. Need to check how armour, ammo, etc handles this. Also would need to be delayed until after other active event has finished.

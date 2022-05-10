@@ -196,7 +196,7 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Return the player's weapon and ammo filters (alive or just dead) if there were any.
     ---@typelist LuaInventory,LuaInventory, LuaPlayer
-    local playerGunInventory, playerAmmoInventory, playerCharacterInventory
+    local playerGunInventory, playerAmmoInventory, playerCharacterInventory = nil, nil, nil
     local removedWeaponDetails = affectedPlayer.removedWeaponDetails
     if removedWeaponDetails.weaponFilterName ~= nil then
         playerGunInventory = playerGunInventory or player.get_inventory(defines.inventory.character_guns)
