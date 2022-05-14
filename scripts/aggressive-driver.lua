@@ -159,7 +159,9 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         return
     end
 
+    -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.origionalPlayersPermissionGroup[targetPlayer.index] = global.origionalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
+
     targetPlayer.permission_group = game.permissions.get_group("AggressiveDriver")
     global.aggressiveDriver.affectedPlayers[targetPlayer.index] = true
 
