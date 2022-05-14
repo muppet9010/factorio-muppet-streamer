@@ -149,6 +149,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         data.burstsDone = data.burstsDone + 1
         global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft = global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft - 1
         if data.burstsDone == data.maxBursts then
+            player.shooting_state = {state = defines.shooting.not_shooting}
             LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
             return
         end

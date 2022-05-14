@@ -25,7 +25,7 @@ Features
 General Usage Notes
 ---------------
 
-At present a time duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
+At present a Time Duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
 
 Argument Data Types:
 

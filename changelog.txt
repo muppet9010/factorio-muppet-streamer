@@ -8,6 +8,7 @@ Date: 2022-05-XXXXX
     - Inventory Shuffle feature - player source count correctly handles same item from multiple source inventories of the same player.
     - Inventory Shuffle feature - player source count for each item is now respected. Preivous bug led to all items following the first item's source count.
     - Inventory Shuffle feature - error if no players had any items at all fixed.
+    - Leaky Flamethrower - at the end of the effect the last used weapon would be fired once. if the weapon required an active target this wasn't noticable, but if it was a atomic rocket it was bad.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.0.20
@@ -18,6 +19,7 @@ Date: 2022-05-07
     - Teleport feature - optimised to handle large numbers of biter nests (spawners) being on a non-enemy force and thus ignored. General optimisations to UPS usage across biter nest searching.
     - Leaky flamethrower feature - if weapon/ammo items and/or filters were removed to equip the player with a flamethrower then these are restored unpon the effect completing or the player dieing.
     - Leaky flamethrower feature - random aiming a bit larger distribution area.
+    - Leaky flamethrower feature - after effect ends the players active weapon is returned to what it was before the effect started, rather than being left on whichever weapon slot the flamethrower was put in.
     - Pants On Fire - if you stay in a vehicle you will take exponential damage until you get out. This will scale quickly to handle players from no armour up to heavily shielded players.
   Bugfixes:
     - Give Weapon & Ammo feature - when forceWeaponToSlot set to True it will force the weapon in to a filtered gun slot if needed.
