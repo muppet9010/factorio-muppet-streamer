@@ -2,6 +2,7 @@
 Version: 20.0.21
 Date: 2022-05-XXXXX
   Features:
+    - Aggressive Driver feature - now supports spider vehicles. They will either force a forwards walking with player directional input or wonder around randomly based on settings.
   Changes:
     - Inventory Shuffle feature - cancels any crafting by the included players and distributes their ingredient items. Limit to 1,000 inventory slots per player for cancelled crafting ingredients to go in to before they spill at that player's feet.
   Bugfixes:

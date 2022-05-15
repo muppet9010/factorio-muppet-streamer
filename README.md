@@ -154,13 +154,13 @@ The player is locked inside their vehicle and forced to drive forwards for the s
     - duration: FLOAT - Mandatory: how many seconds the effect lasts on the player.
     - control: STRING - Optional: if the player has control over steering, either: `full` or `random`. Full allows control over left/right steering, random switches between left, right, straight for short periods. If not specified then full is applied.
     - teleportDistance: INTEGER - Optional: the max distance of tiles that the player will be teleported into the nearest suitable drivable vehicle. If not supplied it is treated as 0 distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
-- Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"10", "control": "full", "teleportDistance": 100}`
+- Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"30", "control": "random", "teleportDistance": 100}`
 
 Notes:
 
 - This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
 - If the vehicle comes to a stop during the time (due to hitting something) it will automatically start going the opposite direction.
-- This feature affects all types of cars, tanks and train vehicles, but not the Spider Vehicle.
+- This feature affects all types of cars, tanks, train and spider vehicles.
 
 
 
