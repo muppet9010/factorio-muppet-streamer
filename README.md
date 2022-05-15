@@ -145,7 +145,7 @@ Notes:
 Aggressive Driver
 ---------------
 
-The player is locked inside their vehicle and forced to drive forwards for the set duration. This is a Time Duration event.
+The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering. This is a Time Duration event.
 
 - Command syntax: `/muppet_streamer_aggressive_driver [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
