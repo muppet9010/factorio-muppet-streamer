@@ -25,7 +25,7 @@ Features
 General Usage Notes
 ---------------
 
-At present a time duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
+At present a Time Duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
 
 Argument Data Types:
 
@@ -86,7 +86,7 @@ Notes:
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one.
 - While activated the player will lose control over their weapons targeting and firing behaviour.
 - While activated the player can not change the active gun via the switch to next weapon key.
-- The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishs to do this then thats their choice.
+- The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
 - The flamethrower is yours and so any of your damage upgrades will affect it.
 
 
@@ -145,7 +145,7 @@ Notes:
 Aggressive Driver
 ---------------
 
-The player is locked inside their vehicle and forced to drive forwards for the set duration. This is a Time Duration event.
+The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering. This is a Time Duration event.
 
 - Command syntax: `/muppet_streamer_aggressive_driver [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
@@ -154,13 +154,13 @@ The player is locked inside their vehicle and forced to drive forwards for the s
     - duration: FLOAT - Mandatory: how many seconds the effect lasts on the player.
     - control: STRING - Optional: if the player has control over steering, either: `full` or `random`. Full allows control over left/right steering, random switches between left, right, straight for short periods. If not specified then full is applied.
     - teleportDistance: INTEGER - Optional: the max distance of tiles that the player will be teleported into the nearest suitable drivable vehicle. If not supplied it is treated as 0 distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
-- Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"10", "control": "full", "teleportDistance": 100}`
+- Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"30", "control": "random", "teleportDistance": 100}`
 
 Notes:
 
 - This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
 - If the vehicle comes to a stop during the time (due to hitting something) it will automatically start going the opposite direction.
-- This feature affects all types of cars, tanks and train vehicles, but not the Spider Vehicle.
+- This feature affects all types of cars, tanks, train and spider vehicles.
 
 
 
@@ -242,7 +242,7 @@ Sets the ground on fire behind a player forcing them to run.
 
 Notes:
 
-- If a player is in a vehicle while the effect is active they take increaseing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armoured vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
+- If a player is in a vehicle while the effect is active they take increasing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armoured vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
 
 
 Player Drop Inventory
@@ -293,8 +293,10 @@ Notes:
     - All targets online have all their inventories taken. Each item type has the number of source players recorded.
     - A random number of new players to receive each item type is worked out. This is based on the number of source players for that item type, with a +/- random value based on the greatest between the destinationPlayersMinimumVariance setting and the destinationPlayersVarianceFactor setting. This allows a minimum variation to be enforced even when very small player targets are online. The final value of new players for the items to be split across will never be less than 1 or greater than all of the online target players.
     - The number of each item each selected player will receive is a random proportion of the total. This is controlled by the recipientItemMinToMaxRatio setting. This setting defines the minimum to maximum ratio between 2 players, i.e. setting of 4 means a player receiving the maximum number can receive up to 4 times as many as a player receiving the minimum. This setting's implementation isn't quite exact and should be viewed as a rough guide.
-    - Any items that can't be fitted into the intended destination player will be given to another online targeted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targeted player then they will be dropped on the floor at the targeted players’ feet. This situation can occur as items are taken from player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
+    - Any items that can't be fitted into the intended destination player will be given to another online targeted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targeted player then they will be dropped on the floor at the targeted players’ feet. This situation can occur as items are taken from the player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
 - Players are given items using Factorios default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
+- Any hand crafting by players will be cancelled and the ingredients added into the shared items. To limit the UPS impact each player who is crafting can't have more than 1,000 inventory slots per cancelled crafting entry; This is over 8 vanilla player inventories. Any ingredients over this will be dropped at the feet of that player on the ground.
+- All attempts are made to give the items to players, but as a last resort they will be dropped on the ground. In large quantities this can cause a UPS stutter as the core Factorio game engine handles it. This will arise if players have all their different inventories full and have long crafting queues with extra items already used in these crafts.
 
 
 

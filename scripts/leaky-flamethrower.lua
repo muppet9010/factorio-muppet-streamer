@@ -114,7 +114,10 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local flamethrowerGiven, removedWeaponDetails = Interfaces.Call("GiveItems.EnsureHasWeapon", targetPlayer, "flamethrower", true, true)
 
     targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = data.ammoCount})
+
+    -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.origionalPlayersPermissionGroup[targetPlayer_index] = global.origionalPlayersPermissionGroup[targetPlayer_index] or targetPlayer.permission_group
+
     targetPlayer.permission_group = game.permissions.get_group("LeakyFlamethrower")
     global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = {flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails}
 
@@ -149,6 +152,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         data.burstsDone = data.burstsDone + 1
         global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft = global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft - 1
         if data.burstsDone == data.maxBursts then
+            player.shooting_state = {state = defines.shooting.not_shooting}
             LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
             return
         end
@@ -196,7 +200,7 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Return the player's weapon and ammo filters (alive or just dead) if there were any.
     ---@typelist LuaInventory,LuaInventory, LuaPlayer
-    local playerGunInventory, playerAmmoInventory, playerCharacterInventory
+    local playerGunInventory, playerAmmoInventory, playerCharacterInventory = nil, nil, nil
     local removedWeaponDetails = affectedPlayer.removedWeaponDetails
     if removedWeaponDetails.weaponFilterName ~= nil then
         playerGunInventory = playerGunInventory or player.get_inventory(defines.inventory.character_guns)

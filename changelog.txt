@@ -1,12 +1,26 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.21
+Date: 2022-05-15
+  Features:
+    - Aggressive Driver feature - now supports spider vehicles. They will either force a forwards walking with player directional input or wander around randomly based on settings.
+  Changes:
+    - Inventory Shuffle feature - cancels any crafting by the included players and distributes their ingredient items. Limit to 1,000 inventory slots per player for cancelled crafting ingredients to go in before they spill at that player's feet.
+  Bugfixes:
+    - Inventory Shuffle feature - player source count correctly handles the same item from multiple source inventories of the same player.
+    - Inventory Shuffle feature - player source count for each item is now respected. Previous bug led to all items following the first item's source count.
+    - Inventory Shuffle feature - error if no players had any items at all fixed.
+    - Leaky Flamethrower - at the end of the effect the last used weapon would be fired once. if the weapon required an active target this wasn't noticeable, but if it was an atomic rocket it was bad.
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.20
 Date: 2022-05-07
   Features:
   Changes:
-    - Call For Help feature - added option to only call players on same force, defaults to true. Previously any player on the server could be called.
+    - Call For Help feature - added option to only call players on the same force, defaults to true. Previously any player on the server could be called.
     - Teleport feature - optimised to handle large numbers of biter nests (spawners) being on a non-enemy force and thus ignored. General optimisations to UPS usage across biter nest searching.
-    - Leaky flamethrower feature - if weapon/ammo items and/or filters were removed to equip the player with a flamethrower then these are restored unpon the effect completing or the player dieing.
-    - Leaky flamethrower feature - random aiming a bit larger distribution area.
+    - Leaky flamethrower feature - if weapon/ammo items and/or filters were removed to equip the player with a flamethrower then these are restored upon the effect completing or the player dieing.
+    - Leaky flamethrower feature - random aiming across a larger distribution area.
+    - Leaky flamethrower feature - after effect ends the player's active weapon is returned to what it was before the effect started, rather than being left on whichever weapon slot the flamethrower was put in.
     - Pants On Fire - if you stay in a vehicle you will take exponential damage until you get out. This will scale quickly to handle players from no armour up to heavily shielded players.
   Bugfixes:
     - Give Weapon & Ammo feature - when forceWeaponToSlot set to True it will force the weapon in to a filtered gun slot if needed.
@@ -29,7 +43,7 @@ Date: 2022-04-01
   Features:
   Changes:
   Bugfixes:
-    - Removed work around introduced in previous mod version to mitigate core Factrio bug present only in 1.1.56.
+    - Removed work around introduced in previous mod version to mitigate core Factorio bug present only in 1.1.56.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.0.17
@@ -47,10 +61,10 @@ Date: 2022-03-04
     - Call For Help - Added optional Same Surface Only option to allow calling players from other surfaces. Useful for some scenarios. Defaults to true (as per old behaviour).
     - Call For Help - Added optional blacklisted and whitelisted player name lists to refine which players can be teleported to help.
   Changes:
-    - Call For Help - Changed callRadius is now optional and if left undefined will call players from unlimited distance away. Saves having to provide a very large number for these scenarios and is the default.
+    - Call For Help - Changed callRadius is now optional and if left undefined will call players from an unlimited distance away. Saves having to provide a very large number for these scenarios and is the default.
   Bugfixes:
     - Creating random trees on tiles without specific climate data no longer errors. If the player can walk on the tile they get a random tree, if they can't it gets no tree.
-    - Call For Help intermittent error fixed when multiple players trying to be teleported in to a difficult to place situation. Bug reports indicated this was related to being in trains, but not the case.
+    - Call For Help intermittent error fixed when multiple players try to be teleported into a difficult to place situation. Bug reports indicated this was related to being in trains, but not the case.
   Info:
     - Readme text for Teleport and Call For Help clarified in places. No functional changes, but additional pre-existing exceptions are now listed.
 ---------------------------------------------------------------------------------------------------
@@ -75,7 +89,7 @@ Date: 2021-06-19
   Features:
   Changes:
   Bugfixes:
-    - Fix teleport tracking biter nests to handle surfaces created adhock during play.
+    - Fix teleport tracking biter nests to handle surfaces created ad hoc during play.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.0.12
@@ -97,7 +111,7 @@ Date: 2020-12-13
 Version: 20.0.10
 Date: 2020-12-11
   Features:
-    - Spawn Around Player - type tree - Full support for Alien Biomes added. Excessive dead trees should ony be seen for Ice and hotest volcanic tiles.
+    - Spawn Around Player - type tree - Full support for Alien Biomes added. Excessive dead trees should only be seen for Ice and hottest volcanic tiles.
   Changes:
   Bugfixes:
     - Spawn Around Player - type tree - Fix crash with any tree autoplace that was missing water ranges (Alien Biomes modded snow type trees).
@@ -108,22 +122,22 @@ Date: 2020-11-27
   Features:
     - Updated to Factorio 1.1.
   Changes:
-    - Removed the mod setting that disabled tracking launched items in the rocket silo as that Freeplay scenario feature has been removed from Factorio in 1.1.
+    - Removed the mod setting that disabled tracking launched items in the rocket silo as that Freeplay scenario feature was removed from Factorio in 1.1.
   Bugfixes:
-    - Fixed team member limit styyle error.
+    - Fixed team member limit style error.
     - Aggressive Driver - Fix loss of steering in car/tank introduced in previous version.
     - Aggressive Driver - Fix loss of steering in train, in previous version it was flagged as a loss of functionality.
     - Teleport & Call For Help - Fix being in a train would prevent teleporting.
   Info:
-    - Aggressive Driver - updated readme to state that `full` control applies to cars/tanks & trains again, revertign last updates readme change.
+    - Aggressive Driver - updated readme to state that `full` control applies to cars/tanks & trains again, reverting last updates readme change.
 ---------------------------------------------------------------------------------------------------
 Version: 19.0.8
 Date: 2020-11-22
   Features:
   Changes:
-    - Aggressive Driver - `random` control train will alternate between directions continously, cars/tanks will continue to turn for a short period.
+    - Aggressive Driver - `random` control train will alternate between directions continuously, cars/tanks will continue to turn for a short period.
   Bugfixes:
-    - Call For Help - fix crash if optional activePercentage argument not supplied.
+    - Call For Help - fix crash if optional activePercentage argument is not supplied.
   Info:
     - Aggressive Driver - updated readme to state that `full` control only applies to cars/tanks. Trains will go straight in this mode. I can't find a way to allow user input when in a train and still force acceleration.
 ---------------------------------------------------------------------------------------------------
@@ -142,13 +156,13 @@ Version: 19.0.6
 Date: 2020-10-30
   Features:
     - Add Aggressive Driver feature to drive a vehicle forwards aggressively.
-    - Add Call For Help feature to teleport other players to around the specific player.
+    - Add Call For Help feature to teleport other players around the specific player.
     - Add Teleport feature to take the player near a range of possible targets, including backup teleport actions.
-    - Combat robots created by the Spawn Around Player feature have option to follow the player or not. Any robots which can't follow will just be created loose on the map.
-    - Add landmine option to spawn around player feature.
-    - Add force option to spawn around player feature.
+    - Combat robots created by the Spawn Around Player feature have the option to follow the player or not. Any robots which can't follow will just be created loose on the map.
+    - Add landmine option to the spawn around player feature.
+    - Add force option to the spawn around player feature.
   Changes:
-    - Different types of time duration features will interupt each other. Same types currently don't stack.
+    - Different types of time duration features will interrupt each other. Same types currently don't stack.
     - Alert in chat when a targeted player isn't in a state to have an effect applied to them.
   Bugfixes:
     - Fix combat robots commands from erroring.
@@ -203,7 +217,7 @@ Version: 18.0.1
 Date: 2020-02-27
   Features:
   Changes:
-    - Make Workforce feature entirely disablable.
+    - Make Workforce feature entirely disableable.
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------

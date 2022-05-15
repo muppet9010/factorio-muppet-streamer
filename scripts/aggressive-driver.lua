@@ -123,16 +123,18 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         return
     end
 
-    local inVehicle = targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid and targetPlayer.vehicle.type ~= "spider-vehicle"
+    local inVehicle = targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid
     if not inVehicle and data.teleportDistance > 0 then
-        local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "tank", "locomotive"}}
+        local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "tank", "locomotive", "spider-vehicle"}}
         local distanceSortedVehicles = {}
         for _, vehicle in pairs(vehicles) do
             local vehicleValid = true
             if vehicle.get_driver() ~= nil then
                 vehicleValid = false
             end
-            if vehicle.get_fuel_inventory().is_empty() then
+            local vehicleFuelInventory = vehicle.get_fuel_inventory()
+            if vehicleFuelInventory ~= nil and vehicle.get_fuel_inventory().is_empty() then
+                -- There is a fuel inventory for this vehcile and it is empty.
                 vehicleValid = false
             end
             if vehicleValid then
@@ -159,7 +161,9 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         return
     end
 
+    -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.origionalPlayersPermissionGroup[targetPlayer.index] = global.origionalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
+
     targetPlayer.permission_group = game.permissions.get_group("AggressiveDriver")
     global.aggressiveDriver.affectedPlayers[targetPlayer.index] = true
 
@@ -178,68 +182,100 @@ AggressiveDriver.Drive = function(eventData)
     end
     local vehicle_type = vehicle.type
 
-    -- Train carriages need special handling.
-    if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
-        local train = vehicle.train
+    if vehicle_type == "spider-vehicle" then
+        -- Spider vehicles are special.
 
-        -- If the train isn't in manual mode then set it. We do this every tick if needed so that other palyers setting it to automatic gets overridden.
-        if train.manual_mode ~= true then
-            -- Don't set every tick blindly as it resets the players key directions on that tick to be forced to straight forwards.
-            train.manual_mode = true
+        -- Overwrite the players input control for this tick based on the settings.
+        if data.control == ControlTypes.full then
+            -- Player can still steer, so just force to move "forwards".
+
+            -- Every 10 ticks we have to stop controlling the spiders movement so that the players direction input is registered and we can pick it up.
+            if data.accelerationTime > 10 then
+                -- Just reset the counter this tick, lets user input be captured.
+                data.accelerationTime = 0
+            else
+                -- Walk in the current direction.
+                player.walking_state = {walking = true, direction = player.walking_state.direction}
+            end
+        else
+            -- Player has no control so we will set both acceleration and direction.
+
+            -- Either find a new direction if the directionDuration has run out, or just count it down 1.
+            if data.directionDuration == 0 then
+                data.directionDuration = math.random(30, 180)
+                data.direction = math.random(0, 7)
+            else
+                data.directionDuration = data.directionDuration - 1
+            end
+
+            player.walking_state = {walking = true, direction = data.direction}
+        end
+    else
+        -- Cars and trains.
+
+        -- Train carriages need special handling.
+        if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
+            local train = vehicle.train
+
+            -- If the train isn't in manual mode then set it. We do this every tick if needed so that other palyers setting it to automatic gets overridden.
+            if train.manual_mode ~= true then
+                -- Don't set every tick blindly as it resets the players key directions on that tick to be forced to straight forwards.
+                train.manual_mode = true
+            end
+
+            -- If the train is already moving work out if accelerating or reversing the players carriage keeps the train moving in its current direction.
+            -- If the train isn't moving then later in the function the standand flip movement detection will start moving the train in the other direction.
+            -- For a train just starting its scripted control this will also avoid flipping the trains direction, so it continues in its current travel direction. As it would loose the feel of an out of control train and would take a while to stop and build up reversing speed. If the train starts with no speed then the standard direction start logic will make the train move "forwards" in direct relation to the player's carriage facing, not the train's, as theres no known "good" start direction here.
+            local vehicle_speed = vehicle.speed
+            if vehicle_speed ~= 0 then
+                local train_speed = train.speed
+                if (vehicle_speed > 0 and vehicle_speed == train_speed) or (vehicle_speed < 0 and vehicle_speed ~= train_speed) then
+                    data.accelerationState = defines.riding.acceleration.accelerating
+                else
+                    data.accelerationState = defines.riding.acceleration.reversing
+                end
+            end
         end
 
-        -- If the train is already moving work out if accelerating or reversing the players carriage keeps the train moving in its current direction.
-        -- If the train isn't moving then later in the function the standand flip movement detection will start moving the train in the other direction.
-        -- For a train just starting its scripted control this will also avoid flipping the trains direction, so it continues in its current travel direction. As it would loose the feel of an out of control train and would take a while to stop and build up reversing speed. If the train starts with no speed then the standard direction start logic will make the train move "forwards" in direct relation to the player's carriage facing, not the train's, as theres no known "good" start direction here.
-        local vehicle_speed = vehicle.speed
-        if vehicle_speed ~= 0 then
-            local train_speed = train.speed
-            if (vehicle_speed > 0 and vehicle_speed == train_speed) or (vehicle_speed < 0 and vehicle_speed ~= train_speed) then
-                data.accelerationState = defines.riding.acceleration.accelerating
-            else
+        -- Check if the vehicle needs to have its movement flipped (accelerating vs reversing), if it has been trying to move forwards for 3 ticks and still doesn't have any speed.
+        if data.accelerationTime > 3 and vehicle.speed == 0 then
+            data.accelerationTime = 0
+            if data.accelerationState == defines.riding.acceleration.accelerating then
                 data.accelerationState = defines.riding.acceleration.reversing
-            end
-        end
-    end
-
-    -- Check if the vehicle needs to have its movement flipped (accelerating vs reversing), if it has been trying to move forwards for 3 ticks and still doesn't have any speed.
-    if data.accelerationTime > 3 and vehicle.speed == 0 then
-        data.accelerationTime = 0
-        if data.accelerationState == defines.riding.acceleration.accelerating then
-            data.accelerationState = defines.riding.acceleration.reversing
-        else
-            data.accelerationState = defines.riding.acceleration.accelerating
-        end
-    end
-
-    -- Overwrite the players input control for this tick based on the settings.
-    if data.control == ControlTypes.full then
-        -- Player can still steer, so just overwie the acceleration.
-        player.riding_state = {
-            acceleration = data.accelerationState,
-            direction = player.riding_state.direction
-        }
-    elseif data.control == ControlTypes.random then
-        -- Player has no control so we will set both acceleration and direction.
-
-        -- Either find a new direction if the directionDuration has run out, or just count it down 1.
-        if data.directionDuration == 0 then
-            if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
-                -- Train carriages should change every tick as very fast trains may cross rail points very fast.
-                data.directionDuration = 1
             else
-                -- Cars/tanks should keep turning for a while so the steering is more definite.
-                data.directionDuration = math.random(10, 30)
+                data.accelerationState = defines.riding.acceleration.accelerating
             end
-            data.direction = math.random(0, 2)
-        else
-            data.directionDuration = data.directionDuration - 1
         end
 
-        player.riding_state = {
-            acceleration = data.accelerationState,
-            direction = data.direction
-        }
+        -- Overwrite the players input control for this tick based on the settings.
+        if data.control == ControlTypes.full then
+            -- Player can still steer, so just overwrite the acceleration.
+            player.riding_state = {
+                acceleration = data.accelerationState,
+                direction = player.riding_state.direction
+            }
+        elseif data.control == ControlTypes.random then
+            -- Player has no control so we will set both acceleration and direction.
+
+            -- Either find a new direction if the directionDuration has run out, or just count it down 1.
+            if data.directionDuration == 0 then
+                if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
+                    -- Train carriages should change every tick as very fast trains may cross rail points very fast.
+                    data.directionDuration = 1
+                else
+                    -- Cars/tanks should keep turning for a while so the steering is more definite.
+                    data.directionDuration = math.random(10, 30)
+                end
+                data.direction = math.random(0, 2)
+            else
+                data.directionDuration = data.directionDuration - 1
+            end
+
+            player.riding_state = {
+                acceleration = data.accelerationState,
+                direction = data.direction
+            }
+        end
     end
 
     -- Iterate the various counters for this effect.

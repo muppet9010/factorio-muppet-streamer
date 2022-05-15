@@ -13,20 +13,20 @@ Future Confirmed:
 
 
 Future Concepts:
-	- Inventory Shuffle - have it cancel the players crafting queue and shuffle those items as well. To avoid inventory spilling do after the initial inventory empty and check that it isn't going to fill up if the player has some ridiclious crafting queue, i.e. chunk the cancelling?
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
     - Spawn around player to support biters, spitters or both. Allow named or evo specific.
     - Call for Help - add:
         - If player is in a vehicle try to put the called player in the vehicle with them first. If they are in a train try and put the players in other carriages in the train first.
         - An option to weight the player selection by time online. - this may be multiple options, see discussion: https://mods.factorio.com/mod/muppet_streamer/discussion/5f7b1102057852611e5817c6
     - Aggressive driver to control a spidertron with similar effects to how it does cars.
-    - Spider Fish on a Mish-ion:
+    - Spider's brain fish is on a fish-ion:
         - spiders need a fish as their brain, sometimes they gain control.
         - for set time period
 		- either spider player is in or random one on the map. if random announce it.
         - lock player in spider (option)
         - option: spider keeps on walk towards a random location within a set radius
         - option: spider walks randomly around
-        - option: walk towards nearest biter base (use teleport biter nest tracking).
-        - option: walk towards nearest enemy unit group (use teleport to nearest biter logic).
+        - option: spider goes in search of water and/or fish.
+        - option: walk towards nearest biter base (use teleport biter nest tracking). - use some sort of back off when damaged.
+        - option: walk towards nearest enemy unit group (use teleport to nearest biter logic). - use some sort of back off when damaged.
     - Change player (named or all) characters to other things, i.e. biters. Need to check how armour, ammo, etc handles this. Also would need to be delayed until after other active event has finished.
