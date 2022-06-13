@@ -1,10 +1,19 @@
 DOING NOW:
+	- Mass player teleport with lots of regular players put 2 out of 10 of them inside each other. All the others were placed spaced out.
+	- Inventory shuffle feature to have a target team option, this will target all players on a team.
+	- Inventory shuffle with lots of players 20+ lags the server a bit. See if this can be reduced anywhere?
+	- Have any invalid JSON error print the entire text string it recieved to chat. Probbaly as a new line.
 
 
 BUGS:
 
 
-Future Confirmed:
+DO NEAR FUTURE:
+    - Add to Explosive Delivery - add options for `x and y offset from targeted position` and those will be applied to the targeted position: either player current position or position argument passed in. Then any accuracy randomness will be applied to that post offset position as its currently applies to the targeted position.
+    - Add an interface to Explosive Delivery. Initally for calling by the JD Plays mod- Spider hunt feature, for the battleships idea that we want to contain within JD's map lane.
+
+
+Future Confirmed (bigger things):
     - Support modded entities across commands.
     - Time duration events should add to existing ones if active.
     - Update to new Utils library.
