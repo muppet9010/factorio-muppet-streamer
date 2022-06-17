@@ -24,6 +24,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -32,6 +33,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         delay = tonumber(commandData.delay)
         if delay == nil then
             Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         delay = math.max(delay * 60, 0)
@@ -40,6 +42,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local explosiveCount = tonumber(commandData.explosiveCount)
     if explosiveCount == nil then
         Logging.LogPrint(errorMessageStart .. "explosiveCount is mandatory as a number")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif explosiveCount <= 0 then
         return
@@ -48,15 +51,18 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local explosiveType = ExplosiveDelivery.ExplosiveTypes[commandData.explosiveType]
     if explosiveType == nil then
         Logging.LogPrint(errorMessageStart .. "explosiveType is mandatory and must be a supported type")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local target = commandData.target
     if target == nil then
         Logging.LogPrint(errorMessageStart .. "target is mandatory")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
         Logging.LogPrint(errorMessageStart .. "target is invalid player name")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -65,6 +71,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         targetPosition = Utils.TableToProperPosition(targetPosition)
         if targetPosition == nil then
             Logging.LogPrint(errorMessageStart .. "targetPosition is Optional, but if provided must be a valid position table string")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -74,6 +81,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         accuracyRadiusMin = tonumber(commandData.accuracyRadiusMin)
         if accuracyRadiusMin == nil or accuracyRadiusMin < 0 then
             Logging.LogPrint(errorMessageStart .. "accuracyRadiusMin is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -83,6 +91,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         accuracyRadiusMax = tonumber(commandData.accuracyRadiusMax)
         if accuracyRadiusMax == nil or accuracyRadiusMax < 0 then
             Logging.LogPrint(errorMessageStart .. "accuracyRadiusMax is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -92,6 +101,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         salvoSize = tonumber(commandData.salvoSize)
         if salvoSize == nil or salvoSize < 0 then
             Logging.LogPrint(errorMessageStart .. "salvoSize is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -101,6 +111,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         salvoDelay = tonumber(commandData.salvoDelay)
         if salvoDelay == nil or salvoDelay < 0 then
             Logging.LogPrint(errorMessageStart .. "salvoDelay is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end

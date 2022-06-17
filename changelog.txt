@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.22
+Date: 2022-06-17
+  Features:
+    - Inventory Shuffle feature - Added option to include all players on a list of force(s).
+  Changes:
+    - Any command that fails validation will print the full command text they received. Helps to debug integration tool issues.
+    - Inventory Shuffle feature - Player list to target setting name changed from `targets` to `includedPlayers`.
+  Bugfixes:
+    - Teleport and Call For Help features - both previously wouldn't teleport a spider-vehicle when they should have. Also both previously only recognised base Factorio car and tank, now they recognise all car (and tank) type vehicles in addition to all spider-vehicle type vehicles.
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.21
 Date: 2022-05-15
   Features:

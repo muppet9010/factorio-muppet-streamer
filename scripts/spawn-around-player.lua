@@ -27,6 +27,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -35,6 +36,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         delay = tonumber(commandData.delay)
         if delay == nil then
             Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         delay = math.max(delay * 60, 0)
@@ -43,9 +45,11 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local target = commandData.target
     if target == nil then
         Logging.LogPrint(errorMessageStart .. "target is mandatory")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
         Logging.LogPrint(errorMessageStart .. "target is invalid player name")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -53,6 +57,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     if forceString ~= nil then
         if game.forces[forceString] == nil then
             Logging.LogPrint(errorMessageStart .. "optional force provided, but isn't a valid force name")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -60,12 +65,14 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local entityName = commandData.entityName
     if entityName == nil or SpawnAroundPlayer.EntityTypeDetails[entityName] == nil then
         Logging.LogPrint(errorMessageStart .. "entityName is mandatory and must be a supported type")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local radiusMax = tonumber(commandData.radiusMax)
     if radiusMax == nil or radiusMax <= 0 then
         Logging.LogPrint(errorMessageStart .. "radiusMax is mandatory and must be a number greater than 0")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -77,6 +84,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local existingEntities = commandData.existingEntities
     if existingEntities == nil or (existingEntities ~= "overlap" and existingEntities ~= "avoid") then
         Logging.LogPrint(errorMessageStart .. "existingEntities is mandatory and must be a supported setting type")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -89,17 +97,13 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         followPlayer = Utils.ToBoolean(commandData.followPlayer)
         if followPlayer == nil then
             Logging.LogPrint(errorMessageStart .. "followPlayer is Optional, but if provided must be a boolean")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
 
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1
-    EventScheduler.ScheduleEvent(
-        command.tick + delay,
-        "SpawnAroundPlayer.SpawnAroundPlayerScheduled",
-        global.spawnAroundPlayer.nextId,
-        {target = target, entityName = entityName, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString}
-    )
+    EventScheduler.ScheduleEvent(command.tick + delay, "SpawnAroundPlayer.SpawnAroundPlayerScheduled", global.spawnAroundPlayer.nextId, {target = target, entityName = entityName, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString})
 end
 
 SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
