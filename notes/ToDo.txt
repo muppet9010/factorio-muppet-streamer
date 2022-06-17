@@ -1,5 +1,4 @@
 DOING NOW:
-	- Inventory shuffle feature to have a target team option, this will target all players on a team.
 	- Mass player teleport with lots of regular players put 2 out of 10 of them inside each other. All the others were placed spaced out.
 	- Inventory shuffle with lots of players 20+ lags the server a bit. See if this can be reduced anywhere?
 

@@ -8,7 +8,7 @@ local math_random, math_min, math_max, math_floor, math_ceil = math.random, math
 
 local ErrorMessageStart = "ERROR: muppet_streamer_player_inventory_shuffle command "
 local StorageInventorySizeIncrements = 1000 -- The starting size of the shared storage invnetory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
-local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements
+local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements -- Max size when the inventory can still grow by another increment.
 
 ------------------------        DEBUG OPTIONS - MAKE SURE ARE FALE ON RELEASE       ------------------------
 local debugStatusMessages = false
@@ -23,7 +23,9 @@ local singlePlayerTesting = false -- Set to TRUE to force the mod to work for on
 ---@field count uint
 
 ---@class PlayerInventoryShuffle_RequestData
----@field playerNames string[]
+---@field includedPlayerNames string[]
+---@field includedForces LuaForce[]
+---@field includeAllPlayersOnServer boolean
 ---@field includeEquipment boolean
 ---@field destinationPlayersMinimumVariance uint
 ---@field destinationPlayersVarianceFactor double
@@ -62,20 +64,44 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         delay = math_max(delay * 60, 0)
     end
 
-    local targets = commandData.targets ---@type string
-    if targets == nil then
-        Logging.LogPrint(ErrorMessageStart .. "targets is mandatory")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-        return
+    -- Just get the Included Players with minimal checking as we do the checks once all the include settings are obtained.
+    local includedPlayersString = commandData.includedPlayers ---@type string
+    local includedPlayerNames = {} ---@type string[]
+    local includeAllPlayersOnServer = false
+    if includedPlayersString ~= nil and includedPlayersString ~= "" then
+        -- Can't check if the names are valid players right now, as they may just not have joined the server yet, but may in the future.
+        includedPlayerNames = Utils.SplitStringOnCharacters(includedPlayersString, ",", false)
+        if #includedPlayerNames == 1 then
+            -- If it's only one name then check if its the special ALL value.
+            if includedPlayerNames[1] == "[ALL]" then
+                includedPlayerNames = nil
+                includeAllPlayersOnServer = true
+            end
+        end
     end
-    -- Can't check if the names are valid players as they may just not have joined the server yet, but may in the future.
-    local playerNames = Utils.SplitStringOnCharacters(targets, ",", false) ---@type string[]
-    if #playerNames == 1 then
-        -- If it's only one name then it must be ALL, otherwise its a bad argument as will do nothing.
-        if playerNames[1] == "[ALL]" then
-            playerNames = nil
-        else
-            Logging.LogPrint(ErrorMessageStart .. "targets was supplied with only 1 name, but it wasn't the special ALL. It was: " .. targets)
+
+    -- Get the Included Forces and just check anything provided is valid.
+    local includedForcesString = commandData.includedForces ---@type string
+    local includedForces = {} ---@type string[]
+    if includedForcesString ~= nil and includedForcesString ~= "" then
+        local includedForceNames = Utils.SplitStringOnCharacters(includedForcesString, ",", false)
+        for _, includedForceName in pairs(includedForceNames) do
+            local force = game.forces[includedForceName]
+            if force ~= nil then
+                table.insert(includedForces, force)
+            else
+                Logging.LogPrint(ErrorMessageStart .. "includedForces has an invalid force name: " .. tostring(includedForceName))
+                Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+                return
+            end
+        end
+    end
+
+    -- Check the Include settings in combination.
+    if not includeAllPlayersOnServer and #includedForces == 0 then
+        -- As not all players and no forces fully included, we actually have to check the player list.
+        if includedPlayerNames == nil or #includedPlayerNames < 2 then
+            Logging.LogPrint(ErrorMessageStart .. "atleast 2 players must be listed if no force is included.")
             Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
@@ -156,7 +182,9 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         "PlayerInventoryShuffle.MixupPlayerInventories",
         global.playerInventoryShuffle.nextId,
         {
-            playerNames = playerNames,
+            includedPlayerNames = includedPlayerNames,
+            includedForces = includedForces,
+            includeAllPlayersOnServer = includeAllPlayersOnServer,
             includeEquipment = includeEquipment,
             destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
             destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
@@ -170,24 +198,34 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
 
     -- Get the active players to shuffle.
     local players = {} ---@type LuaPlayer[]
-    if requestData.playerNames == nil then
+    if requestData.includeAllPlayersOnServer == true then
+        -- Just include everyone.
         for _, player in pairs(game.connected_players) do
             if player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
                 table.insert(players, player)
             end
         end
     else
-        local player  ---@type LuaPlayer
-        for _, playerName in pairs(requestData.playerNames) do
-            player = game.get_player(playerName)
+        -- Include the named players and force's players.
+        for _, playerName in pairs(requestData.includedPlayerNames) do
+            local player = game.get_player(playerName)
             if player ~= nil and player.connected and player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
                 table.insert(players, player)
+            end
+        end
+        for _, force in pairs(requestData.includedForces) do
+            if force.valid then
+                for _, player in pairs(force.connected_players) do
+                    if player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
+                        table.insert(players, player)
+                    end
+                end
             end
         end
     end
 
     if singlePlayerTesting then
-        -- Fakes the only player as multiple players so that the 1 players invnetory is spread across these multiple fake players, but still all ends up inside the single real player's inventory.
+        -- Fakes the only player as multiple players so that the 1 players inventory is spread across these multiple fake players, but still all ends up inside the single real player's inventory.
         players = {game.players[1], game.players[1], game.players[1]}
     end
 
@@ -199,7 +237,7 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
 
     -- Announce that the shuffle is being done and to which active players.
     local playerNamePrettyList
-    if requestData.playerNames == nil then
+    if requestData.includeAllPlayersOnServer == true then
         -- Is all active players.
         playerNamePrettyList = {"message.muppet_streamer_player_inventory_shuffle_all_players"}
     else

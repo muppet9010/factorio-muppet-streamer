@@ -2,8 +2,10 @@
 Version: 20.0.22
 Date: 2022-06-17
   Features:
+    - Inventory Shuffle feature - Added option to include all players on a list of force(s).
   Changes:
     - Any command that fails validation will print the full command text they recieved. Helps to debug integration tool issues.
+    - Inventory Shuffle feature - Player list to target setting name changed from `targets` to `includedPlayers`.
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------

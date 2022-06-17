@@ -279,16 +279,19 @@ Takes all the inventory items from the target players, shuffles them and then di
 - Command syntax: `/muppet_streamer_player_inventory_shuffle [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: FLOAT - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
-    - targets: STRING_LIST/STRING - Mandatory: a comma separated list of the player names to target (assuming they are online at the time), or `[ALL]` to target all online players on the server. Must be 2 or more players online otherwise the command will do nothing. Any player names listed are case sensitive to the player's ingame name.
+    - includedPlayers: STRING_LIST/STRING -  Mandatory Special: either blank, a comma separated list of the player names to include (assuming they are online at the time), or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's ingame name. Atleast one of includedPlayers or includedForces settings must be provided.
+    - includedForces: STRING_LIST/STRING -  Mandatory Special: a comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's ingame name. Atleast one of includedPlayers or includedForces settings must be provided.
     - includeEquipment: BOOLEAN - Optional: if the player's armour and weapons are included for shuffling or not. Defaults to True.
     - destinationPlayersMinimumVariance: INTEGER - Optional: The minimum number of destination player's inventories that the items should end up in above/below the number of source player inventories. Defaults to 1. See notes for logic on item distribution.
     - destinationPlayersVarianceFactor: FLOAT - Optional: The factor applied to each item type's number of source players when calculating the range of the random destination player count. Defaults to 0.25. See notes for logic on item distribution.
     - recipientItemMinToMaxRatio: INTEGER - Optional: The approximate min/max range of the number of items a destination player will receive compared to others. Defaults to 4. See notes for logic on item distribution.
-- Example command for 3 players: `/muppet_streamer_player_inventory_shuffle {"targets":"muppet9010,Test_1,Test_2"}`
-- Example command for all active players: `/muppet_streamer_player_inventory_shuffle {"targets":"[ALL]"}`
+- Example command for 3 players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"muppet9010,Test_1,Test_2"}`
+- Example command for all active players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"[ALL]"}`
+- Example command for 2 players and all players on a specific force: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"Test_1,Test2", "includedForces":"player"}`
 
 Notes:
 
+- There must be 2 or more players included players online otherwise the command will do nothing. The players from both include settings will be pooled for this.
 - The distribution logic is a bit convoluted, but works as per:
     - All targets online have all their inventories taken. Each item type has the number of source players recorded.
     - A random number of new players to receive each item type is worked out. This is based on the number of source players for that item type, with a +/- random value based on the greatest between the destinationPlayersMinimumVariance setting and the destinationPlayersVarianceFactor setting. This allows a minimum variation to be enforced even when very small player targets are online. The final value of new players for the items to be split across will never be less than 1 or greater than all of the online target players.
