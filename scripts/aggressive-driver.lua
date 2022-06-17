@@ -53,6 +53,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -61,6 +62,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         delay = tonumber(commandData.delay)
         if delay == nil then
             Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         delay = math.max(delay * 60, 0)
@@ -69,15 +71,18 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     local target = commandData.target
     if target == nil then
         Logging.LogPrint(errorMessageStart .. "target is mandatory")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
         Logging.LogPrint(errorMessageStart .. "target is invalid player name")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local duration = tonumber(commandData.duration)
     if duration == nil then
         Logging.LogPrint(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
     duration = math.floor(duration * 60)
@@ -87,6 +92,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         control = ControlTypes[control]
         if control == nil then
             Logging.LogPrint(errorMessageStart .. "control is Optional, but must be a valid type if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     else
@@ -99,6 +105,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         teleportDistance = tonumber(teleportDistanceString)
         if teleportDistance == nil or teleportDistance < 0 then
             Logging.LogPrint(errorMessageStart .. "teleportDistance is Optional, but must a number of 0 or greater")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     else

@@ -49,6 +49,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -57,6 +58,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         delay = tonumber(commandData.delay)
         if delay == nil then
             Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         delay = math.max(delay * 60, 0)
@@ -65,15 +67,18 @@ PantsOnFire.PantsOnFireCommand = function(command)
     local target = commandData.target
     if target == nil then
         Logging.LogPrint(errorMessageStart .. "target is mandatory")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
         Logging.LogPrint(errorMessageStart .. "target is invalid player name")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local durationSeconds = tonumber(commandData.duration)
     if durationSeconds == nil then
         Logging.LogPrint(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
     local finishTick = command.tick + math.ceil((delay + durationSeconds) * 60)
@@ -83,6 +88,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         fireHeadStart = tonumber(commandData.fireHeadStart)
         if fireHeadStart == nil or fireHeadStart < 0 then
             Logging.LogPrint(errorMessageStart .. "fireHeadStart is Optional, but must be 0 or greater if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -92,6 +98,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         fireGap = tonumber(commandData.fireGap)
         if fireGap == nil or fireGap <= 0 then
             Logging.LogPrint(errorMessageStart .. "fireGap is Optional, but must be 1 or greater if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -101,6 +108,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         flameCount = tonumber(commandData.flameCount)
         if flameCount == nil or flameCount <= 0 then
             Logging.LogPrint(errorMessageStart .. "flameCount is Optional, but must be 1 or greater if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end

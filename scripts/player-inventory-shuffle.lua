@@ -47,6 +47,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(ErrorMessageStart .. "requires details in JSON format.")
+        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -55,6 +56,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         delay = tonumber(commandData.delay)
         if delay == nil then
             Logging.LogPrint(ErrorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         delay = math_max(delay * 60, 0)
@@ -63,6 +65,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     local targets = commandData.targets ---@type string
     if targets == nil then
         Logging.LogPrint(ErrorMessageStart .. "targets is mandatory")
+        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
     -- Can't check if the names are valid players as they may just not have joined the server yet, but may in the future.
@@ -73,6 +76,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             playerNames = nil
         else
             Logging.LogPrint(ErrorMessageStart .. "targets was supplied with only 1 name, but it wasn't the special ALL. It was: " .. targets)
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -85,6 +89,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         includeEquipment = Utils.ToBoolean(includeEquipmentString)
         if includeEquipment == nil then
             Logging.LogPrint(ErrorMessageStart .. "if includeEquipment is supplied it must be a boolean.")
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -97,11 +102,13 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         destinationPlayersMinimumVariance = Utils.ToNumber(destinationPlayersMinimumVarianceString)
         if destinationPlayersMinimumVariance == nil then
             Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersMinimumVariance is supplied it must be a number.")
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         destinationPlayersMinimumVariance = math_floor(destinationPlayersMinimumVariance)
         if destinationPlayersMinimumVariance < 0 then
             Logging.LogPrint(ErrorMessageStart .. "destinationPlayersMinimumVariance must be a number >= 0.")
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -114,10 +121,12 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         destinationPlayersVarianceFactor = Utils.ToNumber(destinationPlayersVarianceFactorString)
         if destinationPlayersVarianceFactor == nil then
             Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersVarianceFactor is supplied it must be a number.")
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         if destinationPlayersVarianceFactor < 0 then
             Logging.LogPrint(ErrorMessageStart .. "destinationPlayersVarianceFactor must be a number >= 0.")
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -130,11 +139,13 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         recipientItemMinToMaxRatio = Utils.ToNumber(recipientItemMinToMaxRatioString)
         if recipientItemMinToMaxRatio == nil then
             Logging.LogPrint(ErrorMessageStart .. "if recipientItemMinToMaxRatio is supplied it must be a number.")
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         recipientItemMinToMaxRatio = math_floor(recipientItemMinToMaxRatio)
         if recipientItemMinToMaxRatio < 1 then
             Logging.LogPrint(ErrorMessageStart .. "recipientItemMinToMaxRatio must be a number >= 1.")
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end

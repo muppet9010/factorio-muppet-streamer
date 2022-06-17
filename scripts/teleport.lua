@@ -85,10 +85,11 @@ Teleport.TeleportCommand = function(command)
     end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
-    local commandValues = Teleport.GetCommandData(commandData, errorMessageStart, 0)
+    local commandValues = Teleport.GetCommandData(commandData, errorMessageStart, 0, command.parameter)
     if commandValues == nil then
         return
     end
@@ -100,8 +101,9 @@ end
 ---@param commandData table @ Table of arguments passed in to the RCON command.
 ---@param errorMessageStart string
 ---@param depth uint @ Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
+---@param commandStringText string @ The raw command text sent via RCON.
 ---@return Teleport_CommandDetails commandDetails
-Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
+Teleport.GetCommandData = function(commandData, errorMessageStart, depth, commandStringText)
     local depthErrorMessage = ""
     if depth > 0 then
         depthErrorMessage = "at depth " .. depth .. " - "
@@ -112,6 +114,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
         delay = tonumber(commandData.delay)
         if delay == nil then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "delay is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
             return
         end
         delay = math.max(delay * 60, 0)
@@ -120,9 +123,11 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
     local target = commandData.target
     if target == nil then
         Logging.LogPrint(errorMessageStart .. "target is mandatory")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
         return
     elseif game.get_player(target) == nil then
         Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "target is invalid player name")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
         return
     end
 
@@ -132,6 +137,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
         destinationTargetPosition = Utils.TableToProperPosition(destinationTypeRaw)
         if destinationTargetPosition == nil then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "destinationType is Mandatory and must be a valid type or a table for position")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
             return
         else
             destinationType = DestinationTypeSelection.position
@@ -145,6 +151,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
         arrivalRadius = tonumber(arrivalRadiusRaw)
         if arrivalRadius == nil or arrivalRadius < 0 then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
             return
         end
     end
@@ -154,6 +161,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
         minDistance = tonumber(minDistanceRaw)
         if minDistance == nil or minDistance < 0 then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
             return
         end
     end
@@ -163,6 +171,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
         maxDistance = 0
     elseif maxDistance == nil or maxDistance < 0 then
         Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "maxDistance is Mandatory, must be 0 or greater")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
         return
     end
 
@@ -171,16 +180,18 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth)
         reachableOnly = Utils.ToBoolean(commandData.reachableOnly)
         if reachableOnly == nil then
             Logging.LogPrint(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
             return
         elseif reachableOnly == true and not (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "reachableOnly is enabled set for unsupported destinationType")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
             return
         end
     end
 
     local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
     if backupTeleportSettingsRaw ~= nil and type(backupTeleportSettingsRaw) == "table" then
-        backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1)
+        backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1, commandStringText)
     end
 
     return {delay = delay, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
@@ -310,6 +321,7 @@ Teleport.PlanTeleportTarget = function(eventData)
                 Teleport.DoBackupTeleport(data)
                 return
             end
+            ---@cast nearestSpawnerDistanceDetails Teleport_TargetPlayerSpawnerDistanceDetails
 
             -- Check if the nearest spawner is still valid. Its possible to remove spawners without us knowing about it, i.e. via Editor or via script and not raising an event for it. So we have to check.
             if not nearestSpawnerDistanceDetails.spawnerDetails.entity.valid then

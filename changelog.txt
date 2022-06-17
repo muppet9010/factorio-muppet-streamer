@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.22
+Date: 2022-06-17
+  Features:
+  Changes:
+    - Any command that fails validation will print the full command text they recieved. Helps to debug integration tool issues.
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.0.21
 Date: 2022-05-15
   Features:
