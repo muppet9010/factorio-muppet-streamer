@@ -224,6 +224,7 @@ Teleport.ScheduleTeleportCommand = function(commandValues)
 end
 
 --- When the actual teleport action needs to be planned and done (post scheduled delay).
+--- Refereshs all player data on each load as waiting for pathfinder requests can make subsequent executions have different player stata data.
 ---@param eventData any
 Teleport.PlanTeleportTarget = function(eventData)
     local errorMessageStart = "ERROR: muppet_streamer_teleport command "
@@ -367,6 +368,7 @@ Teleport.IsTeleportableVehicle = function(vehicle)
 end
 
 --- Find a position near the target for the player to go and start a pathing request if enabled.
+--- Refereshs all player data on each load as waiting for pathfinder requests can make subsequent executions have different player stata data.
 ---@param data Teleport_TeleportDetails
 Teleport.PlanTeleportLocation = function(data)
     local targetPlayer = data.targetPlayer
@@ -400,10 +402,12 @@ Teleport.PlanTeleportLocation = function(data)
     data.thisAttemptPosition = arrivalPos
 
     if data.reachableOnly then
+        -- Create the path request. We use the player's real character for this as in worst case they can get out of their vehicle and walk back through the narrow terrain.
+        local targetPlayerPathingEntity_prototype = targetPlayerPathingEntity.prototype
         local pathRequestId =
             targetPlayer.surface.request_path {
-            bounding_box = targetPlayerPathingEntity.prototype.collision_box, -- Work around for (unknown what the non-workaround code logic would be): https://forums.factorio.com/viewtopic.php?f=182&t=90146
-            collision_mask = targetPlayerPathingEntity.prototype.collision_mask,
+            bounding_box = targetPlayerPathingEntity_prototype.collision_box,
+            collision_mask = targetPlayerPathingEntity_prototype.collision_mask,
             start = arrivalPos,
             goal = targetPlayer.position,
             force = targetPlayer.force,

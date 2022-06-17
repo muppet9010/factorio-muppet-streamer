@@ -225,7 +225,7 @@ CallForHelp.CallForHelp = function(eventData)
         end
     end
 
-    -- remove any black listed players from the list.
+    -- Remove any black listed players from the list.
     if data.blacklistedPlayerNames ~= nil then
         -- Iterate the list backwards so we can safely remove from it without skipping subsequent entries due to messing up the index placement.
         for i = #availablePlayers, 1, -1 do
@@ -331,10 +331,11 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
     local helpPlayerPathingEntity = helpPlayer.character
 
     local helpPlayerPlacementEntity
-    if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then
-        helpPlayerPlacementEntity = helpPlayer.vehicle
+    local helpPlayer_vehicle = helpPlayer.vehicle
+    if CallForHelp.IsTeleportableVehicle(helpPlayer_vehicle) then
+        helpPlayerPlacementEntity = helpPlayer_vehicle
     else
-        helpPlayerPlacementEntity = helpPlayer.character
+        helpPlayerPlacementEntity = helpPlayerPathingEntity
     end
 
     local arrivalPos
@@ -351,11 +352,12 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         return
     end
 
-    -- Create the path request.
+    -- Create the path request. We use the players real character for this as in worst case they can get out of their vehicle and walk back through the narrow terrain.
+    local helpPlayerPathingEntity_prototype = helpPlayerPathingEntity.prototype
     local pathRequestId =
         targetPlayerSurface.request_path {
-        bounding_box = helpPlayerPathingEntity.prototype.collision_box, -- Work around for (but unknown what the non work-around logic was): https://forums.factorio.com/viewtopic.php?f=182&t=90146
-        collision_mask = helpPlayerPathingEntity.prototype.collision_mask,
+        bounding_box = helpPlayerPathingEntity_prototype.collision_box,
+        collision_mask = helpPlayerPathingEntity_prototype.collision_mask,
         start = arrivalPos,
         goal = targetPlayerPosition,
         force = helpPlayer.force,
