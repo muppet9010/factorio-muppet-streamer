@@ -158,16 +158,19 @@ TeamMember.CommandChangeTeamMemberLevel = function(command)
     local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max command "
     if #args ~= 1 then
         Logging.LogPrint(errorMessageStartText .. "requires a value to be provided to change the level by.")
+        Logging.LogPrint(errorMessageStartText .. "recieved text: " .. command.parameter)
         return
     end
     local changeValueString = args[1]
     local changeValue = tonumber(changeValueString)
     if changeValue == nil then
         Logging.LogPrint(errorMessageStartText .. "requires a number value to be provided to change the level by, provided: " .. changeValueString)
+        Logging.LogPrint(errorMessageStartText .. "recieved text: " .. command.parameter)
         return
     end
     if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) ~= 0 then
         Logging.LogPrint(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
+        Logging.LogPrint(errorMessageStartText .. "recieved text: " .. command.parameter)
         return
     end
 

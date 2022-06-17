@@ -67,6 +67,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end
     if commandData == nil or type(commandData) ~= "table" then
         Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -75,6 +76,7 @@ CallForHelp.CallForHelpCommand = function(command)
         delay = tonumber(commandData.delay)
         if delay == nil then
             Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         delay = math.max(delay * 60, 0)
@@ -83,15 +85,18 @@ CallForHelp.CallForHelpCommand = function(command)
     local target = commandData.target
     if target == nil then
         Logging.LogPrint(errorMessageStart .. "target is mandatory")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
         Logging.LogPrint(errorMessageStart .. "target is invalid player name")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local arrivalRadius = tonumber(commandData.arrivalRadius)
     if arrivalRadius == nil or arrivalRadius <= 0 then
         Logging.LogPrint(errorMessageStart .. "arrivalRadius is Mandatory, and must be greater than 0")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -101,6 +106,7 @@ CallForHelp.CallForHelpCommand = function(command)
         callRadius = tonumber(callRadius)
         if callRadius == nil or callRadius <= 0 then
             Logging.LogPrint(errorMessageStart .. "callRadius is Optional, but if provided must be greater than 0")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -110,6 +116,7 @@ CallForHelp.CallForHelpCommand = function(command)
         sameSurfaceOnly = Utils.ToBoolean(sameSurfaceOnly)
         if sameSurfaceOnly == nil then
             Logging.LogPrint(errorMessageStart .. "sameSurfaceOnly is Optional, but must be a valid boolean if provided")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     else
@@ -125,6 +132,7 @@ CallForHelp.CallForHelpCommand = function(command)
         sameTeamOnly = Utils.ToBoolean(sameTeamOnly)
         if sameTeamOnly == nil then
             Logging.LogPrint(errorMessageStart .. "sameTeamOnly is Optional, but must be a valid boolean if provided")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     else
@@ -146,6 +154,7 @@ CallForHelp.CallForHelpCommand = function(command)
     local callSelection = CallSelection[commandData.callSelection]
     if callSelection == nil then
         Logging.LogPrint(errorMessageStart .. "callSelection is Mandatory and must be a valid type")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -154,6 +163,7 @@ CallForHelp.CallForHelpCommand = function(command)
         number = tonumber(number)
         if number == nil then
             Logging.LogPrint(errorMessageStart .. "number is Optional, but must be a valid number if provided")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         number = math.floor(number)
@@ -166,6 +176,7 @@ CallForHelp.CallForHelpCommand = function(command)
         activePercentage = tonumber(activePercentage)
         if activePercentage == nil then
             Logging.LogPrint(errorMessageStart .. "activePercentage is Optional, but must be a valid number if provided")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         activePercentage = activePercentage / 100
@@ -175,6 +186,7 @@ CallForHelp.CallForHelpCommand = function(command)
 
     if number == 0 and activePercentage == 0 then
         Logging.LogPrint(errorMessageStart .. "either number or activePercentage must be provided")
+        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -213,7 +225,7 @@ CallForHelp.CallForHelp = function(eventData)
         end
     end
 
-    -- remove any black listed players from the list.
+    -- Remove any black listed players from the list.
     if data.blacklistedPlayerNames ~= nil then
         -- Iterate the list backwards so we can safely remove from it without skipping subsequent entries due to messing up the index placement.
         for i = #availablePlayers, 1, -1 do
@@ -303,7 +315,15 @@ end
 ---@param vehicle LuaEntity
 ---@return boolean isVehicleTeleportable
 CallForHelp.IsTeleportableVehicle = function(vehicle)
-    return vehicle ~= nil and vehicle.valid and (vehicle.name == "car" or vehicle.name == "tank" or vehicle.name == "spider-vehicle")
+    if vehicle == nil or not vehicle.valid then
+        return false
+    end
+    local vehicle_type = vehicle.type
+    if vehicle_type == "car" or vehicle_type == "spider-vehicle" then
+        return true
+    else
+        return false
+    end
 end
 
 --- Finds somewhere to teleport the help player too and makes the pathing request for it.
@@ -319,10 +339,11 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
     local helpPlayerPathingEntity = helpPlayer.character
 
     local helpPlayerPlacementEntity
-    if CallForHelp.IsTeleportableVehicle(helpPlayer.vehicle) then
-        helpPlayerPlacementEntity = helpPlayer.vehicle
+    local helpPlayer_vehicle = helpPlayer.vehicle
+    if CallForHelp.IsTeleportableVehicle(helpPlayer_vehicle) then
+        helpPlayerPlacementEntity = helpPlayer_vehicle
     else
-        helpPlayerPlacementEntity = helpPlayer.character
+        helpPlayerPlacementEntity = helpPlayerPathingEntity
     end
 
     local arrivalPos
@@ -339,11 +360,12 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         return
     end
 
-    -- Create the path request.
+    -- Create the path request. We use the players real character for this as in worst case they can get out of their vehicle and walk back through the narrow terrain.
+    local helpPlayerPathingEntity_prototype = helpPlayerPathingEntity.prototype
     local pathRequestId =
         targetPlayerSurface.request_path {
-        bounding_box = helpPlayerPathingEntity.prototype.collision_box, -- Work around for (but unknown what the non work-around logic was): https://forums.factorio.com/viewtopic.php?f=182&t=90146
-        collision_mask = helpPlayerPathingEntity.prototype.collision_mask,
+        bounding_box = helpPlayerPathingEntity_prototype.collision_box,
+        collision_mask = helpPlayerPathingEntity_prototype.collision_mask,
         start = arrivalPos,
         goal = targetPlayerPosition,
         force = helpPlayer.force,
