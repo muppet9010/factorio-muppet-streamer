@@ -132,7 +132,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
 
     local inVehicle = targetPlayer.vehicle ~= nil and targetPlayer.vehicle.valid
     if not inVehicle and data.teleportDistance > 0 then
-        local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "tank", "locomotive", "spider-vehicle"}}
+        local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "locomotive", "spider-vehicle"}}
         local distanceSortedVehicles = {}
         for _, vehicle in pairs(vehicles) do
             local vehicleValid = true

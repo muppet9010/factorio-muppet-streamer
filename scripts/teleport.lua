@@ -359,8 +359,8 @@ Teleport.IsTeleportableVehicle = function(vehicle)
     if vehicle == nil or not vehicle.valid then
         return false
     end
-    local vehicle_name = vehicle.name
-    if vehicle_name == "car" or vehicle_name == "tank" or vehicle_name == "spider-vehicle" then
+    local vehicle_type = vehicle.type
+    if vehicle_type == "car" or vehicle_type == "spider-vehicle" then
         return true
     else
         return false

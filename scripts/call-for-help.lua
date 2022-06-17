@@ -315,7 +315,15 @@ end
 ---@param vehicle LuaEntity
 ---@return boolean isVehicleTeleportable
 CallForHelp.IsTeleportableVehicle = function(vehicle)
-    return vehicle ~= nil and vehicle.valid and (vehicle.name == "car" or vehicle.name == "tank" or vehicle.name == "spider-vehicle")
+    if vehicle == nil or not vehicle.valid then
+        return false
+    end
+    local vehicle_type = vehicle.type
+    if vehicle_type == "car" or vehicle_type == "spider-vehicle" then
+        return true
+    else
+        return false
+    end
 end
 
 --- Finds somewhere to teleport the help player too and makes the pathing request for it.
