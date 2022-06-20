@@ -1,0 +1,40 @@
+Alternative logic idea for the Player Inventory Shuffle feature to reduce its UPS impact by reducing item stack moving while minisiming losses to randomness of current implimentation. The high level approach is to plan the change of item quantity for each player from what they have to what they should have and then execute just those changes (with various special cases). It won't help with the UPS cost of cancelling crafting queues unfortuantly. This is currently done as a thought exercise and a placeholder, with no real intention of actually doing it.
+
+AT PRESENT I DON'T THINK THIS IS VIABLE.
+
+WIP DOCUMENT
+
+
+
+Process:
+    - Enlarge inventories of all players. As some will have more stuff during the process than they will at the end. Will also be used when cancelling crafting queues.
+    - Cancel all hand crafting. This will all go in to the players large inventories.
+    - Get a complete list of all items from all players. Including if the items are with data or have health or ammo stats. This can be cached per item name I believe once obtained during the server's volotile Lua global, so not in Factorio global data.
+    - Work out new item distribution across the players.
+    - Work out item differences needed for each player. This includes for special items, i.e. power armour may go from 1 to 1, but it liekly shouldn;t be the exact one they had. So we need to move these all off and then distribute a random one back anyways.
+    - Take the items away based on thier type:
+        - Items with data need to be moved as the stack item.
+        - Items with health or ammo attributes:
+            - If whole stack is being moved then we need to either move the stack or track its special attributes to the conceptual storage list.
+            - If count is just being modified can be updated quantity and the number of healthy going elsewhere go to some conceptual storage list.
+        - Items with no attributes:
+            - Can just have the required number removed en bulk via single API call and the count recorded to a conceptual storage list.
+    - ??? Move items from excess to short players (armour and guns first). Shrink inventories back down.
+
+
+
+RANDOM NOTES TO BE INCORPORATED:
+
+Downsides: players guns won't be randomised like before. But filters could always have stopped/minimised it.
+
+It will be a lot of lua manipulation as we'll have to track the inventories that items are in when we remove them. Adding back should be a simple blind insert to character.
+
+It won't help with the crafting cancel ups cost. But in most cases that isn't the main current ups sink with fuller player inventories and many players.
+
+It would be less shuffle and more distribution. As if a player had a power armour and they where set to receive 2 of the 10 total, they would now keep theirs and get one new. In the past there was a 1/5 chance of ending up with their own again.
+
+
+
+Issues:
+    - Items dropped on the floor if inventories are full at the end of the process will not be random and will tend to be things the game sorts to the end of the inventories. As they will overfill during the shuffling and then when shrunk the end of the inventories will be dropped.
+    - Odd things like tags and other item attributes not used in vanilla need to be considered and handled without undoing all of the UPS savings gained.
