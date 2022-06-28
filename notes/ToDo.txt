@@ -1,4 +1,7 @@
 DOING NOW:
+    - Add option to not cancel crafting queue to Inventory Shuffle.
+    - Add option to exclude players gear (armor, guns, ammos) from Inventory Shuffle.
+    - Add to Explosive Delivery - add options for `x and y offset from targeted position` and those will be applied to the targeted position: either player current position or position argument passed in. Then any accuracy randomness will be applied to that post offset position as its currently applies to the targeted position.
 
 
 BUGS:
@@ -8,8 +11,8 @@ BUGS:
     - Call For Help: check all the references (entities, surface, etc) being passed around for the players being called in after each pathfinder loop are all still valid. If players started to be teleported to one place we want the others to continue going there, but we need to avoid edge cases of surfaces being deleted or target player vehicles vanishing during pathfinder loops as this may cause crashs.
     - Teleport and Call For Help: if a player changes in to a vehicle with a larger collision box than when the path finder started it may well place it in an invalid spot. So it needs to repeat the validity check at the end of a successful pathfinder and restart the process if the vehicle has changed from expected and DOESN'T fit in the location found already.
 
+
 DO NEAR FUTURE:
-    - Add to Explosive Delivery - add options for `x and y offset from targeted position` and those will be applied to the targeted position: either player current position or position argument passed in. Then any accuracy randomness will be applied to that post offset position as its currently applies to the targeted position.
     - Add an interface to Explosive Delivery. Initally for calling by the JD Plays mod- Spider hunt feature, for the battleships idea that we want to contain within JD's map lane. IDEA ON HOLD.
 	- Change all game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
 

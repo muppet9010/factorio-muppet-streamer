@@ -18,7 +18,7 @@ Features
 - Drop a player's inventory on the ground over time via command.
 - Mix up players' inventories between them via command.
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
-- Mod options to disable freeplay's introduction message, rocket win condition and set the starting map reveal area.
+- Mod options to: start with building's ghost on death unlocked, disable freeplay's introduction message, rocket win condition and set the starting map reveal area.
 
 
 

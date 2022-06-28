@@ -11,11 +11,13 @@ local Teleport = require("scripts/teleport")
 local PantsOnFire = require("scripts/pants-on-fire")
 local PlayerDropInventory = require("scripts.player-drop-inventory")
 local PlayerInventoryShuffle = require("scripts.player-inventory-shuffle")
+local BuildingGhosts = require("scripts.building-ghosts")
 
 local function CreateGlobals()
     global.origionalPlayersPermissionGroup = global.origionalPlayersPermissionGroup or {} -- Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
 
     TeamMember.CreateGlobals()
+    BuildingGhosts.CreateGlobals()
     ExplosiveDelivery.CreateGlobals()
     LeakyFlamethrower.CreateGlobals()
     GiveItems.CreateGlobals()
@@ -26,11 +28,13 @@ local function CreateGlobals()
     PantsOnFire.CreateGlobals()
     PlayerDropInventory.CreateGlobals()
     PlayerInventoryShuffle.CreateGlobals()
+    PlayerInventoryShuffle.CreateGlobals()
 end
 
 local function OnLoad()
     --Any Remote Interface registration calls can go in here or in root of control.lua
     remote.remove_interface("muppet_streamer")
+    BuildingGhosts.OnLoad()
     TeamMember.OnLoad()
     ExplosiveDelivery.OnLoad()
     LeakyFlamethrower.OnLoad()
@@ -55,6 +59,7 @@ local function OnStartup()
     OnSettingChanged(nil)
 
     Freeplay.OnStartup()
+    BuildingGhosts.OnStartup()
     TeamMember.OnStartup()
     LeakyFlamethrower.OnStartup()
     AggressiveDriver.OnStartup()

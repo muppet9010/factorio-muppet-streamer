@@ -1,0 +1,9 @@
+{
+    "factorio.versions": [
+        {
+            "name": "1.1.61",
+            "factorioPath": "c:\\FactorioModding\\bin\\x64\\factorio.exe",
+            "active": true
+        }
+    ]
+}
