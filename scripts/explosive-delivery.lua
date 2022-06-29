@@ -4,11 +4,26 @@ local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
 
+---@class ExplosiveDelivery_DelayedCommandDetails
+---@field explosiveCount int
+---@field explosiveType ExplosiveDelivery_ExplosiveType
+---@field accuracyRadiusMin float
+---@field accuracyRadiusMax float
+---@field target LuaPlayer|nil
+---@field targetPosition MapPosition|nil
+---@field targetOffset MapPosition|nil
+---@field salvoWaveId int|nil
+---@field finalSalvo boolean
+
+---@class ExplosiveDelivery_SalvoWaveDetails
+---@field targetPosition MapPosition
+---@field targetSurface LuaSurface
+
 ExplosiveDelivery.CreateGlobals = function()
     global.explosiveDelivery = global.explosiveDelivery or {}
-    global.explosiveDelivery.nextId = global.explosiveDelivery.nextId or 0
-    global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId or 0
-    global.explosiveDelivery.salvoWaveTargetPositions = global.explosiveDelivery.salvoWaveTargetPositions or {}
+    global.explosiveDelivery.nextId = global.explosiveDelivery.nextId or 0 ---@type int
+    global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId or 0 ---@type int
+    global.explosiveDelivery.salvoWaveDetails = global.explosiveDelivery.salvoWaveDetails or {} ---@type table<int,ExplosiveDelivery_SalvoWaveDetails>
 end
 
 ExplosiveDelivery.OnLoad = function()
@@ -48,7 +63,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         return
     end
 
-    local explosiveType = ExplosiveDelivery.ExplosiveTypes[commandData.explosiveType]
+    local explosiveType = ExplosiveDelivery.ExplosiveTypes[commandData.explosiveType] ---@type ExplosiveDelivery_ExplosiveType
     if explosiveType == nil then
         Logging.LogPrint(errorMessageStart .. "explosiveType is mandatory and must be a supported type")
         Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
@@ -66,11 +81,21 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         return
     end
 
-    local targetPosition = commandData.targetPosition
+    local targetPosition = commandData.targetPosition ---@type MapPosition|nil
     if targetPosition ~= nil then
         targetPosition = Utils.TableToProperPosition(targetPosition)
         if targetPosition == nil then
             Logging.LogPrint(errorMessageStart .. "targetPosition is Optional, but if provided must be a valid position table string")
+            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            return
+        end
+    end
+
+    local targetOffset = commandData.targetOffset ---@type MapPosition|nil
+    if targetOffset ~= nil then
+        targetOffset = Utils.TableToProperPosition(targetOffset)
+        if targetOffset == nil then
+            Logging.LogPrint(errorMessageStart .. "targetOffset is Optional, but if provided must be a valid position table string")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
@@ -142,6 +167,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
                 accuracyRadiusMax = accuracyRadiusMax,
                 target = target,
                 targetPosition = targetPosition,
+                targetOffset = targetOffset,
                 salvoWaveId = salvoWaveId,
                 finalSalvo = batchNumber == maxBatchNumber
             }
@@ -150,7 +176,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 end
 
 ExplosiveDelivery.DeliverExplosives = function(eventData)
-    local data = eventData.data
+    local data = eventData.data ---@type ExplosiveDelivery_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
@@ -158,12 +184,14 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         return
     end
 
-    local targetPos
+    ---@typelist MapPosition, LuaSurface
+    local targetPos, surface
     -- Check if we need to obtain a target position from the salvo wave rather than calculate it now.
-    if data.salvoWaveId ~= nil and global.explosiveDelivery.salvoWaveTargetPositions[data.salvoWaveId] ~= nil then
-        targetPos = global.explosiveDelivery.salvoWaveTargetPositions[data.salvoWaveId]
+    if data.salvoWaveId ~= nil and global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] ~= nil then
+        targetPos = global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId].targetPosition
+        surface = global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId].targetSurface
         if data.finalSalvo then
-            global.explosiveDelivery.salvoWaveTargetPositions[data.salvoWaveId] = nil
+            global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] = nil
         end
     else
         -- Calculate the target position now.
@@ -172,13 +200,27 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         else
             targetPos = targetPlayer.position
         end
+        if data.targetOffset ~= nil then
+            targetPos.x = targetPos.x + data.targetOffset.x
+            targetPos.y = targetPos.y + data.targetOffset.y
+        end
+        surface = targetPlayer.surface
         if data.salvoWaveId ~= nil then
             -- Cache the salvo wave target position for the rest of the salvo wave.
-            global.explosiveDelivery.salvoWaveTargetPositions[data.salvoWaveId] = targetPos
+            global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] = {
+                targetPosition = targetPos,
+                targetSurface = surface
+            }
         end
     end
 
-    local surface, explosiveType = targetPlayer.surface, data.explosiveType
+    -- Check the surface is still valid as it could have been deleted mid salvo.
+    if not surface.valid then
+        -- Just give up on this salvo if the surface is gone.
+        return
+    end
+
+    local explosiveType = data.explosiveType
     for i = 1, data.explosiveCount do
         -- The explosives have to be fired at something, so we make a temporary dummy target entity at the desired explosion position.
         local targetEntityPos = Utils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
@@ -199,43 +241,58 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     end
 end
 
+---@class ExplosiveDelivery_ExplosiveType
+---@field projectileName string
+---@field speed float
+
+---@class ExplosiveDelivery_ExplosiveTypes
 ExplosiveDelivery.ExplosiveTypes = {
+    ---@class ExplosiveDelivery_ExplosiveType
     grenade = {
         projectileName = "grenade",
         speed = 0.3
     },
+    ---@class ExplosiveDelivery_ExplosiveType
     clusterGrenade = {
         projectileName = "cluster-grenade",
         speed = 0.3
     },
+    ---@class ExplosiveDelivery_ExplosiveType
     slowdownCapsule = {
         projectileName = "slowdown-capsule",
         speed = 0.3
     },
+    ---@class ExplosiveDelivery_ExplosiveType
     poisonCapsule = {
         projectileName = "poison-capsule",
         speed = 0.3
     },
+    ---@class ExplosiveDelivery_ExplosiveType
     artilleryShell = {
         projectileName = "artillery-projectile",
         speed = 1
     },
+    ---@class ExplosiveDelivery_ExplosiveType
     explosiveRocket = {
         projectileName = "explosive-rocket",
         speed = 0.3
     },
+    ---@class ExplosiveDelivery_ExplosiveType
     atomicRocket = {
         projectileName = "atomic-rocket",
         speed = 0.3
     },
+    ---@class ExplosiveDelivery_ExplosiveType
     smallSpit = {
         beamName = "acid-stream-spitter-small",
         speed = 0.3
     },
+    ---@class ExplosiveDelivery_ExplosiveType
     mediumSpit = {
         beamName = "acid-stream-worm-medium",
         speed = 0.3
     },
+    ---@class ExplosiveDelivery_ExplosiveType
     largeSpit = {
         beamName = "acid-stream-worm-behemoth",
         speed = 0.3

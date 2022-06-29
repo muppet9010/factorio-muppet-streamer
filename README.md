@@ -51,20 +51,21 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
     - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "slowdownCapsule", "poisonCapsule", "artilleryShell", "explosiveRocket", "atomicRocket", "smallSpit", "mediumSpit", "largeSpit". Is case sensitive.
     - target: STRING - Mandatory: a player name to target (case sensitive).
     - targetPosition: OBJECT - Optional: a position to target instead of the player's position. Will come on to the target players map (surface). See notes for syntax examples.
-    - accuracyRadiusMin: FLOAT - Optional: the minimum distance from the target that can be randomly selected within. If not specified defaults to 0.
-    - accuracyRadiusMax: FLOAT - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
+    - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target players current position for example. By default this is nil (no offset). See notes for syntax examples. As this is an offset a value of 0 for "x" and/or "y" is valid as no offset on that axis.
+    - accuracyRadiusMin: FLOAT - Optional: the minimum distance from the target that each explosive can be randomly targetted within. If not specified defaults to 0.
+    - accuracyRadiusMax: FLOAT - Optional: the maximum distance from the target that each explosive can be randomly targetted within. If not specified defaults to 0.
     - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
     - salvoDelay: INTEGER - Optional: use with salvoSize. Sets the delay between salvo deliveries in game ticks (60 ticks = 1 second). Each salvo will target the same player position and not re-target the player's new position.
 - Example command atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command grenades: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
+- Example command offset grenade: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"grenade", "target":"muppet9010", "targetOffset":{"x":10,"y":10}}`
 - Example command large count of atomic rockets with salvo: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":150, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":180}`
 
 Notes:
 
-- Explosives will fly in from offscreen to random locations around the target player. They may take a few seconds to complete their delivery.
-- Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
-- Weapons are on the "enemy" team and so don't get affected by your research.
-- targetPosition expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
+- Explosives will fly in from offscreen to random locations around the target player within the accuracy settings. They may take a few seconds to complete their delivery as they fly in using their native throwing/shooting/spitting speed.
+- Weapons are on the "enemy" team (force) and so don't get affected by your research, but will be affected by any weapon research set on the "enemy" team by other mods.
+- targetPosition and targetOffset expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 
 
 
