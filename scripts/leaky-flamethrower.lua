@@ -21,6 +21,9 @@ local EffectEndStatus = {completed = "completed", died = "died", invalid = "inva
 ---@field currentBurstTicks Tick
 ---@field burstsDone uint
 ---@field maxBursts uint
+---@field usedSomeAmmo boolean @ If the player has actually used some of their ammo, otherwise the player's weapons are still on cooldown.
+---@field startingAmmoItemstacksCount int @ How many itemstacks of ammo the player had when we start trying to fire the weapon.
+---@field startingAmmoItemstackAmmo int @ The "ammo" property of the ammo itemstack the player had when we start trying to fire the weapon.
 
 ---@class LeakyFlamethrower_AffectedPlayersDetails
 ---@field flamethrowerGiven boolean @ If a flamethrower weapon had to be given to the player or if they already had one.
@@ -124,6 +127,10 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
 
     targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = data.ammoCount})
 
+    -- Get the starting ammo item and ammo counts.
+    local selectedAmmoInventory = targetPlayer.get_inventory(defines.inventory.character_ammo)[removedWeaponDetails.gunInventoryIndex]
+    local startingAmmoItemstacksCount, startingAmmoItemstackAmmo = selectedAmmoInventory.count, selectedAmmoInventory.ammo
+
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.origionalPlayersPermissionGroup[targetPlayer_index] = global.origionalPlayersPermissionGroup[targetPlayer_index] or targetPlayer.permission_group
 
@@ -133,13 +140,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
     game.print({"message.muppet_streamer_leaky_flamethrower_start", targetPlayer.name})
-    LeakyFlamethrower.ShootFlamethrower({tick = eventData.tick, instanceId = targetPlayer_index, data = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index}})
-
-    -- WIP CODE
-    -- Stop the player shooting now and have a small delay before the leaky flamethrower effect starts. As if they are already firing when we switch to flamethrower it messes up the flamethrower ammo usage and the player is left with a tiny bit at the end.
-    --targetPlayer.shooting_state = {state = defines.shooting.not_shooting}
-    --global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1
-    --EventScheduler.ScheduleEvent(eventData.tick + 10, "LeakyFlamethrower.ShootFlamethrower", global.leakyFlamethrower.nextId, {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index})
+    LeakyFlamethrower.ShootFlamethrower({tick = eventData.tick, instanceId = targetPlayer_index, data = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index, usedSomeAmmo = false, startingAmmoItemstacksCount = startingAmmoItemstacksCount, startingAmmoItemstackAmmo = startingAmmoItemstackAmmo}})
 end
 
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
@@ -150,11 +151,46 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         return
     end
 
-    local gunInventory, selectedGunInventoryIndex = player.get_inventory(defines.inventory.character_guns), player.character.selected_gun_index
-    if gunInventory[selectedGunInventoryIndex] == nil or (not gunInventory[selectedGunInventoryIndex].valid_for_read) or gunInventory[selectedGunInventoryIndex].name ~= "flamethrower" then
+    local selectedGunIndex = player.character.selected_gun_index
+    local selectedGunInventory = player.get_inventory(defines.inventory.character_guns)[selectedGunIndex]
+    if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= "flamethrower" then
         -- Flamethrower has been removed as active weapon by some script.
         LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
+    end
+
+    local selectedAmmoInventory = player.get_inventory(defines.inventory.character_ammo)[selectedGunIndex]
+    if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= "flamethrower-ammo" then
+        -- Ammo has been removed by some script. As we wouldn't have reached this point in a managed loop as its beyond the last burst.
+        LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        return
+    end
+
+    -- When first trying to fire the weapon detect when we sucesfully expend some ammo. As an existing wepaon cooldown at effect start will delay us starting to shoot the flamethrower. Leading to the player being left with a tiny bit of ammo at the end.
+    -- This will accept a scripted removal of ammo as being equivilent to the ammo started being fired, but this should be fine and we can't tell the difference, so meh.
+    -- CODE NOTE: No way to read or set a player's gun cooldown, so this monitoring is the best option I can think of.
+    if not data.usedSomeAmmo then
+        local currentAmmoItemstacksCount, currentAmmoItemstackAmmo = selectedAmmoInventory.count, selectedAmmoInventory.ammo
+        if currentAmmoItemstacksCount < data.startingAmmoItemstacksCount then
+            -- Players shot some ammo and its finished an item off, so ignore the ammo property and assume all is good.
+            data.usedSomeAmmo = true
+        elseif currentAmmoItemstacksCount == data.startingAmmoItemstacksCount then
+            if currentAmmoItemstackAmmo < data.startingAmmoItemstackAmmo then
+                -- Players shot some of the ammo property on the current itemstack count, so assume all is good.
+                data.usedSomeAmmo = true
+            elseif currentAmmoItemstackAmmo == data.startingAmmoItemstackAmmo then
+                -- Nothings changed so continue to monitor.
+                data.currentBurstTicks = data.currentBurstTicks - 1 -- Take one off as nothings relaly started yet.
+            else
+                -- Ammo prototype has increased, so players picked up ammo. So update counts and we will continue monitoring next tick from these new values.
+                data.startingAmmoItemstacksCount = currentAmmoItemstacksCount
+                data.startingAmmoItemstackAmmo = currentAmmoItemstackAmmo
+            end
+        else
+            -- Ammo stacks has increased, son players picked up ammo. So update counts and we will continue monitoring next tick from these new values.
+            data.startingAmmoItemstacksCount = currentAmmoItemstacksCount
+            data.startingAmmoItemstackAmmo = currentAmmoItemstackAmmo
+        end
     end
 
     local delay  ---@type int
@@ -260,6 +296,9 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
         player.permission_group = global.origionalPlayersPermissionGroup[playerIndex]
         global.origionalPlayersPermissionGroup[playerIndex] = nil
     end
+
+    -- Remove any shooting state set and maintained from previous ticks.
+    player.shooting_state = {state = defines.shooting.not_shooting}
 
     -- Remove the flag aginst this player as being currently affected by the leaky flamethrower.
     global.leakyFlamethrower.affectedPlayers[playerIndex] = nil

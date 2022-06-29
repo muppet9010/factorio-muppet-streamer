@@ -83,8 +83,9 @@ Forces the targeted player to wield a flamethrower that shoots in random directi
 Notes:
 
 - This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
-- While activated the player will be kicked out of any vehicle they are in and prevented from entering one.
-- While activated the player will lose control over their weapons targeting and firing behaviour.
+- While activated the player will be kicked out of any vehicle they are in and prevented from entering one. As no one likes to be in an enclosed space with flames.
+- The player will be given the flamer and ammo needed for the effect if needed. If given these will be reclaimed at the end of the affect as approperiate. The players origional gun and weapon selection will be returned to them including any slot filters.
+- While activated the player will lose control over their flamers weapon targeting and firing behaviour.
 - While activated the player can not change the active gun via the switch to next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
 - The flamethrower is yours and so any of your damage upgrades will affect it.
