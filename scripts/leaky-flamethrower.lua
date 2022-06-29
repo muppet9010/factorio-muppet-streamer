@@ -15,6 +15,7 @@ local EffectEndStatus = {completed = "completed", died = "died", invalid = "inva
 
 ---@class LeakyFlamethrower_ShootFlamethrowerDetails
 ---@field player LuaPlayer
+---@field player_index Id
 ---@field angle uint
 ---@field distance uint
 ---@field currentBurstTicks Tick
@@ -86,7 +87,10 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         Logging.LogPrint(errorMessageStart .. "ammoCount is mandatory as a number")
         Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
-    elseif ammoCount <= 0 then
+    else
+        ammoCount = math.ceil(ammoCount)
+    end
+    if ammoCount <= 0 then
         return
     end
 
@@ -129,12 +133,18 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
     game.print({"message.muppet_streamer_leaky_flamethrower_start", targetPlayer.name})
-    LeakyFlamethrower.ShootFlamethrower({tick = game.tick, instanceId = targetPlayer_index, data = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount}})
+    LeakyFlamethrower.ShootFlamethrower({tick = eventData.tick, instanceId = targetPlayer_index, data = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index}})
+
+    -- WIP CODE
+    -- Stop the player shooting now and have a small delay before the leaky flamethrower effect starts. As if they are already firing when we switch to flamethrower it messes up the flamethrower ammo usage and the player is left with a tiny bit at the end.
+    --targetPlayer.shooting_state = {state = defines.shooting.not_shooting}
+    --global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1
+    --EventScheduler.ScheduleEvent(eventData.tick + 10, "LeakyFlamethrower.ShootFlamethrower", global.leakyFlamethrower.nextId, {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index})
 end
 
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
     ---@typelist LeakyFlamethrower_ShootFlamethrowerDetails, LuaPlayer, PlayerIndex
-    local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId
+    local data, player, playerIndex = eventData.data, eventData.data.player, eventData.data.player_index
     if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
         LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
@@ -147,27 +157,29 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         return
     end
 
-    local targetPos = Utils.GetPositionForAngledDistance(player.position, data.distance, data.angle)
-    player.shooting_state = {state = defines.shooting.shooting_selected, position = targetPos}
-
-    local delay = 0
+    local delay  ---@type int
     data.currentBurstTicks = data.currentBurstTicks + 1
+    -- Do the action for this tick.
     if data.currentBurstTicks > 100 then
+        -- End of shooting ticks. Ready for next shooting and take break.
         data.currentBurstTicks = 0
         data.burstsDone = data.burstsDone + 1
         global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft = global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft - 1
+        player.shooting_state = {state = defines.shooting.not_shooting}
         if data.burstsDone == data.maxBursts then
-            player.shooting_state = {state = defines.shooting.not_shooting}
             LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
             return
         end
         data.angle = math.random(0, 360)
         data.distance = math.random(2, 10)
-        player.shooting_state = {state = defines.shooting.not_shooting}
         delay = 180
     else
+        -- Shoot this tick as a small random wonder from last ticks target.
         data.distance = math.min(math.max(data.distance + ((math.random() * 2) - 1), 2), 10)
         data.angle = data.angle + (math.random(-10, 10))
+        local targetPos = Utils.GetPositionForAngledDistance(player.position, data.distance, data.angle)
+        player.shooting_state = {state = defines.shooting.shooting_selected, position = targetPos}
+        delay = 0
     end
 
     EventScheduler.ScheduleEvent(eventData.tick + delay, "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)

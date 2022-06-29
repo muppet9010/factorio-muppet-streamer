@@ -3,7 +3,7 @@ DOING NOW:
 
 
 BUGS:
-	- Call For Help: Mass player moving often puts a few inside each other (i.e. 2 out of 10). All the others were placed spaced out. This happens as with multiple arriving players, each one starts the process sequentially, but the wait for pathfinder results makes them all become asyncronous. So in effect all players look for an empty spot randomly near the target, then they start the pathfinder wait. So if 2 players both randomly select the same spot (or overlapping spots) the first one hasn't reserved it in any way until their pathfinder returns later, so the second player also see's it as free. With vehicles involved this will be worse. Simpliest way is to have it repeat the placement check post pathfinder for each incomming player and if it fails do a free retry, as this should be a very rare edge case.
+    - Call For Help: Mass player moving often puts a few inside each other (i.e. 2 out of 10). All the others were placed spaced out. This happens as with multiple arriving players, each one starts the process sequentially, but the wait for pathfinder results makes them all become asyncronous. So in effect all players look for an empty spot randomly near the target, then they start the pathfinder wait. So if 2 players both randomly select the same spot (or overlapping spots) the first one hasn't reserved it in any way until their pathfinder returns later, so the second player also see's it as free. With vehicles involved this will be worse. Simpliest way is to have it repeat the placement check post pathfinder for each incomming player and if it fails do a free retry, as this should be a very rare edge case.
     - Telepeort: If being done with the reachableOnly option enabled, in theory the target location may become blocked while the pathfinder is running, and then assuming the path is found the command will move the player there anyway. Simpliest way is to have it repeat the placement check post pathfinder and if it fails do a free retry, as this should be a very rare edge case.
     - Teleport: what happens if the target player is dead, as they can;t be teleported then. It should fail gracefully and quickly for this. Needs to check after each pathfinder loop.
     - Call For Help: check all the references (entities, surface, etc) being passed around for the players being called in after each pathfinder loop are all still valid. If players started to be teleported to one place we want the others to continue going there, but we need to avoid edge cases of surfaces being deleted or target player vehicles vanishing during pathfinder loops as this may cause crashs.
@@ -41,3 +41,16 @@ Future Concepts:
         - option: walk towards nearest biter base (use teleport biter nest tracking). - use some sort of back off when damaged.
         - option: walk towards nearest enemy unit group (use teleport to nearest biter logic). - use some sort of back off when damaged.
     - Change player (named or all) characters to other things, i.e. biters. Need to check how armour, ammo, etc handles this. Also would need to be delayed until after other active event has finished.
+    - Custom grenade, cluster grenade and nuke:
+        - Requested by eoraptor666 (BigMonD).
+        - Mod options for the custom:
+            - Grenade:
+                - Damage amount
+                - Damage radius
+            - Cluster Grenade:
+                - Cluster count
+                - Distance of spread
+            - Nuke:
+                - not requested, but would need max blast area and damage settable?
+        - Callable from the Explosive Delivery.
+    - Leaky flamethrower doesn't support non vanilla flamethrower weapons or ammos. It relies upon the vanilla shooting speed and ammo count per item.

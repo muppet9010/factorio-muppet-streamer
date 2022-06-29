@@ -6,6 +6,8 @@ Date: 2022-XX-XX
     - Inventory Shuffle feature - Added option to NOT cancel players hand crafting queues.
   Changes:
   Bugfixes:
+    - Leaky Flamethrower - Error when ammo count was non iteger value between >0 and <1. It's now just rounded up as non integers aren't supported and so shouldn't really be given.
+    - Leaky flamethrower - Fix cause of player ending up with fraction of flamethrower ammo at end of effect. If player was shooting another weapon when the leaky flamethrower starts then they would't quite fire the full first ammo item in the first burst, and thus at the end were left with a small amount of ammo. Now we have a tiny delay before the flamethrower starts firing to ensure a consistent fire rate on initial ticks.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.0.22
