@@ -1,6 +1,4 @@
 DOING NOW:
-    - Add option to not cancel crafting queue to Inventory Shuffle.
-    - Add option to exclude players gear (armor, guns, ammos) from Inventory Shuffle.
     - Add to Explosive Delivery - add options for `x and y offset from targeted position` and those will be applied to the targeted position: either player current position or position argument passed in. Then any accuracy randomness will be applied to that post offset position as its currently applies to the targeted position.
 
 

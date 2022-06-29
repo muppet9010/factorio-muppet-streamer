@@ -3,6 +3,7 @@ Version: 20.0.23
 Date: 2022-XX-XX
   Features:
     - Added mod setting to enable ghost on building death for all forces. Useful if chat are blowing up your base often prior to having researched construction bot tech.
+    - Inventory Shuffle feature - Added option to NOT cancel players hand crafting queues.
   Changes:
   Bugfixes:
   Info:

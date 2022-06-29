@@ -40,6 +40,7 @@ local singlePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force th
 ---@field includedForces LuaForce[]
 ---@field includeAllPlayersOnServer boolean
 ---@field includeEquipment boolean
+---@field includeHandCrafting boolean
 ---@field destinationPlayersMinimumVariance uint
 ---@field destinationPlayersVarianceFactor double
 ---@field recipientItemMinToMaxRatio uint
@@ -133,6 +134,19 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         end
     end
 
+    local includeHandCraftingString = commandData.includeHandCrafting
+    local includeHandCrafting  ---@type boolean
+    if includeHandCraftingString == nil then
+        includeHandCrafting = true
+    else
+        includeHandCrafting = Utils.ToBoolean(includeHandCraftingString)
+        if includeHandCrafting == nil then
+            Logging.LogPrint(ErrorMessageStart .. "if includeHandCrafting is supplied it must be a boolean.")
+            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            return
+        end
+    end
+
     local destinationPlayersMinimumVarianceString = commandData.destinationPlayersMinimumVariance
     local destinationPlayersMinimumVariance  ---@type uint
     if destinationPlayersMinimumVarianceString == nil then
@@ -199,6 +213,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             includedForces = includedForces,
             includeAllPlayersOnServer = includeAllPlayersOnServer,
             includeEquipment = includeEquipment,
+            includeHandCrafting = includeHandCrafting,
             destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
             destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
             recipientItemMinToMaxRatio = recipientItemMinToMaxRatio
@@ -362,8 +377,8 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
             break
         end
 
-        --- Cancel any crafting queue if the player has one.
-        if player.crafting_queue_size > 0 then
+        --- Cancel any crafting queue if the player has one and this feature is enabled.
+        if requestData.includeHandCrafting and player.crafting_queue_size > 0 then
             playersInventory = player.get_inventory(defines.inventory.character_main)
 
             -- Grow the player's inventory to maximum size so that all cancelled craft ingredients are bound to fit in it.

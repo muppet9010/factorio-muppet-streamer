@@ -33,6 +33,7 @@ It won't help with the crafting cancel ups cost. But in most cases that isn't th
 
 It would be less shuffle and more distribution. As if a player had a power armour and they where set to receive 2 of the 10 total, they would now keep theirs and get one new. In the past there was a 1/5 chance of ending up with their own again.
 
+CraftingQueueItem now includes if the craft item is a prerequisite of another item in the queue. So we should be able to chase up the queue and identify how much stuff will come out of the crafting cancel. But we would have to inspect the queue items whihc we currently don't and would need to cache recipe ingredients to make working out ingredient returned to inventory counts lighter. Likely more UPS than we'd save. So not being investigated at present.
 
 
 Issues:
