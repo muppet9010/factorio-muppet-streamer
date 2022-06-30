@@ -31,6 +31,9 @@ local MaxDistancePositionAroundTarget = 10
 ---@field teleportId uint
 ---@field target string
 ---@field targetPlayer LuaPlayer
+---@field targetPlayer_surface LuaSurface
+---@field targetPlayer_force LuaForce
+---@field targetPlayerPlacementEntity LuaEntity @ A player character or teleportable vehicle.
 ---@field arrivalRadius double
 ---@field minDistance double
 ---@field maxDistance double
@@ -146,7 +149,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType]
 
-    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 0
+    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10
     if arrivalRadiusRaw ~= nil then
         arrivalRadius = tonumber(arrivalRadiusRaw)
         if arrivalRadius == nil or arrivalRadius < 0 then
@@ -230,27 +233,35 @@ Teleport.PlanTeleportTarget = function(eventData)
     local errorMessageStart = "ERROR: muppet_streamer_teleport command "
     local data = eventData.data ---@type Teleport_TeleportDetails
 
+    -- Get the Player object and confirm its valid.
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil or not targetPlayer.valid then
         Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
         return
     end
+
+    -- Check the player is alive (not dead) and not in editor mode. If they are just end the attempt.
     if targetPlayer.controller_type ~= defines.controllers.character then
         game.print({"message.muppet_streamer_teleport_not_character_controller", data.target})
         return
     end
 
+    -- Get the key data about the players current situation.
+    local targetPlayer_surface = targetPlayer.surface
+    local targetPlayer_force = targetPlayer.force
+
+    -- Increment the attempt counter for trying to find a target to teleport too.
     data.targetAttempt = data.targetAttempt + 1
 
+    -- Find a target based on the command settings.
     if data.destinationType == DestinationTypeSelection.spawn then
-        data.destinationTargetPosition = targetPlayer.force.get_spawn_position(targetPlayer.surface)
+        data.destinationTargetPosition = targetPlayer_force.get_spawn_position(targetPlayer_surface)
     elseif data.destinationType == DestinationTypeSelection.position then
         data.destinationTargetPosition = data.destinationTargetPosition
     elseif data.destinationType == DestinationTypeSelection.random then
         data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer.position, data.maxDistance, data.minDistance)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
-        ---@typelist uint, LuaForce, MapPosition
-        local targetPlayer_surface_index, targetPlayer_force, targetPlayer_position = targetPlayer.surface.index, targetPlayer.force, targetPlayer.position
+        local targetPlayer_surface_index, targetPlayer_position = targetPlayer_surface.index, targetPlayer.position
         local targetPlayer_force_name = targetPlayer_force.name
 
         -- Populate data.spawnerDistance with valid enemy spawners on the player's current surface if needed, otherwise handle last bad result.
@@ -340,7 +351,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         -- Set the target position to the valid spawner.
         data.destinationTargetPosition = nearestSpawnerDistanceDetails.spawnerDetails.position
     elseif data.destinationType == DestinationTypeSelection.enemyUnit then
-        data.destinationTargetPosition = targetPlayer.surface.find_nearest_enemy {position = targetPlayer.position, max_distance = data.maxDistance, force = targetPlayer.force}
+        data.destinationTargetPosition = targetPlayer_surface.find_nearest_enemy {position = targetPlayer.position, max_distance = data.maxDistance, force = targetPlayer_force}
         if data.destinationTargetPosition == nil then
             game.print({"message.muppet_streamer_teleport_no_enemy_unit_found", targetPlayer.name})
             Teleport.DoBackupTeleport(data)
@@ -348,8 +359,12 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
     end
 
+    -- Store the key data for checking/using later. We update on every loop so that any change of key data that triggers a re-loop starts fresh.
     data.targetPlayer = targetPlayer
-    Teleport.PlanTeleportLocation(data)
+    data.targetPlayer_surface = targetPlayer_surface
+    data.targetPlayer_force = targetPlayer_force
+
+    Teleport.FindTeleportLocationNearTarget(data)
 end
 
 --- Confirms if the vehicle is teleportable (non train).
@@ -368,23 +383,39 @@ Teleport.IsTeleportableVehicle = function(vehicle)
 end
 
 --- Find a position near the target for the player to go and start a pathing request if enabled.
---- Refereshs all player data on each load as waiting for pathfinder requests can make subsequent executions have different player stata data.
 ---@param data Teleport_TeleportDetails
-Teleport.PlanTeleportLocation = function(data)
+Teleport.FindTeleportLocationNearTarget = function(data)
+    -- Get the working data.
     local targetPlayer = data.targetPlayer
     local targetPlayer_character = targetPlayer.character
-    local targetPlayerPathingEntity, targetPlayerPlacementEntity = targetPlayer_character, targetPlayer_character
+    local targetPlayerPlacementEntity, targetPlayerPlacementEntity_isVehicle = Teleport.GetPlayerTeleportPlacementEntity(targetPlayer, targetPlayer_character)
 
-    local targetPlayer_vehicle = targetPlayer.vehicle
-    if Teleport.IsTeleportableVehicle(targetPlayer_vehicle) then
-        targetPlayerPlacementEntity = targetPlayer_vehicle
+    -- If a vehicle get its current nearest cardinal direction (4 direction) to orientation.
+    -- CODE NOTE: This isn't perfect, but is better than nothing until this Interface Request is done: https://forums.factorio.com/viewtopic.php?f=28&t=102792
+    local targetPlayerPlacementEntity_directionToCheck  ---@type defines.direction|nil
+    if targetPlayerPlacementEntity_isVehicle then
+        targetPlayerPlacementEntity_directionToCheck = Utils.RoundNumberToDecimalPlaces(targetPlayerPlacementEntity.orientation * 4, 0) * 2
     end
 
+    -- Record the current placement entity for checking post path request.
+    data.targetPlayerPlacementEntity = targetPlayerPlacementEntity
+
     local arrivalPos
-    for _ = 1, MaxRandomPositionsAroundTarget do
+    local randomPositionsToTry = math.max(1, math.min(MaxRandomPositionsAroundTarget, data.arrivalRadius ^ data.arrivalRadius)) -- Avoid looking around lots of positions all within very small arrival radiuses of the target. The arrival radius can be as low as 0.
+    for _ = 1, randomPositionsToTry do
+        -- Select a random position near the target and look for a valid placement near it.
         local randomPos = Utils.RandomLocationInRadius(data.destinationTargetPosition, data.arrivalRadius, 1)
         randomPos = Utils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
-        arrivalPos = targetPlayer.surface.find_non_colliding_position(targetPlayerPlacementEntity.name, randomPos, MaxDistancePositionAroundTarget, 1, false)
+        arrivalPos = data.targetPlayer_surface.find_non_colliding_position(targetPlayerPlacementEntity.name, randomPos, MaxDistancePositionAroundTarget, 1, false)
+
+        if targetPlayerPlacementEntity_directionToCheck ~= nil then
+            -- Check the entity can be placed with its current nearest cardinal direction to orientation, as the searching API doesn't check for this.
+            if arrivalPos ~= nil and not data.targetPlayer_surface.can_place_entity {name = targetPlayerPlacementEntity.name, position = arrivalPos, direction = targetPlayerPlacementEntity_directionToCheck, force = data.targetPlayer_force, build_check_type = defines.build_check_type.manual} then
+                arrivalPos = nil
+            end
+        end
+
+        -- If the arrivalPos is still populated then its good.
         if arrivalPos ~= nil then
             break
         end
@@ -403,14 +434,14 @@ Teleport.PlanTeleportLocation = function(data)
 
     if data.reachableOnly then
         -- Create the path request. We use the player's real character for this as in worst case they can get out of their vehicle and walk back through the narrow terrain.
-        local targetPlayerPathingEntity_prototype = targetPlayerPathingEntity.prototype
+        local targetPlayer_character_prototype = targetPlayer_character.prototype
         local pathRequestId =
-            targetPlayer.surface.request_path {
-            bounding_box = targetPlayerPathingEntity_prototype.collision_box,
-            collision_mask = targetPlayerPathingEntity_prototype.collision_mask,
+            data.targetPlayer_surface.request_path {
+            bounding_box = targetPlayer_character_prototype.collision_box,
+            collision_mask = targetPlayer_character_prototype.collision_mask,
             start = arrivalPos,
             goal = targetPlayer.position,
-            force = targetPlayer.force,
+            force = data.targetPlayer_force,
             radius = 1,
             can_open_gates = true,
             entity_to_ignore = targetPlayerPlacementEntity,
@@ -422,30 +453,96 @@ Teleport.PlanTeleportLocation = function(data)
     end
 end
 
+--- Get the entity that will be placed when the teleport is done, either a teleportable vehicle or the players character.
+---@param targetPlayer LuaPlayer
+---@param targetPlayer_character? LuaEntity|nil @ If nil is passed in and the value is needed it will be obtained.
+---@return LuaEntity placementEntity
+---@return boolean isVehicle
+Teleport.GetPlayerTeleportPlacementEntity = function(targetPlayer, targetPlayer_character)
+    local targetPlayer_vehicle = targetPlayer.vehicle
+    if Teleport.IsTeleportableVehicle(targetPlayer_vehicle) then
+        return targetPlayer_vehicle, true
+    else
+        return targetPlayer_character or targetPlayer.character, false
+    end
+end
+
+--- React to path requests being completed. If the path request was for a teleport request then we need to validate things again as there could be a significant gap between the path request being made and the response coming back.
 ---@param event on_script_path_request_finished
 Teleport.OnScriptPathRequestFinished = function(event)
     local data = global.teleport.pathingRequests[event.id]
     if data == nil then
-        -- Not our path request
+        -- Not our path request.
         return
     end
 
     global.teleport.pathingRequests[event.id] = nil
-    local targetPlayer = data.targetPlayer
     if event.path == nil then
-        -- Path request failed
+        -- Path request failed.
         if data.targetAttempt > MaxTargetAttempts then
-            game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
+            game.print({"message.muppet_streamer_teleport_no_teleport_location_found", data.targetPlayer.name})
             Teleport.DoBackupTeleport(data)
         else
             Teleport.PlanTeleportTarget({data = data})
         end
     else
+        -- Path request succeded.
+
+        -- CODE NOTE: As this has an unknown delay between request and result we need to validate everything important is unchanged before accepting the result and teleporting the player there. If sometihng critical has changed we repeat the entire target selection to avoid complicated code. But we subtract 1 from the attempts so its a free retry.
+
+        -- Check the player is still alive and in a suitable game state (not editor) to be teleported. If they aren't suitable just abandon the teleport.
+        if data.targetPlayer.controller_type ~= defines.controllers.character then
+            game.print({"message.muppet_streamer_teleport_not_character_controller", data.target})
+            return
+        end
+
+        -- Check the player's surface is the same as start of pathing request.
+        if data.targetPlayer.surface ~= data.targetPlayer_surface then
+            data.targetAttempt = data.targetAttempt - 1
+            Teleport.PlanTeleportTarget({data = data})
+            return
+        end
+
+        -- Check the player's force is the same as start of pathing request.
+        if data.targetPlayer.force ~= data.targetPlayer_force then
+            data.targetAttempt = data.targetAttempt - 1
+            Teleport.PlanTeleportTarget({data = data})
+            return
+        end
+
+        -- Get the players current placement entity and vehicle facing.
+        local currentPlayerPlacementEntity, currentPlayerPlacementEntity_isVehicle = Teleport.GetPlayerTeleportPlacementEntity(data.targetPlayer, nil)
+        -- If a vehicle get its current nearest cardinal (4) direction to orientation.
+        local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
+        if currentPlayerPlacementEntity_isVehicle then
+            currentPlayerPlacementEntity_vehicleDirectionFacing = Utils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
+        end
+
+        -- Check the player's character/vehicle is still as expected.
+        if currentPlayerPlacementEntity ~= data.targetPlayerPlacementEntity then
+            data.targetAttempt = data.targetAttempt - 1
+            Teleport.PlanTeleportTarget({data = data})
+            return
+        end
+
+        -- Check the target location hasn't been blocked since we made the path request. This also checks the entity can be placed with its current orientation rounded to a direction, so if its changed it will either be confirmed as being fine or fail and be retried.
+        if not data.targetPlayer_surface.can_place_entity {name = data.targetPlayerPlacementEntity.name, position = data.thisAttemptPosition, direction = currentPlayerPlacementEntity_vehicleDirectionFacing, force = data.targetPlayer_force, build_check_type = defines.build_check_type.manual} then
+            data.targetAttempt = data.targetAttempt - 1
+            Teleport.PlanTeleportTarget({data = data})
+            return
+        end
+        if currentPlayerPlacementEntity_vehicleDirectionFacing ~= nil then
+            -- Change the vehicles orientation to match the direction we checked. This will be a slight angle change, but the teleport should hide it.
+            currentPlayerPlacementEntity.orientation = currentPlayerPlacementEntity_vehicleDirectionFacing / 8
+        end
+
+        -- Everything is as expected still, so teleport can commence.
         Teleport.Teleport(data)
     end
 end
 
 --- Do the actual teleport of the target to the valid location.
+--- This function may be called some time after the initial command was triggered if a path check was made via pathfinder. But the pathfinder result will have checked and handled any variations before this function is called. So we can assume in this function everything is correct.
 ---@param data Teleport_TeleportDetails
 Teleport.Teleport = function(data)
     local targetPlayer = data.targetPlayer
