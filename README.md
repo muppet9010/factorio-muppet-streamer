@@ -7,6 +7,8 @@ Adds actions that a streamer can let chat activate to make their games more dyna
 Features
 -----------
 
+#### Streamer Events
+
 - Can schedule the delivery of some explosives to a player at speed via command.
 - A leaky flamethrower that shoots for short bursts intermittently via command.
 - Give a player a weapon and ammo, plus options to force it as an active weapon via command.
@@ -17,8 +19,17 @@ Features
 - Sets the ground on fire behind a player via command.
 - Drop a player's inventory on the ground over time via command.
 - Mix up players' inventories between them via command.
+
+#### Multiplayer Features
+
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
-- Mod options to: start with building's ghost on death unlocked, disable freeplay's introduction message, rocket win condition and set the starting map reveal area.
+
+#### Map Helper Features (mod options)
+
+- Start with building's ghost on death unlocked.
+- Disable introduction message in freeplay.
+- Disable rocket win condition in freeplay.
+- Set a custom starting map reveal area.
 
 
 
@@ -321,3 +332,12 @@ A way to soft limit players on the map and have research to increase it.
 - Command:
     - syntax: `/muppet_streamer_change_team_member_max CHANGENUMBER`
     - example to increase by 2: `/muppet_streamer_change_team_member_max 2`
+
+
+
+Start with building's ghost on death unlocked
+------------
+
+A mod setting that can make all forces start with ghosts being placed upon entity deaths. Ideal if your chat blows up your base often early game and you freehand build, so don't have a blueprint to just paste down again.
+
+This is the same as if the force had researched the vanilla construction robot technology to unlock it, by giving entity ghosts a long life time. The mod setting can be safely disabled post technology research if desired without it undoing any researched ghost lifetimer.
