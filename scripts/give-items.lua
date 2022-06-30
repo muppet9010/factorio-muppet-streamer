@@ -37,11 +37,11 @@ end
 ---@param weaponName string
 ---@param forceWeaponToWeaponInventorySlot boolean
 ---@param selectWeapon boolean
----@return boolean|null weaponGiven @ If the weapon item had to be given to the player, compared to them already having it and it possibly just being mvoed between their inventories. Returns nil for invalid situations, i.e. called on a palyer with no gun inventory.
----@return GiveItems_RemovedWeaponToEnsureWeapon|null removedWeaponDetails @ Details on the weapon that was removed to add the new wepaon. Is nil if no active weapon was set/found, i.e. weapon was found/put in to the players main inventory and not as an equiped weapon.
+---@return boolean|nil weaponGiven @ If the weapon item had to be given to the player, compared to them already having it and it possibly just being mvoed between their inventories. Returns nil for invalid situations, i.e. called on a palyer with no gun inventory.
+---@return GiveItems_RemovedWeaponToEnsureWeapon|nil removedWeaponDetails @ Details on the weapon that was removed to add the new wepaon. Is nil if no active weapon was set/found, i.e. weapon was found/put in to the players main inventory and not as an equiped weapon.
 GiveItems.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInventorySlot, selectWeapon)
     if player == nil or not player.valid then
-        return nil
+        return nil, nil
     end
 
     ---@type GiveItems_RemovedWeaponToEnsureWeapon
@@ -53,7 +53,7 @@ GiveItems.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInve
     local weaponGiven, weaponFoundIndex, freeGunIndex, freeButFilteredGunIndex = false, nil, nil, nil
     local gunInventory = player.get_inventory(defines.inventory.character_guns)
     if gunInventory == nil then
-        return nil
+        return nil, nil
     end
     for i = 1, #gunInventory do
         local gunItemStack = gunInventory[i]
@@ -118,10 +118,10 @@ GiveItems.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInve
                 if characterInventory.get_item_count(weaponName) == 0 then
                     -- Player doesn't have this weapon in their inventory, so give them one.
                     characterInventory.insert({name = weaponName, count = 1})
-                    return true
+                    return true, nil
                 else
                     -- Player has the weapon in their inventory already.
-                    return false
+                    return false, nil
                 end
             end
         end
