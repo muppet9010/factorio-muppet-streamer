@@ -203,7 +203,7 @@ Notes:
 - The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
 - CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be the lowest priority.
-- A player teleported comes with their vehicle if they have one (excludes trains).
+- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in the vehicle comes with it.
 
 
 
@@ -234,7 +234,7 @@ Notes:
 - All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a different target 5 times before giving up for the `random` and `biterNest` destinationType.
 - The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request and try another target. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases, based on walkable check. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
 - The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be a biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
-- A player teleported comes with their vehicle if they have one (excludes trains). The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
+- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in te vehicle comes with it. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
 
 
 

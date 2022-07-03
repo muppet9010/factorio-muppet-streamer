@@ -371,7 +371,7 @@ end
 ---@param vehicle LuaEntity
 ---@return boolean isVehicleTeleportable
 Teleport.IsTeleportableVehicle = function(vehicle)
-    if vehicle == nil or not vehicle.valid then
+    if vehicle == nil then
         return false
     end
     local vehicle_type = vehicle.type

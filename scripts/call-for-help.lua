@@ -5,6 +5,8 @@ local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
 local Events = require("utility/events")
 
+local Teleport = require("scripts.teleport")
+
 ---@class CallForHelp_CallSelection
 local CallSelection = {random = "random", nearest = "nearest"}
 
@@ -297,36 +299,13 @@ CallForHelp.CallForHelp = function(eventData)
     -- Store the initial details for the call and start the process for each player trying to come to help.
     game.print({"message.muppet_streamer_call_for_help_start", targetPlayer.name})
     global.callForHelp.callForHelpIds[data.callForHelpId] = {callForHelpId = data.callForHelpId, pendingPathRequests = {}}
-    local targetPlayerEntity
-    local targetPlayerVehicle = targetPlayer.vehicle
-    if targetPlayerVehicle ~= nil and targetPlayerVehicle.valid then
-        -- Player in vehicle so target it.
-        targetPlayerEntity = targetPlayerVehicle
-    else
-        -- Player not in a vehicle.
-        targetPlayerEntity = targetPlayer.character
-    end
+    local targetPlayerEntity = targetPlayer.vehicle or targetPlayer.character
     for _, helpPlayer in pairs(helpPlayers) do
         CallForHelp.PlanTeleportHelpPlayer(helpPlayer, data.arrivalRadius, targetPlayer, targetPlayerPosition, targetPlayerSurface, targetPlayerEntity, data.callForHelpId, 1)
     end
 end
 
---- Confirms if the vehicle is teleportable (non train).
----@param vehicle LuaEntity
----@return boolean isVehicleTeleportable
-CallForHelp.IsTeleportableVehicle = function(vehicle)
-    if vehicle == nil or not vehicle.valid then
-        return false
-    end
-    local vehicle_type = vehicle.type
-    if vehicle_type == "car" or vehicle_type == "spider-vehicle" then
-        return true
-    else
-        return false
-    end
-end
-
---- Finds somewhere to teleport the help player too and makes the pathing request for it.
+--- Finds somewhere to teleport the helping player too and make the pathing request for it.
 ---@param helpPlayer LuaPlayer
 ---@param arrivalRadius double
 ---@param targetPlayer LuaPlayer
@@ -336,15 +315,9 @@ end
 ---@param callForHelpId Id
 ---@param attempt uint
 CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetPlayer, targetPlayerPosition, targetPlayerSurface, targetPlayerEntity, callForHelpId, attempt)
-    local helpPlayerPathingEntity = helpPlayer.character
+    local helpPlayer_character = helpPlayer.character
 
-    local helpPlayerPlacementEntity
-    local helpPlayer_vehicle = helpPlayer.vehicle
-    if CallForHelp.IsTeleportableVehicle(helpPlayer_vehicle) then
-        helpPlayerPlacementEntity = helpPlayer_vehicle
-    else
-        helpPlayerPlacementEntity = helpPlayerPathingEntity
-    end
+    local helpPlayerPlacementEntity, helpPlayerPlacementEntity_isVehicle = Teleport.GetPlayerTeleportPlacementEntity(targetPlayer, helpPlayer_character)
 
     local arrivalPos
     for _ = 1, MaxRandomPositionsAroundTarget do
@@ -361,11 +334,11 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
     end
 
     -- Create the path request. We use the players real character for this as in worst case they can get out of their vehicle and walk back through the narrow terrain.
-    local helpPlayerPathingEntity_prototype = helpPlayerPathingEntity.prototype
+    local helpPlayer_character_prototype = helpPlayer_character.prototype
     local pathRequestId =
         targetPlayerSurface.request_path {
-        bounding_box = helpPlayerPathingEntity_prototype.collision_box,
-        collision_mask = helpPlayerPathingEntity_prototype.collision_mask,
+        bounding_box = helpPlayer_character_prototype.collision_box,
+        collision_mask = helpPlayer_character_prototype.collision_mask,
         start = arrivalPos,
         goal = targetPlayerPosition,
         force = helpPlayer.force,
@@ -417,7 +390,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         end
     else
         local helpPlayer_vehicle = helpPlayer.vehicle
-        if CallForHelp.IsTeleportableVehicle(helpPlayer_vehicle) then
+        if Teleport.IsTeleportableVehicle(helpPlayer_vehicle) then
             helpPlayer.vehicle.teleport(pathRequest.position)
         else
             local wasDriving, wasPassengerIn
@@ -432,6 +405,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
             end
             local teleportResult = helpPlayer.teleport(pathRequest.position, pathRequest.surface)
             if not teleportResult then
+                -- Teleport failed, so put them back in the vehicle they were in, in the same "seat".
                 if wasDriving then
                     wasDriving.set_driver(helpPlayer)
                 elseif wasPassengerIn then
