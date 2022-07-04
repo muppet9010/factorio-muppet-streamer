@@ -16,6 +16,7 @@ Date: 2022-XX-XX
     - Teleport - Now checks that a vehicle can be placed with its current direction at the selected teleport location. Previously it was (inadvertantly) assumed vehicles were all direction 0. This does mean vehicles when teleported will now be snapped to a cardinal (4) direction until a Factorio modding API request can be done.
     - Teleport - arrivalRadius setting now defaults to 10 as readme said and was intended.
   Info:
+    - Teleport and Call For Help moved to centralised player teleport library. Should reduce future duplicate bugs and variation risks.
 ---------------------------------------------------------------------------------------------------
 Version: 20.0.22
 Date: 2022-06-17

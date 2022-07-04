@@ -394,7 +394,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
             helpPlayer.vehicle.teleport(pathRequest.position)
         else
             local wasDriving, wasPassengerIn
-            if helpPlayer_vehicle ~= nil and helpPlayer_vehicle.valid then
+            if helpPlayer_vehicle ~= nil then
                 -- Player is in a non suitable vehicle, so get them out of it before teleporting.
                 if helpPlayer_vehicle.get_driver() then
                     wasDriving = helpPlayer_vehicle
