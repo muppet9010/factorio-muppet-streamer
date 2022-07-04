@@ -2,14 +2,6 @@ DOING NOW:
 
 
 BUGS:
-    - Move the player teleport location and finding logic from Teleport in to a new Utility function file. Do as hotfix to old Utility library and copy to main Utility version afterwards.
-        - This will be called by both Teleport and Call For help.
-        - Will need to make custom event call back in to features for success and failed logic, i.e. backup command settings in Teleport and for error message displaying. Need to rview both code bases caefully to identify what needs to be options driven.
-        - Also need to udpate readme of Call For Help to mirror Teleport from any changes.
-    - Call For Help: check all the references (entities, surface, etc) being passed around for the players being called in after each pathfinder loop are all still valid. If players started to be teleported to one place we want the others to continue going there, but we need to avoid edge cases of surfaces being deleted or target player vehicles vanishing during pathfinder loops as this may cause crashs.
-    - Call For Help: Mass player moving often puts a few inside each other (i.e. 2 out of 10). All the others were placed spaced out. This happens as with multiple arriving players, each one starts the process sequentially, but the wait for pathfinder results makes them all become asyncronous. So in effect all players look for an empty spot randomly near the target, then they start the pathfinder wait. So if 2 players both randomly select the same spot (or overlapping spots) the first one hasn't reserved it in any way until their pathfinder returns later, so the second player also see's it as free. With vehicles involved this will be worse. Simpliest way is to have it repeat the placement check post pathfinder for each incomming player and if it fails do a free retry, as this should be a very rare edge case.
-    - Call For Help: if any player changes in to a vehicle with a larger collision box than when the path finder started it may well place it in an invalid spot. So it needs to repeat the validity check at the end of a successful pathfinder and restart the process if the vehicle has changed from expected and DOESN'T fit in the location found already.
-    - If the target player (not helping player being teleported) has changed in to a vehicle from foot during the path finder wait it may also cause false negative results in some cases. In which case repeat any failed path finder request.
 
 
 DO NEAR FUTURE:

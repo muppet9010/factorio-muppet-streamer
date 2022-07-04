@@ -368,7 +368,6 @@ Teleport.PlanTeleportTarget = function(eventData)
 
     -- Make the teleport request to near by the target identified.
     local teleportResponse = PlayerTeleport.RequestTeleportToNearPosition(targetPlayer, targetPlayer_surface, data.destinationTargetPosition, data.arrivalRadius, MaxRandomPositionsAroundTargetToTry, MaxDistancePositionAroundTarget, data.reachableOnly and targetPlayer_position or nil)
-    data.targetPlayerPlacementEntity, data.thisAttemptPosition = teleportResponse.targetPlayerTeleportEntity, teleportResponse.targetPosition
 
     -- Handle the teleport response.
     if teleportResponse.teleportSucceeded == true then
@@ -376,6 +375,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         return
     elseif teleportResponse.pathRequestId ~= nil then
         -- A pathing request has been made, monitor it and react when it completes.
+        data.targetPlayerPlacementEntity, data.thisAttemptPosition = teleportResponse.targetPlayerTeleportEntity, teleportResponse.targetPosition
         global.teleport.pathingRequests[teleportResponse.pathRequestId] = data
         return
     elseif teleportResponse.errorNoValidPositionFound then
@@ -399,13 +399,24 @@ end
 --- React to path requests being completed. If the path request was for a teleport request then we need to validate things again as there could be a significant gap between the path request being made and the response coming back.
 ---@param event on_script_path_request_finished
 Teleport.OnScriptPathRequestFinished = function(event)
+    -- Check if this path request related to a Teleport.
     local data = global.teleport.pathingRequests[event.id]
     if data == nil then
         -- Not our path request.
         return
     end
 
+    -- Update the globals.
     global.teleport.pathingRequests[event.id] = nil
+
+    -- Check some key LuaObjects still exist. This is to avoid risk of crashes during any checks for changes.
+    if not data.targetPlayer_surface.valid or not data.targetPlayer_force.valid then
+        -- Something critical isn't valid, so we should always retry to get fresh data.
+        data.targetAttempt = data.targetAttempt - 1
+        Teleport.PlanTeleportTarget({data = data})
+        return
+    end
+
     if event.path == nil then
         -- Path request failed.
         if data.targetAttempt > MaxTargetAttempts then
@@ -454,8 +465,8 @@ Teleport.OnScriptPathRequestFinished = function(event)
             return
         end
 
-        -- Check the target location hasn't been blocked since we made the path request. This also checks the entity can be placed with its current orientation rounded to a direction, so if its changed it will either be confirmed as being fine or fail and be retried.
-        if not data.targetPlayer_surface.can_place_entity {name = data.targetPlayerPlacementEntity.name, position = data.thisAttemptPosition, direction = currentPlayerPlacementEntity_vehicleDirectionFacing, force = data.targetPlayer_force, build_check_type = defines.build_check_type.manual} then
+        -- Check the target location hasn't been blocked since we made the path request. This also checks the entity can be placed with its current orientation rounded to a direction, so if its changed from when the pathfinder request was made it will either be confirmed as being fine or fail and be retried.
+        if not data.targetPlayer_surface.can_place_entity {name = currentPlayerPlacementEntity.name, position = data.thisAttemptPosition, direction = currentPlayerPlacementEntity_vehicleDirectionFacing, force = data.targetPlayer_force, build_check_type = defines.build_check_type.manual} then
             data.targetAttempt = data.targetAttempt - 1
             Teleport.PlanTeleportTarget({data = data})
             return
@@ -468,7 +479,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
         -- Everything is as expected still, so teleport can commence.
         local teleportSucceeded = PlayerTeleport.TeleportToSpecificPosition(data.targetPlayer, data.targetPlayer_surface, data.thisAttemptPosition)
 
-        -- If the teleport of the player's entity/vehcile to the specific position failed.
+        -- If the teleport of the player's entity/vehicle to the specific position failed then do next action if there is one.
         if not teleportSucceeded then
             game.print("Muppet Streamer Error - teleport failed")
             Teleport.DoBackupTeleport(data)

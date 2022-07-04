@@ -186,24 +186,24 @@ Teleports other players on the server to near your position.
 - Details in JSON string supports the arguments:
     - delay: FLOAT - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target (case sensitive).
-    - arrivalRadius - FLOAT - Mandatory: players teleported to the target player will be placed within this max distance.
+    - arrivalRadius - FLOAT - Optional: players teleported to the target player will be placed within this max distance. Defaults to 10.
     - blacklistedPlayerNames - STRING_LIST - Optional: comma separated list of player names who will never be teleported to the target player. These are removed from the available players lists and counts. These names are case sensitive to the player's ingame name.
     - whitelistedPlayerNames - STRING_LIST - Optional: comma separated list of player names who will be the only ones who can be teleported to the target player. If provided these whitelisted players who are online constitute the entire available player list that any other filtering options are applied to. If not provided then all online players not blacklisted are valid players to select from based on filtering criteria. These names are case sensitive to the player's ingame name.
-    - callRadius - FLOAT - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a player at any distance can be teleported to the target player. If the `sameSurfaceOnly` argument is set to `false` then the `callRadius` argument is ignored entirely.
+    - callRadius - FLOAT - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a player at any distance can be teleported to the target player. If the `sameSurfaceOnly` argument is set to `false` (non default) then the `callRadius` argument is ignored entirely.
     - sameSurfaceOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same surface as the target player or not. If `false` then the `callRadius` argument is ignored as it can't logically be applied. Defaults to `true`.
     - sameTeamOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same team (force) as the target player or not. Defaults to `true`.
     - callSelection - STRING - Mandatory: the logic to select which available players in the callRadius are teleported, either: `random`, `nearest`.
     - number - INTEGER - Mandatory Special: how many players to call. Either `number` or `activePercentage` must be supplied.
     - activePercentage - FLOAT - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting the number of available players. Either `number` or `activePercentage` must be supplied.
-- Example command to call in the greater of either 3 or 50% of valid players : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":10, "callSelection": "random", "number": 3, "activePercentage": 50}`
-- Example command to call in all the players nearby : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":10, "callRadius": 200, "callSelection": "random", "activePercentage": 100}`
+- Example command to call in the greater of either 3 or 50% of valid players : `/muppet_streamer_call_for_help {"target":"muppet9010", "callSelection": "random", "number": 3, "activePercentage": 50}`
+- Example command to call in all the players nearby : `/muppet_streamer_call_for_help {"target":"muppet9010", "callRadius": 200, "callSelection": "random", "activePercentage": 100}`
 
 Notes:
 
 - The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
 - CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be the lowest priority.
-- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in the vehicle comes with it.
+- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in te vehicle comes with it. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
 
 
 
