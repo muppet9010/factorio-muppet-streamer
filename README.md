@@ -7,6 +7,8 @@ Adds actions that a streamer can let chat activate to make their games more dyna
 Features
 -----------
 
+#### Streamer Events
+
 - Can schedule the delivery of some explosives to a player at speed via command.
 - A leaky flamethrower that shoots for short bursts intermittently via command.
 - Give a player a weapon and ammo, plus options to force it as an active weapon via command.
@@ -17,8 +19,17 @@ Features
 - Sets the ground on fire behind a player via command.
 - Drop a player's inventory on the ground over time via command.
 - Mix up players' inventories between them via command.
+
+#### Multiplayer Features
+
 - Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
-- Mod options to disable freeplay's introduction message, rocket win condition and set the starting map reveal area.
+
+#### Map Helper Features (mod options)
+
+- Building's start with ghosts on death unlocked, rather than having to wait for a technology to unlock it (construction robotics).
+- Disable introduction message in freeplay.
+- Disable rocket win condition in freeplay.
+- Set a custom area of the map revealed at game start.
 
 
 
@@ -51,20 +62,21 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
     - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "slowdownCapsule", "poisonCapsule", "artilleryShell", "explosiveRocket", "atomicRocket", "smallSpit", "mediumSpit", "largeSpit". Is case sensitive.
     - target: STRING - Mandatory: a player name to target (case sensitive).
     - targetPosition: OBJECT - Optional: a position to target instead of the player's position. Will come on to the target players map (surface). See notes for syntax examples.
-    - accuracyRadiusMin: FLOAT - Optional: the minimum distance from the target that can be randomly selected within. If not specified defaults to 0.
-    - accuracyRadiusMax: FLOAT - Optional: the maximum distance from the target that can be randomly selected within. If not specified defaults to 0.
+    - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default this is nil (no offset). See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
+    - accuracyRadiusMin: FLOAT - Optional: the minimum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
+    - accuracyRadiusMax: FLOAT - Optional: the maximum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
     - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
     - salvoDelay: INTEGER - Optional: use with salvoSize. Sets the delay between salvo deliveries in game ticks (60 ticks = 1 second). Each salvo will target the same player position and not re-target the player's new position.
 - Example command atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command grenades: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
+- Example command offset grenade: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"grenade", "target":"muppet9010", "targetOffset":{"x":10,"y":10}}`
 - Example command large count of atomic rockets with salvo: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":150, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":180}`
 
 Notes:
 
-- Explosives will fly in from offscreen to random locations around the target player. They may take a few seconds to complete their delivery.
-- Explosives flying in will use their native throwing/shooting/spitting approach and so arrival trajectories and times may vary.
-- Weapons are on the "enemy" team and so don't get affected by your research.
-- targetPosition expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
+- Explosives will fly in from offscreen to random locations around the target player within the accuracy settings. They may take a few seconds to complete their delivery as they fly in using their native throwing/shooting/spitting speed.
+- Weapons are on the "enemy" team (force) and so don't get affected by your research, but will be affected by any weapon research set on the "enemy" team by other mods.
+- targetPosition and targetOffset expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 
 
 
@@ -83,9 +95,10 @@ Forces the targeted player to wield a flamethrower that shoots in random directi
 Notes:
 
 - This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
-- While activated the player will be kicked out of any vehicle they are in and prevented from entering one.
-- While activated the player will lose control over their weapons targeting and firing behaviour.
-- While activated the player can not change the active gun via the switch to next weapon key.
+- While activated the player will be kicked out of any vehicle they are in and prevented from entering one. As no one likes to be in an enclosed space with flames.
+- The player will be given the flamer and ammo needed for the effect if needed. If given these will be reclaimed at the end of the effect as appropriate. The player’s original gun and weapon selection will be returned to them including any slot filters.
+- While activated the player will lose control over their flamers weapon targeting and firing behaviour.
+- While activated the player can not change the active gun via the switch to the next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
 - The flamethrower is yours and so any of your damage upgrades will affect it.
 
@@ -160,7 +173,7 @@ Notes:
 
 - This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
 - If the vehicle comes to a stop during the time (due to hitting something) it will automatically start going the opposite direction.
-- This feature affects all types of cars, tanks, train and spider vehicles.
+- This feature affects all types of cars, tanks, trains and spider vehicles.
 
 
 
@@ -173,24 +186,24 @@ Teleports other players on the server to near your position.
 - Details in JSON string supports the arguments:
     - delay: FLOAT - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target (case sensitive).
-    - arrivalRadius - FLOAT - Mandatory: players teleported to the target player will be placed within this max distance.
+    - arrivalRadius - FLOAT - Optional: players teleported to the target player will be placed within this max distance. Defaults to 10.
     - blacklistedPlayerNames - STRING_LIST - Optional: comma separated list of player names who will never be teleported to the target player. These are removed from the available players lists and counts. These names are case sensitive to the player's ingame name.
     - whitelistedPlayerNames - STRING_LIST - Optional: comma separated list of player names who will be the only ones who can be teleported to the target player. If provided these whitelisted players who are online constitute the entire available player list that any other filtering options are applied to. If not provided then all online players not blacklisted are valid players to select from based on filtering criteria. These names are case sensitive to the player's ingame name.
-    - callRadius - FLOAT - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a player at any distance can be teleported to the target player. If the `sameSurfaceOnly` argument is set to `false` then the `callRadius` argument is ignored entirely.
+    - callRadius - FLOAT - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a player at any distance can be teleported to the target player. If the `sameSurfaceOnly` argument is set to `false` (non default) then the `callRadius` argument is ignored entirely.
     - sameSurfaceOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same surface as the target player or not. If `false` then the `callRadius` argument is ignored as it can't logically be applied. Defaults to `true`.
     - sameTeamOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same team (force) as the target player or not. Defaults to `true`.
     - callSelection - STRING - Mandatory: the logic to select which available players in the callRadius are teleported, either: `random`, `nearest`.
     - number - INTEGER - Mandatory Special: how many players to call. Either `number` or `activePercentage` must be supplied.
     - activePercentage - FLOAT - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting the number of available players. Either `number` or `activePercentage` must be supplied.
-- Example command to call in the greater of either 3 or 50% of valid players : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":10, "callSelection": "random", "number": 3, "activePercentage": 50}`
-- Example command to call in all the players nearby : `/muppet_streamer_call_for_help {"target":"muppet9010", "arrivalRadius":10, "callRadius": 200, "callSelection": "random", "activePercentage": 100}`
+- Example command to call in the greater of either 3 or 50% of valid players : `/muppet_streamer_call_for_help {"target":"muppet9010", "callSelection": "random", "number": 3, "activePercentage": 50}`
+- Example command to call in all the players nearby : `/muppet_streamer_call_for_help {"target":"muppet9010", "callRadius": 200, "callSelection": "random", "activePercentage": 100}`
 
 Notes:
 
 - The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
 - CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be the lowest priority.
-- A player teleported comes with their vehicle if they have one (excludes trains).
+- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in the vehicle comes with it. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
 
 
 
@@ -206,7 +219,7 @@ Teleports the player to the nearest type of thing.
     - destinationType: STRING/OBJECT - Mandatory: the type of teleport to do, either the text string of `random`, `biterNest`, `enemyUnit`, `spawn` or a specific position as an object. For biterNest and enemyUnit it will be the nearest one found within range.
     - arrivalRadius - FLOAT - Optional: the max distance the player will be teleported to from the targeted destinationType. Defaults to 10.
     - minDistance: FLOAT - Optional: the minimum distance to teleport. If not provided then the value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `enemyUnit`.
-    - maxDistance: FLOAT - Mandatory: the maximum distance to teleport. Is ignored for destinationType of `spawn` or specific position.
+    - maxDistance: FLOAT - Mandatory Special: the maximum distance to teleport. Is not mandatory and ignored for destinationType of `spawn` or specific position.
     - reachableOnly: BOOLEAN - Optional: if the place you are teleported must be walkable back to where you were. Defaults to false. Only applicable for destinationType of `random` and `biterNest`.
     - backupTeleportSettings: Teleport details in JSON string - Optional: a backup complete teleport action that will be done if the main destinationType is unsuccessful. Is a complete copy of the main muppet_streamer_teleport settings as a JSON object.
 - Example command biter nest: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"biterNest", "maxDistance": 1000, "reachableOnly": true}`
@@ -221,7 +234,7 @@ Notes:
 - All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a different target 5 times before giving up for the `random` and `biterNest` destinationType.
 - The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request and try another target. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases, based on walkable check. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
 - The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be a biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
-- A player teleported comes with their vehicle if they have one (excludes trains).
+- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in the vehicle comes with it. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
 
 
 
@@ -283,6 +296,7 @@ Takes all the inventory items from the target players, shuffles them and then di
     - includedPlayers: STRING_LIST/STRING -  Mandatory Special: either blank, a comma separated list of the player names to include (assuming they are online at the time), or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's ingame name. At least one of includedPlayers or includedForces settings must be provided.
     - includedForces: STRING_LIST/STRING -  Mandatory Special: a comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's ingame name. At least one of includedPlayers or includedForces settings must be provided.
     - includeEquipment: BOOLEAN - Optional: if the player's armour and weapons are included for shuffling or not. Defaults to True.
+    - includeHandCrafting: BOOLEAN - Optional: if the player's hand crafting should be cancelled and the ingredients shuffled. Defaults to True.
     - destinationPlayersMinimumVariance: INTEGER - Optional: The minimum number of destination player's inventories that the items should end up in above/below the number of source player inventories. Defaults to 1. See notes for logic on item distribution.
     - destinationPlayersVarianceFactor: FLOAT - Optional: The factor applied to each item type's number of source players when calculating the range of the random destination player count. Defaults to 0.25. See notes for logic on item distribution.
     - recipientItemMinToMaxRatio: INTEGER - Optional: The approximate min/max range of the number of items a destination player will receive compared to others. Defaults to 4. See notes for logic on item distribution.
@@ -299,8 +313,9 @@ Notes:
     - The number of each item each selected player will receive is a random proportion of the total. This is controlled by the recipientItemMinToMaxRatio setting. This setting defines the minimum to maximum ratio between 2 players, i.e. setting of 4 means a player receiving the maximum number can receive up to 4 times as many as a player receiving the minimum. This setting's implementation isn't quite exact and should be viewed as a rough guide.
     - Any items that can't be fitted into the intended destination player will be given to another online targeted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targeted player then they will be dropped on the floor at the targeted players’ feet. This situation can occur as items are taken from the player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
 - Players are given items using Factorios default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
-- Any hand crafting by players will be cancelled and the ingredients added into the shared items. To limit the UPS impact each player who is crafting can't have more than 1,000 inventory slots per cancelled crafting entry; This is over 8 vanilla player inventories. Any ingredients over this will be dropped at the feet of that player on the ground.
+- If includeHandCrafting is True; Any hand crafting by players will be cancelled and the ingredients added into the shared items. To limit the UPS impact from this, each item stack (icon in crafting queue) that is cancelled will have any ingredients greater than 4 full player inventories worth dropped on the ground rather than included into the shared items. Multiple separate crafts will be individually handled and so have their own limits. This will come into play in the example of a player filling up their inventory with stone and starts crafting stone furnaces, then refills with stone and does this again 4 times all at once. As these crafts would all go into 1 craft item (icon in the queue).
 - All attempts are made to give the items to players, but as a last resort they will be dropped on the ground. In large quantities this can cause a UPS stutter as the core Factorio game engine handles it. This will arise if players have all their different inventories full and have long crafting queues with extra items already used in these crafts.
+- This command can be UPS intensive for large player numbers (10/20+), if players have very large modded inventories, or if lots of players are hand crafting lots of things. In these cases the server may pause for a moment or two until the event completes. This feature has been refactored multiple times for UPS improvements, but ultimately does a lot of API commands and inventory manipulation which is UPS intensive.
 
 
 
@@ -317,3 +332,12 @@ A way to soft limit players on the map and have research to increase it.
 - Command:
     - syntax: `/muppet_streamer_change_team_member_max CHANGENUMBER`
     - example to increase by 2: `/muppet_streamer_change_team_member_max 2`
+
+
+
+Start with building's ghost on death unlocked
+------------
+
+A mod setting that can make all forces start with ghosts being placed upon entity deaths. Ideal if your chat blows up your base often early game and you freehand build, so don't have a blueprint to just paste down again.
+
+This is the same as if the force had researched the vanilla construction robot technology to unlock it, by giving entity ghosts a long life time. The mod setting can be safely disabled post technology research if desired without it undoing any researched ghost lifetimer.

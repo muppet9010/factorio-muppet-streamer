@@ -1,4 +1,24 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.23
+Date: 2022-07-05
+  Features:
+    - Added mod setting to enable ghosts on building death for all forces. Useful if chat is blowing up your base often prior to having researched construction bot tech.
+    - Inventory Shuffle feature - Added option to NOT cancel players hand crafting queues.
+    - Explosive Delivery - Added option for target offset {x,y}. Allows a static offset to be applied to a target position (player or static) before the random accuracy is calculated per explosive delivered.
+  Changes:
+    - Teleport - arrivalRadius setting now defaults to 10 as readme said and was intended.
+    - Call For Help - arrivalRadius setting now optional, with a default of 10 as per readme. In most use cases this will be fine and so no need to force a streamer to provide standard settings.
+  Bugfixes:
+    - Leaky Flamethrower - Error when ammo count was non integer value between >0 and <1. It's now just rounded up as non-integers aren't supported and so shouldn't really be given.
+    - Leaky flamethrower - Fix cause of player ending up with a fraction of flamethrower ammo at end of effect. If a player was shooting another weapon when the leaky flamethrower started then their existing weapon cooldown would delay firing the flamethrower and mess up the timing on the first burst. Thus the first ammo item was never fully fired in the expected time and at the end of the effect they were left with a small amount of ammo. Mod tracks ammo usage to detect this non firing and hopefully other ammo gain/loss scenarios in a non buggy way, but does have to make assumptions about ammo changes.
+    - Explosive Delivery - Target surface now stays the same for all salvos in an effect, same as the position does. Before the surface would follow the target player, but the position wouldn't, which made no real sense.
+    - Explosive Delivery - Target surface deletion mid salvo will no longer cause errors. The undelivered salvos to that surface will just be ignored.
+    - Teleport & Call For Help - When the reachableOnly feature was in use previously a player's state (alive, force, vehicle and surface) could change while waiting for a path check to complete. The mod wouldn't react to this and this could lead to players being placed inside moved entities, on wrong surfaces, with wrong vehicles or placement checks, etc. Now these changes will be detected and the teleport process re-run to ensure a clean and accurate target location is found.
+    - Teleport & Call For Help - Now checks that a vehicle can be placed with its current direction at the selected teleport location. Previously it was (inadvertently) assumed vehicles were all direction 0. This does mean vehicles when teleported will now be snapped to a cardinal (4) direction until a Factorio modding API request can be done.
+    - Teleport - arrivalRadius setting now defaults to 10 as readme said and was intended. Before it was defaulting to 0.
+  Info:
+    - Teleport and Call For Help moved to centralised player teleport library. Should reduce future duplicate bugs and variation risks. But does mean a lot of code changes in this version for these 2 features.
+---------------------------------------------------------------------------------------------------
 Version: 20.0.22
 Date: 2022-06-17
   Features:
@@ -34,7 +54,7 @@ Date: 2022-05-07
     - Leaky flamethrower feature - after effect ends the player's active weapon is returned to what it was before the effect started, rather than being left on whichever weapon slot the flamethrower was put in.
     - Pants On Fire - if you stay in a vehicle you will take exponential damage until you get out. This will scale quickly to handle players from no armour up to heavily shielded players.
   Bugfixes:
-    - Give Weapon & Ammo feature - when forceWeaponToSlot set to True it will force the weapon in to a filtered gun slot if needed.
+    - Give Weapon & Ammo feature - when forceWeaponToSlot set to True it will force the weapon into a filtered gun slot if needed.
     - Leaky flamethrower feature - handles if all slots are full/filtered by clearing one for the flamethrower.
     - Aggressive Driver feature - if the player was in a train, but not a locomotive carriage then the code wouldn't have run correctly and could lead to partial or no control exerted over the train.
   Info:
@@ -186,8 +206,8 @@ Date: 2020-05-04
   Features:
   Changes:
   Bugfixes:
-    - Made all commands be admin only.
-    - Made all commands not error if no data is passed to them.
+    - Make all commands be admin only.
+    - Make all commands not error if no data is passed to them.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 18.0.4

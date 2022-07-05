@@ -7,3 +7,4 @@ Hotfixs:
 	- biome-trees.lua - patched up to 20.7.37 - Muppet Streamer 20.0.16
     - biome-trees.lua and biome-trees-data\base-game.lua - changes made to fix non defined tile crash and updated in to Utility 20.7.37 as being modified in Railway Tunnel's mod - Muppet Streamer 20.0.16
     - emmylua-classes.lua - patched up to 20.7.37 - Muppet Streamer 20.0.16
+    - player-teleport.lua - patched up to 20.8.41 - Muppet Streamer 20.0.23 - Developed here and then up patched in to current Utils version.

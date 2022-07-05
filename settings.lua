@@ -1,18 +1,25 @@
 data:extend(
     {
         {
+            name = "muppet_streamer-enable_building_ghosts",
+            type = "bool-setting",
+            default_value = false,
+            setting_type = "startup",
+            order = "1001"
+        },
+        {
             name = "muppet_streamer-disable_intro_message",
             type = "bool-setting",
             default_value = false,
             setting_type = "startup",
-            order = "1002"
+            order = "2001"
         },
         {
             name = "muppet_streamer-disable_rocket_win",
             type = "bool-setting",
             default_value = false,
             setting_type = "startup",
-            order = "1003"
+            order = "2002"
         },
         {
             name = "muppet_streamer-starting_reveal",
@@ -20,7 +27,7 @@ data:extend(
             default_value = -1,
             minimum_value = -1,
             setting_type = "startup",
-            order = "1004"
+            order = "2003"
         },
         {
             name = "muppet_streamer-recruit_team_member_technology_cost",
@@ -28,7 +35,7 @@ data:extend(
             default_value = -1,
             min_value = -1,
             setting_type = "startup",
-            order = "2001"
+            order = "3001"
         },
         {
             name = "muppet_streamer-recruit_team_member_technology_title",
@@ -36,7 +43,7 @@ data:extend(
             default_value = "Recruit Team Member",
             allow_blank = true,
             setting_type = "startup",
-            order = "2002"
+            order = "3002"
         },
         {
             name = "muppet_streamer-recruit_team_member_technology_description",
@@ -44,7 +51,7 @@ data:extend(
             default_value = "Recruit another team member to increase your maximum concurrent team size",
             allow_blank = true,
             setting_type = "startup",
-            order = "2003"
+            order = "3003"
         }
     }
 )

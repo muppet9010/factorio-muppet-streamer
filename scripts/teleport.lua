@@ -4,6 +4,7 @@ local Logging = require("utility/logging")
 local EventScheduler = require("utility/event-scheduler")
 local Utils = require("utility/utils")
 local Events = require("utility/events")
+local PlayerTeleport = require("utility.functions.player-teleport")
 
 ---@class Teleport_DestinationTypeSelection
 local DestinationTypeSelection = {random = "random", biterNest = "biterNest", enemyUnit = "enemyUnit", spawn = "spawn", position = "position"}
@@ -12,7 +13,7 @@ local DestinationTypeSelection = {random = "random", biterNest = "biterNest", en
 local DestinationTypeSelectionDescription = {random = "Random Location", biterNest = "Nearest Biter Nest", enemyUnit = "Enemy Unit", spawn = "spawn", position = "Set Position"}
 
 local MaxTargetAttempts = 5
-local MaxRandomPositionsAroundTarget = 10
+local MaxRandomPositionsAroundTargetToTry = 50 -- Was 10, but upped to reduce odd vehicle rotation issues.
 local MaxDistancePositionAroundTarget = 10
 
 ---@class Teleport_CommandDetails @ The details for a specific teleport event in an an RCON command.
@@ -22,25 +23,28 @@ local MaxDistancePositionAroundTarget = 10
 ---@field minDistance double
 ---@field maxDistance double
 ---@field destinationType Teleport_DestinationTypeSelection
----@field destinationTargetPosition MapPosition|null
+---@field destinationTargetPosition? MapPosition|nil
 ---@field reachableOnly boolean
----@field backupTeleportSettings Teleport_CommandDetails|null
+---@field backupTeleportSettings? Teleport_CommandDetails|nil
 ---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
 
 ---@class Teleport_TeleportDetails @ The data on a teleport action being undertaken. This includes the attributes from the first Teleport_CommandDetails within it directly.
 ---@field teleportId uint
 ---@field target string
 ---@field targetPlayer LuaPlayer
+---@field targetPlayer_surface LuaSurface
+---@field targetPlayer_force LuaForce
+---@field targetPlayerPlacementEntity LuaEntity @ A player character or teleportable vehicle.
 ---@field arrivalRadius double
 ---@field minDistance double
 ---@field maxDistance double
 ---@field destinationType Teleport_DestinationTypeSelection
----@field destinationTargetPosition MapPosition|null
+---@field destinationTargetPosition? MapPosition|nil
 ---@field reachableOnly boolean
 ---@field targetAttempt uint
----@field backupTeleportSettings Teleport_CommandDetails|null
+---@field backupTeleportSettings? Teleport_CommandDetails|nil
 ---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
----@field thisAttemptPosition MapPosition|null @ The map position of the current teleport attempt.
+---@field thisAttemptPosition? MapPosition|nil @ The map position of the current teleport attempt.
 ---@field spawnerDistances table<uint, Teleport_TargetPlayerSpawnerDistanceDetails> @ If destinationType is biterNest then populated when looking for a spawner to target, otherwise empty. Key'd as a gappy numerial order. The enemy spawners found on this surface from our spawner list and the distance they are from the player's current position.
 
 ---@class Teleport_TargetPlayerSpawnerDistanceDetails
@@ -146,7 +150,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType]
 
-    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 0
+    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10
     if arrivalRadiusRaw ~= nil then
         arrivalRadius = tonumber(arrivalRadiusRaw)
         if arrivalRadius == nil or arrivalRadius < 0 then
@@ -230,27 +234,36 @@ Teleport.PlanTeleportTarget = function(eventData)
     local errorMessageStart = "ERROR: muppet_streamer_teleport command "
     local data = eventData.data ---@type Teleport_TeleportDetails
 
+    -- Get the Player object and confirm its valid.
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil or not targetPlayer.valid then
         Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
         return
     end
+
+    -- Check the player is alive (not dead) and not in editor mode. If they are just end the attempt.
     if targetPlayer.controller_type ~= defines.controllers.character then
         game.print({"message.muppet_streamer_teleport_not_character_controller", data.target})
         return
     end
 
+    -- Get the key data about the players current situation.
+    local targetPlayer_surface = targetPlayer.surface
+    local targetPlayer_force = targetPlayer.force
+    local targetPlayer_position = targetPlayer.position
+
+    -- Increment the attempt counter for trying to find a target to teleport too.
     data.targetAttempt = data.targetAttempt + 1
 
+    -- Find a target based on the command settings.
     if data.destinationType == DestinationTypeSelection.spawn then
-        data.destinationTargetPosition = targetPlayer.force.get_spawn_position(targetPlayer.surface)
+        data.destinationTargetPosition = targetPlayer_force.get_spawn_position(targetPlayer_surface)
     elseif data.destinationType == DestinationTypeSelection.position then
         data.destinationTargetPosition = data.destinationTargetPosition
     elseif data.destinationType == DestinationTypeSelection.random then
-        data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer.position, data.maxDistance, data.minDistance)
+        data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer_position, data.maxDistance, data.minDistance)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
-        ---@typelist uint, LuaForce, MapPosition
-        local targetPlayer_surface_index, targetPlayer_force, targetPlayer_position = targetPlayer.surface.index, targetPlayer.force, targetPlayer.position
+        local targetPlayer_surface_index = targetPlayer_surface.index
         local targetPlayer_force_name = targetPlayer_force.name
 
         -- Populate data.spawnerDistance with valid enemy spawners on the player's current surface if needed, otherwise handle last bad result.
@@ -340,7 +353,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         -- Set the target position to the valid spawner.
         data.destinationTargetPosition = nearestSpawnerDistanceDetails.spawnerDetails.position
     elseif data.destinationType == DestinationTypeSelection.enemyUnit then
-        data.destinationTargetPosition = targetPlayer.surface.find_nearest_enemy {position = targetPlayer.position, max_distance = data.maxDistance, force = targetPlayer.force}
+        data.destinationTargetPosition = targetPlayer_surface.find_nearest_enemy {position = targetPlayer_position, max_distance = data.maxDistance, force = targetPlayer_force}
         if data.destinationTargetPosition == nil then
             game.print({"message.muppet_streamer_teleport_no_enemy_unit_found", targetPlayer.name})
             Teleport.DoBackupTeleport(data)
@@ -348,48 +361,25 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
     end
 
+    -- Store the key data for checking/using later. We update on every loop so that any change of key data that triggers a re-loop starts fresh.
     data.targetPlayer = targetPlayer
-    Teleport.PlanTeleportLocation(data)
-end
+    data.targetPlayer_surface = targetPlayer_surface
+    data.targetPlayer_force = targetPlayer_force
 
---- Confirms if the vehicle is teleportable (non train).
----@param vehicle LuaEntity
----@return boolean isVehicleTeleportable
-Teleport.IsTeleportableVehicle = function(vehicle)
-    if vehicle == nil or not vehicle.valid then
-        return false
-    end
-    local vehicle_type = vehicle.type
-    if vehicle_type == "car" or vehicle_type == "spider-vehicle" then
-        return true
-    else
-        return false
-    end
-end
+    -- Make the teleport request to near by the target identified.
+    local teleportResponse = PlayerTeleport.RequestTeleportToNearPosition(targetPlayer, targetPlayer_surface, data.destinationTargetPosition, data.arrivalRadius, MaxRandomPositionsAroundTargetToTry, MaxDistancePositionAroundTarget, data.reachableOnly and targetPlayer_position or nil)
 
---- Find a position near the target for the player to go and start a pathing request if enabled.
---- Refereshs all player data on each load as waiting for pathfinder requests can make subsequent executions have different player stata data.
----@param data Teleport_TeleportDetails
-Teleport.PlanTeleportLocation = function(data)
-    local targetPlayer = data.targetPlayer
-    local targetPlayer_character = targetPlayer.character
-    local targetPlayerPathingEntity, targetPlayerPlacementEntity = targetPlayer_character, targetPlayer_character
-
-    local targetPlayer_vehicle = targetPlayer.vehicle
-    if Teleport.IsTeleportableVehicle(targetPlayer_vehicle) then
-        targetPlayerPlacementEntity = targetPlayer_vehicle
-    end
-
-    local arrivalPos
-    for _ = 1, MaxRandomPositionsAroundTarget do
-        local randomPos = Utils.RandomLocationInRadius(data.destinationTargetPosition, data.arrivalRadius, 1)
-        randomPos = Utils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
-        arrivalPos = targetPlayer.surface.find_non_colliding_position(targetPlayerPlacementEntity.name, randomPos, MaxDistancePositionAroundTarget, 1, false)
-        if arrivalPos ~= nil then
-            break
-        end
-    end
-    if arrivalPos == nil then
+    -- Handle the teleport response.
+    if teleportResponse.teleportSucceeded == true then
+        -- All completed.
+        return
+    elseif teleportResponse.pathRequestId ~= nil then
+        -- A pathing request has been made, monitor it and react when it completes.
+        data.targetPlayerPlacementEntity, data.thisAttemptPosition = teleportResponse.targetPlayerTeleportEntity, teleportResponse.targetPosition
+        global.teleport.pathingRequests[teleportResponse.pathRequestId] = data
+        return
+    elseif teleportResponse.errorNoValidPositionFound then
+        -- No valid position was found to try and teleport too.
         if data.targetAttempt > MaxTargetAttempts then
             game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
             Teleport.DoBackupTeleport(data)
@@ -398,83 +388,102 @@ Teleport.PlanTeleportLocation = function(data)
             Teleport.PlanTeleportTarget({data = data})
             return
         end
-    end
-    data.thisAttemptPosition = arrivalPos
-
-    if data.reachableOnly then
-        -- Create the path request. We use the player's real character for this as in worst case they can get out of their vehicle and walk back through the narrow terrain.
-        local targetPlayerPathingEntity_prototype = targetPlayerPathingEntity.prototype
-        local pathRequestId =
-            targetPlayer.surface.request_path {
-            bounding_box = targetPlayerPathingEntity_prototype.collision_box,
-            collision_mask = targetPlayerPathingEntity_prototype.collision_mask,
-            start = arrivalPos,
-            goal = targetPlayer.position,
-            force = targetPlayer.force,
-            radius = 1,
-            can_open_gates = true,
-            entity_to_ignore = targetPlayerPlacementEntity,
-            pathfind_flags = {allow_paths_through_own_entities = true, cache = false}
-        }
-        global.teleport.pathingRequests[pathRequestId] = data
-    else
-        Teleport.Teleport(data)
+    elseif teleportResponse.errorTeleportFailed then
+        -- Failed to teleport the entity to the specific position.
+        game.print("Muppet Streamer Error - teleport failed")
+        Teleport.DoBackupTeleport(data)
+        return
     end
 end
 
+--- React to path requests being completed. If the path request was for a teleport request then we need to validate things again as there could be a significant gap between the path request being made and the response coming back.
 ---@param event on_script_path_request_finished
 Teleport.OnScriptPathRequestFinished = function(event)
+    -- Check if this path request related to a Teleport.
     local data = global.teleport.pathingRequests[event.id]
     if data == nil then
-        -- Not our path request
+        -- Not our path request.
         return
     end
 
+    -- Update the globals.
     global.teleport.pathingRequests[event.id] = nil
-    local targetPlayer = data.targetPlayer
+
+    -- Check some key LuaObjects still exist. This is to avoid risk of crashes during any checks for changes.
+    if not data.targetPlayer_surface.valid or not data.targetPlayer_force.valid then
+        -- Something critical isn't valid, so we should always retry to get fresh data.
+        data.targetAttempt = data.targetAttempt - 1
+        Teleport.PlanTeleportTarget({data = data})
+        return
+    end
+
     if event.path == nil then
-        -- Path request failed
+        -- Path request failed.
         if data.targetAttempt > MaxTargetAttempts then
-            game.print({"message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name})
+            game.print({"message.muppet_streamer_teleport_no_teleport_location_found", data.targetPlayer.name})
             Teleport.DoBackupTeleport(data)
         else
             Teleport.PlanTeleportTarget({data = data})
         end
     else
-        Teleport.Teleport(data)
-    end
-end
+        -- Path request succeded.
 
---- Do the actual teleport of the target to the valid location.
----@param data Teleport_TeleportDetails
-Teleport.Teleport = function(data)
-    local targetPlayer = data.targetPlayer
-    local teleportResult, wasDriving, wasPassengerIn
-    local targetPlayer_vehicle = targetPlayer.vehicle
-    if Teleport.IsTeleportableVehicle(targetPlayer_vehicle) then
-        teleportResult = targetPlayer_vehicle.teleport(data.thisAttemptPosition)
-    else
-        if targetPlayer_vehicle ~= nil and targetPlayer_vehicle.valid then
-            -- Player is in a non suitable vehicle, so get them out of it before teleporting.
-            if targetPlayer_vehicle.get_driver() then
-                wasDriving = targetPlayer_vehicle
-            elseif targetPlayer_vehicle.get_passenger() then
-                wasPassengerIn = targetPlayer_vehicle
-            end
-            targetPlayer.driving = false
-        end
-        teleportResult = targetPlayer.teleport(data.thisAttemptPosition)
-    end
+        -- CODE NOTE: As this has an unknown delay between request and result we need to validate everything important is unchanged before accepting the result and teleporting the player there. If sometihng critical has changed we repeat the entire target selection to avoid complicated code. But we subtract 1 from the attempts so its a free retry.
 
-    -- If the teleport failed then put the player back in their non teleportable vehicle.
-    if not teleportResult then
-        if wasDriving then
-            wasDriving.set_driver(targetPlayer)
-        elseif wasPassengerIn then
-            wasPassengerIn.set_passenger(targetPlayer)
+        -- Check the player is still alive and in a suitable game state (not editor) to be teleported. If they aren't suitable just abandon the teleport.
+        if data.targetPlayer.controller_type ~= defines.controllers.character then
+            game.print({"message.muppet_streamer_teleport_not_character_controller", data.target})
+            return
         end
-        game.print("Muppet Streamer Error - teleport failed")
-        Teleport.DoBackupTeleport(data)
+
+        -- Check the player's surface is the same as start of pathing request.
+        if data.targetPlayer.surface ~= data.targetPlayer_surface then
+            data.targetAttempt = data.targetAttempt - 1
+            Teleport.PlanTeleportTarget({data = data})
+            return
+        end
+
+        -- Check the player's force is the same as start of pathing request.
+        if data.targetPlayer.force ~= data.targetPlayer_force then
+            data.targetAttempt = data.targetAttempt - 1
+            Teleport.PlanTeleportTarget({data = data})
+            return
+        end
+
+        -- Get the players current placement entity and vehicle facing.
+        local currentPlayerPlacementEntity, currentPlayerPlacementEntity_isVehicle = PlayerTeleport.GetPlayerTeleportPlacementEntity(data.targetPlayer, nil)
+        -- If a vehicle get its current nearest cardinal (4) direction to orientation.
+        local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
+        if currentPlayerPlacementEntity_isVehicle then
+            currentPlayerPlacementEntity_vehicleDirectionFacing = Utils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
+        end
+
+        -- Check the player's character/vehicle is still as expected.
+        if currentPlayerPlacementEntity ~= data.targetPlayerPlacementEntity then
+            data.targetAttempt = data.targetAttempt - 1
+            Teleport.PlanTeleportTarget({data = data})
+            return
+        end
+
+        -- Check the target location hasn't been blocked since we made the path request. This also checks the entity can be placed with its current orientation rounded to a direction, so if its changed from when the pathfinder request was made it will either be confirmed as being fine or fail and be retried.
+        if not data.targetPlayer_surface.can_place_entity {name = currentPlayerPlacementEntity.name, position = data.thisAttemptPosition, direction = currentPlayerPlacementEntity_vehicleDirectionFacing, force = data.targetPlayer_force, build_check_type = defines.build_check_type.manual} then
+            data.targetAttempt = data.targetAttempt - 1
+            Teleport.PlanTeleportTarget({data = data})
+            return
+        end
+        if currentPlayerPlacementEntity_vehicleDirectionFacing ~= nil then
+            -- Change the vehicles orientation to match the direction we checked. This will be a slight angle change, but the teleport should hide it.
+            currentPlayerPlacementEntity.orientation = currentPlayerPlacementEntity_vehicleDirectionFacing / 8
+        end
+
+        -- Everything is as expected still, so teleport can commence.
+        local teleportSucceeded = PlayerTeleport.TeleportToSpecificPosition(data.targetPlayer, data.targetPlayer_surface, data.thisAttemptPosition)
+
+        -- If the teleport of the player's entity/vehicle to the specific position failed then do next action if there is one.
+        if not teleportSucceeded then
+            game.print("Muppet Streamer Error - teleport failed")
+            Teleport.DoBackupTeleport(data)
+        end
     end
 end
 
