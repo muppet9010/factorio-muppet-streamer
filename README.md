@@ -26,10 +26,10 @@ Features
 
 #### Map Helper Features (mod options)
 
-- Start with building's ghost on death unlocked.
+- Building's start with ghosts on death unlocked, rather than having to wait for a technology to unlock it (construction robotics).
 - Disable introduction message in freeplay.
 - Disable rocket win condition in freeplay.
-- Set a custom starting map reveal area.
+- Set a custom area of the map revealed at game start.
 
 
 
@@ -62,7 +62,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
     - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "slowdownCapsule", "poisonCapsule", "artilleryShell", "explosiveRocket", "atomicRocket", "smallSpit", "mediumSpit", "largeSpit". Is case sensitive.
     - target: STRING - Mandatory: a player name to target (case sensitive).
     - targetPosition: OBJECT - Optional: a position to target instead of the player's position. Will come on to the target players map (surface). See notes for syntax examples.
-    - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default this is nil (no offset). See notes for syntax examples. As this is an offset a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
+    - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default this is nil (no offset). See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
     - accuracyRadiusMin: FLOAT - Optional: the minimum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
     - accuracyRadiusMax: FLOAT - Optional: the maximum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
     - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
@@ -98,7 +98,7 @@ Notes:
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one. As no one likes to be in an enclosed space with flames.
 - The player will be given the flamer and ammo needed for the effect if needed. If given these will be reclaimed at the end of the effect as appropriate. The player’s original gun and weapon selection will be returned to them including any slot filters.
 - While activated the player will lose control over their flamers weapon targeting and firing behaviour.
-- While activated the player can not change the active gun via the switch to next weapon key.
+- While activated the player can not change the active gun via the switch to the next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
 - The flamethrower is yours and so any of your damage upgrades will affect it.
 
@@ -203,7 +203,7 @@ Notes:
 - The position that each player is teleported to will be able to path to your position. So no teleporting them on to islands or middle of cliff circles, etc.
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
 - CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be the lowest priority.
-- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in te vehicle comes with it. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
+- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in the vehicle comes with it. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
 
 
 
@@ -234,7 +234,7 @@ Notes:
 - All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a different target 5 times before giving up for the `random` and `biterNest` destinationType.
 - The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request and try another target. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases, based on walkable check. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
 - The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be a biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
-- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in te vehicle comes with it. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
+- A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in the vehicle comes with it. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
 
 
 
