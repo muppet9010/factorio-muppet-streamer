@@ -110,20 +110,20 @@ end
 ---@param commandStringText string @ The raw command text sent via RCON.
 ---@return Teleport_CommandDetails commandDetails
 Teleport.GetCommandData = function(commandData, errorMessageStart, depth, commandStringText)
+    local commandName = "muppet_streamer_teleport"
     local depthErrorMessage = ""
     if depth > 0 then
         depthErrorMessage = "at depth " .. depth .. " - "
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
-        end
-        delay = math.max(delay * 60, 0)
+    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+        return
+    end
+    local delay  ---@type Tick
+    if (commandData.delay ~= nil and commandData.delay > 0) then
+        delay = math.floor(commandData.delay * 60) --[[@as Tick]]
+    else
+        delay = 0
     end
 
     local target = commandData.target
@@ -207,8 +207,9 @@ end
 ---@param commandValues Teleport_CommandDetails
 Teleport.ScheduleTeleportCommand = function(commandValues)
     global.teleport.nextId = global.teleport.nextId + 1
-    EventScheduler.ScheduleEvent(
-        game.tick + commandValues.delay,
+    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or -1 --[[@as Tick]]
+    EventScheduler.ScheduleEventOnce(
+        scheduleTick,
         "Teleport.PlanTeleportTarget",
         global.teleport.nextId,
         {
@@ -520,7 +521,7 @@ end
 Teleport.OnChunkGenerated = function(event)
     global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId + 1
     -- Check the chunk in 1 ticks time to let any other mod or scenario complete its actions first.
-    EventScheduler.ScheduleEvent(event.tick + 1, "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
+    EventScheduler.ScheduleEventOnce(event.tick + 1, "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
 end
 
 --- When a chunk is generated we wait for 1 tick and then this function is called. Lets any other mod/scenario mess with the spawner prior to use caching its details.

@@ -25,6 +25,7 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
+    local commandName = "muppet_streamer_player_drop_inventory"
     local commandData
     if command.parameter ~= nil then
         commandData = game.json_to_table(command.parameter)
@@ -35,15 +36,14 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         return
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(ErrorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        delay = math.max(delay * 60, 0)
+    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+        return
+    end
+    local scheduleTick  ---@type Tick
+    if (commandData.delay ~= nil and commandData.delay > 0) then
+        scheduleTick = command.tick + math.floor(commandData.delay * 60) --[[@as Tick]]
+    else
+        scheduleTick = -1
     end
 
     local target = commandData.target ---@type string
@@ -129,7 +129,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         occurrences = occurrences,
         dropEquipment = dropEquipment
     }
-    EventScheduler.ScheduleEvent(command.tick + delay, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, data)
+    EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, data)
 end
 
 --- Prepare to apply the effect to the player.
@@ -282,7 +282,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     -- Schedule the next occurence if we haven't completed them all yet.
     data.currentoccurrences = data.currentoccurrences + 1
     if data.currentoccurrences < data.totaloccurrences then
-        EventScheduler.ScheduleEvent(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
         game.print({"message.muppet_streamer_player_drop_inventory_stop", player.name})

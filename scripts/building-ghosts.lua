@@ -1,5 +1,6 @@
 local BuildingGhosts = {}
 local Events = require("utility.events")
+local MathUtil = require("utility.math-utils")
 
 local customGhostLife = 40000000 -- Different to the vanilla value so it can be distinguished. Vanilla adds 36288000 (36mil vs 40mil).
 
@@ -40,7 +41,7 @@ end
 ---@param force LuaForce
 BuildingGhosts.EnableForForce = function(force)
     if force.ghost_time_to_live < customGhostLife then
-        force.ghost_time_to_live = force.ghost_time_to_live + customGhostLife
+        force.ghost_time_to_live = math.min(force.ghost_time_to_live + customGhostLife, MathUtil.UintMax) --[[@as uint]]
     end
 end
 
@@ -48,7 +49,7 @@ end
 ---@param force LuaForce
 BuildingGhosts.DisableForForce = function(force)
     if force.ghost_time_to_live >= customGhostLife then
-        force.ghost_time_to_live = force.ghost_time_to_live - customGhostLife
+        force.ghost_time_to_live = math.max(force.ghost_time_to_live - customGhostLife, 0) --[[@as uint]]
     end
 end
 

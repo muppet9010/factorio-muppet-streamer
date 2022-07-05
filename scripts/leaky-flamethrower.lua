@@ -53,6 +53,7 @@ end
 ---@param command CustomCommandData
 LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command "
+    local commandName = "muppet_streamer_leaky_flamethrower"
     local commandData
     if command.parameter ~= nil then
         commandData = game.json_to_table(command.parameter)
@@ -63,15 +64,14 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         return
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        delay = math.max(delay * 60, 0)
+    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+        return
+    end
+    local scheduleTick  ---@type Tick
+    if (commandData.delay ~= nil and commandData.delay > 0) then
+        scheduleTick = command.tick + math.floor(commandData.delay * 60) --[[@as Tick]]
+    else
+        scheduleTick = -1
     end
 
     local target = commandData.target
@@ -98,7 +98,7 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
     end
 
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, {target = target, ammoCount = ammoCount})
+    EventScheduler.ScheduleEventOnce(scheduleTick, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, {target = target, ammoCount = ammoCount})
 end
 
 LeakyFlamethrower.ApplyToPlayer = function(eventData)
@@ -218,7 +218,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         delay = 0
     end
 
-    EventScheduler.ScheduleEvent(eventData.tick + delay, "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
+    EventScheduler.ScheduleEventOnce(eventData.tick + delay, "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
 end
 
 --- Called when a player has died, but before thier character is turned in to a corpse.

@@ -72,8 +72,14 @@ function BiterSelection.GetWormType(wormEvoGlobalName, evolution)
     return wormEvoType.name
 end
 
+--- Work around until Debug Adapter generated TypeDefs for its empty ComparatorString class entry.
+---@type ComparatorString
+local ComparatorString = {
+    ["≤"] = "≤"
+}
+
 function BiterSelection._CalculateSpecificWormForEvolution(evolution)
-    local turrets = game.get_filtered_entity_prototypes({{filter = "turret"}, {mode = "and", filter = "build-base-evolution-requirement", comparison = "≤", value = evolution}, {mode = "and", filter = "flag", flag = "placeable-enemy"}, {mode = "and", filter = "flag", flag = "player-creation", invert = true}})
+    local turrets = game.get_filtered_entity_prototypes({{filter = "turret"}, {mode = "and", filter = "build-base-evolution-requirement", comparison = ComparatorString["≤"], value = evolution}, {mode = "and", filter = "flag", flag = "placeable-enemy"}, {mode = "and", filter = "flag", flag = "player-creation", invert = true}})
     if #turrets == 0 then
         return nil
     end

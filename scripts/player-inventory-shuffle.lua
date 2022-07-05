@@ -59,6 +59,7 @@ end
 
 ---@param command CustomCommandData
 PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
+    local commandName = "muppet_streamer_player_inventory_shuffle"
     local commandData
     if command.parameter ~= nil then
         commandData = game.json_to_table(command.parameter)
@@ -69,15 +70,14 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         return
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(ErrorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        delay = math_max(delay * 60, 0)
+    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+        return
+    end
+    local scheduleTick  ---@type Tick
+    if (commandData.delay ~= nil and commandData.delay > 0) then
+        scheduleTick = command.tick + math.floor(commandData.delay * 60) --[[@as Tick]]
+    else
+        scheduleTick = -1
     end
 
     -- Just get the Included Players with minimal checking as we do the checks once all the include settings are obtained.
@@ -206,8 +206,8 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
-    EventScheduler.ScheduleEvent(
-        command.tick + delay,
+    EventScheduler.ScheduleEventOnce(
+        scheduleTick,
         "PlayerInventoryShuffle.MixupPlayerInventories",
         global.playerInventoryShuffle.nextId,
         {

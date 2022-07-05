@@ -43,6 +43,7 @@ end
 ---@param command CustomCommandData
 PantsOnFire.PantsOnFireCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_pants_on_fire command "
+    local commandName = "muppet_streamer_pants_on_fire"
     local commandData
     if command.parameter ~= nil then
         commandData = game.json_to_table(command.parameter)
@@ -53,15 +54,14 @@ PantsOnFire.PantsOnFireCommand = function(command)
         return
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        delay = math.max(delay * 60, 0)
+    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+        return
+    end
+    local scheduleTick  ---@type Tick
+    if (commandData.delay ~= nil and commandData.delay > 0) then
+        scheduleTick = command.tick + math.floor(commandData.delay * 60) --[[@as Tick]]
+    else
+        scheduleTick = -1
     end
 
     local target = commandData.target
@@ -114,7 +114,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end
 
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, {target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount})
+    EventScheduler.ScheduleEventOnce(scheduleTick, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, {target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount})
 end
 
 PantsOnFire.ApplyToPlayer = function(eventData)
@@ -197,7 +197,7 @@ PantsOnFire.WalkCheck = function(eventData)
 
     -- Schedule the next loop if not finished yet.
     if eventData.tick < data.finishTick then
-        EventScheduler.ScheduleEvent(eventData.tick + data.fireGap, "PantsOnFire.WalkCheck", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(eventData.tick + data.fireGap, "PantsOnFire.WalkCheck", playerIndex, data)
     else
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end

@@ -12,9 +12,9 @@
 ---
 ---@alias Axis "'x'"|"'y'"
 ---
----@class PlayerIndex:uint @ Player index attribute.
+---@class PlayerIndex : uint @ Player index attribute.
 ---
----@class Tick : int
+---@class Tick : uint
 ---
 ---@class Second : int
 ---
@@ -36,7 +36,7 @@
 ---@class LuaBaseClass @ Used as a fake base class, only supports checking defined attributes.
 ---@field valid boolean
 ---
----@class StringOrNumber string|int|double
+---@alias StringOrNumber string|number
 ---
 ---@diagnostic disable-line Alias for nil value. Workaround for EmmyLua not handling nil in multi type lists correctly.
 ---@class nil
@@ -50,3 +50,25 @@
 ---
 ---@alias True boolean
 ---@alias False boolean
+--
+--
+--
+--
+--
+--[[
+Example of doing table string enums.
+Declare the main class type and then its options as sub classes of it. Then make the variable as an empty table of the class type, and add its options in to it as their string values.
+NOTE: this doesn't protect against nesting the class within itself, but this is an edge case and until EmmyLua supports table enums fully this is unavoidable.
+
+---@class AggressiveDriver_EffectEndStatus
+---@class AggressiveDriver_EffectEndStatus.completed : AggressiveDriver_EffectEndStatus
+---@class AggressiveDriver_EffectEndStatus.died : AggressiveDriver_EffectEndStatus
+---@class AggressiveDriver_EffectEndStatus.invalid : AggressiveDriver_EffectEndStatus
+---@type AggressiveDriver_EffectEndStatus
+local EffectEndStatus = {}
+EffectEndStatus.completed = "completed"
+EffectEndStatus.died = "died"
+EffectEndStatus.invalid = "invalid"
+
+--]]
+--

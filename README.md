@@ -62,7 +62,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
     - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "slowdownCapsule", "poisonCapsule", "artilleryShell", "explosiveRocket", "atomicRocket", "smallSpit", "mediumSpit", "largeSpit". Is case sensitive.
     - target: STRING - Mandatory: a player name to target (case sensitive).
     - targetPosition: OBJECT - Optional: a position to target instead of the player's position. Will come on to the target players map (surface). See notes for syntax examples.
-    - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default this is nil (no offset). See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
+    - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offse set. See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
     - accuracyRadiusMin: FLOAT - Optional: the minimum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
     - accuracyRadiusMax: FLOAT - Optional: the maximum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
     - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
@@ -166,8 +166,8 @@ The player is locked inside their vehicle and forced to drive forwards for the s
     - target: STRING - Mandatory: the player name to target (case sensitive).
     - duration: FLOAT - Mandatory: how many seconds the effect lasts on the player.
     - control: STRING - Optional: if the player has control over steering, either: `full` or `random`. Full allows control over left/right steering, random switches between left, right, straight for short periods. If not specified then full is applied.
-    - teleportDistance: INTEGER - Optional: the max distance of tiles that the player will be teleported into the nearest suitable drivable vehicle. If not supplied it is treated as 0 distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
-- Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":"30", "control": "random", "teleportDistance": 100}`
+    - teleportDistance: FLOAT - Optional: the max distance of tiles that the player will be teleported into the nearest suitable drivable vehicle. If not supplied it is treated as 0 distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
+- Example command : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "control": "random", "teleportDistance": 100}`
 
 Notes:
 

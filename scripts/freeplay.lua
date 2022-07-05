@@ -8,7 +8,7 @@ Freeplay.OnStartup = function()
     if settings.startup["muppet_streamer-disable_rocket_win"].value then
         GameUtils.DisableWinOnRocket()
     end
-    local startingReveal = settings.startup["muppet_streamer-starting_reveal"].value
+    local startingReveal = settings.startup["muppet_streamer-starting_reveal"].value --[[@as uint]]
     if startingReveal >= 0 then
         GameUtils.SetStartingMapReveal(startingReveal)
     end

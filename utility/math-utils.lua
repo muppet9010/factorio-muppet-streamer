@@ -145,4 +145,8 @@ MathUtils.GetRandomFloatInRange = function(lower, upper)
     return lower + math_random() * (upper - lower)
 end
 
+MathUtils.IntMin = -2147483648
+MathUtils.IntMax = 2147483647
+MathUtils.UintMax = 4294967295
+
 return MathUtils

@@ -63,7 +63,7 @@ end
 --- Called from OnStartup() or from some other event or trigger to schedule an event.
 ---
 --- When the event fires the registered function recieves a single UtilityScheduledEvent_CallbackObject argument.
----@param eventTick? Tick|nil @ eventTick of nil will be next tick, current or past ticks will fail. eventTick of -1 is a special input for current tick when used by events that run before the Factorio on_tick event, i.e. a custom input (key pressed for action) handler.
+---@param eventTick? Tick|'-1'|nil @ eventTick of nil will be next tick, current or past ticks will fail. eventTick of -1 is a special input for current tick when used by events that run before the Factorio on_tick event, i.e. a custom input (key pressed for action) handler.
 ---@param eventName string @ The event name used to lookup the function to call, as registered with EventScheduler.RegisterScheduledEventType().
 ---@param instanceId? StringOrNumber|nil @ Defaults to empty string if none was provided. Must be unique so leaving blank is only safe if no duplicate scheduling of an eventName.
 ---@param eventData? table|nil @ Custom table of data that will be returned to the triggered function when called as the "data" attribute of the UtilityScheduledEventCallbackObject object.
@@ -71,10 +71,9 @@ EventScheduler.ScheduleEventOnce = function(eventTick, eventName, instanceId, ev
     if eventName == nil then
         error("EventScheduler.ScheduleEventOnce called with missing arguments")
     end
-    local nowTick = game.tick
+    local nowTick = game.tick --[[@as Tick]]
     if eventTick == nil then
-        ---@cast eventTick Tick
-        eventTick = nowTick + 1
+        eventTick = nowTick + 1 --[[@as Tick]]
     elseif eventTick == -1 then
         -- Special case for callbacks within same tick.
         eventTick = nowTick
@@ -216,7 +215,7 @@ end
 --- Runs every tick and actions both any scheduled events for that tick and any events that run every tick. Removes the processed scheduled events as it goes.
 ---@param event on_tick
 EventScheduler._OnSchedulerCycle = function(event)
-    local tick = event.tick
+    local tick = event.tick --[[@as Tick]]
     if global.UTILITYSCHEDULEDFUNCTIONS ~= nil and global.UTILITYSCHEDULEDFUNCTIONS[tick] ~= nil then
         for eventName, instances in pairs(global.UTILITYSCHEDULEDFUNCTIONS[tick]) do
             for instanceId, scheduledFunctionData in pairs(instances) do
@@ -253,8 +252,8 @@ end
 ---
 --- If an actionFunction returns a single "result" item thats not nil then the looping is stopped early. Single "result" values of nil and all "results" entries continue the loop.
 ---@param targetEventName string
----@param targetInstanceId StringOrNumber
----@param targetTick Tick
+---@param targetInstanceId? StringOrNumber|nil
+---@param targetTick? Tick|nil
 ---@param actionFunction function @ function must return a single result and a table of results, both can be nil or populated.
 ---@return boolean|UtilityScheduledEvent_Information|nil result @ the result type is based on the actionFunction passed in. However nil may be returned if the actionFunction finds no matching results for any reason.
 ---@return table results @ a table of the results found or an empty table if nothing matching found.
@@ -352,7 +351,7 @@ end
 ---
 --- If an actionFunction returns a single "result" item thats not nil then the looping is stopped early. Single "result" values of nil and all "results" entries continue the loop.
 ---@param targetEventName string
----@param targetInstanceId StringOrNumber
+---@param targetInstanceId? StringOrNumber|nil
 ---@param actionFunction function @ function must return a single result and a table of results, both can be nil or populated.
 ---@return boolean|UtilityScheduledEvent_Information|nil result @ the result type is based on the actionFunction passed in. However nil may be returned if the actionFunction finds no matching results for any reason.
 ---@return table results @ a table of the results found or an empty table if nothing matching found.

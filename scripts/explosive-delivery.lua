@@ -33,6 +33,7 @@ end
 
 ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_schedule_explosive_delivery command "
+    local commandName = "muppet_streamer_schedule_explosive_delivery"
     local commandData
     if command.parameter ~= nil then
         commandData = game.json_to_table(command.parameter)
@@ -43,15 +44,14 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         return
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        delay = math.max(delay * 60, 0)
+    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+        return
+    end
+    local scheduleTick  ---@type Tick
+    if (commandData.delay ~= nil and commandData.delay > 0) then
+        scheduleTick = command.tick + math.floor(commandData.delay * 60) --[[@as Tick]]
+    else
+        scheduleTick = -1
     end
 
     local explosiveCount = tonumber(commandData.explosiveCount)
@@ -156,8 +156,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         explosiveCountRemaining = explosiveCountRemaining - explosiveCount
 
         global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
-        EventScheduler.ScheduleEvent(
-            command.tick + delay + (batchNumber * salvoDelay),
+        EventScheduler.ScheduleEventOnce(
+            scheduleTick + (batchNumber * salvoDelay) --[[@as Tick]],
             "ExplosiveDelivery.DeliverExplosives",
             global.explosiveDelivery.nextId,
             {

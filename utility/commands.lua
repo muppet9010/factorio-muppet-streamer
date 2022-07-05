@@ -5,6 +5,7 @@ local Commands = {}
 local BooleanUtils = require("utility.boolean-utils")
 local Constants = require("constants")
 local Colors = require("utility.colors")
+local TableUtils = require("utility.table-utils")
 
 --- Register a function to be triggered when a command is run. Includes support to restrict usage to admins.
 ---
@@ -141,7 +142,7 @@ Commands.ParseGenericArgument = function(value, requiredType, mandatory, command
         -- Check the type and handle the results.
         if type(value) ~= requiredType then
             -- Wrong type so fail.
-            game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided.", Colors.red)
+            game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. type(value) .. " instead.", Colors.red)
             return false
         else
             -- Right type
@@ -154,7 +155,7 @@ Commands.ParseGenericArgument = function(value, requiredType, mandatory, command
 end
 
 --- Parses a command's argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
----@param value any
+---@param value number
 ---@param requiredType "'double'"|"'integer'" @ The specific number type we want.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
@@ -168,7 +169,7 @@ Commands.ParseNumberArgument = function(value, requiredType, mandatory, commandN
         return false
     end
 
-    -- If value is nil and it passed the generic requirements which handles mandatory then end this parse successfully.
+    -- If value is nil and it passed the generic requirements which checks mandatory if needed, then end this parse successfully.
     if value == nil then
         return true
     end
@@ -183,7 +184,7 @@ Commands.ParseNumberArgument = function(value, requiredType, mandatory, commandN
             isWrongType = true
         end
         if isWrongType then
-            game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided.", Colors.red)
+            game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. "double" .. " instead.", Colors.red)
             return false
         end
     end
@@ -196,7 +197,7 @@ Commands.ParseNumberArgument = function(value, requiredType, mandatory, commandN
         isWrongType = true
     end
     if isWrongType then
-        game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be between " .. numberMinLimit .. " and " .. numberMaxLimit, Colors.red)
+        game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be between " .. numberMinLimit .. " and " .. numberMaxLimit .. ". Received value of " .. value .. " instead.", Colors.red)
         return false
     end
 
@@ -204,7 +205,7 @@ Commands.ParseNumberArgument = function(value, requiredType, mandatory, commandN
 end
 
 --- Parses a command's string argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
----@param value any
+---@param value string
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
@@ -225,6 +226,11 @@ Commands.ParseStringArgument = function(value, mandatory, commandName, argumentN
     if allowedStrings ~= nil then
         if allowedStrings[value] == nil then
             game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be one of the allowed text strings.", Colors.red)
+            if TableUtils.GetTableNonNilLength(allowedStrings) < 20 then
+                game.print("Allowed text strings are: " .. TableUtils.TableKeyToCommaString(allowedStrings), Colors.red)
+            else
+                game.print("Allowed strings list is too long to list. See mod documentation", Colors.red)
+            end
             return false
         end
     end
@@ -233,7 +239,7 @@ Commands.ParseStringArgument = function(value, mandatory, commandName, argumentN
 end
 
 --- Parses a command's table argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
----@param value any
+---@param value table
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
@@ -255,6 +261,11 @@ Commands.ParseTableArgument = function(value, mandatory, commandName, argumentNa
         for key in pairs(value) do
             if allowedKeys[key] == nil then
                 game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " includes a non supported key: " .. tostring(key), Colors.red)
+                if TableUtils.GetTableNonNilLength(allowedKeys) < 20 then
+                    game.print("Allowed keys are: " .. TableUtils.TableKeyToCommaString(allowedKeys), Colors.red)
+                else
+                    game.print("Allowed keys list is too long to list. See mod documentation", Colors.red)
+                end
                 return false
             end
         end
@@ -270,7 +281,7 @@ Commands._StringToTypedObject = function(inputText)
     if inputText == "nil" then
         return nil
     end
-    local castedText = tonumber(inputText)
+    local castedText = tonumber(inputText) ---@type nil|number|boolean|table|string
     if castedText ~= nil then
         return castedText
     end
