@@ -1,9 +1,10 @@
 local SpawnAroundPlayer = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local EventScheduler = require("utility/event-scheduler")
-local Utils = require("utility/utils")
-local BiomeTrees = require("utility/functions/biome-trees")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
+local EventScheduler = require("utility.event-scheduler")
+local PositionUtils = require("utility.position-utils")
+local BiomeTrees = require("utility.functions.biome-trees")
+local BooleanUtils = require("utility.boolean-utils")
 
 SpawnAroundPlayer.CreateGlobals = function()
     global.spawnAroundPlayer = global.spawnAroundPlayer or {}
@@ -94,7 +95,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
     local followPlayer = false
     if commandData.followPlayer ~= nil then
-        followPlayer = Utils.ToBoolean(commandData.followPlayer)
+        followPlayer = BooleanUtils.ToBoolean(commandData.followPlayer)
         if followPlayer == nil then
             Logging.LogPrint(errorMessageStart .. "followPlayer is Optional, but if provided must be a boolean")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
@@ -130,7 +131,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     if data.quantity ~= nil then
         local placed, targetPlaced, attempts, maxAttempts = 0, data.quantity, 0, data.quantity * 5
         while placed < targetPlaced do
-            local position = Utils.RandomLocationInRadius(targetPos, data.radiusMax, data.radiusMin)
+            local position = PositionUtils.RandomLocationInRadius(targetPos, data.radiusMax, data.radiusMin)
             local entityName = entityTypeDetails.getEntityName(surface, position)
             if entityName ~= nil then
                 local entityAlignedPosition = entityTypeDetails.getEntityAlignedPosition(position)
@@ -163,8 +164,8 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
             -- Fill in between circles
             for yOffset = -data.radiusMax, data.radiusMax, entityTypeDetails.gridPlacementSize do
                 for xOffset = -data.radiusMax, data.radiusMax, entityTypeDetails.gridPlacementSize do
-                    local placementPos = Utils.ApplyOffsetToPosition({x = xOffset, y = yOffset}, targetPos)
-                    if Utils.IsPositionWithinCircled(targetPos, data.radiusMax, placementPos) and not Utils.IsPositionWithinCircled(targetPos, data.radiusMin, placementPos) then
+                    local placementPos = PositionUtils.ApplyOffsetToPosition({x = xOffset, y = yOffset}, targetPos)
+                    if PositionUtils.IsPositionWithinCircled(targetPos, data.radiusMax, placementPos) and not PositionUtils.IsPositionWithinCircled(targetPos, data.radiusMin, placementPos) then
                         SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, placementPos, surface, targetPlayer, data, followsLeftTable, force)
                     end
                 end
@@ -174,12 +175,12 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
 end
 
 SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine = function(entityTypeDetails, data, targetPos, surface, targetPlayer, radius, lineSlope, lineYOffset, followsLeftTable, force)
-    local crossPos1, crossPos2 = Utils.FindWhereLineCrossesCircle(radius, lineSlope, lineYOffset)
+    local crossPos1, crossPos2 = PositionUtils.FindWhereLineCrossesCircle(radius, lineSlope, lineYOffset)
     if crossPos1 ~= nil then
-        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, Utils.ApplyOffsetToPosition(crossPos1, targetPos), surface, targetPlayer, data, followsLeftTable, force)
+        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, PositionUtils.ApplyOffsetToPosition(crossPos1, targetPos), surface, targetPlayer, data, followsLeftTable, force)
     end
     if crossPos2 ~= nil then
-        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, Utils.ApplyOffsetToPosition(crossPos2, targetPos), surface, targetPlayer, data, followsLeftTable, force)
+        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, PositionUtils.ApplyOffsetToPosition(crossPos2, targetPos), surface, targetPlayer, data, followsLeftTable, force)
     end
 end
 
@@ -216,7 +217,7 @@ SpawnAroundPlayer.CombatBotEntityTypeDetails = function(setEntityName, canFollow
             return setEntityName
         end,
         getEntityAlignedPosition = function(position)
-            return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
         end,
         gridPlacementSize = 1,
         searchPlacement = function(surface, entityName, position, searchRadius)
@@ -241,7 +242,7 @@ SpawnAroundPlayer.AmmoGunTurretEntityTypeDetails = function(ammoName)
             return "gun-turret"
         end,
         getEntityAlignedPosition = function(position)
-            return Utils.RoundPosition(position)
+            return PositionUtils.RoundPosition(position, 0)
         end,
         gridPlacementSize = 2,
         searchPlacement = function(surface, entityName, position, searchRadius)
@@ -262,7 +263,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             return BiomeTrees.GetBiomeTreeName(surface, position)
         end,
         getEntityAlignedPosition = function(position)
-            return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
         end,
         gridPlacementSize = 1,
         searchPlacement = function(surface, entityName, position, searchRadius)
@@ -284,7 +285,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             end
         end,
         getEntityAlignedPosition = function(position)
-            return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
         end,
         gridPlacementSize = 2,
         searchPlacement = function(surface, entityName, position, searchRadius)
@@ -299,7 +300,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             return "laser-turret"
         end,
         getEntityAlignedPosition = function(position)
-            return Utils.RoundPosition(position)
+            return PositionUtils.RoundPosition(position, 0)
         end,
         gridPlacementSize = 2,
         searchPlacement = function(surface, entityName, position, searchRadius)
@@ -317,7 +318,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             return "stone-wall"
         end,
         getEntityAlignedPosition = function(position)
-            return Utils.RoundPosition(position)
+            return PositionUtils.RoundPosition(position, 0)
         end,
         gridPlacementSize = 1,
         searchPlacement = function(surface, entityName, position, searchRadius)
@@ -332,7 +333,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             return "land-mine"
         end,
         getEntityAlignedPosition = function(position)
-            return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
         end,
         gridPlacementSize = 1,
         searchPlacement = function(surface, entityName, position, searchRadius)
@@ -347,7 +348,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             return "fire-flame"
         end,
         getEntityAlignedPosition = function(position)
-            return Utils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
         end,
         gridPlacementSize = 1,
         searchPlacement = function(surface, entityName, position, searchRadius)

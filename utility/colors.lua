@@ -1,10 +1,12 @@
+-- A list of standard colors for use across mods.
+
 local Colors = {}
 --https://www.rapidtables.com/web/color/html-color-codes.html
 --Excel conversion string: =CONCATENATE("Colors.", B1, " = {",  SUBSTITUTE(SUBSTITUTE(D1, "(", ""),")",""), ",255}")
 -- Custom colors can be added, but shouldn't be removed or changed.
 
 --Custom
-Colors.lightred = {255, 100, 100, 255}
+Colors.lightred = {255, 100, 100, 255} -- Ideal for error message text printed to screen.
 Colors.guiheadingcolor = {255, 230, 192, 255}
 
 --Red

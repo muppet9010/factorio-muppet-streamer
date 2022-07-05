@@ -1,10 +1,10 @@
 local LeakyFlamethrower = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local Utils = require("utility/utils")
-local EventScheduler = require("utility/event-scheduler")
-local Events = require("utility/events")
-local Interfaces = require("utility/interfaces")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
+local EventScheduler = require("utility.event-scheduler")
+local Events = require("utility.events")
+local PlayerWeapon = require("utility.functions.player-weapon")
+local PositionUtils = require("utility.position-utils")
 
 ---@class LeakyFlamethrower_EffectEndStatus
 local EffectEndStatus = {completed = "completed", died = "died", invalid = "invalid"}
@@ -28,7 +28,7 @@ local EffectEndStatus = {completed = "completed", died = "died", invalid = "inva
 ---@class LeakyFlamethrower_AffectedPlayersDetails
 ---@field flamethrowerGiven boolean @ If a flamethrower weapon had to be given to the player or if they already had one.
 ---@field burstsLeft uint
----@field removedWeaponDetails GiveItems_RemovedWeaponToEnsureWeapon
+---@field removedWeaponDetails UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
 
 LeakyFlamethrower.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
@@ -122,8 +122,8 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
 
     targetPlayer.driving = false
     -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
-    ---@typelist boolean, GiveItems_RemovedWeaponToEnsureWeapon
-    local flamethrowerGiven, removedWeaponDetails = Interfaces.Call("GiveItems.EnsureHasWeapon", targetPlayer, "flamethrower", true, true)
+    ---@typelist boolean, UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
+    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true)
 
     targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = data.ammoCount})
 
@@ -213,7 +213,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         -- Shoot this tick as a small random wonder from last ticks target.
         data.distance = math.min(math.max(data.distance + ((math.random() * 2) - 1), 2), 10)
         data.angle = data.angle + (math.random(-10, 10))
-        local targetPos = Utils.GetPositionForAngledDistance(player.position, data.distance, data.angle)
+        local targetPos = PositionUtils.GetPositionForAngledDistance(player.position, data.distance, data.angle)
         player.shooting_state = {state = defines.shooting.shooting_selected, position = targetPos}
         delay = 0
     end
@@ -252,6 +252,7 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     end
 
     -- Return the player's weapon and ammo filters (alive or just dead) if there were any.
+    -- TODO: the returning of these details should be moved to the library function as the opposite to the ensuring player has weapon.
     ---@typelist LuaInventory,LuaInventory, LuaPlayer
     local playerGunInventory, playerAmmoInventory, playerCharacterInventory = nil, nil, nil
     local removedWeaponDetails = affectedPlayer.removedWeaponDetails

@@ -1,8 +1,8 @@
 local TeamMember = {}
-local Events = require("utility/events")
-local GuiUtil = require("utility/gui-util")
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
+local Events = require("utility.events")
+local GuiUtil = require("utility.gui-util")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
 
 TeamMember.CreateGlobals = function()
     global.teamMember = global.teamMember or {}
@@ -140,7 +140,7 @@ TeamMember.GuiUpdateForPlayer = function(player)
     if not global.teamMember.playerGuiOpened[player.index] then
         return
     end
-    GuiUtil.UpdateElementFromPlayersReferenceStorage(player.index, "TeamMember", "team_members_recruited", "label", {caption = {"self", global.teamMember.recruitTeamMemberTitle, #game.connected_players - 1, global.teamMember.recruitedMaxCount}})
+    GuiUtil.UpdateElementFromPlayersReferenceStorage(player.index, "TeamMember", "team_members_recruited", "label", {caption = {"self", global.teamMember.recruitTeamMemberTitle, #game.connected_players - 1, global.teamMember.recruitedMaxCount}}, false)
 end
 
 TeamMember.RemoteIncreaseTeamMemberLevel = function(changeQuantity)

@@ -1,10 +1,12 @@
 local Teleport = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local EventScheduler = require("utility/event-scheduler")
-local Utils = require("utility/utils")
-local Events = require("utility/events")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
+local EventScheduler = require("utility.event-scheduler")
+local Events = require("utility.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
+local BooleanUtils = require("utility.boolean-utils")
+local MathUtils = require("utility.math-utils")
+local PositionUtils = require("utility.position-utils")
 
 ---@class Teleport_DestinationTypeSelection
 local DestinationTypeSelection = {random = "random", biterNest = "biterNest", enemyUnit = "enemyUnit", spawn = "spawn", position = "position"}
@@ -72,10 +74,10 @@ Teleport.OnLoad = function()
     EventScheduler.RegisterScheduledEventType("Teleport.PlanTeleportTarget", Teleport.PlanTeleportTarget)
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "Teleport.OnScriptPathRequestFinished", Teleport.OnScriptPathRequestFinished)
     Events.RegisterHandlerEvent(defines.events.on_biter_base_built, "Teleport.OnBiterBaseBuilt", Teleport.OnBiterBaseBuilt)
-    Events.RegisterHandlerEvent(defines.events.script_raised_built, "Teleport.ScriptRaisedBuilt", Teleport.ScriptRaisedBuilt, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
+    Events.RegisterHandlerEvent(defines.events.script_raised_built, "Teleport.ScriptRaisedBuilt", Teleport.ScriptRaisedBuilt, {{filter = "type", type = "unit-spawner"}})
     Events.RegisterHandlerEvent(defines.events.on_chunk_generated, "Teleport.OnChunkGenerated", Teleport.OnChunkGenerated)
-    Events.RegisterHandlerEvent(defines.events.on_entity_died, "Teleport.OnEntityDied", Teleport.OnEntityDied, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
-    Events.RegisterHandlerEvent(defines.events.script_raised_destroy, "Teleport.ScriptRaisedDestroy", Teleport.ScriptRaisedDestroy, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
+    Events.RegisterHandlerEvent(defines.events.on_entity_died, "Teleport.OnEntityDied", Teleport.OnEntityDied, {{filter = "type", type = "unit-spawner"}})
+    Events.RegisterHandlerEvent(defines.events.script_raised_destroy, "Teleport.ScriptRaisedDestroy", Teleport.ScriptRaisedDestroy, {{filter = "type", type = "unit-spawner"}})
     EventScheduler.RegisterScheduledEventType("Teleport.OnChunkGenerated_Scheduled", Teleport.OnChunkGenerated_Scheduled)
 end
 
@@ -138,7 +140,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     local destinationTypeRaw = commandData.destinationType
     local destinationType, destinationTargetPosition = DestinationTypeSelection[destinationTypeRaw], nil
     if destinationType == nil then
-        destinationTargetPosition = Utils.TableToProperPosition(destinationTypeRaw)
+        destinationTargetPosition = PositionUtils.TableToProperPosition(destinationTypeRaw)
         if destinationTargetPosition == nil then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "destinationType is Mandatory and must be a valid type or a table for position")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
@@ -181,7 +183,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     local reachableOnly = false
     if commandData.reachableOnly ~= nil then
-        reachableOnly = Utils.ToBoolean(commandData.reachableOnly)
+        reachableOnly = BooleanUtils.ToBoolean(commandData.reachableOnly)
         if reachableOnly == nil then
             Logging.LogPrint(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
@@ -261,7 +263,7 @@ Teleport.PlanTeleportTarget = function(eventData)
     elseif data.destinationType == DestinationTypeSelection.position then
         data.destinationTargetPosition = data.destinationTargetPosition
     elseif data.destinationType == DestinationTypeSelection.random then
-        data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer_position, data.maxDistance, data.minDistance)
+        data.destinationTargetPosition = PositionUtils.RandomLocationInRadius(targetPlayer_position, data.maxDistance, data.minDistance)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
         local targetPlayer_surface_index = targetPlayer_surface.index
         local targetPlayer_force_name = targetPlayer_force.name
@@ -276,7 +278,7 @@ Teleport.PlanTeleportTarget = function(eventData)
                 distanceXDiff = targetPlayer_position.x - spawnerDistanceDetails.spawnerDetails.position.x
                 distanceYDiff = targetPlayer_position.y - spawnerDistanceDetails.spawnerDetails.position.y
                 spawnerDistance = math.sqrt(distanceXDiff * distanceXDiff + distanceYDiff * distanceYDiff)
-                --if Utils.GetDistance(data.destinationTargetPosition, spawnerDistanceDetails.spawnerDetails.position) < 30 then
+                --if PositionUtils.GetDistance(data.destinationTargetPosition, spawnerDistanceDetails.spawnerDetails.position) < 30 then
                 if spawnerDistance < 30 then
                     -- Potential spawner is too close to a bad previous target attempt, so remove it from our list.
                     data.spawnerDistances[index] = nil
@@ -296,7 +298,7 @@ Teleport.PlanTeleportTarget = function(eventData)
                         distanceXDiff = targetPlayer_position.x - spawnerDetails.position.x
                         distanceYDiff = targetPlayer_position.y - spawnerDetails.position.y
                         spawnerDistance = math.sqrt(distanceXDiff * distanceXDiff + distanceYDiff * distanceYDiff)
-                        --spawnerDistance = Utils.GetDistance(targetPlayer_position, spawnerDetails.position)
+                        --spawnerDistance = PositionUtils.GetDistance(targetPlayer_position, spawnerDetails.position)
 
                         if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
                             table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails}) -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
@@ -455,7 +457,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
-            currentPlayerPlacementEntity_vehicleDirectionFacing = Utils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
+            currentPlayerPlacementEntity_vehicleDirectionFacing = MathUtils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
         end
 
         -- Check the player's character/vehicle is still as expected.

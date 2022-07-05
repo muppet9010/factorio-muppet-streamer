@@ -31,7 +31,7 @@
 ---@field height uint
 ---@field repeat_count uint
 ---
----@alias EntityActioner LuaPlayer|LuaEntity|null @ The placer of a built entity: either player, construction robot or script (nil).
+---@alias EntityActioner LuaPlayer|LuaEntity @ The placer of a built entity, either player or construction robot. A script will have a nil value.
 ---
 ---@class LuaBaseClass @ Used as a fake base class, only supports checking defined attributes.
 ---@field valid boolean
@@ -39,9 +39,14 @@
 ---@class StringOrNumber string|int|double
 ---
 ---@diagnostic disable-line Alias for nil value. Workaround for EmmyLua not handling nil in multi type lists correctly.
----@class null
+---@class nil
 ---
----@class SurfacePositionString @ the entities surface and position as a string: "surfaceId_x,y"
+---@class SurfacePositionString @ A surface and position as a string: "surfaceId_x,y"
+---
+---@class SurfacePositionObject @ A surface and position data object.
+---@field surfaceId uint
+---@field position MapPosition
+---@field surfacePositionString SurfacePositionString
 ---
 ---@alias True boolean
 ---@alias False boolean

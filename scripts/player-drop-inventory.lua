@@ -1,9 +1,9 @@
 local PlayerDropInventory = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local Utils = require("utility/utils")
-local EventScheduler = require("utility/event-scheduler")
-local Events = require("utility/events")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
+local BooleanUtils = require("utility.boolean-utils")
+local EventScheduler = require("utility.event-scheduler")
+local Events = require("utility.events")
 
 ---@class PlayerDropInventory_QuantityType
 local QuantityType = {constant = "constant", startingPercentage = "startingPercentage", realtimePercentage = "realtimePercentage"}
@@ -82,7 +82,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     if dropOnBeltsString == nil then
         dropOnBelts = false
     else
-        dropOnBelts = Utils.ToBoolean(dropOnBeltsString)
+        dropOnBelts = BooleanUtils.ToBoolean(dropOnBeltsString)
         if dropOnBelts == nil then
             Logging.LogPrint(ErrorMessageStart .. "if dropOnBelts is provided it must be a boolean: true, false")
             Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -110,7 +110,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     if dropEquipmentString == nil then
         dropEquipment = true
     else
-        dropEquipment = Utils.ToBoolean(dropEquipmentString)
+        dropEquipment = BooleanUtils.ToBoolean(dropEquipmentString)
         if dropEquipment == nil then
             Logging.LogPrint(ErrorMessageStart .. "if dropEquipment is provided it must be a boolean: true, false")
             Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -152,7 +152,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     end
 
     -- Work out how many items to drop per cycle here if its a starting number type.
-    ---@typelist uint|null, uint|null
+    ---@typelist uint|nil, uint|nil
     local staticItemCount, dynamicPercentageItemCount
     if data.quantityType == QuantityType.constant then
         staticItemCount = math.floor(data.quantityValue)

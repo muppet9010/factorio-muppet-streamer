@@ -1,10 +1,10 @@
 -- Provided by andredrews (JD-Plays community) and inspired by Comfy scenario.
 
 local PantsOnFire = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local EventScheduler = require("utility/event-scheduler")
-local Events = require("utility/events")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
+local EventScheduler = require("utility.event-scheduler")
+local Events = require("utility.events")
 
 ---@class PantsOnFire_ScheduledEventDetails
 ---@field target string @ Target player's name.

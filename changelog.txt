@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.0.24
+Date: 2022-XX-XX
+  Features:
+  Changes:
+  Bugfixes:
+  Info:
+    - Updated to latest Muppet Utility library. Many code changes (hopefully non functional changing) across all of the features in the mod.
+---------------------------------------------------------------------------------------------------
 Version: 20.0.23
 Date: 2022-07-05
   Features:

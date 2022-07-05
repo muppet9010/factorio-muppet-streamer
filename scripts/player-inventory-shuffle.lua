@@ -1,9 +1,11 @@
 local PlayerInventoryShuffle = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local Utils = require("utility/utils")
-local EventScheduler = require("utility/event-scheduler")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
+local EventScheduler = require("utility.event-scheduler")
 local Colors = require("utility.colors")
+local BooleanUtils = require("utility.boolean-utils")
+local StringUtils = require("utility.string-utils")
+
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 
 local ErrorMessageStart = "ERROR: muppet_streamer_player_inventory_shuffle command "
@@ -84,7 +86,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     local includeAllPlayersOnServer = false
     if includedPlayersString ~= nil and includedPlayersString ~= "" then
         -- Can't check if the names are valid players right now, as they may just not have joined the server yet, but may in the future.
-        includedPlayerNames = Utils.SplitStringOnCharacters(includedPlayersString, ",", false)
+        includedPlayerNames = StringUtils.SplitStringOnCharacters(includedPlayersString, ",", false)
         if #includedPlayerNames == 1 then
             -- If it's only one name then check if its the special ALL value.
             if includedPlayerNames[1] == "[ALL]" then
@@ -98,7 +100,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     local includedForcesString = commandData.includedForces ---@type string
     local includedForces = {} ---@type string[]
     if includedForcesString ~= nil and includedForcesString ~= "" then
-        local includedForceNames = Utils.SplitStringOnCharacters(includedForcesString, ",", false)
+        local includedForceNames = StringUtils.SplitStringOnCharacters(includedForcesString, ",", false)
         for _, includedForceName in pairs(includedForceNames) do
             local force = game.forces[includedForceName]
             if force ~= nil then
@@ -126,7 +128,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if includeEquipmentString == nil then
         includeEquipment = true
     else
-        includeEquipment = Utils.ToBoolean(includeEquipmentString)
+        includeEquipment = BooleanUtils.ToBoolean(includeEquipmentString)
         if includeEquipment == nil then
             Logging.LogPrint(ErrorMessageStart .. "if includeEquipment is supplied it must be a boolean.")
             Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -139,7 +141,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if includeHandCraftingString == nil then
         includeHandCrafting = true
     else
-        includeHandCrafting = Utils.ToBoolean(includeHandCraftingString)
+        includeHandCrafting = BooleanUtils.ToBoolean(includeHandCraftingString)
         if includeHandCrafting == nil then
             Logging.LogPrint(ErrorMessageStart .. "if includeHandCrafting is supplied it must be a boolean.")
             Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -152,7 +154,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if destinationPlayersMinimumVarianceString == nil then
         destinationPlayersMinimumVariance = 1
     else
-        destinationPlayersMinimumVariance = Utils.ToNumber(destinationPlayersMinimumVarianceString)
+        destinationPlayersMinimumVariance = tonumber(destinationPlayersMinimumVarianceString)
         if destinationPlayersMinimumVariance == nil then
             Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersMinimumVariance is supplied it must be a number.")
             Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -171,7 +173,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if destinationPlayersVarianceFactorString == nil then
         destinationPlayersVarianceFactor = 0.25
     else
-        destinationPlayersVarianceFactor = Utils.ToNumber(destinationPlayersVarianceFactorString)
+        destinationPlayersVarianceFactor = tonumber(destinationPlayersVarianceFactorString)
         if destinationPlayersVarianceFactor == nil then
             Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersVarianceFactor is supplied it must be a number.")
             Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -189,7 +191,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if recipientItemMinToMaxRatioString == nil then
         recipientItemMinToMaxRatio = 4
     else
-        recipientItemMinToMaxRatio = Utils.ToNumber(recipientItemMinToMaxRatioString)
+        recipientItemMinToMaxRatio = tonumber(recipientItemMinToMaxRatioString)
         if recipientItemMinToMaxRatio == nil then
             Logging.LogPrint(ErrorMessageStart .. "if recipientItemMinToMaxRatio is supplied it must be a number.")
             Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)

@@ -7,7 +7,10 @@
         - Call the desired functions when needed (non _ functions at top of file).
     Supports specifically coded modded trees with meta data. If a tree has tile restrictions this is used for selection after temp and water, otherwise the tags of tile and tree are checked. This logic comes from suppporting alien biomes.
 ]]
-local Utils = require("utility.utils")
+--
+
+local MathUtils = require("utility.math-utils")
+local TableUtils = require("utility.table-utils")
 local Logging = require("utility.logging")
 
 local BaseGameData = require("utility.functions.biome-trees-data.base-game")
@@ -50,8 +53,8 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
     local rangeInt = math.random(1, #tileData.tempRanges)
     local tempRange = tileData.tempRanges[rangeInt]
     local moistureRange = tileData.moistureRanges[rangeInt]
-    local tileTemp = BiomeTrees._CalculateTileTemp(Utils.GetRandomFloatInRange(tempRange[1], tempRange[2]))
-    local tileMoisture = Utils.GetRandomFloatInRange(moistureRange[1], moistureRange[2])
+    local tileTemp = BiomeTrees._CalculateTileTemp(MathUtils.GetRandomFloatInRange(tempRange[1], tempRange[2]))
+    local tileMoisture = MathUtils.GetRandomFloatInRange(moistureRange[1], moistureRange[2])
 
     local suitableTrees = BiomeTrees._SearchForSuitableTrees(tileData, tileTemp, tileMoisture)
     if #suitableTrees == 0 then
@@ -132,18 +135,18 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
         for _, tree in pairs(global.UTILITYBIOMETREES.treeData) do
             if tileTemp >= tree.tempRange[1] / accuracy and tileTemp <= tree.tempRange[2] * accuracy and tileMoisture >= tree.moistureRange[1] / accuracy and tileMoisture <= tree.moistureRange[2] * accuracy then
                 local include = false
-                if not Utils.IsTableEmpty(tree.tile_restrictions) then
+                if not TableUtils.IsTableEmpty(tree.tile_restrictions) then
                     if tree.tile_restrictions[tileData.name] then
                         Logging.LogPrint("tile restrictons match", logTags)
                         include = true
                     end
                 else
-                    if Utils.IsTableEmpty(tileData.tags) then
+                    if TableUtils.IsTableEmpty(tileData.tags) then
                         include = true
-                    elseif not Utils.IsTableEmpty(tree.tags) then
+                    elseif not TableUtils.IsTableEmpty(tree.tags) then
                         for tileTag in pairs(tileData.tags) do
                             if tree.tags[tileTag] then
-                                Logging.LogPrint("tile tags: " .. Utils.TableKeyToCommaString(tileData.tags) .. "  --- tree tags: " .. Utils.TableKeyToCommaString(tree.tags), logTags)
+                                Logging.LogPrint("tile tags: " .. TableUtils.TableKeyToCommaString(tileData.tags) .. "  --- tree tags: " .. TableUtils.TableKeyToCommaString(tree.tags), logTags)
                                 include = true
                                 break
                             end
@@ -213,44 +216,41 @@ BiomeTrees._GetEnvironmentData = function()
 end
 
 BiomeTrees._GetTreeData = function()
-    local treeDataArray, treeData = {}, {}
+    local treeDataArray = {}
+    local treeData
     local environmentData = global.UTILITYBIOMETREES.environmentData
     local moistureRangeAttributeName = global.UTILITYBIOMETREES.environmentData.moistureRangeAttributeName
     local treeEntities = game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}, {mode = "and", filter = "autoplace"}})
 
     for _, prototype in pairs(treeEntities) do
         Logging.LogPrint(prototype.name, logData)
-
-        -- Only check for autoplace if the fields exist. Was previously always assumed they would, but added for extra protection just incase.
-        if prototype.autoplace_specification ~= nil and prototype.autoplace_specification.peaks ~= nil then
-            local autoplace = nil
-            for _, peak in pairs(prototype.autoplace_specification.peaks) do
-                if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeName.optimal] ~= nil then
-                    autoplace = peak
-                    break
-                end
+        local autoplace = nil
+        for _, peak in pairs(prototype.autoplace_specification.peaks) do
+            if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeName.optimal] ~= nil then
+                autoplace = peak
+                break
             end
+        end
 
-            if autoplace ~= nil then
-                -- Use really wide range defaults for missing moisture values as likely unspecified by mods to mean ALL.
-                treeData = {
-                    name = prototype.name,
-                    tempRange = {
-                        (autoplace.temperature_optimal or 0) - (autoplace.temperature_range or 0),
-                        (autoplace.temperature_optimal or 1) + (autoplace.temperature_range or 0)
-                    },
-                    moistureRange = {
-                        (autoplace[moistureRangeAttributeName.optimal] or 0) - (autoplace[moistureRangeAttributeName.range] or 0),
-                        (autoplace[moistureRangeAttributeName.optimal] or 1) + (autoplace[moistureRangeAttributeName.range] or 0)
-                    },
-                    probability = prototype.autoplace_specification.max_probability or 0.01
-                }
-                if environmentData.treeMetaData[prototype.name] ~= nil then
-                    treeData.tags = environmentData.treeMetaData[prototype.name][1]
-                    treeData.tile_restrictions = environmentData.treeMetaData[prototype.name][2]
-                end
-                table.insert(treeDataArray, treeData)
+        if autoplace ~= nil then
+            -- Use really wide range defaults for missing moisture values as likely unspecified by mods to mean ALL.
+            treeData = {
+                name = prototype.name,
+                tempRange = {
+                    (autoplace.temperature_optimal or 0) - (autoplace.temperature_range or 0),
+                    (autoplace.temperature_optimal or 1) + (autoplace.temperature_range or 0)
+                },
+                moistureRange = {
+                    (autoplace[moistureRangeAttributeName.optimal] or 0) - (autoplace[moistureRangeAttributeName.range] or 0),
+                    (autoplace[moistureRangeAttributeName.optimal] or 1) + (autoplace[moistureRangeAttributeName.range] or 0)
+                },
+                probability = prototype.autoplace_specification.max_probability or 0.01
+            }
+            if environmentData.treeMetaData[prototype.name] ~= nil then
+                treeData.tags = environmentData.treeMetaData[prototype.name][1]
+                treeData.tile_restrictions = environmentData.treeMetaData[prototype.name][2]
             end
+            table.insert(treeDataArray, treeData)
         end
     end
 

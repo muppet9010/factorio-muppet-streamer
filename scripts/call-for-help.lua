@@ -1,10 +1,13 @@
 local CallForHelp = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local EventScheduler = require("utility/event-scheduler")
-local Utils = require("utility/utils")
-local Events = require("utility/events")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
+local EventScheduler = require("utility.event-scheduler")
+local PositionUtils = require("utility.position-utils")
+local Events = require("utility.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
+local BooleanUtils = require("utility.boolean-utils")
+local StringUtils = require("utility.string-utils")
+local MathUtils = require("utility.math-utils")
 
 ---@class CallForHelp_CallSelection
 local CallSelection = {random = "random", nearest = "nearest"}
@@ -18,7 +21,7 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 ---@field callForHelpId Id
 ---@field target string @ Player's name.
 ---@field arrivalRadius double
----@field callRadius double|null
+---@field callRadius? double|nil
 ---@field sameTeamOnly boolean
 ---@field sameSurfaceOnly boolean
 ---@field blacklistedPlayerNames table<string, True> @ Table of player names as the key.
@@ -123,7 +126,7 @@ CallForHelp.CallForHelpCommand = function(command)
 
     local sameSurfaceOnly = commandData.sameSurfaceOnly
     if sameSurfaceOnly ~= nil then
-        sameSurfaceOnly = Utils.ToBoolean(sameSurfaceOnly)
+        sameSurfaceOnly = BooleanUtils.ToBoolean(sameSurfaceOnly)
         if sameSurfaceOnly == nil then
             Logging.LogPrint(errorMessageStart .. "sameSurfaceOnly is Optional, but must be a valid boolean if provided")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
@@ -139,7 +142,7 @@ CallForHelp.CallForHelpCommand = function(command)
 
     local sameTeamOnly = commandData.sameTeamOnly
     if sameTeamOnly ~= nil then
-        sameTeamOnly = Utils.ToBoolean(sameTeamOnly)
+        sameTeamOnly = BooleanUtils.ToBoolean(sameTeamOnly)
         if sameTeamOnly == nil then
             Logging.LogPrint(errorMessageStart .. "sameTeamOnly is Optional, but must be a valid boolean if provided")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
@@ -150,15 +153,15 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local blacklistedPlayerNames_string = commandData.blacklistedPlayerNames
-    local blacklistedPlayerNames  ---@type table<string, True>|null
+    local blacklistedPlayerNames  ---@type table<string, True>|nil
     if blacklistedPlayerNames_string ~= nil and blacklistedPlayerNames_string ~= "" then
-        blacklistedPlayerNames = Utils.SplitStringOnCharacters(blacklistedPlayerNames_string, ",", true)
+        blacklistedPlayerNames = StringUtils.SplitStringOnCharacters(blacklistedPlayerNames_string, ",", true)
     end
 
     local whitelistedPlayerNames_string = commandData.whitelistedPlayerNames
-    local whitelistedPlayerNames  ---@type table<string, True>|null
+    local whitelistedPlayerNames  ---@type table<string, True>|nil
     if whitelistedPlayerNames_string ~= nil and whitelistedPlayerNames_string ~= "" then
-        whitelistedPlayerNames = Utils.SplitStringOnCharacters(whitelistedPlayerNames_string, ",", true)
+        whitelistedPlayerNames = StringUtils.SplitStringOnCharacters(whitelistedPlayerNames_string, ",", true)
     end
 
     local callSelection = CallSelection[commandData.callSelection]
@@ -264,7 +267,7 @@ CallForHelp.CallForHelp = function(eventData)
                 if helpPlayer_surface ~= targetPlayerSurface then
                     distance = 4294967295 -- Maximum distance away to de-prioritise these players vs ones on the same surface.
                 else
-                    distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
+                    distance = PositionUtils.GetDistance(targetPlayerPosition, helpPlayer.position)
                 end
 
                 if data.callRadius == nil or distance <= data.callRadius then
@@ -435,7 +438,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
-            currentPlayerPlacementEntity_vehicleDirectionFacing = Utils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
+            currentPlayerPlacementEntity_vehicleDirectionFacing = MathUtils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
         end
 
         -- Check the helping player's character/vehicle is still as expected.

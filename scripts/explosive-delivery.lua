@@ -1,8 +1,8 @@
 local ExplosiveDelivery = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local EventScheduler = require("utility/event-scheduler")
-local Utils = require("utility/utils")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
+local EventScheduler = require("utility.event-scheduler")
+local PositionUtils = require("utility.position-utils")
 
 ---@class ExplosiveDelivery_DelayedCommandDetails
 ---@field explosiveCount int
@@ -83,7 +83,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 
     local targetPosition = commandData.targetPosition ---@type MapPosition|nil
     if targetPosition ~= nil then
-        targetPosition = Utils.TableToProperPosition(targetPosition)
+        targetPosition = PositionUtils.TableToProperPosition(targetPosition)
         if targetPosition == nil then
             Logging.LogPrint(errorMessageStart .. "targetPosition is Optional, but if provided must be a valid position table string")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
@@ -93,7 +93,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 
     local targetOffset = commandData.targetOffset ---@type MapPosition|nil
     if targetOffset ~= nil then
-        targetOffset = Utils.TableToProperPosition(targetOffset)
+        targetOffset = PositionUtils.TableToProperPosition(targetOffset)
         if targetOffset == nil then
             Logging.LogPrint(errorMessageStart .. "targetOffset is Optional, but if provided must be a valid position table string")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
@@ -223,12 +223,12 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     local explosiveType = data.explosiveType
     for i = 1, data.explosiveCount do
         -- The explosives have to be fired at something, so we make a temporary dummy target entity at the desired explosion position.
-        local targetEntityPos = Utils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
+        local targetEntityPos = PositionUtils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
         local targetEntity = surface.create_entity {name = "muppet_streamer-explosive-delivery-target", position = targetEntityPos}
 
         -- Spawn the explosives off the players screen (non map view). Have to allow enough distance for explosives crossing players screen, i.e. the targetPos being NW of the player and the explosives spawn SE of the player, they need to be far away enough away to spawn off the player's screen before flying over their head.
         local explosiveCreateDistance = math.max(100, data.accuracyRadiusMax * 2)
-        local explosiveCreatePos = Utils.RandomLocationInRadius(targetPos, explosiveCreateDistance, explosiveCreateDistance)
+        local explosiveCreatePos = PositionUtils.RandomLocationInRadius(targetPos, explosiveCreateDistance, explosiveCreateDistance)
 
         if explosiveType.projectileName ~= nil then
             surface.create_entity {name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed}

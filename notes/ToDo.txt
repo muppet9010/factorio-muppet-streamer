@@ -5,11 +5,9 @@ BUGS:
 
 
 DO NEAR FUTURE:
-    - Update to new Utils library. Will get some fixes & UPS improvements, but also will get al the EmmyLua improvements and move to new structure of library. Get from latest Railway Tunnel mod version after checkin to main Utility repo.
     - Update to Sumneko 3.4 and fix all of the warnings.
     - Look at using single line variable setting when we always set a value, rather than if/else. i.e. delay = delay and math.max(math.floor(delay * 60), 0) or 0
-    - Remove all uses of "null" and move to "nil" and "?", as the latest version of Sumneko handles it properly.
-    - Add an interface to Explosive Delivery. Initally for calling by the JD Plays mod- Spider hunt feature, for the battleships idea that we want to contain within JD's map lane. IDEA ON HOLD.
+    - Add a remote interface to Explosive Delivery. Initally for calling by the JD Plays mod- Spider hunt feature, for the battleships idea that we want to contain within JD's map lane. IDEA ON HOLD.
 	- Change all game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
 
 

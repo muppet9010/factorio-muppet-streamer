@@ -1,9 +1,9 @@
 local AggressiveDriver = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local EventScheduler = require("utility/event-scheduler")
-local Utils = require("utility/utils")
-local Events = require("utility/events")
+local Commands = require("utility.commands")
+local Logging = require("utility.logging")
+local EventScheduler = require("utility.event-scheduler")
+local PositionUtils = require("utility.position-utils")
+local Events = require("utility.events")
 
 ---@class AggressiveDriver_ControlTypes
 local ControlTypes = {full = "full", random = "random"}
@@ -145,7 +145,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                 vehicleValid = false
             end
             if vehicleValid then
-                local distance = Utils.GetDistance(targetPlayer.position, vehicle.position)
+                local distance = PositionUtils.GetDistance(targetPlayer.position, vehicle.position)
                 table.insert(distanceSortedVehicles, {distance = distance, vehicle = vehicle})
             end
         end

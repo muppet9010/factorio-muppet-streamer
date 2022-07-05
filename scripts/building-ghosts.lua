@@ -24,8 +24,8 @@ BuildingGhosts.OnStartup = function()
 end
 
 BuildingGhosts.OnLoad = function()
-    Events.RegisterHandlerEvent(defines.events.on_force_reset, "BuildingGhosts.OnForceChanged", "BuildingGhosts.OnForceChanged")
-    Events.RegisterHandlerEvent(defines.events.on_force_created, "BuildingGhosts.OnForceChanged", "BuildingGhosts.OnForceChanged")
+    Events.RegisterHandlerEvent(defines.events.on_force_reset, "BuildingGhosts.OnForceChanged", BuildingGhosts.OnForceChanged)
+    Events.RegisterHandlerEvent(defines.events.on_force_created, "BuildingGhosts.OnForceChanged", BuildingGhosts.OnForceChanged)
 end
 
 --- Called when a force is reset or created by a mod/editor and we need to re-apply the ghost setting if enabled.

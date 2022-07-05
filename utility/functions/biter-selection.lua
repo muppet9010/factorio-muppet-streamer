@@ -1,7 +1,10 @@
 --[[
     Can get random biter types and worm type for specified evolution level.
 ]]
-local Utils = require("utility/utils")
+--
+
+local MathUtils = require("utility.math-utils")
+local RandomChance = require("utility.functions.random-chance")
 
 local BiterSelection = {}
 
@@ -13,12 +16,12 @@ function BiterSelection.GetBiterType(probabilityGlobalName, spawnerType, evoluti
     if modEnemyProbabilities[spawnerType] == nil then
         modEnemyProbabilities[spawnerType] = {}
     end
-    evolution = Utils.RoundNumberToDecimalPlaces(evolution, 2)
+    evolution = MathUtils.RoundNumberToDecimalPlaces(evolution, 2)
     if modEnemyProbabilities[spawnerType].calculatedEvolution == nil or modEnemyProbabilities[spawnerType].calculatedEvolution ~= evolution then
         modEnemyProbabilities[spawnerType].calculatedEvolution = evolution
         modEnemyProbabilities[spawnerType].probabilities = BiterSelection._CalculateSpecificBiterSelectionProbabilities(spawnerType, evolution)
     end
-    return Utils.GetRandomEntryFromNormalisedDataSet(modEnemyProbabilities[spawnerType].probabilities, "chance").unit
+    return RandomChance.GetRandomEntryFromNormalisedDataSet(modEnemyProbabilities[spawnerType].probabilities, "chance").unit
 end
 
 function BiterSelection._CalculateSpecificBiterSelectionProbabilities(spawnerType, currentEvolution)
@@ -52,7 +55,7 @@ function BiterSelection._CalculateSpecificBiterSelectionProbabilities(spawnerTyp
             table.insert(currentEvolutionProbabilities, {chance = weight, unit = possibility.unit})
         end
     end
-    local normalisedcurrentEvolutionProbabilities = Utils.NormaliseChanceList(currentEvolutionProbabilities, "chance")
+    local normalisedcurrentEvolutionProbabilities = RandomChance.NormaliseChanceList(currentEvolutionProbabilities, "chance")
     return normalisedcurrentEvolutionProbabilities
 end
 
@@ -61,7 +64,7 @@ function BiterSelection.GetWormType(wormEvoGlobalName, evolution)
     global.UTILITYBITERSELECTION = global.UTILITYBITERSELECTION or {}
     global.UTILITYBITERSELECTION[wormEvoGlobalName] = global.UTILITYBITERSELECTION[wormEvoGlobalName] or {}
     local wormEvoType = global.UTILITYBITERSELECTION[wormEvoGlobalName]
-    evolution = Utils.RoundNumberToDecimalPlaces(evolution, 2)
+    evolution = MathUtils.RoundNumberToDecimalPlaces(evolution, 2)
     if wormEvoType.calculatedEvolution == nil or wormEvoType.calculatedEvolution ~= evolution then
         wormEvoType.calculatedEvolution = evolution
         wormEvoType.name = BiterSelection._CalculateSpecificWormForEvolution(evolution)
