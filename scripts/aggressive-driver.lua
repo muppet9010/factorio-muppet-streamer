@@ -6,22 +6,19 @@ local PositionUtils = require("utility.position-utils")
 local Events = require("utility.events")
 
 ---@class AggressiveDriver_ControlTypes
----@class AggressiveDriver_ControlTypes.full : AggressiveDriver_ControlTypes
----@class AggressiveDriver_ControlTypes.random : AggressiveDriver_ControlTypes
----@type AggressiveDriver_ControlTypes
-local ControlTypes = {}
-ControlTypes.full = "full"
-ControlTypes.random = "random"
+---@class AggressiveDriver_ControlTypes.__index
+local ControlTypes = {
+    full = ("full") --[[@as AggressiveDriver_ControlTypes]],
+    random = ("random") --[[@as AggressiveDriver_ControlTypes]]
+}
 
 ---@class AggressiveDriver_EffectEndStatus
----@class AggressiveDriver_EffectEndStatus.completed : AggressiveDriver_EffectEndStatus
----@class AggressiveDriver_EffectEndStatus.died : AggressiveDriver_EffectEndStatus
----@class AggressiveDriver_EffectEndStatus.invalid : AggressiveDriver_EffectEndStatus
----@type AggressiveDriver_EffectEndStatus
-local EffectEndStatus = {}
-EffectEndStatus.completed = "completed"
-EffectEndStatus.died = "died"
-EffectEndStatus.invalid = "invalid"
+---@class AggressiveDriver_EffectEndStatus.__index
+local EffectEndStatus = {
+    completed = ("completed") --[[@as AggressiveDriver_EffectEndStatus]],
+    died = ("died") --[[@as AggressiveDriver_EffectEndStatus]],
+    invalid = ("invalid") --[[@as AggressiveDriver_EffectEndStatus]]
+}
 
 ---@class AggressiveDriver_DelayedCommandDetails
 ---@field target string @ Player's name.
