@@ -5,6 +5,7 @@ local Logging = {}
 local Constants = require("constants")
 local StringUtils = require("utility.string-utils")
 local TableUtils = require("utility.table-utils")
+local Colors = require("utility.colors")
 
 ---@param position MapPosition
 ---@return string
@@ -24,15 +25,45 @@ Logging.BoundingBoxToString = function(boundingBox)
     return "((" .. boundingBox.left_top.x .. ", " .. boundingBox.left_top.y .. "), (" .. boundingBox.right_bottom.x .. ", " .. boundingBox.right_bottom.y .. "))"
 end
 
+--- Write an error colored text string to the screen (if possible), plus the Factorio log file.
+--- For use in direct error handling.
+--- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
----@param enabled? boolean @ Defaults to True.
-Logging.Log = function(text, enabled)
+Logging.LogPrintError = function(text)
+    if game ~= nil then
+        game.print(tostring(text), Colors.errorMessage)
+    end
+    Logging.Log(text)
+end
+
+--- Write a text string to the screen (if possible), plus the Factorio log file.
+--- For use in bespoke situations (and pre LogPrintError).
+--- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
+---@param text string
+---@param enabled? boolean|nil @ Defaults to True. Allows code to not require lots of `if` in calling functions.
+---@param textColor? Color|nil @ Defaults to Factorio white.
+Logging.LogPrint = function(text, enabled, textColor)
+    if enabled ~= nil and not enabled then
+        return
+    end
+    if game ~= nil then
+        game.print(tostring(text), textColor)
+    end
+    Logging.Log(text)
+end
+
+--- Write a text string to the mod's log file (if possible) and the Factorio log file.
+--- For use in logging action sequences, rather than direct error handling.
+--- If in data stage can't write to mod's custom log file.
+---@param text string
+---@param enabled? boolean|nil @ Defaults to True.
+Logging.ModLog = function(text, enabled)
     if enabled ~= nil and not enabled then
         return
     end
     if game ~= nil then
         if Constants.LogFileName == nil or Constants.LogFileName == "" then
-            game.print("ERROR - No Constants.LogFileName set")
+            game.print("ERROR - No Constants.LogFileName set", Colors.errorMessage)
             log("ERROR - No Constants.LogFileName set")
         end
         game.write_file(Constants.LogFileName, tostring(text) .. "\r\n", true)
@@ -40,19 +71,6 @@ Logging.Log = function(text, enabled)
     else
         log(tostring(text))
     end
-end
-
----@param text string
----@param enabled? boolean @ Defaults to True.
-Logging.LogPrint = function(text, enabled)
-    if enabled ~= nil and not enabled then
-        return
-    end
-    if game ~= nil then
-        -- Won't print on 0 tick (startup) due to core game limitation. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
-        game.print(tostring(text))
-    end
-    Logging.Log(text)
 end
 
 -- Runs the function in a wrapper that will log detailed infromation should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.
@@ -210,15 +228,15 @@ Logging.PrintThingsDetails = function(thing, _tablesLogged)
 end
 
 --- Writes out sequential numbers at the set position. Used as a visial debugging tool.
----@param targetSurface LuaSurface
+---@param targetSurfaceIdentification SurfaceIdentification
 ---@param targetPosition LuaEntity|MapPosition
-Logging.WriteOutNumberedMarker = function(targetSurface, targetPosition)
+Logging.WriteOutNumberedMarker = function(targetSurfaceIdentification, targetPosition)
     global.numberedCount = global.numberedCount or 1
     rendering.draw_text {
         text = global.numberedCount,
-        surface = targetSurface,
+        surface = targetSurfaceIdentification,
         target = targetPosition,
-        color = {r = 1, g = 0, b = 0, a = 1},
+        color = {r = 1.0, g = 0.0, b = 0.0, a = 1.0},
         scale_with_zoom = true,
         alignment = "center",
         vertical_alignment = "bottom"

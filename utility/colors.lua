@@ -1,9 +1,13 @@
 -- A list of standard colors for use across mods.
 
+---@type {[string]:Color}
 local Colors = {}
 --https://www.rapidtables.com/web/color/html-color-codes.html
 --Excel conversion string: =CONCATENATE("Colors.", B1, " = {",  SUBSTITUTE(SUBSTITUTE(D1, "(", ""),")",""), ",255}")
 -- Custom colors can be added, but shouldn't be removed or changed.
+
+-- Named presets
+Colors.errorMessage = Colors.lightred
 
 --Custom
 Colors.lightred = {255, 100, 100, 255} -- Ideal for error message text printed to screen.

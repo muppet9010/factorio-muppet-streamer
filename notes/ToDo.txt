@@ -3,6 +3,8 @@ DOING NOW:
 
     - Use single line variable setting when we always set a value, rather than if/else. i.e. delay = delay and math.max(math.floor(delay * 60), 0) or 0
     - The INTEGER type arguments will accept a double, but this will fail/error when trying to be used. They should really check for a type Integer. New Utility library version has functions to validate types of numbers.
+    - Check all Logging.LogPrint() shouldn;t now be Logging.LogPrintError(), or have the color set now its a library option.
+    - Replace error game.prints with Logging.LogPrintError() in library and mod code.
 
 
 BUGS:
@@ -10,7 +12,7 @@ BUGS:
 
 DO NEAR FUTURE:
     - Add a remote interface to Explosive Delivery. Initally for calling by the JD Plays mod- Spider hunt feature, for the battleships idea that we want to contain within JD's map lane. IDEA ON HOLD.
-	- Change all game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
+	- Change all effect notification game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
 
 
 Future Confirmed (bigger things):

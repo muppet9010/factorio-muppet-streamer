@@ -4,6 +4,7 @@ local Logging = require("utility.logging")
 local EventScheduler = require("utility.event-scheduler")
 local PositionUtils = require("utility.position-utils")
 local Events = require("utility.events")
+local Common = require("scripts.common")
 
 ---@class AggressiveDriver_ControlTypes
 ---@class AggressiveDriver_ControlTypes.__index
@@ -68,12 +69,14 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         return
     end
 
-    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+    local delayRaw = commandData.delay ---@type Second
+    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     local scheduleTick  ---@type Tick
-    if (commandData.delay ~= nil and commandData.delay > 0) then
-        scheduleTick = command.tick + math.floor(commandData.delay * 60) --[[@as Tick]]
+    if (delayRaw ~= nil and delayRaw > 0) then
+        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
+        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
     else
         scheduleTick = -1
     end
@@ -123,7 +126,6 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     end
 
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
-    --TODO: this delay data type issue and delay value vs -1 needs fixing on all of the ScheduleEventOnce instances in the mod.
     EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, {target = target, duration = duration, control = control, teleportDistance = teleportDistance})
 end
 

@@ -5,6 +5,7 @@ local Commands = require("utility.commands")
 local Logging = require("utility.logging")
 local EventScheduler = require("utility.event-scheduler")
 local Events = require("utility.events")
+local Common = require("scripts.common")
 
 ---@class PantsOnFire_ScheduledEventDetails
 ---@field target string @ Target player's name.
@@ -54,12 +55,14 @@ PantsOnFire.PantsOnFireCommand = function(command)
         return
     end
 
-    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+    local delayRaw = commandData.delay ---@type Second
+    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     local scheduleTick  ---@type Tick
-    if (commandData.delay ~= nil and commandData.delay > 0) then
-        scheduleTick = command.tick + math.floor(commandData.delay * 60) --[[@as Tick]]
+    if (delayRaw ~= nil and delayRaw > 0) then
+        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
+        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
     else
         scheduleTick = -1
     end
@@ -81,7 +84,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
-    local finishTick = command.tick + math.ceil((delay + durationSeconds) * 60)
+    local finishTick = scheduleTick + math.ceil(durationSeconds * 60)
 
     local fireHeadStart = 3
     if commandData.fireHeadStart ~= nil then

@@ -8,6 +8,7 @@ local PlayerTeleport = require("utility.functions.player-teleport")
 local BooleanUtils = require("utility.boolean-utils")
 local StringUtils = require("utility.string-utils")
 local MathUtils = require("utility.math-utils")
+local Common = require("scripts.common")
 
 ---@class CallForHelp_CallSelection
 local CallSelection = {random = "random", nearest = "nearest"}
@@ -82,12 +83,14 @@ CallForHelp.CallForHelpCommand = function(command)
         return
     end
 
-    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+    local delayRaw = commandData.delay ---@type Second
+    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     local scheduleTick  ---@type Tick
-    if (commandData.delay ~= nil and commandData.delay > 0) then
-        scheduleTick = command.tick + math.floor(commandData.delay * 60) --[[@as Tick]]
+    if (delayRaw ~= nil and delayRaw > 0) then
+        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
+        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
     else
         scheduleTick = -1
     end

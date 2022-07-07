@@ -7,6 +7,7 @@ local PlayerTeleport = require("utility.functions.player-teleport")
 local BooleanUtils = require("utility.boolean-utils")
 local MathUtils = require("utility.math-utils")
 local PositionUtils = require("utility.position-utils")
+local Common = require("scripts.common")
 
 ---@class Teleport_DestinationTypeSelection
 local DestinationTypeSelection = {random = "random", biterNest = "biterNest", enemyUnit = "enemyUnit", spawn = "spawn", position = "position"}
@@ -116,12 +117,14 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
         depthErrorMessage = "at depth " .. depth .. " - "
     end
 
-    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+    local delayRaw = commandData.delay ---@type Second
+    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, commandStringText) then
         return
     end
     local delay  ---@type Tick
-    if (commandData.delay ~= nil and commandData.delay > 0) then
-        delay = math.floor(commandData.delay * 60) --[[@as Tick]]
+    if (delayRaw ~= nil and delayRaw > 0) then
+        delay = math.floor(delayRaw * 60) --[[@as Tick]]
+        delay = Common.CapComamndsDelaySetting(delay, delayRaw, commandName, "delay")
     else
         delay = 0
     end

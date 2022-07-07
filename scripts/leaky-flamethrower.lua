@@ -5,6 +5,7 @@ local EventScheduler = require("utility.event-scheduler")
 local Events = require("utility.events")
 local PlayerWeapon = require("utility.functions.player-weapon")
 local PositionUtils = require("utility.position-utils")
+local Common = require("scripts.common")
 
 ---@class LeakyFlamethrower_EffectEndStatus
 local EffectEndStatus = {completed = "completed", died = "died", invalid = "invalid"}
@@ -64,12 +65,14 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         return
     end
 
-    if not Commands.ParseNumberArgument(commandData.delay, "double", false, commandName, "delay", 0) then
+    local delayRaw = commandData.delay ---@type Second
+    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     local scheduleTick  ---@type Tick
-    if (commandData.delay ~= nil and commandData.delay > 0) then
-        scheduleTick = command.tick + math.floor(commandData.delay * 60) --[[@as Tick]]
+    if (delayRaw ~= nil and delayRaw > 0) then
+        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
+        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
     else
         scheduleTick = -1
     end

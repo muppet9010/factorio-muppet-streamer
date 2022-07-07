@@ -57,6 +57,7 @@
 --
 --[[
 
+
 Example of doing table string enums.
 Declare the main class type. Then for the object define it as a class defintion of the class type ".__index". Each entry in the enum needs its value wraping in single quotes so that the "@as" can change its type to be the enum type.
 NOTE: in the below example the * from the end of each line needs to be removed so the comment closes. Its just in this example reference the whole block is already in a comment and so we can't let it close on each line.
@@ -67,6 +68,16 @@ local EffectEndStatus = {
     completed = ("completed") --[[@as AggressiveDriver_EffectEndStatus]*],
     died = ("died") --[[@as AggressiveDriver_EffectEndStatus]*]
 }
+
+
+
+
+Example of defining a dictionary as containing all the same type of values en-bulk.
+With just this you can't valid the dictionary level, just the selected value in it.
+
+---@type {[string]:Color}
+local Colors = {}
+
 
 --]]
 --
