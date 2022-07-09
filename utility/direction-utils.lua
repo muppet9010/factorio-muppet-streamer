@@ -31,12 +31,12 @@ end
 ---@param orientation RealOrientation @ Will be rounded to the nearest cardinal or intercardinal direction.
 ---@return defines.direction
 DirectionUtils.OrientationToDirection = function(orientation)
-    local directionValue = MathUtils.RoundNumberToDecimalPlaces(orientation * 8, 0)
+    local directionValue = MathUtils.RoundNumberToDecimalPlaces(orientation * 8, 0) --[[@as defines.direction]]
     -- Hard coded copy of MathUtils.LoopIntValueWithinRange().
     if directionValue > 7 then
-        return 0 - (7 - directionValue) - 1
+        return 0 - (7 - directionValue) - 1 --[[@as defines.direction]]
     elseif directionValue < 0 then
-        return 7 + (directionValue - 7) + 1
+        return 7 + (directionValue - 7) + 1 --[[@as defines.direction]]
     else
         return directionValue
     end
@@ -69,9 +69,9 @@ DirectionUtils.DirectionValueToName = {
 DirectionUtils.LoopDirectionValue = function(directionValue)
     -- Hard coded copy of MathUtils.LoopIntValueWithinRange().
     if directionValue > 7 then
-        return 0 - (7 - directionValue) - 1
+        return 0 - (7 - directionValue) - 1 --[[@as defines.direction]]
     elseif directionValue < 0 then
-        return 7 + (directionValue - 7) + 1
+        return 7 + (directionValue - 7) + 1 --[[@as defines.direction]]
     else
         return directionValue
     end

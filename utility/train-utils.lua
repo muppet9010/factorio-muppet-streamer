@@ -57,7 +57,7 @@ TrainUtils.GetRailEntityLength = function(entityType, entityDirection)
     if entityType == "straight-rail" then
         if entityDirection == defines.direction.north or entityDirection == defines.direction.east or entityDirection == defines.direction.south or entityDirection == defines.direction.west then
             -- Cardinal direction rail.
-            return 2
+            return 2.0
         else
             -- Diagonal rail.
             return 1.415
@@ -144,8 +144,8 @@ TrainUtils.GetTrainSpeedCalculationData = function(train, train_speed, trainCarr
             carriageCachedData.prototypeName = carriage_name
         end
 
-        trainFrictionForce = trainFrictionForce + PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, carriage_name, "friction_force")
-        trainRawBrakingForce = trainRawBrakingForce + PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, carriage_name, "braking_force")
+        trainFrictionForce = trainFrictionForce + PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, carriage_name, "friction_force") --[[@as double]]
+        trainRawBrakingForce = trainRawBrakingForce + PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, carriage_name, "braking_force") --[[@as double]]
 
         if firstCarriage then
             firstCarriage = false
@@ -177,10 +177,10 @@ TrainUtils.GetTrainSpeedCalculationData = function(train, train_speed, trainCarr
     local trainData = {
         trainWeight = trainWeight,
         trainFrictionForce = trainFrictionForce,
-        trainWeightedFrictionForce = (trainFrictionForce / trainWeight),
+        trainWeightedFrictionForce = (trainFrictionForce / trainWeight) --[[@as double]],
         -- This assumes all loco's are the same power and have the same fuel. The 10 is for a 600 kW max_power of a vanilla locomotive.
-        locomotiveAccelerationPower = 10 * forwardFacingLocoCount / trainWeight,
-        trainAirResistanceReductionMultiplier = trainAirResistanceReductionMultiplier,
+        locomotiveAccelerationPower = 10 * forwardFacingLocoCount / trainWeight --[[@as double]],
+        trainAirResistanceReductionMultiplier = trainAirResistanceReductionMultiplier --[[@as double]],
         forwardFacingLocoCount = forwardFacingLocoCount,
         trainRawBrakingForce = trainRawBrakingForce
     }
@@ -222,7 +222,7 @@ TrainUtils.UpdateTrainSpeedCalculationDataForCurrentFuel = function(trainSpeedCa
     else
         fuelAccelerationBonus = 1
     end
-    trainSpeedCalculationData.locomotiveFuelAccelerationPower = trainSpeedCalculationData.locomotiveAccelerationPower * fuelAccelerationBonus
+    trainSpeedCalculationData.locomotiveFuelAccelerationPower = trainSpeedCalculationData.locomotiveAccelerationPower * fuelAccelerationBonus --[[@as double]]
 
     -- Have to get the right prototype max speed as they're not identical at runtime even if the train is symetrical. This API result includes the fuel type currently being burnt.
     local trainPrototypeMaxSpeedIncludesFuelBonus
@@ -236,7 +236,7 @@ TrainUtils.UpdateTrainSpeedCalculationDataForCurrentFuel = function(trainSpeedCa
     -- Maths way based on knowing that its acceleration result will be 0 once its at max speed.
     --   0=s - ((s+a)*r)   in to Wolf Ram Alpha and re-arranged for s.
     local maxSpeedForFuelBonus = -((((trainSpeedCalculationData.locomotiveFuelAccelerationPower) - trainSpeedCalculationData.trainWeightedFrictionForce) * trainSpeedCalculationData.trainAirResistanceReductionMultiplier) / (trainSpeedCalculationData.trainAirResistanceReductionMultiplier - 1))
-    trainSpeedCalculationData.maxSpeed = math_min(maxSpeedForFuelBonus, trainPrototypeMaxSpeedIncludesFuelBonus)
+    trainSpeedCalculationData.maxSpeed = math_min(maxSpeedForFuelBonus, trainPrototypeMaxSpeedIncludesFuelBonus) --[[@as double]]
 
     return noFuelFound
 end
@@ -257,13 +257,13 @@ end
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param initialSpeedAbsolute double
 ---@param distance double
----@return Tick ticks @ Rounded up.
+---@return uint ticks @ Rounded up.
 ---@return number absoluteFinalSpeed
 TrainUtils.EstimateAcceleratingTrainTicksAndFinalSpeedToCoverDistance = function(trainData, initialSpeedAbsolute, distance)
     -- Work out how long it will take to accelerate over the distance. This doesn't (can't) limit the train to its max speed.
     local initialSpeedAirResistence = (1 - trainData.trainAirResistanceReductionMultiplier) * initialSpeedAbsolute
     local acceleration = trainData.locomotiveFuelAccelerationPower - trainData.trainWeightedFrictionForce - initialSpeedAirResistence
-    local ticks = math_ceil((math_sqrt(2 * acceleration * distance + (initialSpeedAbsolute ^ 2)) - initialSpeedAbsolute) / acceleration)
+    local ticks = math_ceil((math_sqrt(2 * acceleration * distance + (initialSpeedAbsolute ^ 2)) - initialSpeedAbsolute) / acceleration) --[[@as uint]]
 
     -- Check how fast the train would have been going at the end of this period. This may be greater than max speed.
     local finalSpeed = initialSpeedAbsolute + (acceleration * ticks)
@@ -271,14 +271,14 @@ TrainUtils.EstimateAcceleratingTrainTicksAndFinalSpeedToCoverDistance = function
     -- If the train would be going faster than max speed at the end then cap at max speed and estimate extra time at this speed.
     if finalSpeed > trainData.maxSpeed then
         -- Work out how long and the distance covered it will take to get up to max speed. Code logic copied From TrainUtils.EstimateAcceleratingTrainTicksAndDistanceFromInitialToFinalSpeed().
-        local ticksToMaxSpeed = math_ceil((trainData.maxSpeed - initialSpeedAbsolute) / acceleration)
+        local ticksToMaxSpeed = math_ceil((trainData.maxSpeed - initialSpeedAbsolute) / acceleration) --[[@as uint]]
         local distanceToMaxSpeed = (ticksToMaxSpeed * initialSpeedAbsolute) + (((trainData.maxSpeed - initialSpeedAbsolute) * ticksToMaxSpeed) / 2)
 
         -- Work out how long it will take to cover the remaining distance at max speed.
-        local ticksAtMaxSpeed = math_ceil((distance - distanceToMaxSpeed) / trainData.maxSpeed)
+        local ticksAtMaxSpeed = math_ceil((distance - distanceToMaxSpeed) / trainData.maxSpeed) --[[@as uint]]
 
         -- Set the final results.
-        ticks = ticksToMaxSpeed + ticksAtMaxSpeed
+        ticks = ticksToMaxSpeed + ticksAtMaxSpeed --[[@as uint]]
         finalSpeed = trainData.maxSpeed
     end
 
@@ -290,14 +290,14 @@ end
 --- Note: none of the train speed/ticks/distance estimation functions give quite the same results as each other.
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param initialSpeedAbsolute double
----@param ticks Tick
+---@param ticks uint
 ---@return double finalSpeedAbsolute
 ---@return double distanceCovered
 TrainUtils.EstimateAcceleratingTrainSpeedAndDistanceForTicks = function(trainData, initialSpeedAbsolute, ticks)
     local initialSpeedAirResistence = (1 - trainData.trainAirResistanceReductionMultiplier) * initialSpeedAbsolute
     local acceleration = trainData.locomotiveFuelAccelerationPower - trainData.trainWeightedFrictionForce - initialSpeedAirResistence
-    local newSpeedAbsolute = math_min(initialSpeedAbsolute + (acceleration * ticks), trainData.maxSpeed)
-    local distanceTravelled = (ticks * initialSpeedAbsolute) + (((newSpeedAbsolute - initialSpeedAbsolute) * ticks) / 2)
+    local newSpeedAbsolute = math_min(initialSpeedAbsolute + (acceleration * ticks), trainData.maxSpeed) --[[@as double]]
+    local distanceTravelled = (ticks * initialSpeedAbsolute) + (((newSpeedAbsolute - initialSpeedAbsolute) * ticks) / 2) --[[@as double]]
     return newSpeedAbsolute, distanceTravelled
 end
 
@@ -307,13 +307,13 @@ end
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param initialSpeedAbsolute double
 ---@param requiredSpeedAbsolute double
----@return Tick ticksTaken @ Rounded up.
+---@return uint ticksTaken @ Rounded up.
 ---@return double distanceCovered
 TrainUtils.EstimateAcceleratingTrainTicksAndDistanceFromInitialToFinalSpeed = function(trainData, initialSpeedAbsolute, requiredSpeedAbsolute)
     local initialSpeedAirResistence = (1 - trainData.trainAirResistanceReductionMultiplier) * initialSpeedAbsolute
     local acceleration = trainData.locomotiveFuelAccelerationPower - trainData.trainWeightedFrictionForce - initialSpeedAirResistence
-    local ticks = math_ceil((requiredSpeedAbsolute - initialSpeedAbsolute) / acceleration)
-    local distance = (ticks * initialSpeedAbsolute) + (((requiredSpeedAbsolute - initialSpeedAbsolute) * ticks) / 2)
+    local ticks = math_ceil((requiredSpeedAbsolute - initialSpeedAbsolute) / acceleration) --[[@as uint]]
+    local distance = (ticks * initialSpeedAbsolute) + (((requiredSpeedAbsolute - initialSpeedAbsolute) * ticks) / 2) --[[@as double]]
     return ticks, distance
 end
 
@@ -324,7 +324,7 @@ end
 ---@param targetSpeedAbsolute double
 ---@param distance double
 ---@param forcesBrakingForceBonus double @ The force's train_braking_force_bonus.
----@return Tick ticks @ Rounded up.
+---@return uint ticks @ Rounded up.
 TrainUtils.EstimateTrainTicksToCoverDistanceWithSameStartAndEndSpeed = function(trainData, targetSpeedAbsolute, distance, forcesBrakingForceBonus)
     -- Get the acceleration and braking force per tick.
     local initialSpeedAirResistence = (1 - trainData.trainAirResistanceReductionMultiplier) * targetSpeedAbsolute
@@ -341,7 +341,7 @@ TrainUtils.EstimateTrainTicksToCoverDistanceWithSameStartAndEndSpeed = function(
     local finalSpeed = targetSpeedAbsolute + (accelerationForcePerTick * accelerationTicks)
 
     -- Based on if the train would be going faster than its max speed handle the braking time part differently.
-    local ticks
+    local ticks  ---@type uint
     if finalSpeed > trainData.maxSpeed then
         -- The train would be going faster than max speed at the end so re-estimate acceleration up to the max speed cap and then the time it will take at max speed to cover the required distance.
 
@@ -357,12 +357,12 @@ TrainUtils.EstimateTrainTicksToCoverDistanceWithSameStartAndEndSpeed = function(
         local ticksAtMaxSpeed = (distance - distanceToMaxSpeed - distanceToBrake) / trainData.maxSpeed
 
         -- Update the final results.
-        ticks = math.ceil(ticksToMaxSpeed + ticksAtMaxSpeed + ticksToBrake)
+        ticks = math.ceil(ticksToMaxSpeed + ticksAtMaxSpeed + ticksToBrake) --[[@as uint]]
     else
         -- The train didn't reach max speed when accelerating so stopping ticks is for just the braking ratio of distance.
         local brakingDistance = distance * accelerationToBrakingForceRatio
         local brakingTicks = (math_sqrt(2 * brakingForcePerTick * brakingDistance + (targetSpeedAbsolute ^ 2)) - targetSpeedAbsolute) / brakingForcePerTick
-        ticks = math.ceil(accelerationTicks + brakingTicks)
+        ticks = math.ceil(accelerationTicks + brakingTicks) --[[@as uint]]
     end
 
     return ticks
@@ -373,13 +373,13 @@ end
 ---@param initialSpeedAbsolute double
 ---@param requiredSpeedAbsolute double
 ---@param forcesBrakingForceBonus double @ The force's train_braking_force_bonus.
----@return Tick ticksToStop @ Rounded up.
+---@return uint ticksToStop @ Rounded up.
 ---@return double brakingDistance
 TrainUtils.CalculateBrakingTrainTimeAndDistanceFromInitialToFinalSpeed = function(trainData, initialSpeedAbsolute, requiredSpeedAbsolute, forcesBrakingForceBonus)
     local speedToDropAbsolute = initialSpeedAbsolute - requiredSpeedAbsolute
     local trainForceBrakingForce = trainData.trainRawBrakingForce + (trainData.trainRawBrakingForce * forcesBrakingForceBonus)
-    local ticksToStop = math_ceil(speedToDropAbsolute / ((trainForceBrakingForce + trainData.trainFrictionForce) / trainData.trainWeight))
-    local brakingDistance = (ticksToStop * requiredSpeedAbsolute) + ((ticksToStop / 2.0) * speedToDropAbsolute)
+    local ticksToStop = math_ceil(speedToDropAbsolute / ((trainForceBrakingForce + trainData.trainFrictionForce) / trainData.trainWeight)) --[[@as uint]]
+    local brakingDistance = (ticksToStop * requiredSpeedAbsolute) + ((ticksToStop / 2.0) * speedToDropAbsolute) --[[@as double]]
     return ticksToStop, brakingDistance
 end
 
@@ -387,15 +387,15 @@ end
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param currentSpeedAbsolute double
 ---@param forcesBrakingForceBonus double @ The force's train_braking_force_bonus.
----@param ticksToBrake Tick
+---@param ticksToBrake uint
 ---@return double newSpeedAbsolute
 ---@return double distanceCovered
 TrainUtils.CalculateBrakingTrainSpeedAndDistanceCoveredForTime = function(trainData, currentSpeedAbsolute, forcesBrakingForceBonus, ticksToBrake)
     local trainForceBrakingForce = trainData.trainRawBrakingForce + (trainData.trainRawBrakingForce * forcesBrakingForceBonus)
     local tickBrakingReduction = (trainForceBrakingForce + trainData.trainFrictionForce) / trainData.trainWeight
-    local newSpeedAbsolute = currentSpeedAbsolute - (tickBrakingReduction * ticksToBrake)
+    local newSpeedAbsolute = currentSpeedAbsolute - (tickBrakingReduction * ticksToBrake) --[[@as double]]
     local speedDropped = currentSpeedAbsolute - newSpeedAbsolute
-    local distanceCovered = (ticksToBrake * newSpeedAbsolute) + ((ticksToBrake / 2.0) * speedDropped)
+    local distanceCovered = (ticksToBrake * newSpeedAbsolute) + ((ticksToBrake / 2.0) * speedDropped) --[[@as double]]
     return newSpeedAbsolute, distanceCovered
 end
 
@@ -406,12 +406,12 @@ end
 ---@param distance double
 ---@param finalSpeedAbsolute double
 ---@param forcesBrakingForceBonus double @ The force's train_braking_force_bonus.
----@return Tick ticksToBrakeOverDistance @ Rounded up.
+---@return uint ticksToBrakeOverDistance @ Rounded up.
 ---@return double initialAbsoluteSpeed
 TrainUtils.CalculateBrakingTrainsTimeAndStartingSpeedToBrakeToFinalSpeedOverDistance = function(trainData, distance, finalSpeedAbsolute, forcesBrakingForceBonus)
     local trainForceBrakingForce = trainData.trainRawBrakingForce + (trainData.trainRawBrakingForce * forcesBrakingForceBonus)
     local tickBrakingReduction = (trainForceBrakingForce + trainData.trainFrictionForce) / trainData.trainWeight
-    local initialSpeed = math_sqrt((finalSpeedAbsolute ^ 2) + (2 * tickBrakingReduction * distance))
+    local initialSpeed = math_sqrt((finalSpeedAbsolute ^ 2) + (2 * tickBrakingReduction * distance)) --[[@as double]]
 
     if initialSpeed > trainData.maxSpeed then
         -- Initial speed is greater than max speed so cap the inital speed to max speed.
@@ -419,7 +419,7 @@ TrainUtils.CalculateBrakingTrainsTimeAndStartingSpeedToBrakeToFinalSpeedOverDist
     end
 
     local speedToDropAbsolute = initialSpeed - finalSpeedAbsolute
-    local ticks = math_ceil(speedToDropAbsolute / tickBrakingReduction)
+    local ticks = math_ceil(speedToDropAbsolute / tickBrakingReduction) --[[@as uint]]
 
     return ticks, initialSpeed
 end
@@ -431,7 +431,7 @@ end
 TrainUtils.CalculateBrakingTrainSpeedForSingleTickToStopWithinDistance = function(currentSpeedAbsolute, distance)
     -- Use a mass of 1.
     local brakingSpeedReduction = (0.5 * 1 * currentSpeedAbsolute * currentSpeedAbsolute) / distance
-    return currentSpeedAbsolute - brakingSpeedReduction
+    return currentSpeedAbsolute - brakingSpeedReduction --[[@as double]]
 end
 
 --- Kills any carriages that would prevent the rail from being removed. If a carriage is not destructable make it so, so it can be killed normally and appear in death stats, etc.
@@ -483,7 +483,7 @@ TrainUtils.MineCarriagesOnRailEntity = function(railEntity, surface, ignoreMinab
             -- If stopTrain is enabled and the carriage is currently moving stop its train.
             if stopTrain then
                 if carriage.speed ~= 0 then
-                    carriage.train.speed = 0
+                    carriage.train.speed = 0.0
                     carriage.train.manual_mode = true
                 end
             end
@@ -497,7 +497,7 @@ TrainUtils.MineCarriagesOnRailEntity = function(railEntity, surface, ignoreMinab
                 -- If stopTrain is enabled and the carriage is currently moving stop its train.
                 if stopTrain then
                     if carriage.speed ~= 0 then
-                        carriage.train.speed = 0
+                        carriage.train.speed = 0.0
                         carriage.train.manual_mode = true
                     end
                 end

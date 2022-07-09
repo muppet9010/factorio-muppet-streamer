@@ -80,12 +80,12 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         return
     end
 
-    local dropOnBeltsString = commandData.dropOnBelts
-    local dropOnBelts  ---@type boolean
-    if dropOnBeltsString == nil then
+    local dropOnBeltsRaw = commandData.dropOnBelts ---@type boolean
+    local dropOnBelts  ---@type boolean|nil
+    if dropOnBeltsRaw == nil then
         dropOnBelts = false
     else
-        dropOnBelts = BooleanUtils.ToBoolean(dropOnBeltsString)
+        dropOnBelts = BooleanUtils.ToBoolean(dropOnBeltsRaw)
         if dropOnBelts == nil then
             Logging.LogPrint(ErrorMessageStart .. "if dropOnBelts is provided it must be a boolean: true, false")
             Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)

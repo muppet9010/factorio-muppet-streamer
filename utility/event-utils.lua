@@ -38,10 +38,10 @@ end
 EventUtils.GetPlayerOrForceFromEventActioner = function(actioner)
     if actioner.is_player() then
         -- Is a player.
-        return actioner, nil
+        return actioner --[[@as LuaPlayer]], nil
     else
         -- Is construction bot.
-        return nil, actioner.force
+        return nil, actioner.force --[[@as LuaForce]]
     end
 end
 

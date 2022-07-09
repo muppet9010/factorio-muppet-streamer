@@ -11,11 +11,15 @@ local MathUtils = require("utility.math-utils")
 local Common = require("scripts.common")
 
 ---@class CallForHelp_CallSelection
-local CallSelection = {random = "random", nearest = "nearest"}
+---@class CallForHelp_CallSelection.__index
+local CallSelection = {
+    random = "random" --[[@as CallForHelp_CallSelection]],
+    nearest = "nearest" --[[@as CallForHelp_CallSelection]]
+}
 
 local SPTesting = false -- Set to true to let yourself go to your own support.
 local MaxRandomPositionsAroundTargetToTry = 50 -- Was 10, but upped to reduce odd vehicle rotation issues.
-local MaxDistancePositionAroundTarget = 10
+local MaxDistancePositionAroundTarget = 10.0 ---@type double
 local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries per player once it finds a valid placement position that then has a pathing request return false.
 
 ---@class CallForHelp_DelayedCommandDetails
@@ -106,6 +110,7 @@ CallForHelp.CallForHelpCommand = function(command)
         return
     end
 
+    ---@typelist number, number|nil
     local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10
     if arrivalRadiusRaw ~= nil then
         arrivalRadius = tonumber(arrivalRadiusRaw)
@@ -348,7 +353,7 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
             pathRequestId = teleportResponse.pathRequestId,
             helpPlayer = helpPlayer,
             helpPlayerPlacementEntity = teleportResponse.targetPlayerTeleportEntity,
-            helpPlayerForce = helpPlayer.force,
+            helpPlayerForce = helpPlayer.force --[[@as LuaForce]], ---Sumneko temp fix
             helpPlayerSurface = helpPlayer.surface,
             targetPlayer = targetPlayer,
             targetPlayerPosition = targetPlayerPosition,
@@ -441,7 +446,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
-            currentPlayerPlacementEntity_vehicleDirectionFacing = MathUtils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
+            currentPlayerPlacementEntity_vehicleDirectionFacing = MathUtils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2 --[[@as defines.direction]]
         end
 
         -- Check the helping player's character/vehicle is still as expected.

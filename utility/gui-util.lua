@@ -64,7 +64,7 @@ local StyleDataStyleVersion = require("utility.style-data").styleVersion
 
 --- Add Gui Elements in a manner supporting short-hand features, nested GUI structures and templating features. See the param type for detailed information on its features and usage.
 ---@param elementDetails UtilityGuiUtil_ElementDetails_Add
----@return table<string, LuaGuiElement> returnElements @ Provided if returnElement option is TRUE. Table of UtilityGuiUtil_GuiElementName keys to LuaGuiElement values.
+---@return table<string, LuaGuiElement>|nil returnElements? @ Provided if returnElement option is TRUE. Table of UtilityGuiUtil_GuiElementName keys to LuaGuiElement values.
 GuiUtil.AddElement = function(elementDetails)
     -- Reference the "name" key by this indirect way to avoid EmmyLua picking it up. Have to use new reference and type as we set it.
     ---@type table
@@ -86,19 +86,22 @@ GuiUtil.AddElement = function(elementDetails)
 
     -- If its being intentionally excluded from being created due to the templating.
     if elementDetails.exclude == true then
-        return
+        return nil
     end
 
+    -- Create calculated values.
     elementDetailsNoClass.name = GuiUtil.GenerateGuiElementName(elementDetails.descriptiveName, elementDetails.type)
     elementDetails.caption = GuiUtil._ReplaceLocaleNameSelfWithGeneratedName(elementDetails, "caption")
     elementDetails.tooltip = GuiUtil._ReplaceLocaleNameSelfWithGeneratedName(elementDetails, "tooltip")
     if elementDetails.style ~= nil and string.sub(elementDetails.style, 1, 7) == "muppet_" then
         elementDetails.style = elementDetails.style .. StyleDataStyleVersion
     end
+
+    -- Extract custom fields from the elementDetails object.
     local attributes, returnElement, storeName, styling, registerClick, registerCheckedStateChange, children = elementDetails.attributes, elementDetails.returnElement, elementDetails.storeName, elementDetails.styling, elementDetails.registerClick, elementDetails.registerCheckedStateChange, elementDetails.children
     elementDetails.attributes, elementDetails.returnElement, elementDetails.storeName, elementDetails.styling, elementDetails.registerClick, elementDetails.registerCheckedStateChange, elementDetails.children = nil, nil, nil, nil, nil, nil, nil
 
-    local element = elementDetails.parent.add(elementDetails)
+    local element = elementDetails.parent.add(elementDetails --[[@as LuaGuiElement.add_param]])
 
     local returnElements = {}
     if returnElement then
@@ -161,7 +164,7 @@ GuiUtil.AddElement = function(elementDetails)
 end
 
 --- Add a LuaGuiElement to a player's reference storage that was created manually, not via GuiUtil.AddElement().
----@param playerIndex Id
+---@param playerIndex uint
 ---@param storeName UtilityGuiUtil_StoreName
 ---@param guiElementName UtilityGuiUtil_GuiElementName
 ---@param element LuaGuiElement
@@ -171,23 +174,24 @@ GuiUtil.AddElementToPlayersReferenceStorage = function(playerIndex, storeName, g
 end
 
 --- Get a LuaGuiElement from a player's reference storage.
----@param playerIndex Id
+---@param playerIndex uint
 ---@param storeName UtilityGuiUtil_StoreName
 ---@param elementName string
 ---@param elementType string
+---@return LuaGuiElement
 GuiUtil.GetElementFromPlayersReferenceStorage = function(playerIndex, storeName, elementName, elementType)
     GuiUtil._CreatePlayersElementReferenceStorage(playerIndex, storeName)
     return global.GUIUtilPlayerElementReferenceStorage[playerIndex][storeName][GuiUtil.GenerateGuiElementName(elementName, elementType)]
 end
 
 --- Apply updated attributes to an existing GuiElement found in the player's reference storage. Supports changing approperiate ElementDetail attributes and some Factorio attributes as per UtilityGuiUtil_ElementDetails_Update.
----@param playerIndex Id
+---@param playerIndex uint
 ---@param storeName UtilityGuiUtil_StoreName
 ---@param elementName string
 ---@param elementType string
 ---@param changes UtilityGuiUtil_ElementDetails_Update @ See the UtilityGuiUtil_ElementDetails_Update type for what can be updated with this function.
 ---@param ignoreMissingElement boolean @ If TRUE and the GUI element doesn't exist it won't error. If FALSE or nil and the GUI element doesn't exist an error will be raised.
----@return LuaGuiElement
+---@return LuaGuiElement|nil UpdatedGuiElement? @ The Lua Gui Element that was updated if one was found, otherwise nil.
 GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeName, elementName, elementType, changes, ignoreMissingElement)
     ignoreMissingElement = ignoreMissingElement or false
     local element = GuiUtil.GetElementFromPlayersReferenceStorage(playerIndex, storeName, elementName, elementType)
@@ -196,9 +200,8 @@ GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeNa
     if element == nil then
         if not ignoreMissingElement then
             error("GuiUtil.UpdateElementFromPlayersReferenceStorage didn't find a GUI element for name '" .. elementName .. "' and type '" .. elementType .. "'")
-        else
-            return nil
         end
+        return nil
     end
 
     -- Handle if the element has been removed by something unexpectedly. This will flag a text warning and not hard error for legacy reasons.
@@ -253,7 +256,7 @@ GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeNa
 end
 
 --- Destroys a Gui element found within a players reference storage and removes the reference from the player storage.
----@param playerIndex Id
+---@param playerIndex uint
 ---@param storeName UtilityGuiUtil_StoreName
 ---@param elementName string
 ---@param elementType string
@@ -268,7 +271,7 @@ GuiUtil.DestroyElementInPlayersReferenceStorage = function(playerIndex, storeNam
 end
 
 --- Destroys all GUI elements within a players reference storage and removes the reference storage space for them.
----@param playerIndex Id
+---@param playerIndex uint
 ---@param storeName? UtilityGuiUtil_StoreName|nil @ If provided filters the removal to that storeName, otherwise does all storeNames for this player.
 GuiUtil.DestroyPlayersReferenceStorage = function(playerIndex, storeName)
     if global.GUIUtilPlayerElementReferenceStorage == nil or global.GUIUtilPlayerElementReferenceStorage[playerIndex] == nil then
@@ -302,24 +305,24 @@ end
 ---@return string UtilityGuiUtil_GuiElementName
 GuiUtil.GenerateGuiElementName = function(elementName, elementType)
     --- Just happens to be the same as in GuiActionsClick, but not a requirement.
-    if elementName == nil or elementType == nil then
-        return nil
-    else
-        return Constants.ModName .. "-" .. elementName .. "-" .. elementType
-    end
+    return Constants.ModName .. "-" .. elementName .. "-" .. elementType
 end
 
 --------------------------------------------------------------------------------------------
 --                                    Internal Functions
 --------------------------------------------------------------------------------------------
 
+---@alias UtilityGuiUtil_PlayerElementReferenceStorage_PlayerList table<uint, UtilityGuiUtil_PlayerElementReferenceStorage_StoreList> @ Key'd by player_index.
+---@alias UtilityGuiUtil_PlayerElementReferenceStorage_StoreList table<UtilityGuiUtil_StoreName, UtilityGuiUtil_PlayerElementReferenceStorage_GuiElementList> @ Key'd by store name.
+---@alias UtilityGuiUtil_PlayerElementReferenceStorage_GuiElementList table<UtilityGuiUtil_GuiElementName, LuaGuiElement> @ Key'd by generated Gui element name.
+
 --- Create a global state store for this player's GUI elements within the scope of this mod.
----@param playerIndex Id
+---@param playerIndex uint
 ---@param storeName UtilityGuiUtil_StoreName
 GuiUtil._CreatePlayersElementReferenceStorage = function(playerIndex, storeName)
-    global.GUIUtilPlayerElementReferenceStorage = global.GUIUtilPlayerElementReferenceStorage or {}
-    global.GUIUtilPlayerElementReferenceStorage[playerIndex] = global.GUIUtilPlayerElementReferenceStorage[playerIndex] or {}
-    global.GUIUtilPlayerElementReferenceStorage[playerIndex][storeName] = global.GUIUtilPlayerElementReferenceStorage[playerIndex][storeName] or {}
+    global.GUIUtilPlayerElementReferenceStorage = global.GUIUtilPlayerElementReferenceStorage or {} ---@type UtilityGuiUtil_PlayerElementReferenceStorage_PlayerList
+    global.GUIUtilPlayerElementReferenceStorage[playerIndex] = global.GUIUtilPlayerElementReferenceStorage[playerIndex] or {} ---@type UtilityGuiUtil_PlayerElementReferenceStorage_StoreList
+    global.GUIUtilPlayerElementReferenceStorage[playerIndex][storeName] = global.GUIUtilPlayerElementReferenceStorage[playerIndex][storeName] or {} ---@type UtilityGuiUtil_PlayerElementReferenceStorage_GuiElementList
 end
 
 --- Applies an array of styling options to an existing Gui element.
@@ -343,10 +346,10 @@ end
 --- Returns the specified attributeName's locale string from the elementDetails, while replacing the string "self" if found with an autogenerated locale string. The auto generated string is in the form: "gui-" + TYPE + "." + UtilityGuiUtil_GuiElementName. i.e. "gui-caption.my_mod-topHeading-label". So it matches if a standard locale naming scheme is in use.
 ---@param elementDetails UtilityGuiUtil_ElementDetails_Add
 ---@param attributeName "'caption'"|"''tooltip"
----@return string
+---@return string|table|nil updatedAttributeNameObject
 GuiUtil._ReplaceLocaleNameSelfWithGeneratedName = function(elementDetails, attributeName)
     -- Reference the "name" key by this indirect way to avoid EmmyLua picking it up. Can use array reference as just reading it.
-    local attributeNamesValue = elementDetails[attributeName]
+    local attributeNamesValue = elementDetails[attributeName] ---@type string|nil|table
     if attributeNamesValue == nil then
         -- The given attributeName doesn't exist for this elementDetails.
         attributeNamesValue = nil

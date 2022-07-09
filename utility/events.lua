@@ -13,7 +13,7 @@ MOD.eventsById = MOD.eventsById or {} ---@type UtilityEvents_EventHandlerObject[
 MOD.eventIdHandlerNameToEventIdsListIndex = MOD.eventIdHandlerNameToEventIdsListIndex or {} ---@type table<string, int> A way to get the id key from MOD.eventsById for a specific event id and handler name.
 MOD.eventsByActionName = MOD.eventsByActionName or {} ---@type UtilityEvents_EventHandlerObject[]
 MOD.eventActionNameHandlerNameToEventActionNamesListIndex = MOD.eventActionNameHandlerNameToEventActionNamesListIndex or {} ---@type table<string, int> @ A way to get the id key from MOD.eventsByActionName for a specific action name and handler name.
-MOD.customEventNameToId = MOD.customEventNameToId or {} ---@type table<string, int>
+MOD.customEventNameToId = MOD.customEventNameToId or {} ---@type table<string, uint>
 MOD.eventFilters = MOD.eventFilters or {} ---@type table<int, table<string, table>>
 
 ---@class UtilityEvents_EventData : EventData @ The class is the minimum being passed through to the recieveing event handler function. It will include any Factorio event specific fields in it.
@@ -24,7 +24,7 @@ MOD.eventFilters = MOD.eventFilters or {} ---@type table<int, table<string, tabl
 ---@param handlerName string @ Unique name of this event handler instance. Used to avoid duplicate handler registration and if removal is required.
 ---@param handlerFunction function @ The function that is called when the event triggers. When the function is called it will recieve the standard single Factorio event specific data table argument.
 ---@param thisFilterData? EventFilter[]|nil @ List of Factorio EventFilters the mod should recieve this eventName occurances for or nil for all occurances. If an empty table (not nil) is passed in then nothing is registered for this handler (silently rejected). Filtered events have to expect to recieve results outside of their own filters. As a Factorio event type can only be subscribed to one time with a combined Filter list of all desires across the mod.
----@return uint @ Useful for custom event names when you need to store the eventId to return via a remote interface call.
+---@return uint|nil registeredEventId? @ The eventId raised for this handler (if one was). Useful for custom event names when you need to store the eventId to return via a remote interface call.
 Events.RegisterHandlerEvent = function(eventName, handlerName, handlerFunction, thisFilterData)
     if eventName == nil or handlerName == nil or handlerFunction == nil then
         error("Events.RegisterHandlerEvent called with missing arguments")
@@ -116,7 +116,7 @@ Events.RaiseEvent = function(eventData)
     eventData.tick = game.tick
     local eventName = eventData.name
     if type(eventName) == "number" then
-        script.raise_event(eventName, eventData)
+        script.raise_event(eventName --[[@as uint]], eventData)
     elseif MOD.customEventNameToId[eventName] ~= nil then
         local eventId = MOD.customEventNameToId[eventName]
         script.raise_event(eventId, eventData)
@@ -167,19 +167,20 @@ Events._HandleEvent = function(eventData)
 end
 
 --- Registers the function in to the mods event to function matrix. Handles merging filters between multiple functions on the same event.
----@param eventName string
+---@param eventName defines.events|string @ Either Factorio event or a custom modded event name.
 ---@param thisFilterName string @ The handler name.
 ---@param thisFilterData? table|nil
----@return uint|nil
+---@return uint|nil eventId
 Events._RegisterEvent = function(eventName, thisFilterName, thisFilterData)
     if eventName == nil then
         error("Events.RegisterEvent called with missing arguments")
     end
     local eventId  ---@type uint
     local filterData  ---@type table
-    thisFilterData = TableUtils.DeepCopy(thisFilterData) -- Deepcopy it so if a persisted or shared table is passed in we don't cause changes to source table.
+    thisFilterData = thisFilterData ~= nil and TableUtils.DeepCopy(thisFilterData) or nil -- Deepcopy it so if a persisted or shared table is passed in we don't cause changes to source table.
     if type(eventName) == "number" then
-        eventId = eventName
+        -- Factorio event.
+        eventId = eventName --[[@as uint]]
         if thisFilterData ~= nil then
             if TableUtils.IsTableEmpty(thisFilterData) then
                 -- filter isn't nil, but has no data, so as this won't register to any filters just drop it.
@@ -203,8 +204,10 @@ Events._RegisterEvent = function(eventName, thisFilterName, thisFilterData)
             end
         end
     elseif MOD.customEventNameToId[eventName] ~= nil then
+        -- Already registered custom event.
         eventId = MOD.customEventNameToId[eventName]
     else
+        -- New custom event.
         eventId = script.generate_event_name()
         MOD.customEventNameToId[eventName] = eventId
     end

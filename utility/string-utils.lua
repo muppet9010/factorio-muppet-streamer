@@ -47,7 +47,7 @@ end
 ---@param positionTable MapPosition
 ---@return SurfacePositionString
 StringUtils.FormatSurfacePositionToString = function(surfaceId, positionTable)
-    return surfaceId .. "_" .. positionTable.x .. "," .. positionTable.y
+    return surfaceId .. "_" .. positionTable.x .. "," .. positionTable.y --[[@as SurfacePositionString]]
 end
 
 --- Backwards converts a SurfacePositionString to usable data. This is ineffecient and should only be used for debugging.
@@ -56,7 +56,7 @@ end
 ---@return MapPosition position
 StringUtils.SurfacePositionStringToSurfaceAndPosition = function(surfacePositionString)
     local underscoreIndex = string_find(surfacePositionString, "_")
-    local surfaceId = tonumber(string_sub(surfacePositionString, 1, underscoreIndex - 1))
+    local surfaceId = tonumber(string_sub(surfacePositionString, 1, underscoreIndex - 1)) --[[@as uint]]
     local commaIndex = string_find(surfacePositionString, ",")
     local positionX = tonumber(string_sub(surfacePositionString, underscoreIndex + 1, commaIndex - 1))
     local positionY = tonumber(string_sub(surfacePositionString, commaIndex + 1, string_len(surfacePositionString)))

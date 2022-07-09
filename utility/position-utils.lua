@@ -38,8 +38,9 @@ PositionUtils.IsTableValidPosition = function(thing)
     end
 end
 
+-- Returns the table as an x|y table rather than an [1]|[2] table.
 ---@param thing table
----@return MapPosition
+---@return MapPosition|nil position? @ x,y key'd table or nil if not a valid MapPosition.
 PositionUtils.TableToProperPosition = function(thing)
     if thing.x ~= nil and thing.y ~= nil then
         if type(thing.x) == "number" and type(thing.y) == "number" then
@@ -78,8 +79,9 @@ PositionUtils.IsTableValidBoundingBox = function(thing)
     end
 end
 
+-- Returns a clean bounding box object or nil if invalid.
 ---@param thing table
----@return BoundingBox
+---@return BoundingBox|nil
 PositionUtils.TableToProperBoundingBox = function(thing)
     if not PositionUtils.IsTableValidBoundingBox(thing) then
         return nil
@@ -90,36 +92,43 @@ PositionUtils.TableToProperBoundingBox = function(thing)
     end
 end
 
+--- Return the positioned bounding box (collision box) of a bounding box applied to a position. Or nil if invalid data.
 ---@param centrePos MapPosition
 ---@param boundingBox BoundingBox
 ---@param orientation RealOrientation
----@return BoundingBox
+---@return BoundingBox|nil
 PositionUtils.ApplyBoundingBoxToPosition = function(centrePos, boundingBox, orientation)
-    centrePos = PositionUtils.TableToProperPosition(centrePos)
-    boundingBox = PositionUtils.TableToProperBoundingBox(boundingBox)
+    local checked_centrePos = PositionUtils.TableToProperPosition(centrePos)
+    if checked_centrePos == nil then
+        return nil
+    end
+    local checked_boundingBox = PositionUtils.TableToProperBoundingBox(boundingBox)
+    if checked_boundingBox == nil then
+        return nil
+    end
     if orientation == nil or orientation == 0 or orientation == 1 then
         return {
             left_top = {
-                x = centrePos.x + boundingBox.left_top.x,
-                y = centrePos.y + boundingBox.left_top.y
+                x = checked_centrePos.x + checked_boundingBox.left_top.x,
+                y = checked_centrePos.y + checked_boundingBox.left_top.y
             },
             right_bottom = {
-                x = centrePos.x + boundingBox.right_bottom.x,
-                y = centrePos.y + boundingBox.right_bottom.y
+                x = checked_centrePos.x + checked_boundingBox.right_bottom.x,
+                y = checked_centrePos.y + checked_boundingBox.right_bottom.y
             }
         }
     elseif orientation == 0.25 or orientation == 0.5 or orientation == 0.75 then
-        local rotatedPoint1 = PositionUtils.RotatePositionAround0(orientation, boundingBox.left_top)
-        local rotatedPoint2 = PositionUtils.RotatePositionAround0(orientation, boundingBox.right_bottom)
+        local rotatedPoint1 = PositionUtils.RotatePositionAround0(orientation, checked_boundingBox.left_top)
+        local rotatedPoint2 = PositionUtils.RotatePositionAround0(orientation, checked_boundingBox.right_bottom)
         local rotatedBoundingBox = PositionUtils.CalculateBoundingBoxFrom2Points(rotatedPoint1, rotatedPoint2)
         return {
             left_top = {
-                x = centrePos.x + rotatedBoundingBox.left_top.x,
-                y = centrePos.y + rotatedBoundingBox.left_top.y
+                x = checked_centrePos.x + rotatedBoundingBox.left_top.x,
+                y = checked_centrePos.y + rotatedBoundingBox.left_top.y
             },
             right_bottom = {
-                x = centrePos.x + rotatedBoundingBox.right_bottom.x,
-                y = centrePos.y + rotatedBoundingBox.right_bottom.y
+                x = checked_centrePos.x + rotatedBoundingBox.right_bottom.x,
+                y = checked_centrePos.y + rotatedBoundingBox.right_bottom.y
             }
         }
     end

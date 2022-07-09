@@ -9,7 +9,7 @@ local PlayerAlerts = {}
 local Events = require("utility.events")
 
 ---@class UtilityPlayerAlerts_ForceAlertObject @ The cached details of an alert applied to all players on a force. Used to track the alerts and remove them, but also to allow adding/removing from players as they join/leave a force.
----@field id Id @ Id of the alert object.
+---@field id UtilityPlayerAlerts_AlertId @ Id of the alert object.
 ---@field force LuaForce @ The force that this alert applies to.
 ---@field alertEntity LuaEntity @ The entity the alert targets.
 ---@field alertPrototypeName string
@@ -18,6 +18,8 @@ local Events = require("utility.events")
 ---@field alertSignalId SignalID
 ---@field alertMessage LocalisedString
 ---@field showOnMap boolean
+
+---@alias UtilityPlayerAlerts_AlertId uint|string
 
 --------------------------------------------------------------------------------------------
 --                                    Setup Functions
@@ -38,19 +40,18 @@ end
 
 --- Add a custom alert to all players on the specific force.
 ---@param force LuaForce
----@param alertId? Id|nil @ A globally unique Id that we will use to track duplicate requests for the same alert. If nil is provided a sequential number shall be affixed to "auto" as the Id.
+---@param alertId? UtilityPlayerAlerts_AlertId|nil @ A globally unique Id that we will use to track duplicate requests for the same alert. If nil is provided a sequential number shall be affixed to "auto" as the Id.
 ---@param alertEntity LuaEntity
 ---@param alertSignalId SignalID
 ---@param alertMessage LocalisedString
 ---@param showOnMap boolean
----@return Id alertId @ The Id of the created alert.
+---@return UtilityPlayerAlerts_AlertId alertId @ The Id of the created alert.
 PlayerAlerts.AddCustomAlertToForce = function(force, alertId, alertEntity, alertSignalId, alertMessage, showOnMap)
     local forceId = force.index
-    local forceAlerts = PlayerAlerts._GetCreateForceAlertsGlobalObject(forceId) ---@type table<Id, UtilityPlayerAlerts_ForceAlertObject>
+    local forceAlerts = PlayerAlerts._GetCreateForceAlertsGlobalObject(forceId)
 
     -- Get an alertId if one not provided
     if alertId == nil then
-        ---@cast alertId Id
         alertId = "auto_" .. global.UTILITYPLAYERALERTS.forceAlertsNextAutoId
         global.UTILITYPLAYERALERTS.forceAlertsNextAutoId = global.UTILITYPLAYERALERTS.forceAlertsNextAutoId + 1
     end
@@ -84,15 +85,14 @@ end
 
 --- Remove a custom alert from all players on the force and delete it from the force's alert global table.
 ---@param force LuaForce
----@param alertId Id @ The unique Id of the alert.
----@return boolean alertRemoved @ If an alert was removed.
+---@param alertId UtilityPlayerAlerts_AlertId @ The unique Id of the alert.
 PlayerAlerts.RemoveCustomAlertFromForce = function(force, alertId)
     local forceIndex = force.index
 
     -- Get the alert if it exists.
     local forceAlert = PlayerAlerts._GetForceAlert(alertId)
     if forceAlert == nil then
-        return false
+        return
     end
 
     -- Remove the alert from all players.
@@ -137,7 +137,7 @@ PlayerAlerts._RemoveAlertFromPlayer = function(forceAlert, player)
         }
     else
         player.remove_alert {
-            prototype = forceAlert.alertPrototypeName,
+            prototype = forceAlert.alertPrototypeName, -- TODO: not sure on this as API doc says it should be a prototype and not the name, but I assume this worked ok in Tunnel mod at the time?
             position = forceAlert.alertPosition,
             surface = forceAlert.alertSurface,
             type = defines.alert_type.custom,
@@ -148,8 +148,8 @@ PlayerAlerts._RemoveAlertFromPlayer = function(forceAlert, player)
 end
 
 --- Creates (if needed) and returns a force's alerts Factorio global table.
----@param forceIndex Id @ the index of the LuaForce.
----@return table<Id, UtilityPlayerAlerts_ForceAlertObject> forceAlerts
+---@param forceIndex uint @ the index of the LuaForce.
+---@return table<uint, UtilityPlayerAlerts_ForceAlertObject> forceAlerts
 PlayerAlerts._GetCreateForceAlertsGlobalObject = function(forceIndex)
     if global.UTILITYPLAYERALERTS == nil then
         global.UTILITYPLAYERALERTS = {}
@@ -176,8 +176,8 @@ PlayerAlerts._GetCreateForceAlertsGlobalObject = function(forceIndex)
 end
 
 --- Returns a force's alerts Factorio global table if it exists.
----@param forceIndex Id @ the index of the LuaForce.
----@return table<Id, UtilityPlayerAlerts_ForceAlertObject>|nil forceAlerts @ nil if no alerts for this force.
+---@param forceIndex uint @ the index of the LuaForce.
+---@return table<uint, UtilityPlayerAlerts_ForceAlertObject>|nil forceAlerts @ nil if no alerts for this force.
 PlayerAlerts._GetForceAlerts = function(forceIndex)
     if global.UTILITYPLAYERALERTS == nil or global.UTILITYPLAYERALERTS.forceAlertsByForce == nil then
         return nil
@@ -187,7 +187,7 @@ PlayerAlerts._GetForceAlerts = function(forceIndex)
 end
 
 --- Returns a force's specific alert from the Factorio global table if it exists.
----@param alertId Id
+---@param alertId UtilityPlayerAlerts_AlertId
 ---@return UtilityPlayerAlerts_ForceAlertObject|nil forceAlert
 PlayerAlerts._GetForceAlert = function(alertId)
     if global.UTILITYPLAYERALERTS == nil or global.UTILITYPLAYERALERTS.forceAlertsByAlert == nil then

@@ -109,7 +109,7 @@ end
 ---@param errorMessageStart string
 ---@param depth uint @ Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
 ---@param commandStringText string @ The raw command text sent via RCON.
----@return Teleport_CommandDetails commandDetails
+---@return Teleport_CommandDetails|nil commandDetails @ Command details are returned if no errors hit, othewise nil is returned.
 Teleport.GetCommandData = function(commandData, errorMessageStart, depth, commandStringText)
     local commandName = "muppet_streamer_teleport"
     local depthErrorMessage = ""
@@ -119,7 +119,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     local delayRaw = commandData.delay ---@type Second
     if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, commandStringText) then
-        return
+        return nil
     end
     local delay  ---@type Tick
     if (delayRaw ~= nil and delayRaw > 0) then
@@ -133,11 +133,11 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     if target == nil then
         Logging.LogPrint(errorMessageStart .. "target is mandatory")
         Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-        return
+        return nil
     elseif game.get_player(target) == nil then
         Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "target is invalid player name")
         Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-        return
+        return nil
     end
 
     local destinationTypeRaw = commandData.destinationType
@@ -147,7 +147,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
         if destinationTargetPosition == nil then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "destinationType is Mandatory and must be a valid type or a table for position")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
+            return nil
         else
             destinationType = DestinationTypeSelection.position
         end
@@ -155,23 +155,25 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType]
 
+    ---@typelist number, number|nil
     local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10
     if arrivalRadiusRaw ~= nil then
         arrivalRadius = tonumber(arrivalRadiusRaw)
         if arrivalRadius == nil or arrivalRadius < 0 then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
+            return nil
         end
     end
 
+    ---@typelist number, number|nil
     local minDistanceRaw, minDistance = commandData.minDistance, 0
     if minDistanceRaw ~= nil then
         minDistance = tonumber(minDistanceRaw)
         if minDistance == nil or minDistance < 0 then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
+            return nil
         end
     end
 
@@ -181,26 +183,27 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     elseif maxDistance == nil or maxDistance < 0 then
         Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "maxDistance is Mandatory, must be 0 or greater")
         Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-        return
+        return nil
     end
 
-    local reachableOnly = false
+    local reachableOnly = false ---@type boolean|nil
     if commandData.reachableOnly ~= nil then
         reachableOnly = BooleanUtils.ToBoolean(commandData.reachableOnly)
         if reachableOnly == nil then
             Logging.LogPrint(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
+            return nil
         elseif reachableOnly == true and not (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
             Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "reachableOnly is enabled set for unsupported destinationType")
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
+            return nil
         end
+    ---@cast reachableOnly -nil
     end
 
     local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
     if backupTeleportSettingsRaw ~= nil and type(backupTeleportSettingsRaw) == "table" then
-        backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1, commandStringText)
+        backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1 --[[@as uint]], commandStringText)
     end
 
     return {delay = delay, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
@@ -259,7 +262,7 @@ Teleport.PlanTeleportTarget = function(eventData)
     local targetPlayer_position = targetPlayer.position
 
     -- Increment the attempt counter for trying to find a target to teleport too.
-    data.targetAttempt = data.targetAttempt + 1
+    data.targetAttempt = data.targetAttempt + 1 --[[@as uint]]
 
     -- Find a target based on the command settings.
     if data.destinationType == DestinationTypeSelection.spawn then

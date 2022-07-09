@@ -7,7 +7,7 @@ MOD.UTILITYPrototypeAttributes = MOD.UTILITYPrototypeAttributes or {} ---@type U
 --- Returns the request attribute of a prototype.
 ---
 --- Obtains from the Lua global variable caches if present, otherwise obtains the result and caches it before returning it.
----@param prototypeType UtilityPrototypeAttributes_PrototypeTypes
+---@param prototypeType UtilityPrototypeAttributes_PrototypeType
 ---@param prototypeName string
 ---@param attributeName string
 ---@return any @ attribute value, can include nil.
@@ -56,15 +56,16 @@ PrototypeAttributes.GetAttribute = function(prototypeType, prototypeName, attrib
     end
 end
 
----@class UtilityPrototypeAttributes_PrototypeTypes @ not all prototype types are supported at present as not needed before.
+---@class UtilityPrototypeAttributes_PrototypeType @ not all prototype types are supported at present as not needed before.
+---@class UtilityPrototypeAttributes_PrototypeType.__index
 PrototypeAttributes.PrototypeTypes = {
-    entity = "entity",
-    item = "item",
-    fluid = "fluid",
-    tile = "tile",
-    equipment = "equipment",
-    recipe = "recipe",
-    technology = "technology"
+    entity = ("entity") --[[@as UtilityPrototypeAttributes_PrototypeType]],
+    item = ("item") --[[@as UtilityPrototypeAttributes_PrototypeType]],
+    fluid = ("fluid") --[[@as UtilityPrototypeAttributes_PrototypeType]],
+    tile = ("tile") --[[@as UtilityPrototypeAttributes_PrototypeType]],
+    equipment = ("equipment") --[[@as UtilityPrototypeAttributes_PrototypeType]],
+    recipe = ("recipe") --[[@as UtilityPrototypeAttributes_PrototypeType]],
+    technology = ("technology") --[[@as UtilityPrototypeAttributes_PrototypeType]]
 }
 
 ---@alias UtilityPrototypeAttributes_CachedTypes table<string, UtilityPrototypeAttributes_CachedPrototypes> @ a table of each prototype type name (key) and the prototypes it has of that type.

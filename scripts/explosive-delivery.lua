@@ -51,7 +51,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
     local scheduleTick  ---@type Tick
     if (delayRaw ~= nil and delayRaw > 0) then
-        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
+        scheduleTick = command.tick + math.floor(delayRaw * 60)
         scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
     else
         scheduleTick = -1
@@ -160,7 +160,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 
         global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
         EventScheduler.ScheduleEventOnce(
-            scheduleTick + (batchNumber * salvoDelay) --[[@as Tick]],
+            scheduleTick + (batchNumber * salvoDelay),
             "ExplosiveDelivery.DeliverExplosives",
             global.explosiveDelivery.nextId,
             {

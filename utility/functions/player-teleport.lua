@@ -25,7 +25,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
     -- The response object with the result in it.
     ---@type UtilityPlayerTeleport_TeleportRequestResponseDetails
     local responseDetails = {
-        targetPlayerTeleportEntity = nil,
+        --targetPlayerTeleportEntity = nil @ Always populated later in function.
         targetPosition = nil,
         teleportSucceeded = false,
         pathRequestId = nil,
@@ -41,7 +41,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
     -- CODE NOTE: This isn't perfect, but is better than nothing until this Interface Request is done: https://forums.factorio.com/viewtopic.php?f=28&t=102792
     local playersVehicle_directionToCheck  ---@type defines.direction|nil
     if targetPlayerPlacementEntity_isVehicle then
-        playersVehicle_directionToCheck = MathUtils.RoundNumberToDecimalPlaces(targetPlayerPlacementEntity.orientation * 4, 0) * 2
+        playersVehicle_directionToCheck = MathUtils.RoundNumberToDecimalPlaces(targetPlayerPlacementEntity.orientation * 4, 0) * 2 --[[@as defines.direction]]
     end
 
     -- Record the current placement entity for checking post path request.
@@ -53,7 +53,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
         -- Select a random position near the target and look for a valid placement near it.
         local randomPos = PositionUtils.RandomLocationInRadius(destinationTargetPosition, inaccuracyToTargetPosition, 1)
         randomPos = PositionUtils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
-        arrivalPos = targetSurface.find_non_colliding_position(targetPlayerPlacementEntity.name, randomPos, placementAccuracy, 1, false)
+        arrivalPos = targetSurface.find_non_colliding_position(targetPlayerPlacementEntity.name, randomPos, placementAccuracy, 1.0, false)
 
         if playersVehicle_directionToCheck ~= nil then
             -- Check the entity can be placed with its current nearest cardinal direction to orientation, as the searching API doesn't check for this.
@@ -85,7 +85,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
             start = arrivalPos,
             goal = reachablePosition,
             force = targetPlayer_force,
-            radius = 1,
+            radius = 1.0,
             can_open_gates = true,
             entity_to_ignore = targetPlayerPlacementEntity,
             pathfind_flags = {allow_paths_through_own_entities = true, cache = false}
@@ -177,7 +177,7 @@ end
 ---@field targetPlayerTeleportEntity LuaEntity @ The entity we did the teleport request for.
 ---@field targetPosition? MapPosition|nil @ The exact position the teleport was attempted to, if one was found.
 ---@field teleportSucceeded boolean @ If the teleport was completed. Will be false if a pathing request was made as part of a reachablePosition option.
----@field pathRequestId? Id|nil @ If a reachablePosition was given then the path request Id to monitor for is returned. The state of the player and target should be re-verified upon this pathing request result as the game worls will likely have changed in between and so it may not be approperiate for the teleport to be completed.
+---@field pathRequestId? uint|nil @ If a reachablePosition was given then the path request Id to monitor for is returned. The state of the player and target should be re-verified upon this pathing request result as the game worls will likely have changed in between and so it may not be approperiate for the teleport to be completed.
 ---@field errorNoValidPositionFound boolean @ If the teleport failed as there was no valid position found near the target position (prior to any walkability check if enabled).
 ---@field errorTeleportFailed boolean @ If the actual teleport command to the player/vehicle failed.
 

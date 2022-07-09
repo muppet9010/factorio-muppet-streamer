@@ -6,17 +6,7 @@
 ---
 ---
 ---
----@class Id : uint @ id attribute of this thing.
----
----@class UnitNumber : uint @ unit_number of the related entity.
----
 ---@alias Axis "'x'"|"'y'"
----
----@class PlayerIndex : uint @ Player index attribute.
----
----@class Tick : uint
----
----@class Second : int
 ---
 ---@class CustomInputEvent
 ---@field player_index uint
@@ -41,7 +31,7 @@
 ---@diagnostic disable-line Alias for nil value. Workaround for EmmyLua not handling nil in multi type lists correctly.
 ---@class nil
 ---
----@class SurfacePositionString @ A surface and position as a string: "surfaceId_x,y"
+---@class SurfacePositionString : string @ A surface and position as a string: "surfaceId_x,y"
 ---
 ---@class SurfacePositionObject @ A surface and position data object.
 ---@field surfaceId uint
@@ -78,6 +68,15 @@ With just this you can't valid the dictionary level, just the selected value in 
 ---@type {[string]:Color}
 local Colors = {}
 
+
+
+
+Often a Factorio returned type will differ from expected due to it haveing different types for its read and write. There are ongoing works to fix this, but for now just "@as" to fix it with a comment that its a work around and not an intentional "@as".
+NOTE: in the below example the * from the end of each line needs to be removed so the comment closes. Its just in this example reference the whole block is already in a comment and so we can't let it close on each line.
+
+local player = game.players[1] -- Is type of LuaPlayer.
+local force ---@type LuaForce
+force = player.force --[[@as LuaForce]*] ---Sumneko temp fix
 
 --]]
 --

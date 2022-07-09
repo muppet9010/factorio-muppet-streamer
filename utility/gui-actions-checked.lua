@@ -9,7 +9,7 @@ MOD.guiCheckedActions = MOD.guiCheckedActions or {}
 
 ---@class UtilityGuiActionsChecked_ActionData @ The response object passed to the callback function when the GUI element is checked/unchecked. Registered with GuiActionsChecked.RegisterGuiForCheckedStateChange().
 ---@field actionName string @ The action name registered to this GUI element being checked.
----@field playerIndex Id @ The player_index of the player who checked the GUI.
+---@field playerIndex uint @ The player_index of the player who checked the GUI.
 ---@field data any @ The data argument passed in when registering this function action name.
 ---@field eventData on_gui_checked_state_changed @ The raw Factorio event data for the on_gui_checked_state_changed event.
 

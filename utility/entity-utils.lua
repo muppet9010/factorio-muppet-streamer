@@ -47,9 +47,9 @@ end
 ---@param positionedBoundingBox BoundingBox
 ---@param killerEntity? LuaEntity|nil
 ---@param collisionBoxOnlyEntities boolean
----@param onlyForceAffected boolean
+---@param onlyForceAffected LuaForce|nil
 ---@param entitiesExcluded? LuaEntity[]|nil
----@param killerForce? LuaForce|nil
+---@param killerForce? ForceIdentification|nil
 EntityUtils.KillAllKillableObjectsInArea = function(surface, positionedBoundingBox, killerEntity, collisionBoxOnlyEntities, onlyForceAffected, entitiesExcluded, killerForce)
     if killerForce == nil then
         killerForce = "neutral"
@@ -66,9 +66,9 @@ end
 ---@param surface LuaSurface
 ---@param positionedBoundingBox BoundingBox
 ---@param killerEntity? LuaEntity|nil
----@param onlyForceAffected boolean
+---@param onlyForceAffected LuaForce|nil
 ---@param entitiesExcluded? LuaEntity[]|nil
----@param killerForce? LuaForce|nil
+---@param killerForce? ForceIdentification|nil
 EntityUtils.KillAllObjectsInArea = function(surface, positionedBoundingBox, killerEntity, onlyForceAffected, entitiesExcluded, killerForce)
     if killerForce == nil then
         killerForce = "neutral"
@@ -89,7 +89,7 @@ end
 ---@param surface LuaSurface
 ---@param positionedBoundingBox BoundingBox
 ---@param collisionBoxOnlyEntities boolean
----@param onlyForceAffected boolean
+---@param onlyForceAffected LuaForce|nil
 ---@param entitiesExcluded? LuaEntity[]|nil
 EntityUtils.DestroyAllKillableObjectsInArea = function(surface, positionedBoundingBox, collisionBoxOnlyEntities, onlyForceAffected, entitiesExcluded)
     for k, entity in pairs(EntityUtils.ReturnAllObjectsInArea(surface, positionedBoundingBox, collisionBoxOnlyEntities, onlyForceAffected, true, true, entitiesExcluded)) do
@@ -99,7 +99,7 @@ end
 
 ---@param surface LuaSurface
 ---@param positionedBoundingBox BoundingBox
----@param onlyForceAffected boolean
+---@param onlyForceAffected LuaForce|nil
 ---@param entitiesExcluded? LuaEntity[]|nil
 EntityUtils.DestroyAllObjectsInArea = function(surface, positionedBoundingBox, onlyForceAffected, entitiesExcluded)
     for k, entity in pairs(EntityUtils.ReturnAllObjectsInArea(surface, positionedBoundingBox, false, onlyForceAffected, false, false, entitiesExcluded)) do

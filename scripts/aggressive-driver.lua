@@ -23,24 +23,24 @@ local EffectEndStatus = {
 
 ---@class AggressiveDriver_DelayedCommandDetails
 ---@field target string @ Player's name.
----@field duration Tick
+---@field duration uint @ Ticks
 ---@field control AggressiveDriver_ControlTypes
 ---@field teleportDistance double
 
 ---@class AggressiveDriver_DriveEachTickDetails
 ---@field player LuaPlayer
----@field duration Tick
+---@field duration uint @ Ticks
 ---@field control AggressiveDriver_ControlTypes
----@field accelerationTime Tick @ How many ticks the vehicle has been trying to move in its current direction (forwards or backwards).
+---@field accelerationTicks uint @ How many ticks the vehicle has been trying to move in its current direction (forwards or backwards).
 ---@field accelerationState defines.riding.acceleration @ Should only ever be either accelerating or reversing.
----@field directionDuration Tick @ How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
+---@field directionDurationTicks uint @ How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
 ---@field ridingDirection defines.riding.direction @ For if in a car or train vehicle.
 ---@field spiderDirection defines.direction @ Just for if in a spider vehicle.
 
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type int
-    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<PlayerIndex, True>
+    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, True> @ Key'd by player_index.
 end
 
 AggressiveDriver.OnLoad = function()
@@ -69,15 +69,18 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         return
     end
 
-    local delayRaw = commandData.delay ---@type Second
-    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    --TODO: this updated verison needs copying to the other files again.
+    local delaySecondsRaw = commandData.delay ---@type any
+    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
-    local scheduleTick  ---@type Tick
-    if (delayRaw ~= nil and delayRaw > 0) then
-        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
-        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
+    ---@cast delaySecondsRaw uint
+    local scheduleTick  ---@type UtilityScheduledEvent_UintNegative1
+    if (delaySecondsRaw ~= nil and delaySecondsRaw > 0) then
+        scheduleTick = command.tick + math.floor(delaySecondsRaw * 60) --[[@as uint]]
+        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delaySecondsRaw, commandName, "delay")
     else
+        ---@cast scheduleTick UtilityScheduledEvent_UintNegative1
         scheduleTick = -1
     end
 
@@ -189,11 +192,11 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
 
     game.print({"message.muppet_streamer_aggressive_driver_start", targetPlayer.name})
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
-    AggressiveDriver.Drive({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, duration = data.duration, control = data.control, accelerationTime = 0, accelerationState = defines.riding.acceleration.accelerating, directionDuration = 0}})
+    AggressiveDriver.Drive({tick = game.tick, instanceId = targetPlayer.index, data = {player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0}})
 end
 
 AggressiveDriver.Drive = function(eventData)
-    ---@typelist AggressiveDriver_DriveEachTickDetails, LuaPlayer, PlayerIndex
+    ---@typelist AggressiveDriver_DriveEachTickDetails, LuaPlayer, uint
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId
     local vehicle = player.vehicle
     if (not player.valid) or vehicle == nil then
@@ -210,9 +213,9 @@ AggressiveDriver.Drive = function(eventData)
             -- Player can still steer, so just force to move "forwards".
 
             -- Every 10 ticks we have to stop controlling the spiders movement so that the players direction input is registered and we can pick it up.
-            if data.accelerationTime > 10 then
+            if data.accelerationTicks > 10 then
                 -- Just reset the counter this tick, lets user input be captured.
-                data.accelerationTime = 0
+                data.accelerationTicks = 1
             else
                 -- Walk in the current direction.
                 player.walking_state = {walking = true, direction = player.walking_state.direction}
@@ -221,11 +224,11 @@ AggressiveDriver.Drive = function(eventData)
             -- Player has no control so we will set both acceleration and direction.
 
             -- Either find a new direction if the directionDuration has run out, or just count it down 1.
-            if data.directionDuration == 0 then
-                data.directionDuration = math.random(30, 180) --[[@as Tick]]
+            if data.directionDurationTicks == 0 then
+                data.directionDurationTicks = math.random(30, 180) --[[@as uint]]
                 data.spiderDirection = math.random(0, 7) --[[@as defines.direction]]
             else
-                data.directionDuration = data.directionDuration - 1 --[[@as Tick]]
+                data.directionDurationTicks = data.directionDurationTicks - 1 --[[@as uint]]
             end
 
             player.walking_state = {walking = true, direction = data.spiderDirection}
@@ -258,8 +261,8 @@ AggressiveDriver.Drive = function(eventData)
         end
 
         -- Check if the vehicle needs to have its movement flipped (accelerating vs reversing), if it has been trying to move forwards for 3 ticks and still doesn't have any speed.
-        if data.accelerationTime > 3 and vehicle.speed == 0 then
-            data.accelerationTime = 0
+        if data.accelerationTicks > 3 and vehicle.speed == 0 then
+            data.accelerationTicks = 0
             if data.accelerationState == defines.riding.acceleration.accelerating then
                 data.accelerationState = defines.riding.acceleration.reversing
             else
@@ -278,17 +281,17 @@ AggressiveDriver.Drive = function(eventData)
             -- Player has no control so we will set both acceleration and direction.
 
             -- Either find a new direction if the directionDuration has run out, or just count it down 1.
-            if data.directionDuration == 0 then
+            if data.directionDurationTicks == 0 then
                 if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
                     -- Train carriages should change every tick as very fast trains may cross rail points very fast.
-                    data.directionDuration = 1
+                    data.directionDurationTicks = 1
                 else
                     -- Cars/tanks should keep turning for a while so the steering is more definite.
-                    data.directionDuration = math.random(10, 30) --[[@as Tick]]
+                    data.directionDurationTicks = math.random(10, 30) --[[@as uint]]
                 end
                 data.ridingDirection = math.random(0, 2) --[[@as defines.riding.direction]]
             else
-                data.directionDuration = data.directionDuration - 1 --[[@as Tick]]
+                data.directionDurationTicks = data.directionDurationTicks - 1 --[[@as uint]]
             end
 
             player.riding_state = {
@@ -299,12 +302,12 @@ AggressiveDriver.Drive = function(eventData)
     end
 
     -- Iterate the various counters for this effect.
-    data.accelerationTime = data.accelerationTime + 1 --[[@as Tick]]
-    data.duration = data.duration - 1 --[[@as Tick]]
+    data.accelerationTicks = data.accelerationTicks + 1 --[[@as uint]]
+    data.duration = data.duration - 1 --[[@as uint]]
 
     -- Schedule next ticks action unless the effect has timed out.
     if data.duration >= 0 then
-        EventScheduler.ScheduleEventOnce(eventData.tick + 1 --[[@as Tick]], "AggressiveDriver.Drive", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(eventData.tick + 1 --[[@as uint]], "AggressiveDriver.Drive", playerIndex, data)
     else
         AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end
@@ -313,12 +316,12 @@ end
 --- Called when a player has died, but before thier character is turned in to a corpse.
 ---@param event on_pre_player_died
 AggressiveDriver.OnPrePlayerDied = function(event)
-    AggressiveDriver.StopEffectOnPlayer(event.player_index --[[@as PlayerIndex]], nil, EffectEndStatus.died)
+    AggressiveDriver.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)
 end
 
 --- Called when the effect has been stopped and the effects state and weapon changes should be undone.
 --- Called when the player is alive or if they have died before their character has been affected.
----@param playerIndex PlayerIndex
+---@param playerIndex uint
 ---@param player? LuaPlayer|nil @ Obtains player if needed from playerIndex.
 ---@param status AggressiveDriver_EffectEndStatus
 AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)

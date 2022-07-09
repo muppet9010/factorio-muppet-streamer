@@ -35,30 +35,32 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
     }
 
     -- See if the gun is already equipped by the player in their active gun inventory, or find which of their weapon slots is best to assign too.
+    ---@typelist boolean, uint|nil, uint|nil, uint|nil
     local weaponGiven, weaponFoundIndex, freeGunIndex, freeButFilteredGunIndex = false, nil, nil, nil
     local gunInventory = player.get_inventory(defines.inventory.character_guns)
     if gunInventory == nil then
         return nil, nil
     end
-    for i = 1, #gunInventory do
-        local gunItemStack = gunInventory[i]
+    for gunInventoryIndex = 1, #gunInventory do
+        ---@cast gunInventoryIndex uint
+        local gunItemStack = gunInventory[gunInventoryIndex]
         if gunItemStack.valid_for_read then
             -- Weapon in this slot.
             if gunItemStack.name == weaponName then
                 -- Player already has this gun equiped.
-                weaponFoundIndex = i
+                weaponFoundIndex = gunInventoryIndex
                 break
             end
         else
             -- No weapon in slot.
-            local filteredName = gunInventory.get_filter(i)
+            local filteredName = gunInventory.get_filter(gunInventoryIndex)
             if filteredName == nil or filteredName == weaponName then
                 -- Non filtered weapon slot or filtered to the weapon we want to assign.
-                freeGunIndex = i
+                freeGunIndex = gunInventoryIndex
                 break
             else
                 -- Filtered weapon slot to a different weapon.
-                freeButFilteredGunIndex = i
+                freeButFilteredGunIndex = gunInventoryIndex
             end
         end
     end
@@ -80,8 +82,9 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                     -- The player has a gun slot with no weapon, but it is filtered. So use this for our gun.
                     weaponFoundIndex = freeButFilteredGunIndex
                 else
+                    ---@cast weaponFoundIndex - nil
                     -- The player only has gun slots with other weapons in them, so select one randomly for our gun.
-                    weaponFoundIndex = math.random(1, #gunInventory)
+                    weaponFoundIndex = math.random(1, #gunInventory) --[[@as uint]]
                 end
 
                 -- Clear the gun slot ready for the weapon.
@@ -90,12 +93,12 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                     local currentName, currentCount = gunItemStack.name, gunItemStack.count
                     local gunInsertedCount = player.insert({name = currentName, count = currentCount})
                     if gunInsertedCount < currentCount then
-                        player.surface.spill_item_stack(player.position, {name = currentName, count = currentCount - gunInsertedCount}, true, nil, false)
+                        player.surface.spill_item_stack(player.position, {name = currentName, count = currentCount - gunInsertedCount --[[@as uint]]}, true, nil, false)
                     end
                     removedWeaponDetails.weaponItemName = currentName
                 end
                 removedWeaponDetails.weaponFilterName = gunInventory.get_filter(weaponFoundIndex)
-                gunInventory.set_filter(weaponFoundIndex, nil)
+                gunInventory.set_filter(weaponFoundIndex, nil) ---@diagnostic disable-line -- Mistake in API Docs, bugged.
                 gunItemStack.clear()
             else
                 -- As we won't force the weapon it should go in to the characters inventory if they don't already have one.
@@ -118,12 +121,12 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
             local currentName, currentCount = ammoItemStack.name, ammoItemStack.count
             local ammoInsertedCount = player.insert({name = currentName, count = currentCount, ammo = ammoItemStack.ammo})
             if ammoInsertedCount < currentCount then
-                player.surface.spill_item_stack(player.position, {name = currentName, count = currentCount - ammoInsertedCount}, true, nil, false)
+                player.surface.spill_item_stack(player.position, {name = currentName, count = currentCount - ammoInsertedCount --[[@as uint]]}, true, nil, false)
             end
             removedWeaponDetails.ammoItemName = currentName
         end
         removedWeaponDetails.ammoFilterName = ammoInventory.get_filter(weaponFoundIndex)
-        ammoInventory.set_filter(weaponFoundIndex, nil)
+        ammoInventory.set_filter(weaponFoundIndex, nil) ---@diagnostic disable-line -- Mistake in API Docs, bugged.
         ammoItemStack.clear()
 
         -- Remove 1 item of the weapon type from the players inventory if they had one, to simulate equiping the weapon. Otherwise we will flag this as giving the player a weapon.
@@ -140,7 +143,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
     end
 
     -- Set the players active weapon if this is desired.
-    if selectWeapon and weaponFoundIndex ~= nil then
+    if selectWeapon then
         player.character.selected_gun_index = weaponFoundIndex
     end
 

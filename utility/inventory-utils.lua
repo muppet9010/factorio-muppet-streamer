@@ -33,11 +33,11 @@ InventoryUtils.TryMoveInventoriesLuaItemStacks = function(sourceInventory, targe
         dropUnmovedOnGround = false
     end
     if ratioToMove == nil then
-        ratioToMove = 1
+        ratioToMove = 1.0
     end
 
     -- Clamp ratio to between 0 and 1.
-    ratioToMove = math_min(math_max(ratioToMove, 0), 1)
+    ratioToMove = math_min(math_max(ratioToMove, 0.0), 1.0)
 
     -- Handle simple returns that don't require item moving.
     if sourceInventory == nil or sourceInventory.is_empty() then
@@ -53,12 +53,12 @@ InventoryUtils.TryMoveInventoriesLuaItemStacks = function(sourceInventory, targe
         if itemStack.valid_for_read then
             -- Work out how many to try and move.
             local itemStack_origionalCount = itemStack.count
-            local maxToMoveCount = math_ceil(itemStack_origionalCount * ratioToMove)
+            local maxToMoveCount = math_ceil(itemStack_origionalCount * ratioToMove) --[[@as uint]]
 
             -- Have to set the source count to be the max amount to move, try the insert, and then set the source count back to the required final result. As this is a game object and so I can't just clone it to try the insert with without losing its associated data.
             itemStack.count = maxToMoveCount
             local movedCount = targetInventory.insert(itemStack)
-            itemStack.count = itemStack_origionalCount - movedCount
+            itemStack.count = itemStack_origionalCount - movedCount --[[@as uint]]
 
             -- Check what was moved and any next steps.
             if movedCount > 0 then
@@ -84,7 +84,7 @@ end
 ---@param sourceGrid LuaEquipmentGrid
 ---@param targetInventory LuaInventory
 ---@param dropUnmovedOnGround? boolean|nil @ If TRUE then ALL items not moved are dropped on the ground. If FALSE then unmoved items are left in the source inventory. If not provided then defaults to FALSE.
----@return boolean everythingMoved @ If all items were moved successfully or not.
+---@return boolean|nil everythingMoved? @ If all items were moved successfully or not. Nil if no items to move.
 InventoryUtils.TryTakeGridsItems = function(sourceGrid, targetInventory, dropUnmovedOnGround)
     -- Set default values.
     local sourceOwner, itemAllMoved = nil, true
@@ -94,7 +94,7 @@ InventoryUtils.TryTakeGridsItems = function(sourceGrid, targetInventory, dropUnm
 
     -- Handle simple returns that don't require item moving.
     if sourceGrid == nil then
-        return
+        return nil
     end
 
     --Do the actual item moving.
@@ -120,7 +120,7 @@ end
 ---@param targetInventory LuaInventory
 ---@param dropUnmovedOnGround? boolean|nil @ If TRUE then ALL items not moved are dropped on the ground. If FALSE then unmoved items are left in the source inventory. If not provided then defaults to FALSE.
 ---@param ratioToMove? double|nil @ Ratio of the item count to try and move. Float number from 0 to 1. If not provided it defaults to 1. Number of items moved is rounded up.
----@return boolean  everythingMoved @ If all items were moved successfully or not.
+---@return boolean|nil everythingMoved? @ If all items were moved successfully or not. Nil if no items to move.
 InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, dropUnmovedOnGround, ratioToMove)
     -- Set default values.
     local sourceOwner, itemAllMoved = nil, true
@@ -128,7 +128,7 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
         dropUnmovedOnGround = false
     end
     if ratioToMove == nil then
-        ratioToMove = 1
+        ratioToMove = 1.0
     end
 
     -- Clamp ratio to between 0 and 1.
@@ -136,17 +136,17 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
 
     -- Handle simple returns that don't require item moving.
     if TableUtils.IsTableEmpty(contents) then
-        return
+        return nil
     end
     if ratioToMove == 0 then
-        return false, false
+        return false
     end
 
     --Do the actual item moving.
     for name, count in pairs(contents) do
-        local toMove = math_ceil(count * ratioToMove)
+        local toMove = math_ceil(count * ratioToMove) --[[@as uint]]
         local moved = targetInventory.insert({name = name, count = toMove})
-        local remaining = count - moved
+        local remaining = count - moved --[[@as uint]]
         if moved > 0 then
             contents[name] = remaining
         end
@@ -167,7 +167,7 @@ end
 ---@param targetInventory LuaInventory
 ---@param dropUnmovedOnGround? boolean|nil @ If TRUE then ALL items not moved are dropped on the ground. If FALSE then unmoved items are left in the source inventory. If not provided then defaults to FALSE.
 ---@param ratioToMove? double|nil @ Ratio of the item count to try and move. Float number from 0 to 1. If not provided it defaults to 1. Number of items moved is rounded up.
----@return boolean everythingMoved @ If all items were moved successfully or not.
+---@return boolean|nil everythingMoved? @ If all items were moved successfully or not. Nil if no items to move.
 InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory, dropUnmovedOnGround, ratioToMove)
     -- Set default values.
     local sourceOwner, itemAllMoved = nil, true
@@ -175,7 +175,7 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
         dropUnmovedOnGround = false
     end
     if ratioToMove == nil then
-        ratioToMove = 1
+        ratioToMove = 1.0
     end
 
     -- Clamp ratio to between 0 and 1.
@@ -183,17 +183,17 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
 
     -- Handle simple returns that don't require item moving.
     if simpleItemStacks == nil or #simpleItemStacks == 0 then
-        return
+        return nil
     end
     if ratioToMove == 0 then
-        return false, false
+        return false
     end
 
     --Do the actual item moving.
     for index, simpleItemStack in pairs(simpleItemStacks) do
-        local toMove = math_ceil(simpleItemStack.count * ratioToMove)
+        local toMove = math_ceil(simpleItemStack.count * ratioToMove) --[[@as uint]]
         local moved = targetInventory.insert({name = simpleItemStack.name, count = toMove, health = simpleItemStack.health, ammo = simpleItemStack.ammo})
-        local remaining = simpleItemStack.count - moved
+        local remaining = simpleItemStack.count - moved --[[@as uint]]
         if moved > 0 then
             simpleItemStacks[index].count = remaining
         end
