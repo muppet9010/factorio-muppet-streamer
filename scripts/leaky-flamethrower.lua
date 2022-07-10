@@ -8,7 +8,12 @@ local PositionUtils = require("utility.position-utils")
 local Common = require("scripts.common")
 
 ---@class LeakyFlamethrower_EffectEndStatus
-local EffectEndStatus = {completed = "completed", died = "died", invalid = "invalid"}
+---@class LeakyFlamethrower_EffectEndStatus.__index
+local EffectEndStatus = {
+    completed = ("completed") --[[@as LeakyFlamethrower_EffectEndStatus]],
+    died = ("died") --[[@as LeakyFlamethrower_EffectEndStatus]],
+    invalid = ("invalid") --[[@as LeakyFlamethrower_EffectEndStatus]]
+}
 
 ---@class LeakyFlamethrower_ScheduledEventDetails
 ---@field target string @ Target player's name.
@@ -17,9 +22,9 @@ local EffectEndStatus = {completed = "completed", died = "died", invalid = "inva
 ---@class LeakyFlamethrower_ShootFlamethrowerDetails
 ---@field player LuaPlayer
 ---@field player_index uint
----@field angle uint
----@field distance uint
----@field currentBurstTicks uint
+---@field angle double
+---@field distance double
+---@field currentBurstTicks int
 ---@field burstsDone uint
 ---@field maxBursts uint
 ---@field usedSomeAmmo boolean @ If the player has actually used some of their ammo, otherwise the player's weapons are still on cooldown.
@@ -119,9 +124,13 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     end
 
     targetPlayer.driving = false
-    -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
-    ---@typelist boolean, UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
     local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true)
+    if flamethrowerGiven == nil then
+        Logging.LogPrint(errorMessageStart .. "target player can't be given a flamethrower for some odd reason: " .. data.target)
+        return
+    end
+    -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
+    ---@cast removedWeaponDetails - nil
 
     targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = data.ammoCount})
 
@@ -144,7 +153,7 @@ end
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
     ---@typelist LeakyFlamethrower_ShootFlamethrowerDetails, LuaPlayer, uint
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.data.player_index
-    if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
+    if (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
         LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end
@@ -178,7 +187,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
                 data.usedSomeAmmo = true
             elseif currentAmmoItemstackAmmo == data.startingAmmoItemstackAmmo then
                 -- Nothings changed so continue to monitor.
-                data.currentBurstTicks = data.currentBurstTicks - 1 -- Take one off as nothings relaly started yet.
+                data.currentBurstTicks = data.currentBurstTicks - 1 -- Take one off as nothing's relaly started yet.
             else
                 -- Ammo prototype has increased, so players picked up ammo. So update counts and we will continue monitoring next tick from these new values.
                 data.startingAmmoItemstacksCount = currentAmmoItemstacksCount
@@ -191,14 +200,14 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         end
     end
 
-    local delay  ---@type int
+    local delay  ---@type uint
     data.currentBurstTicks = data.currentBurstTicks + 1
     -- Do the action for this tick.
     if data.currentBurstTicks > 100 then
         -- End of shooting ticks. Ready for next shooting and take break.
         data.currentBurstTicks = 0
-        data.burstsDone = data.burstsDone + 1
-        global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft = global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft - 1
+        data.burstsDone = data.burstsDone + 1 --[[@as uint]]
+        global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft = global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft - 1 --[[@as uint]]
         player.shooting_state = {state = defines.shooting.not_shooting}
         if data.burstsDone == data.maxBursts then
             LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
@@ -216,7 +225,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         delay = 0
     end
 
-    EventScheduler.ScheduleEventOnce(eventData.tick + delay, "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
+    EventScheduler.ScheduleEventOnce(eventData.tick + delay --[[@as uint]], "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
 end
 
 --- Called when a player has died, but before thier character is turned in to a corpse.
@@ -228,7 +237,7 @@ end
 --- Called when the effect has been stopped and the effects state and weapon changes should be undone.
 --- Called when the player is alive or if they have died before their character has been affected.
 ---@param playerIndex uint
----@param player LuaPlayer
+---@param player LuaPlayer|nil @ Obtained if needed and not provided.
 ---@param status LeakyFlamethrower_EffectEndStatus
 LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     local affectedPlayer = global.leakyFlamethrower.affectedPlayers[playerIndex]
@@ -251,7 +260,7 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Return the player's weapon and ammo filters (alive or just dead) if there were any.
     -- TODO: the returning of these details should be moved to the library function as the opposite to the ensuring player has weapon.
-    ---@typelist LuaInventory,LuaInventory, LuaPlayer
+    ---@typelist LuaInventory, LuaInventory, LuaInventory
     local playerGunInventory, playerAmmoInventory, playerCharacterInventory = nil, nil, nil
     local removedWeaponDetails = affectedPlayer.removedWeaponDetails
     if removedWeaponDetails.weaponFilterName ~= nil then

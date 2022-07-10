@@ -10,10 +10,24 @@ local PositionUtils = require("utility.position-utils")
 local Common = require("scripts.common")
 
 ---@class Teleport_DestinationTypeSelection
-local DestinationTypeSelection = {random = "random", biterNest = "biterNest", enemyUnit = "enemyUnit", spawn = "spawn", position = "position"}
+---@class Teleport_DestinationTypeSelection.__index
+local DestinationTypeSelection = {
+    random = ("random") --[[@as Teleport_DestinationTypeSelection]],
+    biterNest = ("biterNest") --[[@as Teleport_DestinationTypeSelection]],
+    enemyUnit = ("enemyUnit") --[[@as Teleport_DestinationTypeSelection]],
+    spawn = ("spawn") --[[@as Teleport_DestinationTypeSelection]],
+    position = ("position") --[[@as Teleport_DestinationTypeSelection]]
+}
 
 ---@class Teleport_DestinationTypeSelectionDescription
-local DestinationTypeSelectionDescription = {random = "Random Location", biterNest = "Nearest Biter Nest", enemyUnit = "Enemy Unit", spawn = "spawn", position = "Set Position"}
+---@class Teleport_DestinationTypeSelectionDescription
+local DestinationTypeSelectionDescription = {
+    random = ("Random Location") --[[@as Teleport_DestinationTypeSelectionDescription]],
+    biterNest = ("Nearest Biter Nest") --[[@as Teleport_DestinationTypeSelectionDescription]],
+    enemyUnit = ("Enemy Unit") --[[@as Teleport_DestinationTypeSelectionDescription]],
+    spawn = ("spawn") --[[@as Teleport_DestinationTypeSelectionDescription]],
+    position = ("Set Position") --[[@as Teleport_DestinationTypeSelectionDescription]]
+}
 
 local MaxTargetAttempts = 5
 local MaxRandomPositionsAroundTargetToTry = 50 -- Was 10, but upped to reduce odd vehicle rotation issues.
@@ -153,7 +167,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType]
 
     ---@typelist number, number|nil
-    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10
+    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10.0
     if arrivalRadiusRaw ~= nil then
         arrivalRadius = tonumber(arrivalRadiusRaw)
         if arrivalRadius == nil or arrivalRadius < 0 then
@@ -195,8 +209,8 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
             Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
         end
-    ---@cast reachableOnly -nil
     end
+    ---@cast reachableOnly -nil
 
     local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
     if backupTeleportSettingsRaw ~= nil and type(backupTeleportSettingsRaw) == "table" then
@@ -255,7 +269,7 @@ Teleport.PlanTeleportTarget = function(eventData)
 
     -- Get the key data about the players current situation.
     local targetPlayer_surface = targetPlayer.surface
-    local targetPlayer_force = targetPlayer.force
+    local targetPlayer_force = targetPlayer.force --[[@as LuaForce]] -- Sumneko limitation workaround on R/W types.
     local targetPlayer_position = targetPlayer.position
 
     -- Increment the attempt counter for trying to find a target to teleport too.
@@ -305,7 +319,7 @@ Teleport.PlanTeleportTarget = function(eventData)
                         --spawnerDistance = PositionUtils.GetDistance(targetPlayer_position, spawnerDetails.position)
 
                         if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
-                            table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails}) -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
+                            table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails} --[[@as Teleport_TargetPlayerSpawnerDistanceDetails]]) -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
                         end
                     end
                 end
@@ -330,8 +344,8 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
 
         -- Check the nearest one is still valid. Do this way as unless its the spawner we are aiming for it doesn't matter if its invalid.
-        ---@typelist uint, Teleport_TargetPlayerSpawnerDistanceDetails
-        local firstSpawnerDistancesIndex, nearestSpawnerDistanceDetails
+        local firstSpawnerDistancesIndex  ---@type uint|nil
+        local nearestSpawnerDistanceDetails  ---@type Teleport_TargetPlayerSpawnerDistanceDetails|nil
         while nearestSpawnerDistanceDetails == nil do
             firstSpawnerDistancesIndex = next(data.spawnerDistances)
             nearestSpawnerDistanceDetails = data.spawnerDistances[firstSpawnerDistancesIndex]
@@ -341,10 +355,9 @@ Teleport.PlanTeleportTarget = function(eventData)
                 Teleport.DoBackupTeleport(data)
                 return
             end
-            ---@cast nearestSpawnerDistanceDetails Teleport_TargetPlayerSpawnerDistanceDetails
 
             -- Check if the nearest spawner is still valid. Its possible to remove spawners without us knowing about it, i.e. via Editor or via script and not raising an event for it. So we have to check.
-            if not nearestSpawnerDistanceDetails.spawnerDetails.entity.valid then
+            if not nearestSpawnerDistanceDetails.spawnerDetails.entity.valid then ---@diagnostic disable-line:need-check-nil @ Bug in Sumneko: https://github.com/sumneko/lua-language-server/issues/1320
                 -- Remove the spawner from this search.
                 data.spawnerDistances[firstSpawnerDistancesIndex] = nil
 
@@ -357,14 +370,15 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
 
         -- Set the target position to the valid spawner.
-        data.destinationTargetPosition = nearestSpawnerDistanceDetails.spawnerDetails.position
+        data.destinationTargetPosition = nearestSpawnerDistanceDetails.spawnerDetails.position ---@diagnostic disable-line:need-check-nil @ Bug in Sumneko: https://github.com/sumneko/lua-language-server/issues/1320
     elseif data.destinationType == DestinationTypeSelection.enemyUnit then
-        data.destinationTargetPosition = targetPlayer_surface.find_nearest_enemy {position = targetPlayer_position, max_distance = data.maxDistance, force = targetPlayer_force}
-        if data.destinationTargetPosition == nil then
+        local nearestEnemy = targetPlayer_surface.find_nearest_enemy {position = targetPlayer_position, max_distance = data.maxDistance, force = targetPlayer_force}
+        if nearestEnemy == nil then
             game.print({"message.muppet_streamer_teleport_no_enemy_unit_found", targetPlayer.name})
             Teleport.DoBackupTeleport(data)
             return
         end
+        data.destinationTargetPosition = nearestEnemy.position
     end
 
     -- Store the key data for checking/using later. We update on every loop so that any change of key data that triggers a re-loop starts fresh.
@@ -418,7 +432,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
     -- Check some key LuaObjects still exist. This is to avoid risk of crashes during any checks for changes.
     if not data.targetPlayer_surface.valid or not data.targetPlayer_force.valid then
         -- Something critical isn't valid, so we should always retry to get fresh data.
-        data.targetAttempt = data.targetAttempt - 1
+        data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
         Teleport.PlanTeleportTarget({data = data})
         return
     end
@@ -444,14 +458,14 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- Check the player's surface is the same as start of pathing request.
         if data.targetPlayer.surface ~= data.targetPlayer_surface then
-            data.targetAttempt = data.targetAttempt - 1
+            data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
             Teleport.PlanTeleportTarget({data = data})
             return
         end
 
         -- Check the player's force is the same as start of pathing request.
         if data.targetPlayer.force ~= data.targetPlayer_force then
-            data.targetAttempt = data.targetAttempt - 1
+            data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
             Teleport.PlanTeleportTarget({data = data})
             return
         end
@@ -461,19 +475,19 @@ Teleport.OnScriptPathRequestFinished = function(event)
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
-            currentPlayerPlacementEntity_vehicleDirectionFacing = MathUtils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
+            currentPlayerPlacementEntity_vehicleDirectionFacing = MathUtils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2 --[[@as defines.direction]]
         end
 
         -- Check the player's character/vehicle is still as expected.
         if currentPlayerPlacementEntity ~= data.targetPlayerPlacementEntity then
-            data.targetAttempt = data.targetAttempt - 1
+            data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
             Teleport.PlanTeleportTarget({data = data})
             return
         end
 
         -- Check the target location hasn't been blocked since we made the path request. This also checks the entity can be placed with its current orientation rounded to a direction, so if its changed from when the pathfinder request was made it will either be confirmed as being fine or fail and be retried.
         if not data.targetPlayer_surface.can_place_entity {name = currentPlayerPlacementEntity.name, position = data.thisAttemptPosition, direction = currentPlayerPlacementEntity_vehicleDirectionFacing, force = data.targetPlayer_force, build_check_type = defines.build_check_type.manual} then
-            data.targetAttempt = data.targetAttempt - 1
+            data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
             Teleport.PlanTeleportTarget({data = data})
             return
         end
@@ -524,7 +538,7 @@ end
 Teleport.OnChunkGenerated = function(event)
     global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId + 1
     -- Check the chunk in 1 ticks time to let any other mod or scenario complete its actions first.
-    EventScheduler.ScheduleEventOnce(event.tick + 1, "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
+    EventScheduler.ScheduleEventOnce(event.tick + 1 --[[@as uint]], "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
 end
 
 --- When a chunk is generated we wait for 1 tick and then this function is called. Lets any other mod/scenario mess with the spawner prior to use caching its details.

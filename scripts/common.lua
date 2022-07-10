@@ -13,13 +13,13 @@ Common.DelaySecondsSettingToScheduledEventTickValue = function(delaySecondsRaw, 
     local scheduleTick  ---@type UtilityScheduledEvent_UintNegative1
     if (delaySecondsRaw ~= nil and delaySecondsRaw > 0) then
         scheduleTick = currentTick + math.floor(delaySecondsRaw * 60) --[[@as uint]]
-        if scheduleTick > MathUtils.UintMax then
-            scheduleTick = MathUtils.UintMax
+        local valueWasOutsideRange  ---@type boolean
+        scheduleTick, valueWasOutsideRange = MathUtils.ClampToUInt(scheduleTick)
+        if valueWasOutsideRange then
             Logging.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " had " .. settingName .. " capped at max ticks, as excessively large number of delay seconds provided: " .. tostring(delaySecondsRaw))
         end
     else
-        ---@cast scheduleTick UtilityScheduledEvent_UintNegative1
-        scheduleTick = -1
+        scheduleTick = -1 ---@type UtilityScheduledEvent_UintNegative1
     end
     return scheduleTick
 end

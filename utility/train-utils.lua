@@ -144,8 +144,8 @@ TrainUtils.GetTrainSpeedCalculationData = function(train, train_speed, trainCarr
             carriageCachedData.prototypeName = carriage_name
         end
 
-        trainFrictionForce = trainFrictionForce + PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, carriage_name, "friction_force") --[[@as double]]
-        trainRawBrakingForce = trainRawBrakingForce + PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, carriage_name, "braking_force") --[[@as double]]
+        trainFrictionForce = trainFrictionForce + PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, carriage_name, "friction_force")
+        trainRawBrakingForce = trainRawBrakingForce + PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, carriage_name, "braking_force")
 
         if firstCarriage then
             firstCarriage = false
@@ -177,10 +177,10 @@ TrainUtils.GetTrainSpeedCalculationData = function(train, train_speed, trainCarr
     local trainData = {
         trainWeight = trainWeight,
         trainFrictionForce = trainFrictionForce,
-        trainWeightedFrictionForce = (trainFrictionForce / trainWeight) --[[@as double]],
+        trainWeightedFrictionForce = (trainFrictionForce / trainWeight),
         -- This assumes all loco's are the same power and have the same fuel. The 10 is for a 600 kW max_power of a vanilla locomotive.
-        locomotiveAccelerationPower = 10 * forwardFacingLocoCount / trainWeight --[[@as double]],
-        trainAirResistanceReductionMultiplier = trainAirResistanceReductionMultiplier --[[@as double]],
+        locomotiveAccelerationPower = 10 * forwardFacingLocoCount / trainWeight,
+        trainAirResistanceReductionMultiplier = trainAirResistanceReductionMultiplier,
         forwardFacingLocoCount = forwardFacingLocoCount,
         trainRawBrakingForce = trainRawBrakingForce
     }
@@ -222,7 +222,7 @@ TrainUtils.UpdateTrainSpeedCalculationDataForCurrentFuel = function(trainSpeedCa
     else
         fuelAccelerationBonus = 1
     end
-    trainSpeedCalculationData.locomotiveFuelAccelerationPower = trainSpeedCalculationData.locomotiveAccelerationPower * fuelAccelerationBonus --[[@as double]]
+    trainSpeedCalculationData.locomotiveFuelAccelerationPower = trainSpeedCalculationData.locomotiveAccelerationPower * fuelAccelerationBonus
 
     -- Have to get the right prototype max speed as they're not identical at runtime even if the train is symetrical. This API result includes the fuel type currently being burnt.
     local trainPrototypeMaxSpeedIncludesFuelBonus
@@ -236,7 +236,7 @@ TrainUtils.UpdateTrainSpeedCalculationDataForCurrentFuel = function(trainSpeedCa
     -- Maths way based on knowing that its acceleration result will be 0 once its at max speed.
     --   0=s - ((s+a)*r)   in to Wolf Ram Alpha and re-arranged for s.
     local maxSpeedForFuelBonus = -((((trainSpeedCalculationData.locomotiveFuelAccelerationPower) - trainSpeedCalculationData.trainWeightedFrictionForce) * trainSpeedCalculationData.trainAirResistanceReductionMultiplier) / (trainSpeedCalculationData.trainAirResistanceReductionMultiplier - 1))
-    trainSpeedCalculationData.maxSpeed = math_min(maxSpeedForFuelBonus, trainPrototypeMaxSpeedIncludesFuelBonus) --[[@as double]]
+    trainSpeedCalculationData.maxSpeed = math_min(maxSpeedForFuelBonus, trainPrototypeMaxSpeedIncludesFuelBonus)
 
     return noFuelFound
 end
@@ -296,8 +296,8 @@ end
 TrainUtils.EstimateAcceleratingTrainSpeedAndDistanceForTicks = function(trainData, initialSpeedAbsolute, ticks)
     local initialSpeedAirResistence = (1 - trainData.trainAirResistanceReductionMultiplier) * initialSpeedAbsolute
     local acceleration = trainData.locomotiveFuelAccelerationPower - trainData.trainWeightedFrictionForce - initialSpeedAirResistence
-    local newSpeedAbsolute = math_min(initialSpeedAbsolute + (acceleration * ticks), trainData.maxSpeed) --[[@as double]]
-    local distanceTravelled = (ticks * initialSpeedAbsolute) + (((newSpeedAbsolute - initialSpeedAbsolute) * ticks) / 2) --[[@as double]]
+    local newSpeedAbsolute = math_min(initialSpeedAbsolute + (acceleration * ticks), trainData.maxSpeed)
+    local distanceTravelled = (ticks * initialSpeedAbsolute) + (((newSpeedAbsolute - initialSpeedAbsolute) * ticks) / 2)
     return newSpeedAbsolute, distanceTravelled
 end
 
@@ -313,7 +313,7 @@ TrainUtils.EstimateAcceleratingTrainTicksAndDistanceFromInitialToFinalSpeed = fu
     local initialSpeedAirResistence = (1 - trainData.trainAirResistanceReductionMultiplier) * initialSpeedAbsolute
     local acceleration = trainData.locomotiveFuelAccelerationPower - trainData.trainWeightedFrictionForce - initialSpeedAirResistence
     local ticks = math_ceil((requiredSpeedAbsolute - initialSpeedAbsolute) / acceleration) --[[@as uint]]
-    local distance = (ticks * initialSpeedAbsolute) + (((requiredSpeedAbsolute - initialSpeedAbsolute) * ticks) / 2) --[[@as double]]
+    local distance = (ticks * initialSpeedAbsolute) + (((requiredSpeedAbsolute - initialSpeedAbsolute) * ticks) / 2)
     return ticks, distance
 end
 
@@ -379,7 +379,7 @@ TrainUtils.CalculateBrakingTrainTimeAndDistanceFromInitialToFinalSpeed = functio
     local speedToDropAbsolute = initialSpeedAbsolute - requiredSpeedAbsolute
     local trainForceBrakingForce = trainData.trainRawBrakingForce + (trainData.trainRawBrakingForce * forcesBrakingForceBonus)
     local ticksToStop = math_ceil(speedToDropAbsolute / ((trainForceBrakingForce + trainData.trainFrictionForce) / trainData.trainWeight)) --[[@as uint]]
-    local brakingDistance = (ticksToStop * requiredSpeedAbsolute) + ((ticksToStop / 2.0) * speedToDropAbsolute) --[[@as double]]
+    local brakingDistance = (ticksToStop * requiredSpeedAbsolute) + ((ticksToStop / 2.0) * speedToDropAbsolute)
     return ticksToStop, brakingDistance
 end
 
@@ -393,9 +393,9 @@ end
 TrainUtils.CalculateBrakingTrainSpeedAndDistanceCoveredForTime = function(trainData, currentSpeedAbsolute, forcesBrakingForceBonus, ticksToBrake)
     local trainForceBrakingForce = trainData.trainRawBrakingForce + (trainData.trainRawBrakingForce * forcesBrakingForceBonus)
     local tickBrakingReduction = (trainForceBrakingForce + trainData.trainFrictionForce) / trainData.trainWeight
-    local newSpeedAbsolute = currentSpeedAbsolute - (tickBrakingReduction * ticksToBrake) --[[@as double]]
+    local newSpeedAbsolute = currentSpeedAbsolute - (tickBrakingReduction * ticksToBrake)
     local speedDropped = currentSpeedAbsolute - newSpeedAbsolute
-    local distanceCovered = (ticksToBrake * newSpeedAbsolute) + ((ticksToBrake / 2.0) * speedDropped) --[[@as double]]
+    local distanceCovered = (ticksToBrake * newSpeedAbsolute) + ((ticksToBrake / 2.0) * speedDropped)
     return newSpeedAbsolute, distanceCovered
 end
 
@@ -411,7 +411,7 @@ end
 TrainUtils.CalculateBrakingTrainsTimeAndStartingSpeedToBrakeToFinalSpeedOverDistance = function(trainData, distance, finalSpeedAbsolute, forcesBrakingForceBonus)
     local trainForceBrakingForce = trainData.trainRawBrakingForce + (trainData.trainRawBrakingForce * forcesBrakingForceBonus)
     local tickBrakingReduction = (trainForceBrakingForce + trainData.trainFrictionForce) / trainData.trainWeight
-    local initialSpeed = math_sqrt((finalSpeedAbsolute ^ 2) + (2 * tickBrakingReduction * distance)) --[[@as double]]
+    local initialSpeed = math_sqrt((finalSpeedAbsolute ^ 2) + (2 * tickBrakingReduction * distance))
 
     if initialSpeed > trainData.maxSpeed then
         -- Initial speed is greater than max speed so cap the inital speed to max speed.
@@ -431,7 +431,7 @@ end
 TrainUtils.CalculateBrakingTrainSpeedForSingleTickToStopWithinDistance = function(currentSpeedAbsolute, distance)
     -- Use a mass of 1.
     local brakingSpeedReduction = (0.5 * 1 * currentSpeedAbsolute * currentSpeedAbsolute) / distance
-    return currentSpeedAbsolute - brakingSpeedReduction --[[@as double]]
+    return currentSpeedAbsolute - brakingSpeedReduction
 end
 
 --- Kills any carriages that would prevent the rail from being removed. If a carriage is not destructable make it so, so it can be killed normally and appear in death stats, etc.

@@ -164,7 +164,7 @@ end
 
 --- Parses a command's argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
 ---@param value number?
----@param requiredType "'double'"|"'integer'" @ The specific number type we want.
+---@param requiredType "'double'"|"'int'" @ The specific number type we want.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
@@ -186,10 +186,10 @@ Commands.ParseNumberArgument = function(value, requiredType, mandatory, commandN
     local isWrongType = false
 
     -- If theres a specific fake type check that first.
-    if requiredType == "integer" then
+    if requiredType == "int" then
         -- Theres no check for a double as that can be anything.
         if math.floor(value) ~= value then
-            -- Not an integer.
+            -- Not an int.
             isWrongType = true
         end
         if isWrongType then

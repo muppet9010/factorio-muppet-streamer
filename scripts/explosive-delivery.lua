@@ -10,7 +10,7 @@ local Common = require("scripts.common")
 ---@field explosiveType ExplosiveDelivery_ExplosiveType
 ---@field accuracyRadiusMin float
 ---@field accuracyRadiusMax float
----@field target LuaPlayer|nil
+---@field target string
 ---@field targetPosition MapPosition|nil
 ---@field targetOffset MapPosition|nil
 ---@field salvoWaveId int|nil
@@ -99,6 +99,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         end
     end
 
+    ---@type number|nil
     local accuracyRadiusMin = 0
     if commandData.accuracyRadiusMin ~= nil then
         accuracyRadiusMin = tonumber(commandData.accuracyRadiusMin)
@@ -109,6 +110,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         end
     end
 
+    ---@type number|nil
     local accuracyRadiusMax = 0
     if commandData.accuracyRadiusMax ~= nil then
         accuracyRadiusMax = tonumber(commandData.accuracyRadiusMax)
@@ -119,6 +121,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         end
     end
 
+    ---@type number|nil
     local salvoSize = explosiveCount
     if commandData.salvoSize ~= nil then
         salvoSize = tonumber(commandData.salvoSize)
@@ -129,6 +132,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         end
     end
 
+    ---@type number|nil
     local salvoDelay = 0
     if commandData.salvoDelay ~= nil then
         salvoDelay = tonumber(commandData.salvoDelay)
@@ -155,7 +159,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 
         global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
         EventScheduler.ScheduleEventOnce(
-            scheduleTick + (batchNumber * salvoDelay),
+            scheduleTick + (batchNumber * salvoDelay) --[[@as uint]],
             "ExplosiveDelivery.DeliverExplosives",
             global.explosiveDelivery.nextId,
             {
@@ -194,7 +198,7 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     else
         -- Calculate the target position now.
         if data.targetPosition ~= nil then
-            targetPos = data.targetPosition
+            targetPos = data.targetPosition --[[@as MapPosition]] -- This is never nil within this IF block.
         else
             targetPos = targetPlayer.position
         end
@@ -241,7 +245,7 @@ end
 
 ---@class ExplosiveDelivery_ExplosiveType
 ---@field projectileName string
----@field speed float
+---@field speed double
 
 ---@class ExplosiveDelivery_ExplosiveTypes
 ExplosiveDelivery.ExplosiveTypes = {
@@ -268,7 +272,7 @@ ExplosiveDelivery.ExplosiveTypes = {
     ---@class ExplosiveDelivery_ExplosiveType
     artilleryShell = {
         projectileName = "artillery-projectile",
-        speed = 1
+        speed = 1.0
     },
     ---@class ExplosiveDelivery_ExplosiveType
     explosiveRocket = {

@@ -94,8 +94,66 @@ end
 ---@param min number
 ---@param max number
 ---@return number
+---@return boolean valueWasOutsideRange
 MathUtils.ClampNumber = function(value, min, max)
-    return math_min(math_max(value, min), max)
+    local newValue = math_min(math_max(value, min), max)
+    if newValue ~= value then
+        return newValue, true
+    else
+        return newValue, false
+    end
+end
+
+--- Returns the passed in number clamped to within the range of an int, with optional additional min and max's applied.
+--- Use Int over Integer as this is the Factorio data type and Lua 5.2 doesn't have real `integer` types. Although Sumneko does have some numeric values of this type for reasons...
+---@param value number
+---@param min? int|nil
+---@param max? int|nil
+---@return int
+---@return boolean valueWasOutsideRange
+MathUtils.ClampToInt = function(value, min, max)
+    min = min or MathUtils.intMin
+    max = max or MathUtils.intMax
+    local newValue = math_min(math_max(value, min), max) --[[@as int]]
+    if newValue ~= value then
+        return newValue, true
+    else
+        return newValue, false
+    end
+end
+
+--- Returns the passed in number clamped to within the range of an uint (min 0), with optional additional min and max's applied.
+---@param value number
+---@param min? uint|nil
+---@param max? uint|nil
+---@return uint clampedValue
+---@return boolean valueWasOutsideRange
+MathUtils.ClampToUInt = function(value, min, max)
+    min = min or 0
+    max = max or MathUtils.uintMax
+    local newValue = math_min(math_max(value, min), max) --[[@as uint]]
+    if newValue ~= value then
+        return newValue, true
+    else
+        return newValue, false
+    end
+end
+
+--- Returns the passed in number clamped to within the range of a float, with optional additional min and max's applied.
+---@param value number
+---@param min? float|nil
+---@param max? float|nil
+---@return float clampedValue
+---@return boolean valueWasOutsideRange
+MathUtils.ClampToFloat = function(value, min, max)
+    min = min or MathUtils.floatMin
+    max = max or MathUtils.floatMax
+    local newValue = math_min(math_max(value, min), max) --[[@as float]]
+    if newValue ~= value then
+        return newValue, true
+    else
+        return newValue, false
+    end
 end
 
 -- This doesn't guarentee correct on some of the edge cases, but is as close as possible assuming that 1/256 is the variance for the same number (Bilka, Dev on Discord)
@@ -145,8 +203,12 @@ MathUtils.GetRandomFloatInRange = function(lower, upper)
     return lower + math_random() * (upper - lower)
 end
 
-MathUtils.IntMin = -2147483648
-MathUtils.IntMax = 2147483647
-MathUtils.UintMax = 4294967295
+MathUtils.intMin = -2147483648 ---@type int -- -2,147,483,648
+MathUtils.intMax = 2147483647 ---@type int -- 2,147,483,647
+MathUtils.uintMax = 4294967295 ---@type uint -- 4,294,967,295
+MathUtils.floatMin = 1.17549e-038 ---@type float
+MathUtils.floatMax = 3.40282e+038 ---@type float
+MathUtils.doubleMin = 2.22507e-308 ---@type double
+MathUtils.doubleMax = 1.79769e+308 ---@type double
 
 return MathUtils

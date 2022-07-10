@@ -17,7 +17,7 @@ local PlayerTeleport = {}
 ---@param targetSurface LuaSurface @ The surface to teleport them too.
 ---@param destinationTargetPosition MapPosition @ The position on the map to teleport them near.
 ---@param inaccuracyToTargetPosition double @ How inaccurate the desired random placement of the player to the target position should be up too. Used to give intentional inaccuracy to the placement attempt position.
----@param placementAttempts integer @ How many times we should try random placement attempts within the inaccuracy of the target.
+---@param placementAttempts int @ How many times we should try random placement attempts within the inaccuracy of the target.
 ---@param placementAccuracy double @ Max range from the placement attempt position to look for a valid position for the player within. Code will try and place as close to the placement attempt position as possible.
 ---@param reachablePosition? MapPosition|nil @ If the player needs to be able to walk from where they are teleported too, to this position. Commonly used to check they can walk from their teleport target back to where they were, to avoid teleports on to islands. If provided then the path request Id will be returned in the responseDetails for monitoring by the calling mod. As the state of the player and target should be re-verified by the mod based on its exact usage scenario upon this pathing request completing; As the game world will likely have changed in between and so it may not be approperiate for the teleport to be completed.
 ---@return UtilityPlayerTeleport_TeleportRequestResponseDetails responseDetails? @ A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occured.

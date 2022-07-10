@@ -7,7 +7,12 @@ local Events = require("utility.events")
 local Common = require("scripts.common")
 
 ---@class PlayerDropInventory_QuantityType
-local QuantityType = {constant = "constant", startingPercentage = "startingPercentage", realtimePercentage = "realtimePercentage"}
+---@class PlayerDropInventory_QuantityType.__index
+local QuantityType = {
+    constant = ("constant") --[[@as PlayerDropInventory_QuantityType]],
+    startingPercentage = ("startingPercentage") --[[@as PlayerDropInventory_QuantityType]],
+    realtimePercentage = ("realtimePercentage") --[[@as PlayerDropInventory_QuantityType]]
+}
 
 local ErrorMessageStart = "ERROR: muppet_streamer_player_drop_inventory command "
 
@@ -68,7 +73,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         return
     end
 
-    local quantityValue = tonumber(commandData.quantityValue)
+    local quantityValue = tonumber(commandData.quantityValue) --[[@as uint]] ---@type uint
     if quantityValue == nil or quantityValue <= 0 then
         Logging.LogPrint(ErrorMessageStart .. "quantityValue is mandatory as a number and above 0")
         Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -104,7 +109,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local dropEquipmentString = commandData.dropEquipment
-    local dropEquipment  ---@type boolean
+    local dropEquipment  ---@type boolean|nil
     if dropEquipmentString == nil then
         dropEquipment = true
     else
@@ -153,10 +158,10 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     ---@typelist uint|nil, uint|nil
     local staticItemCount, dynamicPercentageItemCount
     if data.quantityType == QuantityType.constant then
-        staticItemCount = math.floor(data.quantityValue)
+        staticItemCount = math.floor(data.quantityValue) --[[@as uint]]
     elseif data.quantityType == QuantityType.startingPercentage then
         local totalItemCount = PlayerDropInventory.GetPlayersItemCount(targetPlayer, data.dropEquipment)
-        staticItemCount = math.max(1, math.floor(totalItemCount / (100 / data.quantityValue)))
+        staticItemCount = math.max(1, math.floor(totalItemCount / (100 / data.quantityValue))) --[[@as uint]]
     elseif data.quantityType == QuantityType.realtimePercentage then
         dynamicPercentageItemCount = data.quantityValue
     end
@@ -214,7 +219,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 if itemCountedUpTo >= itemNumberToDrop then
                     inventoryNameOfItemNumberToDrop = inventoryName
                     itemNumberInSpecificInventory = itemNumberToDrop - (itemCountedUpTo - countInInventory)
-                    itemsCountsInInventories[inventoryName] = countInInventory - 1
+                    itemsCountsInInventories[inventoryName] = countInInventory - 1 --[[@as uint]]
                     break
                 end
             end
@@ -230,7 +235,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 inventoryItemsCounted = inventoryItemsCounted + itemCount
                 if inventoryItemsCounted >= itemNumberInSpecificInventory then
                     itemNameToDrop = itemName
-                    inventoriesContents[inventoryNameOfItemNumberToDrop][itemName] = itemCount - 1
+                    inventoriesContents[inventoryNameOfItemNumberToDrop][itemName] = itemCount - 1 --[[@as uint]]
                     break
                 end
             end
@@ -263,16 +268,16 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                     itemToDrop.tags = itemStackToDropFrom.tags
                 end
                 surface.spill_item_stack(position, itemToDrop, false, nil, data.dropOnBelts)
-                itemStackToDropFrom.count = itemStackToDropFrom_count - 1
+                itemStackToDropFrom.count = itemStackToDropFrom_count - 1 --[[@as uint]]
             end
 
             -- Count that the item was dropped.
             itemCountDropped = itemCountDropped + 1
-            totalItemCount = totalItemCount - 1
+            totalItemCount = totalItemCount - 1 --[[@as uint]]
 
             -- If no items left stop trying to drop things this event and await the next one.
             if totalItemCount == 0 then
-                itemCountDropped = itemCountToDrop
+                itemCountDropped = itemCountToDrop --[[@as uint]]
             end
         end
     end
@@ -280,7 +285,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     -- Schedule the next occurence if we haven't completed them all yet.
     data.currentoccurrences = data.currentoccurrences + 1
     if data.currentoccurrences < data.totaloccurrences then
-        EventScheduler.ScheduleEventOnce(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(event.tick + data.gap --[[@as uint]], "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
         game.print({"message.muppet_streamer_player_drop_inventory_stop", player.name})
@@ -306,21 +311,21 @@ end
 ---@param includeEquipment boolean
 ---@return uint totalItemsCount
 PlayerDropInventory.GetPlayersItemCount = function(player, includeEquipment)
-    local totalItemsCount = 0
+    local totalItemsCount = 0 ---@type uint
     for _, inventoryName in pairs({defines.inventory.character_main, defines.inventory.character_trash}) do
         for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
-            totalItemsCount = totalItemsCount + count
+            totalItemsCount = totalItemsCount + count --[[@as uint]]
         end
     end
     local cursorStack = player.cursor_stack
     if cursorStack.valid_for_read then
-        totalItemsCount = totalItemsCount + cursorStack.count
+        totalItemsCount = totalItemsCount + cursorStack.count --[[@as uint]]
     end
 
     if includeEquipment then
         for _, inventoryName in pairs({defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo}) do
             for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
-                totalItemsCount = totalItemsCount + count
+                totalItemsCount = totalItemsCount + count --[[@as uint]]
             end
         end
     end
@@ -334,23 +339,23 @@ end
 ---@return table<defines.inventory, uint> inventoryItemCounts
 ---@return table<defines.inventory, table<string, uint>> inventoryContents
 PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEquipment)
-    local totalItemsCount = 0
+    local totalItemsCount = 0 ---@type uint
     local inventoryItemCounts = {}
     local inventoryContents = {}
     for _, inventoryName in pairs({defines.inventory.character_main, defines.inventory.character_trash}) do
         local contents = player.get_inventory(inventoryName).get_contents()
         inventoryContents[inventoryName] = contents
-        local inventoryTotalCount = 0
+        local inventoryTotalCount = 0 ---@type uint
         for _, count in pairs(contents) do
-            inventoryTotalCount = inventoryTotalCount + count
+            inventoryTotalCount = inventoryTotalCount + count --[[@as uint]]
         end
-        totalItemsCount = totalItemsCount + inventoryTotalCount
+        totalItemsCount = totalItemsCount + inventoryTotalCount --[[@as uint]]
         inventoryItemCounts[inventoryName] = inventoryTotalCount
     end
     local cursorStack = player.cursor_stack
     if cursorStack.valid_for_read then
         local count = cursorStack.count
-        totalItemsCount = totalItemsCount + count
+        totalItemsCount = totalItemsCount + count --[[@as uint]]
         inventoryItemCounts["cursorStack"] = count
         inventoryContents["cursorStack"] = {[cursorStack.name] = count}
     end
@@ -359,11 +364,11 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
         for _, inventoryName in pairs({defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo}) do
             local contents = player.get_inventory(inventoryName).get_contents()
             inventoryContents[inventoryName] = contents
-            local inventoryTotalCount = 0
+            local inventoryTotalCount = 0 ---@type uint
             for _, count in pairs(contents) do
-                inventoryTotalCount = inventoryTotalCount + count
+                inventoryTotalCount = inventoryTotalCount + count --[[@as uint]]
             end
-            totalItemsCount = totalItemsCount + inventoryTotalCount
+            totalItemsCount = totalItemsCount + inventoryTotalCount --[[@as uint]]
             inventoryItemCounts[inventoryName] = inventoryTotalCount
         end
     end

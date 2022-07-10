@@ -6,12 +6,13 @@ local Colors = require("utility.colors")
 local BooleanUtils = require("utility.boolean-utils")
 local StringUtils = require("utility.string-utils")
 local Common = require("scripts.common")
+local MathUtils = require("utility.math-utils")
 
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 
 local ErrorMessageStart = "ERROR: muppet_streamer_player_inventory_shuffle command "
-local StorageInventorySizeIncrements = 1000 -- The starting size of the shared storage inventory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
-local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements -- Max size when the inventory can still grow by another increment.
+local StorageInventorySizeIncrements = 1000 ---@type uint16 @ The starting size of the shared storage inventory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
+local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements --[[@as uint16]] ---@type uint16 @ Max size when the inventory can still grow by another increment.
 
 --[[----------------------------------------------------------------------------------------
                                         CODE DEV NOTES
@@ -80,7 +81,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
 
     -- Just get the Included Players with minimal checking as we do the checks once all the include settings are obtained.
     local includedPlayersString = commandData.includedPlayers ---@type string
-    local includedPlayerNames = {} ---@type string[]
+    local includedPlayerNames = {} ---@type string[]|nil
     local includeAllPlayersOnServer = false
     if includedPlayersString ~= nil and includedPlayersString ~= "" then
         -- Can't check if the names are valid players right now, as they may just not have joined the server yet, but may in the future.
@@ -122,7 +123,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local includeEquipmentString = commandData.includeEquipment
-    local includeEquipment  ---@type boolean
+    local includeEquipment  ---@type boolean|nil
     if includeEquipmentString == nil then
         includeEquipment = true
     else
@@ -135,7 +136,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local includeHandCraftingString = commandData.includeHandCrafting
-    local includeHandCrafting  ---@type boolean
+    local includeHandCrafting  ---@type boolean|nil
     if includeHandCraftingString == nil then
         includeHandCrafting = true
     else
@@ -147,8 +148,8 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         end
     end
 
-    local destinationPlayersMinimumVarianceString = commandData.destinationPlayersMinimumVariance
-    local destinationPlayersMinimumVariance  ---@type uint
+    local destinationPlayersMinimumVarianceString = commandData.destinationPlayersMinimumVariance ---@type any
+    local destinationPlayersMinimumVariance  ---@type any
     if destinationPlayersMinimumVarianceString == nil then
         destinationPlayersMinimumVariance = 1
     else
@@ -165,9 +166,10 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             return
         end
     end
+    ---@cast destinationPlayersMinimumVariance uint
 
-    local destinationPlayersVarianceFactorString = commandData.destinationPlayersVarianceFactor
-    local destinationPlayersVarianceFactor  ---@type uint
+    local destinationPlayersVarianceFactorString = commandData.destinationPlayersVarianceFactor ---@type any
+    local destinationPlayersVarianceFactor  ---@type any
     if destinationPlayersVarianceFactorString == nil then
         destinationPlayersVarianceFactor = 0.25
     else
@@ -183,9 +185,10 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             return
         end
     end
+    ---@cast destinationPlayersVarianceFactor double
 
     local recipientItemMinToMaxRatioString = commandData.recipientItemMinToMaxRatio
-    local recipientItemMinToMaxRatio  ---@type uint
+    local recipientItemMinToMaxRatio
     if recipientItemMinToMaxRatioString == nil then
         recipientItemMinToMaxRatio = 4
     else
@@ -202,6 +205,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             return
         end
     end
+    ---@cast recipientItemMinToMaxRatio uint
 
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
     EventScheduler.ScheduleEventOnce(
@@ -280,7 +284,7 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
 
     -- Do the collection and distribution.
     local storageInventory, itemSources = PlayerInventoryShuffle.CollectPlayerItems(players, requestData)
-    local playersItemCounts = PlayerInventoryShuffle.CalculateItemDistribution(storageInventory, itemSources, requestData, #players)
+    local playersItemCounts = PlayerInventoryShuffle.CalculateItemDistribution(storageInventory, itemSources, requestData, #players --[[@as uint]])
     local playerIndexsWithFreeInventorySpace_table = PlayerInventoryShuffle.DistributePlannedItemsToPlayers(storageInventory, players, playersItemCounts)
     PlayerInventoryShuffle.DistributeRemainingItemsAnywhere(storageInventory, players, playerIndexsWithFreeInventorySpace_table)
 
@@ -307,7 +311,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     local itemSources = {} ---@type table<string, uint> @ Item name to count of players who had the item.
 
     -- Create a single storage invnetory (limited size). Track the maximum number of stacks that have gone in to it in a very simple way i.e. it doesn't account for stacks that merge togeather. It's used just to give a warning at present if the shared storageInventory may have filled up.
-    local storageInventorySize = StorageInventorySizeIncrements -- Starting storage inventory size is 1 increment.
+    local storageInventorySize = StorageInventorySizeIncrements ---@type uint16 -- Starting storage inventory size is 1 increment.
     local storageInventory = game.create_inventory(storageInventorySize)
     local storageInventoryStackCount, storageInventoryFull = 0, false
 
@@ -337,7 +341,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                             if itemSources[stackItemName] == nil then
                                 itemSources[stackItemName] = 1
                             else
-                                itemSources[stackItemName] = itemSources[stackItemName] + 1
+                                itemSources[stackItemName] = itemSources[stackItemName] + 1 --[[@as uint]]
                             end
                         end
 
@@ -350,7 +354,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                         if storageInventoryStackCount == storageInventorySize then
                             if storageInventorySize <= StorageInventoryMaxGrowthSize then
                                 -- Can just grow it.
-                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements
+                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements --[[@as uint16]] -- This is safe to blindly do as we already avoid exceeding the smaller size of uint 16 in the previous logic.
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
@@ -383,7 +387,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
 
             -- Grow the player's inventory to maximum size so that all cancelled craft ingredients are bound to fit in it.
             playersInitialInventorySlotBonus = player.character_inventory_slots_bonus
-            player.character_inventory_slots_bonus = playersInitialInventorySlotBonus * 4 -- This is an arbitary limit to try and balance between a player having many full inventories of items being crafted, vs the UPS cost that setting to a larger inventory causes. 1000 slots increase is twice the UPS of no increase to the cancel_crafting commands, but orders of magnitude larger take progressively longer.
+            player.character_inventory_slots_bonus = MathUtils.ClampToUInt(playersInitialInventorySlotBonus * 4, nil, 1000) -- This is an arbitary limit to try and balance between a player having many full inventories of items being crafted, vs the UPS cost that setting to a larger inventory causes. 1000 slots increase is twice the UPS of no increase to the cancel_crafting commands, but orders of magnitude larger take progressively longer.
 
             -- Have to cancel each item one at a time while there still are some. As if you cancel a pre-requisite or final item then the other related items are auto cancelled and any attempt to iterate a cached list errors.
             while player.crafting_queue_size > 0 do
@@ -399,7 +403,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                         if itemSources[name] == nil then
                             itemSources[name] = 1
                         else
-                            itemSources[name] = itemSources[name] + 1
+                            itemSources[name] = itemSources[name] + 1 --[[@as uint]]
                         end
                     end
 
@@ -415,7 +419,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                         if storageInventoryStackCount == storageInventorySize then
                             if storageInventorySize < StorageInventoryMaxGrowthSize then
                                 -- Can just grow it.
-                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements
+                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements --[[@as uint16]] -- This is safe to blindly do as we already avoid exceeding the smaller size of uint 16 in the previous logic.
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
@@ -474,35 +478,36 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
     end
 
     -- Work out the distribution of items to players.
-    ---@typelist uint, uint, double, double[], double, uint, double, uint[], uint, uint, uint, uint, uint
-    local sourcesCount, destinationCount, totalAssignedPercentage, destinationPercentages, standardisedPercentageModifier, itemsLeftToAssign, destinationPercentage, playersAvailableToRecieveThisItem, playerIndex, playerIndexListIndex, itemCountForPlayerIndex, destinationCountMin, destinationCountMax
+    ---@typelist uint, uint, double, uint[], double, uint, uint, uint[], uint, uint, uint, uint, uint
+    local sourcesCount, destinationCount, totalAssignedRatio, destinationRatios, standardisedPercentageModifier, itemsLeftToAssign, destinationRatio, playersAvailableToRecieveThisItem, playerIndex, playerIndexListIndex, itemCountForPlayerIndex, destinationCountMin, destinationCountMax
     for itemName, itemCount in pairs(itemsToDistribute) do
         sourcesCount = itemSources[itemName]
 
         -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random +/- of the greatest between the ItemDestinationPlayerCountRange and destinationPlayersMinimumVariance.
-        destinationCountMin = math_min(-requestData.destinationPlayersMinimumVariance, -math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor)))
+        destinationCountMin = math_min(-requestData.destinationPlayersMinimumVariance, -math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor))) --[[@as uint]] --- Min is a uint, so always a uint.
         destinationCountMax = math_max(requestData.destinationPlayersMinimumVariance, math_ceil((sourcesCount * requestData.destinationPlayersVarianceFactor)))
-        destinationCount = math_min(math_max(sourcesCount + math_random(destinationCountMin, destinationCountMax), 1), playersCount)
+        destinationCount = math_min(math_max(sourcesCount + math_random(destinationCountMin, destinationCountMax), 1), playersCount) --[[@as uint]] --- Min in a uint (post calculations), so always a uint.
 
-        -- Work out the raw percentage of items each destination will get.
-        totalAssignedPercentage, destinationPercentages = 0, {}
+        -- Work out the raw ratios of items each destination will get.
+        totalAssignedRatio, destinationRatios = 0, {}
         for i = 1, destinationCount do
-            destinationPercentage = math_random(1, requestData.recipientItemMinToMaxRatio)
-            destinationPercentages[i] = destinationPercentage
-            totalAssignedPercentage = totalAssignedPercentage + destinationPercentage
+            destinationRatio = math_random(1, requestData.recipientItemMinToMaxRatio) --[[@as uint]]
+            destinationRatios[i] = destinationRatio
+            totalAssignedRatio = totalAssignedRatio + destinationRatio
         end
-        standardisedPercentageModifier = 1 / totalAssignedPercentage
+        standardisedPercentageModifier = 1 / totalAssignedRatio
 
         -- Work out how many items each destination will get and assign them to a specific players list index.
         itemsLeftToAssign = itemCount
-        playersAvailableToRecieveThisItem = {} ---@type uint[] @ A list of the players list indexs that is trimmed once assigned this item.
+        playersAvailableToRecieveThisItem = {} ---@type table<uint, uint> @ A list of the players list indexes that is trimmed once assigned this item.
+        ---@type uint
         for i = 1, playersCount do
             playersAvailableToRecieveThisItem[i] = i
         end
 
         for i = 1, destinationCount do
             -- Select a random players list index from those not yet assigned this item and then remove it from the avialable list.
-            playerIndexListIndex = math_random(1, #playersAvailableToRecieveThisItem)
+            playerIndexListIndex = math_random(1, #playersAvailableToRecieveThisItem) --[[@as uint]]
             playerIndex = playersAvailableToRecieveThisItem[playerIndexListIndex]
             table.remove(playersAvailableToRecieveThisItem, playerIndexListIndex)
 
@@ -512,9 +517,9 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
                 itemCountForPlayerIndex = itemsLeftToAssign
             else
                 -- Round down the initial number and then keep it below the number of items left. Never try to use more than are left to assign.
-                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationPercentages[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign)
+                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint]]
             end
-            itemsLeftToAssign = itemsLeftToAssign - itemCountForPlayerIndex
+            itemsLeftToAssign = itemsLeftToAssign - itemCountForPlayerIndex --[[@as uint]]
             table.insert(playersItemCounts[playerIndex], {name = itemName, count = itemCountForPlayerIndex})
 
             if itemsLeftToAssign == 0 then
@@ -530,7 +535,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
     for itemCountsPlayerIndex, itemCountsList in pairs(playersItemCounts) do
         randomItemCountsList = {}
         for _, itemCounts in ipairs(itemCountsList) do
-            randomOrderPosition = math.random(1, #randomItemCountsList + 1)
+            randomOrderPosition = math.random(1, #randomItemCountsList + 1) --[[@as uint]]
             table.insert(randomItemCountsList, randomOrderPosition, itemCounts)
         end
         playersItemCounts[itemCountsPlayerIndex] = randomItemCountsList
@@ -608,7 +613,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
                     -- No more players with free inventory space so stop this item.
                     break
                 end
-                playerListIndex = math_random(1, #playerIndexsWithFreeInventorySpace_array)
+                playerListIndex = math_random(1, #playerIndexsWithFreeInventorySpace_array) --[[@as uint]]
                 player = playerIndexsWithFreeInventorySpace_array[playerListIndex]
                 playersInventoryIsFull, itemCount = PlayerInventoryShuffle.InsertItemsInToPlayer(storageInventory, itemName, itemCount, player)
                 if playersInventoryIsFull then
@@ -660,7 +665,7 @@ end
 ---@return boolean playersInventoryIsFull
 ---@return uint itemCountNotInserted
 PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemName, itemCount, player)
-    ---@typelist LuaItemStack, uint, boolean, ItemStackDefinition, uint
+    ---@typelist LuaItemStack, uint, ItemStackDefinition, uint, uint
     local itemStackToTakeFrom, itemsInserted, itemToInsert, itemStackToTakeFrom_count, itemCountToTakeFromThisStack
     local playersInventoryIsFull = false
 
@@ -692,10 +697,10 @@ PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemNa
         end
 
         -- Update the old storage stack count for how many we removed.
-        itemStackToTakeFrom.count = itemStackToTakeFrom_count - itemsInserted
+        itemStackToTakeFrom.count = itemStackToTakeFrom_count - itemsInserted --[[@as uint]]
 
         -- Update the count remaining to be moved based on how many were actually moved.
-        itemCount = itemCount - itemsInserted
+        itemCount = itemCount - itemsInserted --[[@as uint]]
 
         if playersInventoryIsFull then
             break

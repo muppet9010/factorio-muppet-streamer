@@ -291,6 +291,11 @@ PositionUtils.ApplyOffsetToPosition = function(position, offset)
     }
 end
 
+--- Return a copy of the BoundingBox with the growth values added to both sides.
+---@param boundingBox BoundingBox
+---@param growthX double
+---@param growthY double
+---@return BoundingBox
 PositionUtils.GrowBoundingBox = function(boundingBox, growthX, growthY)
     return {
         left_top = {
@@ -304,17 +309,24 @@ PositionUtils.GrowBoundingBox = function(boundingBox, growthX, growthY)
     }
 end
 
-PositionUtils.IsCollisionBoxPopulated = function(collisionBox)
-    if collisionBox == nil then
+--- Checks if a collision box is populated with valid data.
+---@param boundingBox BoundingBox
+---@return boolean
+PositionUtils.IsBoundingBoxPopulated = function(boundingBox)
+    if boundingBox == nil then
         return false
     end
-    if collisionBox.left_top.x ~= 0 and collisionBox.left_top.y ~= 0 and collisionBox.right_bottom.x ~= 0 and collisionBox.right_bottom.y ~= 0 then
+    if boundingBox.left_top.x ~= 0 and boundingBox.left_top.y ~= 0 and boundingBox.right_bottom.x ~= 0 and boundingBox.right_bottom.y ~= 0 then
         return true
     else
         return false
     end
 end
 
+--- Generate a positioned bounding box (collision box) for a position and an equal distance on each side.
+---@param position MapPosition
+---@param range double
+---@return BoundingBox
 PositionUtils.CalculateBoundingBoxFromPositionAndRange = function(position, range)
     return {
         left_top = {
@@ -328,6 +340,9 @@ PositionUtils.CalculateBoundingBoxFromPositionAndRange = function(position, rang
     }
 end
 
+--- Calculate a list of tile positions that are within a bounding box.
+---@param positionedBoundingBox BoundingBox
+---@return MapPosition[]
 PositionUtils.CalculateTilesUnderPositionedBoundingBox = function(positionedBoundingBox)
     local tiles = {}
     for x = positionedBoundingBox.left_top.x, positionedBoundingBox.right_bottom.x do
@@ -385,6 +400,11 @@ PositionUtils.IsPositionInBoundingBox = function(position, boundingBox, safeTili
     end
 end
 
+--- Get a random location within a radius (circle) of a target.
+---@param centrePos MapPosition
+---@param maxRadius double
+---@param minRadius? double|nil @ Defaults to 0.
+---@return MapPosition
 PositionUtils.RandomLocationInRadius = function(centrePos, maxRadius, minRadius)
     local angle = math_random(0, 360)
     minRadius = minRadius or 0
@@ -393,6 +413,11 @@ PositionUtils.RandomLocationInRadius = function(centrePos, maxRadius, minRadius)
     return PositionUtils.GetPositionForAngledDistance(centrePos, distance, angle)
 end
 
+--- Gets a map position for an angled distance from a position.
+---@param startingPos MapPosition
+---@param distance double
+---@param angle double
+---@return MapPosition
 PositionUtils.GetPositionForAngledDistance = function(startingPos, distance, angle)
     if angle < 0 then
         angle = 360 + angle
@@ -438,6 +463,12 @@ PositionUtils.GetPositionForDistanceBetween2Points = function(startingPos, targe
     return newPos
 end
 
+--- Find where a line cross a circle at a set radius from a 0 position.
+---@param radius double
+---@param slope double @ the x value per 1 Y. so 1 is a 45 degree SW to NE line. 2 is a steeper line. -1 would be a 45 degree line SE to NW line. -- I THINK...
+---@param yIntercept double @ Where on the Y axis the line crosses.
+---@return MapPosition|nil firstCrossingPosition @ Position if the line crossed or touched the edge of the circle. Nil if the line never crosses the circle.
+---@return MapPosition|nil secondCrossingPosition @ Only a position if the line crossed the circle in 2 places. Nil if the line just touched the edge of the circle or never crossed it.
 PositionUtils.FindWhereLineCrossesCircle = function(radius, slope, yIntercept)
     local centerPos = {x = 0, y = 0}
     local A = 1 + slope * slope
@@ -449,11 +480,8 @@ PositionUtils.FindWhereLineCrossesCircle = function(radius, slope, yIntercept)
         return nil, nil
     else
         local x1 = (-B + math_sqrt(delta)) / (2 * A)
-
         local x2 = (-B - math_sqrt(delta)) / (2 * A)
-
         local y1 = slope * x1 + yIntercept
-
         local y2 = slope * x2 + yIntercept
 
         local pos1 = {x = x1, y = y1}
@@ -466,6 +494,11 @@ PositionUtils.FindWhereLineCrossesCircle = function(radius, slope, yIntercept)
     end
 end
 
+--- Check if a position is within a circles area.
+---@param circleCenter MapPosition
+---@param radius double
+---@param position MapPosition
+---@return boolean
 PositionUtils.IsPositionWithinCircled = function(circleCenter, radius, position)
     local deltaX = math_abs(position.x - circleCenter.x)
     local deltaY = math_abs(position.y - circleCenter.y)

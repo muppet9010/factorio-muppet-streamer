@@ -22,7 +22,7 @@ local PlayerWeapon = {}
 ---@param weaponName string
 ---@param forceWeaponToWeaponInventorySlot boolean @ If the weapon should be forced to be equiped, otherwise it may end up in their inventory.
 ---@param selectWeapon boolean
----@return boolean|nil weaponGiven @ If the weapon item had to be given to the player, compared to them already having it and it possibly just being mvoed between their inventories. Returns nil for invalid situations, i.e. called on a palyer with no gun inventory.
+---@return boolean|nil weaponGiven @ If the weapon item had to be given to the player, compared to them already having it and it possibly just being mvoed between their inventories. Returns nil for invalid situations, i.e. called on a player with no gun inventory.
 ---@return UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon|nil removedWeaponDetails @ Details on the weapon that was removed to add the new wepaon. Is nil if no active weapon was set/found, i.e. weapon was found/put in to the players main inventory and not as an equiped weapon.
 PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInventorySlot, selectWeapon)
     if player == nil or not player.valid then
@@ -98,7 +98,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                     removedWeaponDetails.weaponItemName = currentName
                 end
                 removedWeaponDetails.weaponFilterName = gunInventory.get_filter(weaponFoundIndex)
-                gunInventory.set_filter(weaponFoundIndex, nil) ---@diagnostic disable-line -- Mistake in API Docs, bugged: https://forums.factorio.com/viewtopic.php?f=7&t=102859
+                gunInventory.set_filter(weaponFoundIndex, nil) ---@diagnostic disable-line:param-type-mismatch -- Mistake in API Docs, bugged: https://forums.factorio.com/viewtopic.php?f=7&t=102859
                 gunItemStack.clear()
             else
                 -- As we won't force the weapon it should go in to the characters inventory if they don't already have one.
@@ -126,7 +126,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
             removedWeaponDetails.ammoItemName = currentName
         end
         removedWeaponDetails.ammoFilterName = ammoInventory.get_filter(weaponFoundIndex)
-        ammoInventory.set_filter(weaponFoundIndex, nil) ---@diagnostic disable-line -- Mistake in API Docs, bugged: https://forums.factorio.com/viewtopic.php?f=7&t=102859
+        ammoInventory.set_filter(weaponFoundIndex, nil) ---@diagnostic disable-line:param-type-mismatch  -- Mistake in API Docs, bugged: https://forums.factorio.com/viewtopic.php?f=7&t=102859
         ammoItemStack.clear()
 
         -- Remove 1 item of the weapon type from the players inventory if they had one, to simulate equiping the weapon. Otherwise we will flag this as giving the player a weapon.

@@ -1,10 +1,8 @@
 DOING NOW:
-    - Update to Sumneko 3.4 and fix all of the warnings.
-
     - Move the Utility files in to seperate sub folders for HelperUtils and ManagerLibraries.
 
-    - Use single line variable setting when we always set a value, rather than if/else. i.e. delay = delay and math.max(math.floor(delay * 60), 0) or 0
-    - The INTEGER type arguments will accept a double, but this will fail/error when trying to be used. They should really check for a type Integer. New Utility library version has functions to validate types of numbers.
+    - The INTEGER type arguments will accept a double, but this will fail/error when trying to be used. They should really check for a type Integer. New Utility library version has functions to validate types of numbers. This means replacing the current command paramater handling code to use the better libraries.
+    - Add proper typing throughout all the modules.
     - Check all Logging.LogPrint() shouldn't now be Logging.LogPrintError(), or have the color set now its a library option.
     - Replace error game.prints with Logging.LogPrintError() in library and mod code.
 

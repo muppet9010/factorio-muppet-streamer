@@ -40,7 +40,7 @@ end
 
 --- Count how many entries are in a table. It naturally excludes those that have a nil value.
 ---@param table table
----@return integer
+---@return int
 TableUtils.GetTableNonNilLength = function(table)
     local count = 0
     for _ in pairs(table) do
@@ -76,7 +76,7 @@ TableUtils.GetMaxKey = function(table)
 end
 
 ---@param table table
----@param indexCount integer
+---@param indexCount int
 ---@return any
 TableUtils.GetTableValueByIndexCount = function(table, indexCount)
     local count = 0

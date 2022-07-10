@@ -38,8 +38,8 @@
 ---@field position MapPosition
 ---@field surfacePositionString SurfacePositionString
 ---
----@alias True boolean
----@alias False boolean
+---@alias True boolean -- TODO: remove as there's a builtin `true` class we should use instead.
+---@alias False boolean -- TODO: remove as there's a builtin `false` class we should use instead.
 --
 --
 --

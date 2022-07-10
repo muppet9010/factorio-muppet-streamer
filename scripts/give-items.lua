@@ -66,6 +66,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         end
     end
 
+    ---@type boolean|nil
     local forceWeaponToSlot = false
     if commandData.forceWeaponToSlot ~= nil then
         forceWeaponToSlot = BooleanUtils.ToBoolean(commandData.forceWeaponToSlot)
@@ -76,6 +77,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         end
     end
 
+    ---@type boolean|nil
     local selectWeapon = false
     if commandData.selectWeapon ~= nil then
         selectWeapon = BooleanUtils.ToBoolean(commandData.selectWeapon)
@@ -124,7 +126,7 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
     if data.ammoType ~= nil and data.ammoType.valid and data.ammoCount > 0 then
         local inserted = targetPlayer.insert({name = data.ammoType.name, count = data.ammoCount})
         if inserted < data.ammoCount then
-            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = data.ammoType.name, count = data.ammoCount - inserted}, true, nil, false)
+            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = data.ammoType.name, count = data.ammoCount - inserted --[[@as uint]]}, true, nil, false)
         end
     end
 end

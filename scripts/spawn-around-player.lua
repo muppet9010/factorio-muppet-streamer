@@ -91,7 +91,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local density = tonumber(commandData.density)
     local ammoCount = tonumber(commandData.ammoCount)
 
-    local followPlayer = false
+    local followPlayer = false ---@type boolean|nil
     if commandData.followPlayer ~= nil then
         followPlayer = BooleanUtils.ToBoolean(commandData.followPlayer)
         if followPlayer == nil then

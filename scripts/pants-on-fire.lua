@@ -6,6 +6,7 @@ local Logging = require("utility.logging")
 local EventScheduler = require("utility.event-scheduler")
 local Events = require("utility.events")
 local Common = require("scripts.common")
+local MathUtils = require("utility.math-utils")
 
 ---@class PantsOnFire_ScheduledEventDetails
 ---@field target string @ Target player's name.
@@ -26,7 +27,12 @@ local Common = require("scripts.common")
 ---@field ticksInVehicle uint
 
 ---@class PantsOnFire_EffectEndStatus
-local EffectEndStatus = {completed = "completed", died = "died", invalid = "invalid"}
+---@class PantsOnFire_EffectEndStatus.__index
+local EffectEndStatus = {
+    completed = ("completed") --[[@as PantsOnFire_EffectEndStatus]],
+    died = ("died") --[[@as PantsOnFire_EffectEndStatus]],
+    invalid = ("invalid") --[[@as PantsOnFire_EffectEndStatus]]
+}
 
 PantsOnFire.CreateGlobals = function()
     global.PantsOnFire = global.PantsOnFire or {}
@@ -81,6 +87,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end
     local finishTick = scheduleTick + math.ceil(durationSeconds * 60)
 
+    ---@type number|nil
     local fireHeadStart = 3
     if commandData.fireHeadStart ~= nil then
         fireHeadStart = tonumber(commandData.fireHeadStart)
@@ -91,6 +98,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         end
     end
 
+    ---@type number|nil
     local fireGap = 6
     if commandData.fireGap ~= nil then
         fireGap = tonumber(commandData.fireGap)
@@ -101,6 +109,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         end
     end
 
+    ---@type number|nil
     local flameCount = 20
     if commandData.flameCount ~= nil then
         flameCount = tonumber(commandData.flameCount)
@@ -159,7 +168,7 @@ PantsOnFire.WalkCheck = function(eventData)
     end
 
     -- Increment position in step buffer.
-    data.stepPos = data.stepPos + 1
+    data.stepPos = data.stepPos + 1 --[[@as uint]]
 
     if data.stepPos >= data.fireHeadStart then
         -- Restart the circular buffer cycle and start the fire creation if not already (first cycle without).
@@ -180,10 +189,10 @@ PantsOnFire.WalkCheck = function(eventData)
             if player.vehicle then
                 local playerCharacter = player.character
                 if playerCharacter then
-                    data.ticksInVehicle = data.ticksInVehicle + data.fireGap
+                    data.ticksInVehicle = data.ticksInVehicle + data.fireGap --[[@as uint]]
                     -- Damage is square of how long they are in a vehicle to give a scale between those with no shields/armour and heavily shielded players. Total damage is done as an amount per second regardless of how often the fire gap delay has the ground effect created and thus this function called.
                     local secondsInVehicle = math.ceil(data.ticksInVehicle / 60)
-                    local damageForPeriodOfSecond = (secondsInVehicle ^ 4) / (60 / data.fireGap)
+                    local damageForPeriodOfSecond = MathUtils.ClampToFloat((secondsInVehicle ^ 4) / (60 / data.fireGap)) -- We don't care if the value is clamped within the allowed range as its already so large.
                     playerCharacter.damage(damageForPeriodOfSecond, data.force, "fire", fireEntity)
                 end
             end
@@ -195,7 +204,7 @@ PantsOnFire.WalkCheck = function(eventData)
 
     -- Schedule the next loop if not finished yet.
     if eventData.tick < data.finishTick then
-        EventScheduler.ScheduleEventOnce(eventData.tick + data.fireGap, "PantsOnFire.WalkCheck", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(eventData.tick + data.fireGap --[[@as uint]], "PantsOnFire.WalkCheck", playerIndex, data)
     else
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end
@@ -210,7 +219,7 @@ end
 --- Called when the effect has been stopped.
 --- Called when the player is alive or if they have died before their character has been affected.
 ---@param playerIndex uint
----@param player LuaPlayer
+---@param player? LuaPlayer|nil
 ---@param status PantsOnFire_EffectEndStatus
 PantsOnFire.StopEffectOnPlayer = function(playerIndex, player, status)
     local steps = global.PantsOnFire.playerSteps[playerIndex]
