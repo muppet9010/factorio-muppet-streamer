@@ -23,7 +23,7 @@ local MaxDistancePositionAroundTarget = 10.0 ---@type double
 local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries per player once it finds a valid placement position that then has a pathing request return false.
 
 ---@class CallForHelp_DelayedCommandDetails
----@field callForHelpId Id
+---@field callForHelpId uint
 ---@field target string @ Player's name.
 ---@field arrivalRadius double
 ---@field callRadius? double|nil
@@ -36,12 +36,12 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 ---@field activePercentage double
 
 ---@class CallForHelp_CallForHelpObject
----@field callForHelpId Id
----@field pendingPathRequests table<Id, CallForHelp_PathRequestObject>
+---@field callForHelpId uint
+---@field pendingPathRequests table<uint, CallForHelp_PathRequestObject> @ Key'd to the path request Id.
 
 ---@class CallForHelp_PathRequestObject @ Details on a path request so that when it completes its results can be handled and back traced to the Call For Help it relates too.
----@field callForHelpId Id
----@field pathRequestId Id
+---@field callForHelpId uint
+---@field pathRequestId uint
 ---@field helpPlayer LuaPlayer
 ---@field helpPlayerPlacementEntity LuaEntity @ The helping player's character or teleportable vehicle.
 ---@field helpPlayerForce LuaForce
@@ -62,9 +62,9 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
-    global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type Id
-    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<Id, CallForHelp_PathRequestObject>
-    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<Id, CallForHelp_CallForHelpObject>
+    global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type uint
+    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<uint, CallForHelp_PathRequestObject> @ Key'd to the pathing request Ids,
+    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<uint, CallForHelp_CallForHelpObject> @ Key'd to the callForHelp Ids.
 end
 
 CallForHelp.OnLoad = function()
@@ -87,17 +87,12 @@ CallForHelp.CallForHelpCommand = function(command)
         return
     end
 
-    local delayRaw = commandData.delay ---@type Second
-    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySecondsRaw = commandData.delay ---@type any
+    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
-    local scheduleTick  ---@type Tick
-    if (delayRaw ~= nil and delayRaw > 0) then
-        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
-        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
-    else
-        scheduleTick = -1
-    end
+    ---@cast delaySecondsRaw uint
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
 
     local target = commandData.target
     if target == nil then
@@ -331,7 +326,7 @@ end
 ---@param targetPlayerPosition MapPosition
 ---@param targetPlayerSurface LuaSurface
 ---@param targetPlayerEntity LuaEntity
----@param callForHelpId Id
+---@param callForHelpId uint
 ---@param attempt uint
 ---@param sameSurfaceOnly boolean
 ---@param sameTeamOnly boolean
@@ -404,7 +399,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
 
     if event.path == nil then
         -- Path request failed
-        pathRequest.attempt = pathRequest.attempt + 1
+        pathRequest.attempt = pathRequest.attempt + 1 --[[@as uint]]
         if pathRequest.attempt > MaxPathfinderAttemptsForTargetLocation then
             game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", helpPlayer.name, pathRequest.targetPlayer.name})
         else

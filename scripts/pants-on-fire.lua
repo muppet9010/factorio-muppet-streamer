@@ -9,14 +9,14 @@ local Common = require("scripts.common")
 
 ---@class PantsOnFire_ScheduledEventDetails
 ---@field target string @ Target player's name.
----@field finishTick Tick
+---@field finishTick uint
 ---@field fireHeadStart uint
 ---@field fireGap uint
 ---@field flameCount uint
 
 ---@class PantsOnFire_EffectDetails
 ---@field player LuaPlayer
----@field finishTick Tick
+---@field finishTick uint
 ---@field fireHeadStart uint
 ---@field fireGap uint
 ---@field flameCount uint
@@ -55,17 +55,12 @@ PantsOnFire.PantsOnFireCommand = function(command)
         return
     end
 
-    local delayRaw = commandData.delay ---@type Second
-    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySecondsRaw = commandData.delay ---@type any
+    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
-    local scheduleTick  ---@type Tick
-    if (delayRaw ~= nil and delayRaw > 0) then
-        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
-        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
-    else
-        scheduleTick = -1
-    end
+    ---@cast delaySecondsRaw uint
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
 
     local target = commandData.target
     if target == nil then
@@ -149,7 +144,7 @@ PantsOnFire.ApplyToPlayer = function(eventData)
 end
 
 PantsOnFire.WalkCheck = function(eventData)
-    ---@typelist PantsOnFire_EffectDetails, LuaPlayer, PlayerIndex
+    ---@typelist PantsOnFire_EffectDetails, LuaPlayer, uint
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId
     if player == nil or (not player.valid) then
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
@@ -214,7 +209,7 @@ end
 
 --- Called when the effect has been stopped.
 --- Called when the player is alive or if they have died before their character has been affected.
----@param playerIndex PlayerIndex
+---@param playerIndex uint
 ---@param player LuaPlayer
 ---@param status PantsOnFire_EffectEndStatus
 PantsOnFire.StopEffectOnPlayer = function(playerIndex, player, status)

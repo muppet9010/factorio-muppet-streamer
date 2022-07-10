@@ -3,19 +3,25 @@ local MathUtils = require("utility.math-utils")
 local Logging = require("utility.logging")
 local Constants = require("constants")
 
---- Caps the Delay seconds setting in ticks and if it was too great shows warning error.
----@param tickCount uint
----@param rawDelaySeconds number
+--- Takes a parsed delay setting value in seconds and returns the Scheduled Event tick value.
+---@param delaySecondsRaw uint
+---@param currentTick uint
 ---@param commandName string
 ---@param settingName string
----@return uint cappedTickCount
-Common.CapComamndsDelaySetting = function(tickCount, rawDelaySeconds, commandName, settingName)
-    if tickCount > MathUtils.UintMax then
-        tickCount = MathUtils.UintMax
-        Logging.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " had " .. settingName .. " capped at max ticks, as excessively large number of delay seconds provided: " .. tostring(rawDelaySeconds))
+---@return UtilityScheduledEvent_UintNegative1
+Common.DelaySecondsSettingToScheduledEventTickValue = function(delaySecondsRaw, currentTick, commandName, settingName)
+    local scheduleTick  ---@type UtilityScheduledEvent_UintNegative1
+    if (delaySecondsRaw ~= nil and delaySecondsRaw > 0) then
+        scheduleTick = currentTick + math.floor(delaySecondsRaw * 60) --[[@as uint]]
+        if scheduleTick > MathUtils.UintMax then
+            scheduleTick = MathUtils.UintMax
+            Logging.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " had " .. settingName .. " capped at max ticks, as excessively large number of delay seconds provided: " .. tostring(delaySecondsRaw))
+        end
+    else
+        ---@cast scheduleTick UtilityScheduledEvent_UintNegative1
+        scheduleTick = -1
     end
-
-    return tickCount
+    return scheduleTick
 end
 
 return Common

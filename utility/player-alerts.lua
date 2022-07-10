@@ -47,6 +47,7 @@ end
 ---@param showOnMap boolean
 ---@return UtilityPlayerAlerts_AlertId alertId @ The Id of the created alert.
 PlayerAlerts.AddCustomAlertToForce = function(force, alertId, alertEntity, alertSignalId, alertMessage, showOnMap)
+    --TODO: an alert only lasts for 5-10 (?) seconds and then auto finishes. We need to have an option for a continous alert that auto adds a new one just before the hard coded timer runs out.
     local forceId = force.index
     local forceAlerts = PlayerAlerts._GetCreateForceAlertsGlobalObject(forceId)
 
@@ -137,7 +138,7 @@ PlayerAlerts._RemoveAlertFromPlayer = function(forceAlert, player)
         }
     else
         player.remove_alert {
-            prototype = forceAlert.alertPrototypeName, -- TODO: not sure on this as API doc says it should be a prototype and not the name, but I assume this worked ok in Tunnel mod at the time?
+            prototype = forceAlert.alertPrototypeName --[[@as LuaEntityPrototype]], -- Force typed work around for bug: https://forums.factorio.com/viewtopic.php?f=7&t=102860
             position = forceAlert.alertPosition,
             surface = forceAlert.alertSurface,
             type = defines.alert_type.custom,

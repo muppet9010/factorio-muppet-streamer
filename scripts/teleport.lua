@@ -55,17 +55,17 @@ local MaxDistancePositionAroundTarget = 10
 ---@field spawnerDetails Teleport_SpawnerDetails
 
 ---@class Teleport_SpawnerDetails
----@field unitNumber UnitNumber
+---@field unitNumber uint
 ---@field entity LuaEntity
 ---@field position MapPosition
 ---@field forceName string
 
----@alias surfaceForceBiterNests table<Id, table<string, table<UnitNumber, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then bacth ignoring of non-enemy spawners.
+---@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then bacth ignoring of non-enemy spawners.
 
 Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
     global.teleport.nextId = global.teleport.nextId or 0 ---@type uint
-    global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<Id, Teleport_TeleportDetails> @ The path request Id to its teleport details for whne the path request completes.
+    global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<uint, Teleport_TeleportDetails> @ The path request Id to its teleport details for whne the path request completes.
     global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSpawnersOnAllSurfaces() ---@type surfaceForceBiterNests
     global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId or 0 ---@type uint
 end
@@ -117,17 +117,14 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
         depthErrorMessage = "at depth " .. depth .. " - "
     end
 
-    local delayRaw = commandData.delay ---@type Second
-    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, commandStringText) then
-        return nil
+    -- Any errors raised need to include the depth message so we know how many backups it has got in to when it errored. So we add it to the end of the passed command name as this gets it to the right place in the produced error messages.
+    local delaySecondsRaw = commandData.delay ---@type any
+    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay " .. depthErrorMessage, 0, nil, commandStringText) then
+        return
     end
-    local delay  ---@type Tick
-    if (delayRaw ~= nil and delayRaw > 0) then
-        delay = math.floor(delayRaw * 60) --[[@as Tick]]
-        delay = Common.CapComamndsDelaySetting(delay, delayRaw, commandName, "delay")
-    else
-        delay = 0
-    end
+    ---@cast delaySecondsRaw uint
+    -- Don't pass the current tick value as we will add it later.
+    local delay = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, 0, commandName, "delay " .. depthErrorMessage)
 
     local target = commandData.target
     if target == nil then
@@ -213,7 +210,7 @@ end
 ---@param commandValues Teleport_CommandDetails
 Teleport.ScheduleTeleportCommand = function(commandValues)
     global.teleport.nextId = global.teleport.nextId + 1
-    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or -1 --[[@as Tick]]
+    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or -1 --[[@as uint]]
     EventScheduler.ScheduleEventOnce(
         scheduleTick,
         "Teleport.PlanTeleportTarget",

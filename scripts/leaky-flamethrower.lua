@@ -16,10 +16,10 @@ local EffectEndStatus = {completed = "completed", died = "died", invalid = "inva
 
 ---@class LeakyFlamethrower_ShootFlamethrowerDetails
 ---@field player LuaPlayer
----@field player_index Id
+---@field player_index uint
 ---@field angle uint
 ---@field distance uint
----@field currentBurstTicks Tick
+---@field currentBurstTicks uint
 ---@field burstsDone uint
 ---@field maxBursts uint
 ---@field usedSomeAmmo boolean @ If the player has actually used some of their ammo, otherwise the player's weapons are still on cooldown.
@@ -33,7 +33,7 @@ local EffectEndStatus = {completed = "completed", died = "died", invalid = "inva
 
 LeakyFlamethrower.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
-    global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<PlayerIndex, LeakyFlamethrower_AffectedPlayersDetails>
+    global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<uint, LeakyFlamethrower_AffectedPlayersDetails> @ Key'd by player_index.
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId or 0
 end
 
@@ -65,17 +65,12 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         return
     end
 
-    local delayRaw = commandData.delay ---@type Second
-    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySecondsRaw = commandData.delay ---@type any
+    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
-    local scheduleTick  ---@type Tick
-    if (delayRaw ~= nil and delayRaw > 0) then
-        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
-        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
-    else
-        scheduleTick = -1
-    end
+    ---@cast delaySecondsRaw uint
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
 
     local target = commandData.target
     if target == nil then
@@ -147,7 +142,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
 end
 
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
-    ---@typelist LeakyFlamethrower_ShootFlamethrowerDetails, LuaPlayer, PlayerIndex
+    ---@typelist LeakyFlamethrower_ShootFlamethrowerDetails, LuaPlayer, uint
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.data.player_index
     if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
         LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
@@ -232,7 +227,7 @@ end
 
 --- Called when the effect has been stopped and the effects state and weapon changes should be undone.
 --- Called when the player is alive or if they have died before their character has been affected.
----@param playerIndex PlayerIndex
+---@param playerIndex uint
 ---@param player LuaPlayer
 ---@param status LeakyFlamethrower_EffectEndStatus
 LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)

@@ -69,20 +69,12 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         return
     end
 
-    --TODO: this updated verison needs copying to the other files again.
     local delaySecondsRaw = commandData.delay ---@type any
     if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     ---@cast delaySecondsRaw uint
-    local scheduleTick  ---@type UtilityScheduledEvent_UintNegative1
-    if (delaySecondsRaw ~= nil and delaySecondsRaw > 0) then
-        scheduleTick = command.tick + math.floor(delaySecondsRaw * 60) --[[@as uint]]
-        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delaySecondsRaw, commandName, "delay")
-    else
-        ---@cast scheduleTick UtilityScheduledEvent_UintNegative1
-        scheduleTick = -1
-    end
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
 
     local target = commandData.target
     if target == nil then
@@ -146,6 +138,11 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         return
     end
 
+    if global.aggressiveDriver.affectedPlayers[targetPlayer.index] ~= nil then
+        -- Player already being affected by this effect so just silently ignore it.
+        return
+    end
+
     local inVehicle = targetPlayer.vehicle ~= nil
     if not inVehicle and data.teleportDistance > 0 then
         local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "locomotive", "spider-vehicle"}}
@@ -177,10 +174,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         end
     end
     if not inVehicle then
-        return
-    end
-
-    if global.aggressiveDriver.affectedPlayers[targetPlayer.index] ~= nil then
+        game.print({"message.muppet_streamer_aggressive_driver_no_vehicle", data.target})
         return
     end
 

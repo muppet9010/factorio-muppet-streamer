@@ -71,17 +71,12 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         return
     end
 
-    local delayRaw = commandData.delay ---@type Second
-    if not Commands.ParseNumberArgument(delayRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySecondsRaw = commandData.delay ---@type any
+    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
-    local scheduleTick  ---@type Tick
-    if (delayRaw ~= nil and delayRaw > 0) then
-        scheduleTick = command.tick + math.floor(delayRaw * 60) --[[@as Tick]]
-        scheduleTick = Common.CapComamndsDelaySetting(scheduleTick, delayRaw, commandName, "delay")
-    else
-        scheduleTick = -1
-    end
+    ---@cast delaySecondsRaw uint
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
 
     -- Just get the Included Players with minimal checking as we do the checks once all the include settings are obtained.
     local includedPlayersString = commandData.includedPlayers ---@type string
