@@ -1,10 +1,10 @@
 local LeakyFlamethrower = {}
-local Commands = require("utility.commands")
-local Logging = require("utility.logging")
-local EventScheduler = require("utility.event-scheduler")
-local Events = require("utility.events")
+local Commands = require("utility.managerLibraries.commands")
+local Logging = require("utility.managerLibraries.logging")
+local EventScheduler = require("utility.managerLibraries.event-scheduler")
+local Events = require("utility.managerLibraries.events")
 local PlayerWeapon = require("utility.functions.player-weapon")
-local PositionUtils = require("utility.position-utils")
+local PositionUtils = require("utility.helperUtils.position-utils")
 local Common = require("scripts.common")
 
 ---@class LeakyFlamethrower_EffectEndStatus

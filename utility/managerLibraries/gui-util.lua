@@ -3,12 +3,12 @@
 -- Designed on the basis that the mod doesn't need to store references to the GUI Elements it creates and the structures involved with that. As they can all be obtained via the managed storage with the element name and type to improve code readability.
 
 local GuiUtil = {}
-local TableUtils = require("utility.table-utils")
-local GuiActionsClick = require("utility.gui-actions-click")
-local GuiActionsChecked = require("utility.gui-actions-checked")
-local Logging = require("utility.logging")
+local TableUtils = require("utility.helperUtils.table-utils")
+local GuiActionsClick = require("utility.managerLibraries.gui-actions-click")
+local GuiActionsChecked = require("utility.managerLibraries.gui-actions-checked")
+local Logging = require("utility.managerLibraries.logging")
 local Constants = require("constants")
-local StyleDataStyleVersion = require("utility.style-data").styleVersion
+local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 
 ---@alias UtilityGuiUtil_StoreName string @ A named container that GUI elements have their references saved within under the GUI elements name and type. Used to provide logical seperation of GUI elements stored. Typically used for different GUis or major sections of a GUI, as the destroy GUI element functions can handle whole StoreNames automatically.
 ---@alias UtilityGuiUtil_GuiElementName string @ A generally unique string made by combining an elements name and type with mod name. However if storing references to the created elements within the libraries player element reference storage we need never obtain the GUI element by name and thus it doesn't have to be unique. Does need to be unique within the StoreName however. Format is: ModName-ElementName-ElementType ,i.e. "my_mod-topHeading-label".

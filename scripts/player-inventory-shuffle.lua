@@ -1,12 +1,12 @@
 local PlayerInventoryShuffle = {}
-local Commands = require("utility.commands")
-local Logging = require("utility.logging")
-local EventScheduler = require("utility.event-scheduler")
-local Colors = require("utility.colors")
-local BooleanUtils = require("utility.boolean-utils")
-local StringUtils = require("utility.string-utils")
+local Commands = require("utility.managerLibraries.commands")
+local Logging = require("utility.managerLibraries.logging")
+local EventScheduler = require("utility.managerLibraries.event-scheduler")
+local Colors = require("utility.lists.colors")
+local BooleanUtils = require("utility.helperUtils.boolean-utils")
+local StringUtils = require("utility.helperUtils.string-utils")
 local Common = require("scripts.common")
-local MathUtils = require("utility.math-utils")
+local MathUtils = require("utility.helperUtils.math-utils")
 
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 

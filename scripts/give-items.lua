@@ -1,9 +1,9 @@
 local GiveItems = {}
 local PlayerWeapon = require("utility.functions.player-weapon")
-local Commands = require("utility.commands")
-local Logging = require("utility.logging")
-local EventScheduler = require("utility.event-scheduler")
-local BooleanUtils = require("utility.boolean-utils")
+local Commands = require("utility.managerLibraries.commands")
+local Logging = require("utility.managerLibraries.logging")
+local EventScheduler = require("utility.managerLibraries.event-scheduler")
+local BooleanUtils = require("utility.helperUtils.boolean-utils")
 local Common = require("scripts.common")
 
 ---@class GiveItems_GiveWeaponAmmoScheduled

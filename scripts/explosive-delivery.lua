@@ -1,8 +1,8 @@
 local ExplosiveDelivery = {}
-local Commands = require("utility.commands")
-local Logging = require("utility.logging")
-local EventScheduler = require("utility.event-scheduler")
-local PositionUtils = require("utility.position-utils")
+local Commands = require("utility.managerLibraries.commands")
+local Logging = require("utility.managerLibraries.logging")
+local EventScheduler = require("utility.managerLibraries.event-scheduler")
+local PositionUtils = require("utility.helperUtils.position-utils")
 local Common = require("scripts.common")
 
 ---@class ExplosiveDelivery_DelayedCommandDetails

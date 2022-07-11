@@ -1,8 +1,8 @@
 -- Library to support using mod settings to acept and array of values for N instances of something. Rather than having to add lots of repeat mod settings entry boxes.
 
 local SettingsManager = {}
-local BooleanUtils = require("utility.boolean-utils")
-local Logging = require("utility.logging")
+local BooleanUtils = require("utility.helperUtils.boolean-utils")
+local Logging = require("utility.managerLibraries.logging")
 
 SettingsManager.ExpectedValueTypes = {}
 SettingsManager.ExpectedValueTypes.string = {name = "string", hasChildren = false}

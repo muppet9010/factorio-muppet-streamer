@@ -1,9 +1,9 @@
 local AggressiveDriver = {}
-local Commands = require("utility.commands")
-local Logging = require("utility.logging")
-local EventScheduler = require("utility.event-scheduler")
-local PositionUtils = require("utility.position-utils")
-local Events = require("utility.events")
+local Commands = require("utility.managerLibraries.commands")
+local Logging = require("utility.managerLibraries.logging")
+local EventScheduler = require("utility.managerLibraries.event-scheduler")
+local PositionUtils = require("utility.helperUtils.position-utils")
+local Events = require("utility.managerLibraries.events")
 local Common = require("scripts.common")
 
 ---@class AggressiveDriver_ControlTypes

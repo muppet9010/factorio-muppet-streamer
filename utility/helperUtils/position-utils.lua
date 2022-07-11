@@ -4,7 +4,7 @@
 --
 
 local PositionUtils = {}
-local MathUtils = require("utility.math-utils")
+local MathUtils = require("utility.helperUtils.math-utils")
 local math_rad, math_cos, math_sin, math_floor, math_sqrt, math_abs, math_random = math.rad, math.cos, math.sin, math.floor, math.sqrt, math.abs, math.random
 
 ---@param pos1 MapPosition

@@ -4,7 +4,7 @@
 --
 
 local InventoryUtils = {}
-local TableUtils = require("utility.table-utils")
+local TableUtils = require("utility.helperUtils.table-utils")
 local math_min, math_max, math_ceil = math.min, math.max, math.ceil
 
 --- Returns the item name for the provided entity.

@@ -3,9 +3,9 @@
 
 local Logging = {}
 local Constants = require("constants")
-local StringUtils = require("utility.string-utils")
-local TableUtils = require("utility.table-utils")
-local Colors = require("utility.colors")
+local StringUtils = require("utility.helperUtils.string-utils")
+local TableUtils = require("utility.helperUtils.table-utils")
+local Colors = require("utility.lists.colors")
 
 ---@param position MapPosition
 ---@return string

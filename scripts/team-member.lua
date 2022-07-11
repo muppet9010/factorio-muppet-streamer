@@ -1,8 +1,8 @@
 local TeamMember = {}
-local Events = require("utility.events")
-local GuiUtil = require("utility.gui-util")
-local Commands = require("utility.commands")
-local Logging = require("utility.logging")
+local Events = require("utility.managerLibraries.events")
+local GuiUtil = require("utility.managerLibraries.gui-util")
+local Commands = require("utility.managerLibraries.commands")
+local Logging = require("utility.managerLibraries.logging")
 
 TeamMember.CreateGlobals = function()
     global.teamMember = global.teamMember or {}

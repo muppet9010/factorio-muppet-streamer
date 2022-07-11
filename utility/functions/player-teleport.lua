@@ -3,8 +3,8 @@
 
     Usage: Call any public functions (not starting with "_") as required to request a teleport for a player. Other public functions can also be utilised as required.
 ]]
-local MathUtils = require("utility.math-utils")
-local PositionUtils = require("utility.position-utils")
+local MathUtils = require("utility.helperUtils.math-utils")
+local PositionUtils = require("utility.helperUtils.position-utils")
 
 local PlayerTeleport = {}
 

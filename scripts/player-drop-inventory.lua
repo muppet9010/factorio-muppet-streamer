@@ -1,9 +1,9 @@
 local PlayerDropInventory = {}
-local Commands = require("utility.commands")
-local Logging = require("utility.logging")
-local BooleanUtils = require("utility.boolean-utils")
-local EventScheduler = require("utility.event-scheduler")
-local Events = require("utility.events")
+local Commands = require("utility.managerLibraries.commands")
+local Logging = require("utility.managerLibraries.logging")
+local BooleanUtils = require("utility.helperUtils.boolean-utils")
+local EventScheduler = require("utility.managerLibraries.event-scheduler")
+local Events = require("utility.managerLibraries.events")
 local Common = require("scripts.common")
 
 ---@class PlayerDropInventory_QuantityType

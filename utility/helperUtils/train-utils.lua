@@ -4,9 +4,9 @@
 --
 
 local TrainUtils = {}
-local PrototypeAttributes = require("utility.prototype-attributes")
-local EntityUtils = require("utility.entity-utils")
-local PositionUtils = require("utility.position-utils")
+local PrototypeAttributes = require("utility.managerLibraries.prototype-attributes")
+local EntityUtils = require("utility.helperUtils.entity-utils")
+local PositionUtils = require("utility.helperUtils.position-utils")
 local math_min, math_max, math_ceil, math_sqrt = math.min, math.max, math.ceil, math.sqrt
 
 --- Gets the carriage at the head (leading) the train in its current direction.

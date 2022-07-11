@@ -8,10 +8,10 @@
     This file is now version controlled to avoid conflicts with different versions used by different mods.
 
     Require the file and call GeneratePrototypes() in data.lua:
-        require("utility.style-data").GeneratePrototypes()
+        require("utility.lists.style-data").GeneratePrototypes()
 
     Require the file and obtain the MuppetStyles dictionary in any usage scenarios (lua files) to get autocomplete list of all the styles and their options. Saves having to remember them or check which options are available in this source code.
-        local MuppetStyles = require("utility.style-data").MuppetStyles
+        local MuppetStyles = require("utility.lists.style-data").MuppetStyles
     If a sub field is available in the autocomplete list then one must be selected, otherwise you will end up with a blank style at runtime. For this reason (and simplicity) the margin, padding and other optional settings are just a single string with each combintion covered.
         i.e: MuppetStyles.flow.vertical.marginTL_spaced
     The final type of "plain" is with no padding, margin, etc. Its provided to comply with the above statement that a style autocomplete entry is only valid if you reach the end of the sub options list.
@@ -20,7 +20,7 @@
 
 local styleData = {}
 
-local Colors = require("utility.colors")
+local Colors = require("utility.lists.colors")
 
 styleData.styleVersion = "_1_1_0"
 local styleNamesGenerated = {}

@@ -1,10 +1,10 @@
 local SpawnAroundPlayer = {}
-local Commands = require("utility.commands")
-local Logging = require("utility.logging")
-local EventScheduler = require("utility.event-scheduler")
-local PositionUtils = require("utility.position-utils")
+local Commands = require("utility.managerLibraries.commands")
+local Logging = require("utility.managerLibraries.logging")
+local EventScheduler = require("utility.managerLibraries.event-scheduler")
+local PositionUtils = require("utility.helperUtils.position-utils")
 local BiomeTrees = require("utility.functions.biome-trees")
-local BooleanUtils = require("utility.boolean-utils")
+local BooleanUtils = require("utility.helperUtils.boolean-utils")
 local Common = require("scripts.common")
 
 SpawnAroundPlayer.CreateGlobals = function()

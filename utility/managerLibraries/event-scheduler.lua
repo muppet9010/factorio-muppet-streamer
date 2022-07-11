@@ -4,7 +4,7 @@
 --
 -- FUTURE TASK: make tests for this at end of file. Either have runable via command and commented out or for pasting the whole file in to Demo Lua. Should check that the results all come back as expected for the various schedule add/remove/get/etc functions as I'd like to simplify the _ParseScheduledEachTickEvents() actionFunction response objects and their handling as was hard to document and messy.
 
-local Events = require("utility.events")
+local Events = require("utility.managerLibraries.events")
 local EventScheduler = {}
 MOD = MOD or {}
 ---@type table<string, function>

@@ -1,6 +1,6 @@
 local Common = {}
-local MathUtils = require("utility.math-utils")
-local Logging = require("utility.logging")
+local MathUtils = require("utility.helperUtils.math-utils")
+local Logging = require("utility.managerLibraries.logging")
 local Constants = require("constants")
 
 --- Takes a parsed delay setting value in seconds and returns the Scheduled Event tick value.

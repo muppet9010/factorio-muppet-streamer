@@ -2,11 +2,11 @@
 --- Requires the utility "constants" file to be populated within the root of the mod.
 
 local Commands = {}
-local BooleanUtils = require("utility.boolean-utils")
+local BooleanUtils = require("utility.helperUtils.boolean-utils")
 local Constants = require("constants")
-local Colors = require("utility.colors")
-local TableUtils = require("utility.table-utils")
-local Logging = require("utility.logging")
+local Colors = require("utility.lists.colors")
+local TableUtils = require("utility.helperUtils.table-utils")
+local Logging = require("utility.managerLibraries.logging")
 
 --- Register a function to be triggered when a command is run. Includes support to restrict usage to admins.
 ---

@@ -4,7 +4,7 @@
 --
 
 local PrototypeUtils = {}
-local TableUtils = require("utility.table-utils")
+local TableUtils = require("utility.helperUtils.table-utils")
 local math_ceil = math.ceil
 
 ---@param repeat_count? int|nil @ Defaults to 1 if not provided
