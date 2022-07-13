@@ -25,63 +25,89 @@ LoggingUtils.BoundingBoxToString = function(boundingBox)
     return "((" .. boundingBox.left_top.x .. ", " .. boundingBox.left_top.y .. "), (" .. boundingBox.right_bottom.x .. ", " .. boundingBox.right_bottom.y .. "))"
 end
 
---- Write an error colored text string to the screen (if possible), plus the Factorio log file.
+--- Write an error colored text string to the screen (if possible), plus the Factorio log file. Not the mod's bespoke log file.
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
-LoggingUtils.LogPrintError = function(text)
+---@param recordToModLog? boolean|nil @ Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
+LoggingUtils.LogPrintError = function(text, recordToModLog)
     if game ~= nil then
         game.print(tostring(text), Colors.errorMessage)
     end
-    LoggingUtils.Log(text)
+    log(tostring(text))
+    if recordToModLog then
+        LoggingUtils._RecordToModsLog(text)
+    end
 end
 
---- Write a warning colored text string to the screen (if possible), plus the Factorio log file.
+--- Write a warning colored text string to the screen (if possible), plus the Factorio log file. Not the mod's bespoke log file.
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
-LoggingUtils.LogPrintWarning = function(text)
+---@param recordToModLog? boolean|nil @ Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
+LoggingUtils.LogPrintWarning = function(text, recordToModLog)
     if game ~= nil then
         game.print(tostring(text), Colors.warningMessage)
     end
-    LoggingUtils.Log(text)
+    log(tostring(text))
+    if recordToModLog then
+        LoggingUtils._RecordToModsLog(text)
+    end
 end
 
---- Write a text string to the screen (if possible), plus the Factorio log file.
+--- Write a text string to the screen (if possible), plus the Factorio log file. Not the mod's bespoke log file.
 --- For use in bespoke situations (and pre LogPrintError).
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
 ---@param enabled? boolean|nil @ Defaults to True. Allows code to not require lots of `if` in calling functions.
 ---@param textColor? Color|nil @ Defaults to Factorio white.
-LoggingUtils.LogPrint = function(text, enabled, textColor)
+---@param recordToModLog? boolean|nil @ Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
+LoggingUtils.LogPrint = function(text, enabled, textColor, recordToModLog)
     if enabled ~= nil and not enabled then
         return
     end
     if game ~= nil then
         game.print(tostring(text), textColor)
     end
-    LoggingUtils.Log(text)
+    log(tostring(text))
+    if recordToModLog then
+        LoggingUtils._RecordToModsLog(text)
+    end
 end
 
---- Write a text string to the mod's log file (if possible) and the Factorio log file.
+--- Write a text string to the mod's log file (if possible) and the Factorio log file. Optionally to the screen as well.
 --- For use in logging action sequences, rather than direct error handling.
 --- If in data stage can't write to mod's custom log file.
 ---@param text string
+---@param writeToScreen boolean
 ---@param enabled? boolean|nil @ Defaults to True.
-LoggingUtils.ModLog = function(text, enabled)
+LoggingUtils.ModLog = function(text, writeToScreen, enabled)
     if enabled ~= nil and not enabled then
         return
     end
     if game ~= nil then
-        if Constants.LogFileName == nil or Constants.LogFileName == "" then
-            game.print("ERROR - No Constants.LogFileName set", Colors.errorMessage)
-            log("ERROR - No Constants.LogFileName set")
-        end
-        game.write_file(Constants.LogFileName, tostring(text) .. "\r\n", true)
+        LoggingUtils._RecordToModsLog(text)
         log(tostring(text))
+        if writeToScreen then
+            game.print(tostring(text))
+        end
     else
         log(tostring(text))
     end
+end
+
+--- Just records some text to the Mod's log file (if possible) in the bespoke data folder. Logs if this isn't possible.
+--- Does nothing if can't write to files at present (no game object yet).
+---@param text string
+LoggingUtils._RecordToModsLog = function(text)
+    if game == nil then
+        return
+    end
+    if Constants.LogFileName == nil or Constants.LogFileName == "" then
+        game.print("ERROR - No Constants.LogFileName set", Colors.errorMessage)
+        log("ERROR - No Constants.LogFileName set")
+    end
+    game.write_file(Constants.LogFileName, tostring(text) .. "\r\n", true)
 end
 
 -- Runs the function in a wrapper that will log detailed infromation should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.

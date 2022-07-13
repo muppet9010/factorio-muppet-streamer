@@ -136,7 +136,7 @@ end
 Commands.ParseGenericArgument = function(value, requiredType, mandatory, commandName, argumentName, commandString)
     if mandatory and value == nil then
         -- Mandatory and not provided so fail.
-        game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be populated.", Colors.red)
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be populated.")
         if commandString ~= nil then
             LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
         end
@@ -147,7 +147,7 @@ Commands.ParseGenericArgument = function(value, requiredType, mandatory, command
         -- Check the type and handle the results.
         if type(value) ~= requiredType then
             -- Wrong type so fail.
-            game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. type(value) .. " instead.", Colors.red)
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. type(value) .. " instead.")
             if commandString ~= nil then
                 LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
             end
@@ -193,7 +193,7 @@ Commands.ParseNumberArgument = function(value, requiredType, mandatory, commandN
             isWrongType = true
         end
         if isWrongType then
-            game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. "double" .. " instead.", Colors.red)
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. "double" .. " instead.")
             if commandString ~= nil then
                 LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
             end
@@ -209,7 +209,7 @@ Commands.ParseNumberArgument = function(value, requiredType, mandatory, commandN
         isWrongType = true
     end
     if isWrongType then
-        game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be between " .. numberMinLimit .. " and " .. numberMaxLimit .. ". Received value of " .. value .. " instead.", Colors.red)
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be between " .. numberMinLimit .. " and " .. numberMaxLimit .. ". Received value of " .. value .. " instead.")
         return false
     end
 
@@ -238,11 +238,11 @@ Commands.ParseStringArgument = function(value, mandatory, commandName, argumentN
     -- Check the value is in the allowed strings requirement if provided.
     if allowedStrings ~= nil then
         if allowedStrings[value] == nil then
-            game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be one of the allowed text strings.", Colors.red)
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be one of the allowed text strings.")
             if TableUtils.GetTableNonNilLength(allowedStrings) < 20 then
-                game.print("Allowed text strings are: " .. TableUtils.TableKeyToCommaString(allowedStrings), Colors.red)
+                LoggingUtils.LogPrintError("Allowed text strings are: " .. TableUtils.TableKeyToCommaString(allowedStrings))
             else
-                game.print("Allowed strings list is too long to list. See mod documentation", Colors.red)
+                LoggingUtils.LogPrintError("Allowed strings list is too long to list. See mod documentation")
             end
             if commandString ~= nil then
                 LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
@@ -277,11 +277,11 @@ Commands.ParseTableArgument = function(value, mandatory, commandName, argumentNa
     if allowedKeys ~= nil then
         for key in pairs(value) do
             if allowedKeys[key] == nil then
-                game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " includes a non supported key: " .. tostring(key), Colors.red)
+                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " includes a non supported key: " .. tostring(key))
                 if TableUtils.GetTableNonNilLength(allowedKeys) < 20 then
-                    game.print("Allowed keys are: " .. TableUtils.TableKeyToCommaString(allowedKeys), Colors.red)
+                    LoggingUtils.LogPrintError("Allowed keys are: " .. TableUtils.TableKeyToCommaString(allowedKeys))
                 else
-                    game.print("Allowed keys list is too long to list. See mod documentation", Colors.red)
+                    LoggingUtils.LogPrintError("Allowed keys list is too long to list. See mod documentation")
                 end
                 if commandString ~= nil then
                     LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)

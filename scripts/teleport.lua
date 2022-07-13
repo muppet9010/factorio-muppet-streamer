@@ -405,7 +405,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
     elseif teleportResponse.errorTeleportFailed then
         -- Failed to teleport the entity to the specific position.
-        game.print("Muppet Streamer Error - teleport failed")
+        game.print({"message.muppet_streamer_teleport_teleport_action_failed", targetPlayer.name, LoggingUtils.PositionToString(teleportResponse.targetPosition)})
         Teleport.DoBackupTeleport(data)
         return
     end
@@ -496,7 +496,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- If the teleport of the player's entity/vehicle to the specific position failed then do next action if there is one.
         if not teleportSucceeded then
-            game.print("Muppet Streamer Error - teleport failed")
+            game.print({"message.muppet_streamer_teleport_teleport_action_failed", data.targetPlayer.name, LoggingUtils.PositionToString(data.thisAttemptPosition)})
             Teleport.DoBackupTeleport(data)
         end
     end
