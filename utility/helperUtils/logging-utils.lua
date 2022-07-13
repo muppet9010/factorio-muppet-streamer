@@ -1,7 +1,7 @@
 --- Logging functions.
 --- Requires the utility "constants" file to be populated within the root of the mod.
 
-local Logging = {}
+local LoggingUtils = {}
 local Constants = require("constants")
 local StringUtils = require("utility.helperUtils.string-utils")
 local TableUtils = require("utility.helperUtils.table-utils")
@@ -9,7 +9,7 @@ local Colors = require("utility.lists.colors")
 
 ---@param position MapPosition
 ---@return string
-Logging.PositionToString = function(position)
+LoggingUtils.PositionToString = function(position)
     if position == nil then
         return "nil position"
     end
@@ -18,7 +18,7 @@ end
 
 ---@param boundingBox BoundingBox
 ---@return string
-Logging.BoundingBoxToString = function(boundingBox)
+LoggingUtils.BoundingBoxToString = function(boundingBox)
     if boundingBox == nil then
         return "nil boundingBox"
     end
@@ -29,11 +29,22 @@ end
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
-Logging.LogPrintError = function(text)
+LoggingUtils.LogPrintError = function(text)
     if game ~= nil then
         game.print(tostring(text), Colors.errorMessage)
     end
-    Logging.Log(text)
+    LoggingUtils.Log(text)
+end
+
+--- Write a warning colored text string to the screen (if possible), plus the Factorio log file.
+--- For use in direct error handling.
+--- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
+---@param text string
+LoggingUtils.LogPrintWarning = function(text)
+    if game ~= nil then
+        game.print(tostring(text), Colors.warningMessage)
+    end
+    LoggingUtils.Log(text)
 end
 
 --- Write a text string to the screen (if possible), plus the Factorio log file.
@@ -42,14 +53,14 @@ end
 ---@param text string
 ---@param enabled? boolean|nil @ Defaults to True. Allows code to not require lots of `if` in calling functions.
 ---@param textColor? Color|nil @ Defaults to Factorio white.
-Logging.LogPrint = function(text, enabled, textColor)
+LoggingUtils.LogPrint = function(text, enabled, textColor)
     if enabled ~= nil and not enabled then
         return
     end
     if game ~= nil then
         game.print(tostring(text), textColor)
     end
-    Logging.Log(text)
+    LoggingUtils.Log(text)
 end
 
 --- Write a text string to the mod's log file (if possible) and the Factorio log file.
@@ -57,7 +68,7 @@ end
 --- If in data stage can't write to mod's custom log file.
 ---@param text string
 ---@param enabled? boolean|nil @ Defaults to True.
-Logging.ModLog = function(text, enabled)
+LoggingUtils.ModLog = function(text, enabled)
     if enabled ~= nil and not enabled then
         return
     end
@@ -75,7 +86,7 @@ end
 
 -- Runs the function in a wrapper that will log detailed infromation should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.
 ---@param functionRef function
-Logging.RunFunctionAndCatchErrors = function(functionRef, ...)
+LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
     -- Doesn't support returning values to caller as can't do this for unknown argument count.
     -- Uses a random number in file name to try and avoid overlapping errors in real game. If save is reloaded and nothing different done by player will be the same result however.
 
@@ -129,7 +140,7 @@ Logging.RunFunctionAndCatchErrors = function(functionRef, ...)
         AddLineToContents("")
         AddLineToContents("Function call arguments:")
         for index, arg in pairs(args) do
-            AddLineToContents(TableUtils.TableContentsToJSON(Logging.PrintThingsDetails(arg), index))
+            AddLineToContents(TableUtils.TableContentsToJSON(LoggingUtils.PrintThingsDetails(arg), index))
         end
 
         game.write_file(logFileName, contents, false) -- Wipe file if it exists from before.
@@ -141,7 +152,7 @@ end
 ---@param thing any @ can be a simple data type, table, or LuaObject.
 ---@param _tablesLogged? table @ don't pass in, only used internally when self referencing the function for looping.
 ---@return table
-Logging.PrintThingsDetails = function(thing, _tablesLogged)
+LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
     _tablesLogged = _tablesLogged or {} -- Internal variable passed when self referencing to avoid loops.
 
     -- Simple values just get returned.
@@ -184,7 +195,7 @@ Logging.PrintThingsDetails = function(thing, _tablesLogged)
         elseif thing_objectName == "LuaTrain" then
             local carriages = {}
             for i, carriage in pairs(thing.carriages) do
-                carriages[i] = Logging.PrintThingsDetails(carriage, _tablesLogged)
+                carriages[i] = LoggingUtils.PrintThingsDetails(carriage, _tablesLogged)
             end
             return {
                 object_name = thing_objectName,
@@ -195,8 +206,8 @@ Logging.PrintThingsDetails = function(thing, _tablesLogged)
                 manual_mode = thing.manual_mode,
                 has_path = thing.has_path,
                 speed = thing.speed,
-                signal = Logging.PrintThingsDetails(thing.signal, _tablesLogged),
-                station = Logging.PrintThingsDetails(thing.station, _tablesLogged),
+                signal = LoggingUtils.PrintThingsDetails(thing.signal, _tablesLogged),
+                station = LoggingUtils.PrintThingsDetails(thing.station, _tablesLogged),
                 carriages = carriages
             }
         else
@@ -221,7 +232,7 @@ Logging.PrintThingsDetails = function(thing, _tablesLogged)
             end
             returnedSafeTable[key] = "circular table reference - " .. valueIdText
         else
-            returnedSafeTable[key] = Logging.PrintThingsDetails(value, _tablesLogged)
+            returnedSafeTable[key] = LoggingUtils.PrintThingsDetails(value, _tablesLogged)
         end
     end
     return returnedSafeTable
@@ -230,7 +241,7 @@ end
 --- Writes out sequential numbers at the set position. Used as a visial debugging tool.
 ---@param targetSurfaceIdentification SurfaceIdentification
 ---@param targetPosition LuaEntity|MapPosition
-Logging.WriteOutNumberedMarker = function(targetSurfaceIdentification, targetPosition)
+LoggingUtils.WriteOutNumberedMarker = function(targetSurfaceIdentification, targetPosition)
     global.numberedCount = global.numberedCount or 1
     rendering.draw_text {
         text = global.numberedCount,
@@ -246,9 +257,9 @@ end
 
 --- Writes out sequential numbers at the SurfacePositionString. Used as a visial debugging tool.
 ---@param targetSurfacePositionString SurfacePositionString
-Logging.WriteOutNumberedMarkerForSurfacePositionString = function(targetSurfacePositionString)
+LoggingUtils.WriteOutNumberedMarkerForSurfacePositionString = function(targetSurfacePositionString)
     local tempSurfaceId, tempPos = StringUtils.SurfacePositionStringToSurfaceAndPosition(targetSurfacePositionString)
-    Logging.WriteOutNumberedMarker(tempSurfaceId, tempPos)
+    LoggingUtils.WriteOutNumberedMarker(tempSurfaceId, tempPos)
 end
 
-return Logging
+return LoggingUtils

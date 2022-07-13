@@ -6,7 +6,7 @@ local BooleanUtils = require("utility.helperUtils.boolean-utils")
 local Constants = require("constants")
 local Colors = require("utility.lists.colors")
 local TableUtils = require("utility.helperUtils.table-utils")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 
 --- Register a function to be triggered when a command is run. Includes support to restrict usage to admins.
 ---
@@ -138,7 +138,7 @@ Commands.ParseGenericArgument = function(value, requiredType, mandatory, command
         -- Mandatory and not provided so fail.
         game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be populated.", Colors.red)
         if commandString ~= nil then
-            Logging.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
         end
         return false
     elseif mandatory or (not mandatory and value ~= nil) then
@@ -149,7 +149,7 @@ Commands.ParseGenericArgument = function(value, requiredType, mandatory, command
             -- Wrong type so fail.
             game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. type(value) .. " instead.", Colors.red)
             if commandString ~= nil then
-                Logging.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
+                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
             end
             return false
         else
@@ -195,7 +195,7 @@ Commands.ParseNumberArgument = function(value, requiredType, mandatory, commandN
         if isWrongType then
             game.print(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. "double" .. " instead.", Colors.red)
             if commandString ~= nil then
-                Logging.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
+                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
             end
             return false
         end
@@ -245,7 +245,7 @@ Commands.ParseStringArgument = function(value, mandatory, commandName, argumentN
                 game.print("Allowed strings list is too long to list. See mod documentation", Colors.red)
             end
             if commandString ~= nil then
-                Logging.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
+                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
             end
             return false
         end
@@ -284,7 +284,7 @@ Commands.ParseTableArgument = function(value, mandatory, commandName, argumentNa
                     game.print("Allowed keys list is too long to list. See mod documentation", Colors.red)
                 end
                 if commandString ~= nil then
-                    Logging.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
+                    LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
                 end
                 return false
             end

@@ -1,6 +1,6 @@
 local AggressiveDriver = {}
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local PositionUtils = require("utility.helperUtils.position-utils")
 local Events = require("utility.managerLibraries.events")
@@ -64,8 +64,8 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -78,19 +78,19 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
 
     local target = commandData.target
     if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local duration = tonumber(commandData.duration)
     if duration == nil then
-        Logging.LogPrint(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
     duration = math.floor(duration * 60)
@@ -99,8 +99,8 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     if control ~= nil then
         control = ControlTypes[control]
         if control == nil then
-            Logging.LogPrint(errorMessageStart .. "control is Optional, but must be a valid type if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "control is Optional, but must be a valid type if supplied")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     else
@@ -112,8 +112,8 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     if teleportDistanceString ~= nil then
         teleportDistance = tonumber(teleportDistanceString)
         if teleportDistance == nil or teleportDistance < 0 then
-            Logging.LogPrint(errorMessageStart .. "teleportDistance is Optional, but must a number of 0 or greater")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "teleportDistance is Optional, but must a number of 0 or greater")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     else
@@ -125,14 +125,9 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
 end
 
 AggressiveDriver.ApplyToPlayer = function(eventData)
-    local errorMessageStart = "ERROR: muppet_streamer_aggressive_driver command "
     local data = eventData.data ---@type AggressiveDriver_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil then
-        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
-        return
-    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         game.print({"message.muppet_streamer_aggressive_driver_not_character_controller", data.target})
         return

@@ -1,6 +1,6 @@
 local SpawnAroundPlayer = {}
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local PositionUtils = require("utility.helperUtils.position-utils")
 local BiomeTrees = require("utility.functions.biome-trees")
@@ -29,8 +29,8 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -43,35 +43,35 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
     local target = commandData.target
     if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local forceString = commandData.force
     if forceString ~= nil then
         if game.forces[forceString] == nil then
-            Logging.LogPrint(errorMessageStart .. "optional force provided, but isn't a valid force name")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "optional force provided, but isn't a valid force name")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
 
     local entityName = commandData.entityName
     if entityName == nil or SpawnAroundPlayer.EntityTypeDetails[entityName] == nil then
-        Logging.LogPrint(errorMessageStart .. "entityName is mandatory and must be a supported type")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "entityName is mandatory and must be a supported type")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local radiusMax = tonumber(commandData.radiusMax)
     if radiusMax == nil or radiusMax <= 0 then
-        Logging.LogPrint(errorMessageStart .. "radiusMax is mandatory and must be a number greater than 0")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "radiusMax is mandatory and must be a number greater than 0")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -82,8 +82,8 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
     local existingEntities = commandData.existingEntities
     if existingEntities == nil or (existingEntities ~= "overlap" and existingEntities ~= "avoid") then
-        Logging.LogPrint(errorMessageStart .. "existingEntities is mandatory and must be a supported setting type")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "existingEntities is mandatory and must be a supported setting type")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -95,8 +95,8 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     if commandData.followPlayer ~= nil then
         followPlayer = BooleanUtils.ToBoolean(commandData.followPlayer)
         if followPlayer == nil then
-            Logging.LogPrint(errorMessageStart .. "followPlayer is Optional, but if provided must be a boolean")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "followPlayer is Optional, but if provided must be a boolean")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -106,14 +106,9 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 end
 
 SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
-    local errorMessageStart = "ERROR: muppet_streamer_spawn_around_player command "
     local data = eventData.data
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil or not targetPlayer.valid then
-        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
-        return
-    end
     local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0
     local entityTypeDetails = SpawnAroundPlayer.EntityTypeDetails[data.entityName]
     if data.followPlayer and entityTypeDetails.followPlayerMax ~= nil then

@@ -1,6 +1,6 @@
 local Teleport = {}
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local Events = require("utility.managerLibraries.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
@@ -105,8 +105,8 @@ Teleport.TeleportCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -142,12 +142,12 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     local target = commandData.target
     if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
         return nil
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
+        LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "target is invalid player name")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
         return nil
     end
 
@@ -156,8 +156,8 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     if destinationType == nil then
         destinationTargetPosition = PositionUtils.TableToProperPosition(destinationTypeRaw)
         if destinationTargetPosition == nil then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "destinationType is Mandatory and must be a valid type or a table for position")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
+            LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "destinationType is Mandatory and must be a valid type or a table for position")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
         else
             destinationType = DestinationTypeSelection.position
@@ -171,8 +171,8 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     if arrivalRadiusRaw ~= nil then
         arrivalRadius = tonumber(arrivalRadiusRaw)
         if arrivalRadius == nil or arrivalRadius < 0 then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
+            LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
         end
     end
@@ -182,8 +182,8 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     if minDistanceRaw ~= nil then
         minDistance = tonumber(minDistanceRaw)
         if minDistance == nil or minDistance < 0 then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
+            LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
         end
     end
@@ -192,8 +192,8 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     if destinationType == DestinationTypeSelection.position or destinationType == DestinationTypeSelection.spawn then
         maxDistance = 0
     elseif maxDistance == nil or maxDistance < 0 then
-        Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "maxDistance is Mandatory, must be 0 or greater")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
+        LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "maxDistance is Mandatory, must be 0 or greater")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
         return nil
     end
 
@@ -201,12 +201,12 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     if commandData.reachableOnly ~= nil then
         reachableOnly = BooleanUtils.ToBoolean(commandData.reachableOnly)
         if reachableOnly == nil then
-            Logging.LogPrint(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
+            LoggingUtils.LogPrintError(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
         elseif reachableOnly == true and not (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "reachableOnly is enabled set for unsupported destinationType")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
+            LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "reachableOnly is enabled set for unsupported destinationType")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
         end
     end
@@ -251,15 +251,10 @@ end
 --- Refereshs all player data on each load as waiting for pathfinder requests can make subsequent executions have different player stata data.
 ---@param eventData any
 Teleport.PlanTeleportTarget = function(eventData)
-    local errorMessageStart = "ERROR: muppet_streamer_teleport command "
     local data = eventData.data ---@type Teleport_TeleportDetails
 
     -- Get the Player object and confirm its valid.
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil or not targetPlayer.valid then
-        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
-        return
-    end
 
     -- Check the player is alive (not dead) and not in editor mode. If they are just end the attempt.
     if targetPlayer.controller_type ~= defines.controllers.character then

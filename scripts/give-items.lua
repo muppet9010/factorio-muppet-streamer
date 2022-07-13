@@ -1,7 +1,7 @@
 local GiveItems = {}
 local PlayerWeapon = require("utility.functions.player-weapon")
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local BooleanUtils = require("utility.helperUtils.boolean-utils")
 local Common = require("scripts.common")
@@ -33,8 +33,8 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -47,12 +47,12 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
 
     local target = commandData.target
     if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -60,8 +60,8 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     if weaponTypeString ~= nil and weaponTypeString ~= "" then
         weaponType = game.item_prototypes[weaponTypeString]
         if weaponType == nil or weaponType.type ~= "gun" then
-            Logging.LogPrint(errorMessageStart .. "optional weaponType provide, but isn't a valid type")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "optional weaponType provide, but isn't a valid type")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -71,8 +71,8 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     if commandData.forceWeaponToSlot ~= nil then
         forceWeaponToSlot = BooleanUtils.ToBoolean(commandData.forceWeaponToSlot)
         if forceWeaponToSlot == nil then
-            Logging.LogPrint(errorMessageStart .. "optional forceWeaponToSlot provided, but isn't a boolean true/false")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "optional forceWeaponToSlot provided, but isn't a boolean true/false")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -82,8 +82,8 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     if commandData.selectWeapon ~= nil then
         selectWeapon = BooleanUtils.ToBoolean(commandData.selectWeapon)
         if selectWeapon == nil then
-            Logging.LogPrint(errorMessageStart .. "optional selectWeapon provided, but isn't a boolean true/false")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "optional selectWeapon provided, but isn't a boolean true/false")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -92,8 +92,8 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     if ammoTypeString ~= nil and ammoTypeString ~= "" then
         ammoType = game.item_prototypes[ammoTypeString]
         if ammoType == nil or ammoType.type ~= "ammo" then
-            Logging.LogPrint(errorMessageStart .. "optional ammoType provide, but isn't a valid type")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "optional ammoType provide, but isn't a valid type")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -111,10 +111,6 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
     local data = eventData.data ---@type GiveItems_GiveWeaponAmmoScheduled
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil or not targetPlayer.valid then
-        Logging.LogPrint("ERROR: muppet_streamer_give_player_weapon_ammo command target player not found at delivery time: " .. data.target)
-        return
-    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         game.print({"message.muppet_streamer_give_player_weapon_ammo_not_character_controller", data.target})
         return

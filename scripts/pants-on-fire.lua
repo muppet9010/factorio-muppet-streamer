@@ -2,7 +2,7 @@
 
 local PantsOnFire = {}
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local Events = require("utility.managerLibraries.events")
 local Common = require("scripts.common")
@@ -56,8 +56,8 @@ PantsOnFire.PantsOnFireCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -70,19 +70,19 @@ PantsOnFire.PantsOnFireCommand = function(command)
 
     local target = commandData.target
     if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local durationSeconds = tonumber(commandData.duration)
     if durationSeconds == nil then
-        Logging.LogPrint(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
     local finishTick = scheduleTick + math.ceil(durationSeconds * 60)
@@ -92,8 +92,8 @@ PantsOnFire.PantsOnFireCommand = function(command)
     if commandData.fireHeadStart ~= nil then
         fireHeadStart = tonumber(commandData.fireHeadStart)
         if fireHeadStart == nil or fireHeadStart < 0 then
-            Logging.LogPrint(errorMessageStart .. "fireHeadStart is Optional, but must be 0 or greater if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "fireHeadStart is Optional, but must be 0 or greater if supplied")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -103,8 +103,8 @@ PantsOnFire.PantsOnFireCommand = function(command)
     if commandData.fireGap ~= nil then
         fireGap = tonumber(commandData.fireGap)
         if fireGap == nil or fireGap <= 0 then
-            Logging.LogPrint(errorMessageStart .. "fireGap is Optional, but must be 1 or greater if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "fireGap is Optional, but must be 1 or greater if supplied")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -114,8 +114,8 @@ PantsOnFire.PantsOnFireCommand = function(command)
     if commandData.flameCount ~= nil then
         flameCount = tonumber(commandData.flameCount)
         if flameCount == nil or flameCount <= 0 then
-            Logging.LogPrint(errorMessageStart .. "flameCount is Optional, but must be 1 or greater if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "flameCount is Optional, but must be 1 or greater if supplied")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -125,14 +125,9 @@ PantsOnFire.PantsOnFireCommand = function(command)
 end
 
 PantsOnFire.ApplyToPlayer = function(eventData)
-    local errorMessageStart = "ERROR: muppet_streamer_pants_on_fire command "
     local data = eventData.data ---@type PantsOnFire_ScheduledEventDetails
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil or not targetPlayer.valid then
-        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
-        return
-    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         game.print({"message.muppet_streamer_pants_on_fire_not_character_controller", data.target})
         return

@@ -2,7 +2,7 @@ local TeamMember = {}
 local Events = require("utility.managerLibraries.events")
 local GuiUtil = require("utility.managerLibraries.gui-util")
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 
 TeamMember.CreateGlobals = function()
     global.teamMember = global.teamMember or {}
@@ -146,7 +146,7 @@ end
 TeamMember.RemoteIncreaseTeamMemberLevel = function(changeQuantity)
     local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max remote interface "
     if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) ~= 0 then
-        Logging.LogPrint(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
+        LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
         return
     end
     global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount + changeQuantity
@@ -157,20 +157,20 @@ TeamMember.CommandChangeTeamMemberLevel = function(command)
     local args = Commands.GetArgumentsFromCommand(command.parameter)
     local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max command "
     if #args ~= 1 then
-        Logging.LogPrint(errorMessageStartText .. "requires a value to be provided to change the level by.")
-        Logging.LogPrint(errorMessageStartText .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStartText .. "requires a value to be provided to change the level by.")
+        LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
         return
     end
     local changeValueString = args[1]
     local changeValue = tonumber(changeValueString)
     if changeValue == nil then
-        Logging.LogPrint(errorMessageStartText .. "requires a number value to be provided to change the level by, provided: " .. changeValueString)
-        Logging.LogPrint(errorMessageStartText .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStartText .. "requires a number value to be provided to change the level by, provided: " .. changeValueString)
+        LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
         return
     end
     if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) ~= 0 then
-        Logging.LogPrint(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
-        Logging.LogPrint(errorMessageStartText .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
+        LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
         return
     end
 

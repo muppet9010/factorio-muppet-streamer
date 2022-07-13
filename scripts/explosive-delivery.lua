@@ -1,6 +1,6 @@
 local ExplosiveDelivery = {}
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local PositionUtils = require("utility.helperUtils.position-utils")
 local Common = require("scripts.common")
@@ -40,8 +40,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -54,8 +54,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 
     local explosiveCount = tonumber(commandData.explosiveCount)
     if explosiveCount == nil then
-        Logging.LogPrint(errorMessageStart .. "explosiveCount is mandatory as a number")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "explosiveCount is mandatory as a number")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif explosiveCount <= 0 then
         return
@@ -63,19 +63,19 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 
     local explosiveType = ExplosiveDelivery.ExplosiveTypes[commandData.explosiveType] ---@type ExplosiveDelivery_ExplosiveType
     if explosiveType == nil then
-        Logging.LogPrint(errorMessageStart .. "explosiveType is mandatory and must be a supported type")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "explosiveType is mandatory and must be a supported type")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local target = commandData.target
     if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -83,8 +83,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if targetPosition ~= nil then
         targetPosition = PositionUtils.TableToProperPosition(targetPosition)
         if targetPosition == nil then
-            Logging.LogPrint(errorMessageStart .. "targetPosition is Optional, but if provided must be a valid position table string")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "targetPosition is Optional, but if provided must be a valid position table string")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -93,8 +93,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if targetOffset ~= nil then
         targetOffset = PositionUtils.TableToProperPosition(targetOffset)
         if targetOffset == nil then
-            Logging.LogPrint(errorMessageStart .. "targetOffset is Optional, but if provided must be a valid position table string")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "targetOffset is Optional, but if provided must be a valid position table string")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -104,8 +104,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if commandData.accuracyRadiusMin ~= nil then
         accuracyRadiusMin = tonumber(commandData.accuracyRadiusMin)
         if accuracyRadiusMin == nil or accuracyRadiusMin < 0 then
-            Logging.LogPrint(errorMessageStart .. "accuracyRadiusMin is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "accuracyRadiusMin is Optional, but must be a non-negative number if supplied")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -115,8 +115,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if commandData.accuracyRadiusMax ~= nil then
         accuracyRadiusMax = tonumber(commandData.accuracyRadiusMax)
         if accuracyRadiusMax == nil or accuracyRadiusMax < 0 then
-            Logging.LogPrint(errorMessageStart .. "accuracyRadiusMax is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "accuracyRadiusMax is Optional, but must be a non-negative number if supplied")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -126,8 +126,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if commandData.salvoSize ~= nil then
         salvoSize = tonumber(commandData.salvoSize)
         if salvoSize == nil or salvoSize < 0 then
-            Logging.LogPrint(errorMessageStart .. "salvoSize is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "salvoSize is Optional, but must be a non-negative number if supplied")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -137,8 +137,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if commandData.salvoDelay ~= nil then
         salvoDelay = tonumber(commandData.salvoDelay)
         if salvoDelay == nil or salvoDelay < 0 then
-            Logging.LogPrint(errorMessageStart .. "salvoDelay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "salvoDelay is Optional, but must be a non-negative number if supplied")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -181,10 +181,7 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     local data = eventData.data ---@type ExplosiveDelivery_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil then
-        Logging.LogPrint("ERROR: muppet_streamer_schedule_explosive_delivery command target player not found at delivery time: " .. data.target)
-        return
-    end
+    -- Don't need to check if the target is alive or anything. We will happily bomb their corpse.
 
     ---@typelist MapPosition, LuaSurface
     local targetPos, surface

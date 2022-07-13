@@ -1,6 +1,6 @@
 local CallForHelp = {}
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local PositionUtils = require("utility.helperUtils.position-utils")
 local Events = require("utility.managerLibraries.events")
@@ -82,8 +82,8 @@ CallForHelp.CallForHelpCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -96,12 +96,12 @@ CallForHelp.CallForHelpCommand = function(command)
 
     local target = commandData.target
     if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -110,8 +110,8 @@ CallForHelp.CallForHelpCommand = function(command)
     if arrivalRadiusRaw ~= nil then
         arrivalRadius = tonumber(arrivalRadiusRaw)
         if arrivalRadius == nil or arrivalRadius < 0 then
-            Logging.LogPrint(errorMessageStart .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -121,8 +121,8 @@ CallForHelp.CallForHelpCommand = function(command)
     if callRadius ~= nil then
         callRadius = tonumber(callRadius)
         if callRadius == nil or callRadius <= 0 then
-            Logging.LogPrint(errorMessageStart .. "callRadius is Optional, but if provided must be greater than 0")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "callRadius is Optional, but if provided must be greater than 0")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -131,8 +131,8 @@ CallForHelp.CallForHelpCommand = function(command)
     if sameSurfaceOnly ~= nil then
         sameSurfaceOnly = BooleanUtils.ToBoolean(sameSurfaceOnly)
         if sameSurfaceOnly == nil then
-            Logging.LogPrint(errorMessageStart .. "sameSurfaceOnly is Optional, but must be a valid boolean if provided")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "sameSurfaceOnly is Optional, but must be a valid boolean if provided")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     else
@@ -147,8 +147,8 @@ CallForHelp.CallForHelpCommand = function(command)
     if sameTeamOnly ~= nil then
         sameTeamOnly = BooleanUtils.ToBoolean(sameTeamOnly)
         if sameTeamOnly == nil then
-            Logging.LogPrint(errorMessageStart .. "sameTeamOnly is Optional, but must be a valid boolean if provided")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "sameTeamOnly is Optional, but must be a valid boolean if provided")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     else
@@ -169,8 +169,8 @@ CallForHelp.CallForHelpCommand = function(command)
 
     local callSelection = CallSelection[commandData.callSelection]
     if callSelection == nil then
-        Logging.LogPrint(errorMessageStart .. "callSelection is Mandatory and must be a valid type")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "callSelection is Mandatory and must be a valid type")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -178,8 +178,8 @@ CallForHelp.CallForHelpCommand = function(command)
     if number ~= nil then
         number = tonumber(number)
         if number == nil then
-            Logging.LogPrint(errorMessageStart .. "number is Optional, but must be a valid number if provided")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "number is Optional, but must be a valid number if provided")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         number = math.floor(number)
@@ -191,8 +191,8 @@ CallForHelp.CallForHelpCommand = function(command)
     if activePercentage ~= nil then
         activePercentage = tonumber(activePercentage)
         if activePercentage == nil then
-            Logging.LogPrint(errorMessageStart .. "activePercentage is Optional, but must be a valid number if provided")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(errorMessageStart .. "activePercentage is Optional, but must be a valid number if provided")
+            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         activePercentage = activePercentage / 100
@@ -201,8 +201,8 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     if number == 0 and activePercentage == 0 then
-        Logging.LogPrint(errorMessageStart .. "either number or activePercentage must be provided")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "either number or activePercentage must be provided")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -211,14 +211,9 @@ CallForHelp.CallForHelpCommand = function(command)
 end
 
 CallForHelp.CallForHelp = function(eventData)
-    local errorMessageStart = "ERROR: muppet_streamer_call_for_help command "
     local data = eventData.data ---@type CallForHelp_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil or not targetPlayer.valid then
-        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
-        return
-    end
     if targetPlayer.controller_type ~= defines.controllers.character then
         game.print({"message.muppet_streamer_call_for_help_not_character_controller", data.target})
         return

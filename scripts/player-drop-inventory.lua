@@ -1,6 +1,6 @@
 local PlayerDropInventory = {}
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local BooleanUtils = require("utility.helperUtils.boolean-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local Events = require("utility.managerLibraries.events")
@@ -37,8 +37,8 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(ErrorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -51,32 +51,32 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
 
     local target = commandData.target ---@type string
     if target == nil then
-        Logging.LogPrint(ErrorMessageStart .. "target is mandatory")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "target is mandatory")
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(ErrorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "target is invalid player name")
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local quantityTypeString = commandData.quantityType
     if target == nil then
-        Logging.LogPrint(ErrorMessageStart .. "quantityType is mandatory")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "quantityType is mandatory")
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
     local quantityType = QuantityType[quantityTypeString] ---@type PlayerDropInventory_QuantityType
     if quantityType == nil then
-        Logging.LogPrint(ErrorMessageStart .. "quantityType is invalid quantityType string")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "quantityType is invalid quantityType string")
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local quantityValue = tonumber(commandData.quantityValue) --[[@as uint]] ---@type uint
     if quantityValue == nil or quantityValue <= 0 then
-        Logging.LogPrint(ErrorMessageStart .. "quantityValue is mandatory as a number and above 0")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "quantityValue is mandatory as a number and above 0")
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -87,24 +87,24 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     else
         dropOnBelts = BooleanUtils.ToBoolean(dropOnBeltsRaw)
         if dropOnBelts == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if dropOnBelts is provided it must be a boolean: true, false")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "if dropOnBelts is provided it must be a boolean: true, false")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
 
     local gap = tonumber(commandData.gap)
     if quantityValue == nil or gap < 0 then
-        Logging.LogPrint(ErrorMessageStart .. "gap is mandatory as a number and must be 0 or greater")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "gap is mandatory as a number and must be 0 or greater")
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
     gap = math.ceil(gap * 60)
 
     local occurrences = tonumber(commandData.occurrences)
     if occurrences == nil or occurrences < 1 then
-        Logging.LogPrint(ErrorMessageStart .. "occurrences is mandatory as a number and must be 1 or greater")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "occurrences is mandatory as a number and must be 1 or greater")
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -115,8 +115,8 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     else
         dropEquipment = BooleanUtils.ToBoolean(dropEquipmentString)
         if dropEquipment == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if dropEquipment is provided it must be a boolean: true, false")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "if dropEquipment is provided it must be a boolean: true, false")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -140,10 +140,6 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     local data = event.data ---@type PlayerDropInventory_ApplyDropItemsData
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil or not targetPlayer.valid then
-        Logging.LogPrint(ErrorMessageStart .. "target player not found at creation time: " .. data.target)
-        return
-    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         -- Player not alive or in non playing mode.
         game.print({"message.muppet_streamer_player_drop_inventory_not_character_controller", data.target})
@@ -224,7 +220,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 end
             end
             if inventoryNameOfItemNumberToDrop == nil then
-                Logging.LogPrint(ErrorMessageStart .. "didn't find item number " .. itemNumberToDrop .. " when looking over " .. player.name .. "'s inventories.")
+                LoggingUtils.LogPrintError(ErrorMessageStart .. "didn't find item number " .. itemNumberToDrop .. " when looking over " .. player.name .. "'s inventories.")
                 return
             end
 
@@ -240,7 +236,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 end
             end
             if itemNameToDrop == nil then
-                Logging.LogPrint(ErrorMessageStart .. "didn't find item name for number " .. itemNumberToDrop .. " in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop)
+                LoggingUtils.LogPrintError(ErrorMessageStart .. "didn't find item name for number " .. itemNumberToDrop .. " in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop)
                 return
             end
 

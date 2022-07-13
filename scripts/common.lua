@@ -1,6 +1,6 @@
 local Common = {}
 local MathUtils = require("utility.helperUtils.math-utils")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local Constants = require("constants")
 
 --- Takes a parsed delay setting value in seconds and returns the Scheduled Event tick value.
@@ -16,7 +16,7 @@ Common.DelaySecondsSettingToScheduledEventTickValue = function(delaySecondsRaw, 
         local valueWasOutsideRange  ---@type boolean
         scheduleTick, valueWasOutsideRange = MathUtils.ClampToUInt(scheduleTick)
         if valueWasOutsideRange then
-            Logging.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " had " .. settingName .. " capped at max ticks, as excessively large number of delay seconds provided: " .. tostring(delaySecondsRaw))
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " had " .. settingName .. " capped at max ticks, as excessively large number of delay seconds provided: " .. tostring(delaySecondsRaw))
         end
     else
         scheduleTick = -1 ---@type UtilityScheduledEvent_UintNegative1

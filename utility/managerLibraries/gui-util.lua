@@ -6,7 +6,7 @@ local GuiUtil = {}
 local TableUtils = require("utility.helperUtils.table-utils")
 local GuiActionsClick = require("utility.managerLibraries.gui-actions-click")
 local GuiActionsChecked = require("utility.managerLibraries.gui-actions-checked")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local Constants = require("constants")
 local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 
@@ -206,7 +206,7 @@ GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeNa
 
     -- Handle if the element has been removed by something unexpectedly. This will flag a text warning and not hard error for legacy reasons.
     if not element.valid then
-        Logging.LogPrint("WARNING: Muppet GUI - A mod tried to update a GUI, buts the GUI is invalid. This is either a bug, or another mod deleted this GUI. Hopefully closing the affected GUI and re-opening it will resolve this. GUI details: player: '" .. game.get_player(playerIndex).name .. "', storeName: '" .. storeName .. "', element Name: '" .. elementName .. "', element Type: '" .. elementType .. "'")
+        LoggingUtils.LogPrintWarning("WARNING: Muppet GUI - A mod tried to update a GUI, buts the GUI is invalid. This is either a bug, or another mod deleted this GUI. Hopefully closing the affected GUI and re-opening it will resolve this. GUI details: player: '" .. game.get_player(playerIndex).name .. "', storeName: '" .. storeName .. "', element Name: '" .. elementName .. "', element Type: '" .. elementType .. "'")
         return nil
     end
 

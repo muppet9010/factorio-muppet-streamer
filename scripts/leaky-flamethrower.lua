@@ -1,6 +1,6 @@
 local LeakyFlamethrower = {}
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local Events = require("utility.managerLibraries.events")
 local PlayerWeapon = require("utility.functions.player-weapon")
@@ -65,8 +65,8 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -79,19 +79,19 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
 
     local target = commandData.target
     if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
     local ammoCount = tonumber(commandData.ammoCount)
     if ammoCount == nil then
-        Logging.LogPrint(errorMessageStart .. "ammoCount is mandatory as a number")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStart .. "ammoCount is mandatory as a number")
+        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     else
         ammoCount = math.ceil(ammoCount)
@@ -109,10 +109,6 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local data = eventData.data ---@type LeakyFlamethrower_ScheduledEventDetails
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil or not targetPlayer.valid then
-        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
-        return
-    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         game.print({"message.muppet_streamer_leaky_flamethrower_not_character_controller", data.target})
         return
@@ -126,7 +122,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     targetPlayer.driving = false
     local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true)
     if flamethrowerGiven == nil then
-        Logging.LogPrint(errorMessageStart .. "target player can't be given a flamethrower for some odd reason: " .. data.target)
+        LoggingUtils.LogPrintError(errorMessageStart .. "target player can't be given a flamethrower for some odd reason: " .. data.target)
         return
     end
     -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).

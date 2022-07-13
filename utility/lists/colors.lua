@@ -8,6 +8,7 @@ local Colors = {}
 
 -- Named presets
 Colors.errorMessage = Colors.lightred
+Colors.warningMessage = Colors.orange
 
 --Custom
 Colors.lightred = {255, 100, 100, 255} -- Ideal for error message text printed to screen.

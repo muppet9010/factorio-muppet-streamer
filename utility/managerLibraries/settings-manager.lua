@@ -1,8 +1,8 @@
--- Library to support using mod settings to acept and array of values for N instances of something. Rather than having to add lots of repeat mod settings entry boxes.
+-- Library to support using mod settings to accept an array of values for N instances of something. Rather than having to add lots of repeat mod settings entry boxes.
 
 local SettingsManager = {}
 local BooleanUtils = require("utility.helperUtils.boolean-utils")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 
 SettingsManager.ExpectedValueTypes = {}
 SettingsManager.ExpectedValueTypes.string = {name = "string", hasChildren = false}
@@ -26,10 +26,10 @@ end
 ]]
 SettingsManager.HandleSettingWithArrayOfValues = function(settingType, settingName, expectedValueType, defaultSettingsContainer, defaultValue, globalGroupsContainer, globalSettingContainerName, globalSettingName, valueHandlingFunction)
     if expectedValueType == nil or expectedValueType == "" then
-        Logging.LogPrint("Setting '[" .. settingType .. "][" .. settingName .. "]' has no value type coded.")
+        error("Setting '[" .. tostring(settingType) .. "][" .. tostring(settingName) .. "]' has no value type coded.")
         return
     elseif expectedValueType.name == nil or SettingsManager.ExpectedValueTypes[expectedValueType.name] == nil then
-        Logging.LogPrint("Setting '[" .. settingType .. "][" .. settingName .. "]' has an invalid value type coded: '" .. tostring(expectedValueType.name) .. "'")
+        error("Setting '[" .. tostring(settingType) .. "][" .. tostring(settingName) .. "]' has an invalid value type coded: '" .. tostring(expectedValueType.name) .. "'")
         return
     end
 
@@ -67,7 +67,7 @@ SettingsManager.HandleSettingWithArrayOfValues = function(settingType, settingNa
                 thisGlobalSettingContainer[globalSettingName] = valueHandlingFunction(typedValue)
             else
                 thisGlobalSettingContainer[globalSettingName] = valueHandlingFunction(defaultValue)
-                Logging.LogPrint("Setting '[" .. settingType .. "][" .. settingName .. "]' for entry number '" .. id .. "' has an invalid value type. Expected a '" .. expectedValueType.name .. "' but got the value '" .. tostring(value) .. "', so using default value of '" .. tostring(defaultValue) .. "'")
+                LoggingUtils.LogPrintWarning("Setting '[" .. settingType .. "][" .. settingName .. "]' for entry number '" .. id .. "' has an invalid value type. Expected a '" .. expectedValueType.name .. "' but got the value '" .. tostring(value) .. "', so using default value of '" .. tostring(defaultValue) .. "'")
             end
         end
         defaultSettingsContainer[globalSettingName] = valueHandlingFunction(defaultValue)
@@ -80,7 +80,7 @@ SettingsManager.HandleSettingWithArrayOfValues = function(settingType, settingNa
             defaultSettingsContainer[globalSettingName] = valueHandlingFunction(defaultValue)
             if not (expectedValueType.hasChildren and value == "") then
                 -- If its an arrayOf type setting and an empty string is input don't show an error. Blank string is valid as well as an empty array JSON.
-                Logging.LogPrint("Setting '[" .. settingType .. "][" .. settingName .. "]' isn't a valid JSON array and has an invalid value type for a single value. Expected a single or array of '" .. expectedValueType.name .. "' but got the value '" .. tostring(value) .. "', so using default value of '" .. tostring(defaultValue) .. "'")
+                LoggingUtils.LogPrintWarning("Setting '[" .. settingType .. "][" .. settingName .. "]' isn't a valid JSON array and has an invalid value type for a single value. Expected a single or array of '" .. expectedValueType.name .. "' but got the value '" .. tostring(value) .. "', so using default value of '" .. tostring(defaultValue) .. "'")
             end
         end
     end

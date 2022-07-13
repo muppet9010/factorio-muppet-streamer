@@ -1,6 +1,6 @@
 local PlayerInventoryShuffle = {}
 local Commands = require("utility.managerLibraries.commands")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 local EventScheduler = require("utility.managerLibraries.event-scheduler")
 local Colors = require("utility.lists.colors")
 local BooleanUtils = require("utility.helperUtils.boolean-utils")
@@ -27,9 +27,9 @@ local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements --[
 ------------------------------------------------------------------------------------------
 
 ------------------------        DEBUG OPTIONS - MAKE SURE ARE FALE ON RELEASE       ------------------------
-local debugStatusMessages = false
-local singlePlayerTesting = false -- Set to TRUE to force the mod to work for one player with false copies of the one player.
-local singlePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force the mod to work for one player with false copies of the one player. It will duplicate the input items as if each fake player had a complete set. Has to discard excess items as otherwise profile is distorted. Intended for profiling more than bug fixing.
+local DebugStatusMessages = false
+local SinglePlayerTesting = false -- Set to TRUE to force the mod to work for one player with false copies of the one player.
+local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force the mod to work for one player with false copies of the one player. It will duplicate the input items as if each fake player had a complete set. Has to discard excess items as otherwise profile is distorted. Intended for profiling more than bug fixing.
 
 ---@alias PlayerInventoryShuffle_playersItemCounts table<uint, PlayerInventoryShuffle_orderedItemCounts>
 
@@ -67,8 +67,8 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         commandData = game.json_to_table(command.parameter)
     end
     if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(ErrorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "requires details in JSON format.")
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
@@ -105,8 +105,8 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             if force ~= nil then
                 table.insert(includedForces, force)
             else
-                Logging.LogPrint(ErrorMessageStart .. "includedForces has an invalid force name: " .. tostring(includedForceName))
-                Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+                LoggingUtils.LogPrintError(ErrorMessageStart .. "includedForces has an invalid force name: " .. tostring(includedForceName))
+                LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
                 return
             end
         end
@@ -116,8 +116,8 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if not includeAllPlayersOnServer and #includedForces == 0 then
         -- As not all players and no forces fully included, we actually have to check the player list.
         if includedPlayerNames == nil or #includedPlayerNames < 2 then
-            Logging.LogPrint(ErrorMessageStart .. "atleast 2 players must be listed if no force is included.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "atleast 2 players must be listed if no force is included.")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -129,8 +129,8 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     else
         includeEquipment = BooleanUtils.ToBoolean(includeEquipmentString)
         if includeEquipment == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if includeEquipment is supplied it must be a boolean.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "if includeEquipment is supplied it must be a boolean.")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -142,8 +142,8 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     else
         includeHandCrafting = BooleanUtils.ToBoolean(includeHandCraftingString)
         if includeHandCrafting == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if includeHandCrafting is supplied it must be a boolean.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "if includeHandCrafting is supplied it must be a boolean.")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -155,14 +155,14 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     else
         destinationPlayersMinimumVariance = tonumber(destinationPlayersMinimumVarianceString)
         if destinationPlayersMinimumVariance == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersMinimumVariance is supplied it must be a number.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "if destinationPlayersMinimumVariance is supplied it must be a number.")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         destinationPlayersMinimumVariance = math_floor(destinationPlayersMinimumVariance)
         if destinationPlayersMinimumVariance < 0 then
-            Logging.LogPrint(ErrorMessageStart .. "destinationPlayersMinimumVariance must be a number >= 0.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "destinationPlayersMinimumVariance must be a number >= 0.")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -175,13 +175,13 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     else
         destinationPlayersVarianceFactor = tonumber(destinationPlayersVarianceFactorString)
         if destinationPlayersVarianceFactor == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersVarianceFactor is supplied it must be a number.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "if destinationPlayersVarianceFactor is supplied it must be a number.")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         if destinationPlayersVarianceFactor < 0 then
-            Logging.LogPrint(ErrorMessageStart .. "destinationPlayersVarianceFactor must be a number >= 0.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "destinationPlayersVarianceFactor must be a number >= 0.")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -194,14 +194,14 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     else
         recipientItemMinToMaxRatio = tonumber(recipientItemMinToMaxRatioString)
         if recipientItemMinToMaxRatio == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if recipientItemMinToMaxRatio is supplied it must be a number.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "if recipientItemMinToMaxRatio is supplied it must be a number.")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
         recipientItemMinToMaxRatio = math_floor(recipientItemMinToMaxRatio)
         if recipientItemMinToMaxRatio < 1 then
-            Logging.LogPrint(ErrorMessageStart .. "recipientItemMinToMaxRatio must be a number >= 1.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recipientItemMinToMaxRatio must be a number >= 1.")
+            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
     end
@@ -256,7 +256,7 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
         end
     end
 
-    if singlePlayerTesting or singlePlayerTesting_DuplicateInputItems then
+    if SinglePlayerTesting or SinglePlayerTesting_DuplicateInputItems then
         -- Fakes the only player as multiple players so that the 1 players inventory is spread across these multiple fake players, but still all ends up inside the single real player's inventory.
         players = {game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1]}
     end
@@ -370,7 +370,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                     break
                 end
 
-                if not singlePlayerTesting_DuplicateInputItems then
+                if not SinglePlayerTesting_DuplicateInputItems then
                     -- If testing with one real player don't remove all the items as we want to add them for the next "fake" player referecing this same real character.
                     playersInventory.clear()
                 end
@@ -453,7 +453,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     end
 
     -- If testing with one real player now empty the players inventories. In real code this was done during the loop.
-    if singlePlayerTesting_DuplicateInputItems then
+    if SinglePlayerTesting_DuplicateInputItems then
         for _, inventoryName in pairs(inventoryNamesToCheck) do
             playersInventory = players[1].get_inventory(inventoryName)
             playersInventory.clear()
@@ -579,7 +579,9 @@ PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInvento
             if playersInventoryIsFull then
                 -- Player's inventory is full so stop trying to add more things to do. Will catch the left over items in the storage inventory later.
                 playerIndexsWithFreeInventorySpace_table[playerIndex] = nil -- This will make it a gappy array, but we will squash it down later.
-                Logging.LogPrint("Player list index " .. playerIndex .. "'s inventory is full during initial item distribution", debugStatusMessages)
+                if DebugStatusMessages then
+                    LoggingUtils.LogPrintWarning("Player list index " .. playerIndex .. "'s inventory is full during initial item distribution")
+                end
                 break
             end
         end
@@ -596,7 +598,9 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
     -- Check the storage inventory is empty, distribute anything left or just dump it on the ground.
     local itemsLeftInStorage = storageInventory.get_contents()
     if next(itemsLeftInStorage) ~= nil then
-        Logging.LogPrint("storage inventory not all distributed to players initially", debugStatusMessages)
+        if DebugStatusMessages then
+            LoggingUtils.LogPrintWarning("storage inventory not all distributed to players initially")
+        end
         -- playerIndexsWithFreeInventorySpace_table is a gappy array so have to make it consistent to allow easier usage in this phase.
         local playerIndexsWithFreeInventorySpace_array = {} ---@type LuaPlayer[]
         for _, player in pairs(playerIndexsWithFreeInventorySpace_table) do
@@ -619,7 +623,9 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
                 if playersInventoryIsFull then
                     -- Player's inventory is full so prevent trying to add anything else to this player in the future.
                     table.remove(playerIndexsWithFreeInventorySpace_array, playerListIndex)
-                    Logging.LogPrint("A player's inventory is full during secondary item dump to players", debugStatusMessages) -- This doesn't know the origional position of the player in the list as the list is being trimmed and squashed as it goes.
+                    if DebugStatusMessages then
+                        LoggingUtils.LogPrintWarning("A player's inventory is full during secondary item dump to players") -- This doesn't know the origional position of the player in the list as the list is being trimmed and squashed as it goes.
+                    end
                 end
             end
 
@@ -630,7 +636,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
         end
 
         -- If testing with one real player just leave the excess duplicated stuff in the storage as otherwise we will polute the profile with a massive item drop on floor.
-        if singlePlayerTesting_DuplicateInputItems then
+        if SinglePlayerTesting_DuplicateInputItems then
             return
         end
 

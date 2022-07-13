@@ -11,16 +11,16 @@
 
 local MathUtils = require("utility.helperUtils.math-utils")
 local TableUtils = require("utility.helperUtils.table-utils")
-local Logging = require("utility.managerLibraries.logging")
+local LoggingUtils = require("utility.helperUtils.logging-utils")
 
 local BaseGameData = require("utility.functions.biome-trees-data.base-game")
 local AlienBiomesData = require("utility.functions.biome-trees-data.alien-biomes")
 
 local BiomeTrees = {}
-local logNonPositives = false
-local logPositives = false
-local logData = false
-local logTags = false
+local LogNonPositives = false
+local LogPositives = false
+local LogData = false
+local LogTags = false
 
 BiomeTrees.OnStartup = function()
     -- Always recreate on game startup/config changed to handle any mod changed trees, tiles, etc.
@@ -28,9 +28,9 @@ BiomeTrees.OnStartup = function()
     global.UTILITYBIOMETREES.environmentData = BiomeTrees._GetEnvironmentData()
     global.UTILITYBIOMETREES.tileData = global.UTILITYBIOMETREES.environmentData.tileData
     global.UTILITYBIOMETREES.treeData = BiomeTrees._GetTreeData()
-    if logData then
-        Logging.LogPrint(serpent.block(global.UTILITYBIOMETREES.treeData))
-        Logging.LogPrint(serpent.block(global.UTILITYBIOMETREES.tileData))
+    if LogData then
+        LoggingUtils.ModLog(serpent.block(global.UTILITYBIOMETREES.treeData))
+        LoggingUtils.ModLog(serpent.block(global.UTILITYBIOMETREES.tileData))
     end
 end
 
@@ -42,7 +42,7 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
         local tileName = tile.hidden_tile
         tileData = global.UTILITYBIOMETREES.tileData[tileName]
         if tileData == nil then
-            Logging.LogPrint("Failed to get tile data for ''" .. tostring(tile.name) .. "'' and hidden tile '" .. tostring(tileName) .. "'", logNonPositives)
+            LoggingUtils.LogPrint("Failed to get tile data for ''" .. tostring(tile.name) .. "'' and hidden tile '" .. tostring(tileName) .. "'", LogNonPositives)
             return BiomeTrees.GetRandomTreeLastResort(tile)
         end
     end
@@ -58,10 +58,10 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
 
     local suitableTrees = BiomeTrees._SearchForSuitableTrees(tileData, tileTemp, tileMoisture)
     if #suitableTrees == 0 then
-        Logging.LogPrint("No tree found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture, logNonPositives)
+        LoggingUtils.LogPrint("No tree found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture, LogNonPositives)
         return BiomeTrees.GetRandomTreeLastResort(tile)
     end
-    Logging.LogPrint("trees found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture, logPositives)
+    LoggingUtils.LogPrint("trees found for conditions: tile: " .. tileData.name .. "   temp: " .. tileTemp .. "    moisture: " .. tileMoisture, LogPositives)
 
     local highestChance, treeName, treeFound = suitableTrees[#suitableTrees].chanceEnd, nil, false
     local chanceValue = math.random() * highestChance
@@ -83,20 +83,20 @@ BiomeTrees.AddBiomeTreeNearPosition = function(surface, position, distance)
     -- Returns the tree entity if one found and created or nil
     local treeType = BiomeTrees.GetBiomeTreeName(surface, position)
     if treeType == nil then
-        Logging.LogPrint("no tree was found", logNonPositives)
+        LoggingUtils.LogPrint("no tree was found", LogNonPositives)
         return nil
     end
     local newPosition = surface.find_non_colliding_position(treeType, position, distance, 0.2)
     if newPosition == nil then
-        Logging.LogPrint("No position for new tree found", logNonPositives)
+        LoggingUtils.LogPrint("No position for new tree found", LogNonPositives)
         return nil
     end
     local newTree = surface.create_entity {name = treeType, position = newPosition, force = "neutral", raise_built = true, create_build_effect_smoke = false}
     if newTree == nil then
-        Logging.LogPrint("Failed to create tree at found position")
+        LoggingUtils.LogPrintError("Failed to create tree at found position")
         return nil
     end
-    Logging.LogPrint("tree added successfully, type: " .. treeType .. "    position: " .. newPosition.x .. ", " .. newPosition.y, logPositives)
+    LoggingUtils.LogPrint("tree added successfully, type: " .. treeType .. "    position: " .. newPosition.x .. ", " .. newPosition.y, LogPositives)
     return newTree
 end
 
@@ -137,7 +137,9 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
                 local include = false
                 if not TableUtils.IsTableEmpty(tree.tile_restrictions) then
                     if tree.tile_restrictions[tileData.name] then
-                        Logging.LogPrint("tile restrictons match", logTags)
+                        if LogTags then
+                            LoggingUtils.ModLog("tile restrictons match")
+                        end
                         include = true
                     end
                 else
@@ -146,7 +148,9 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
                     elseif not TableUtils.IsTableEmpty(tree.tags) then
                         for tileTag in pairs(tileData.tags) do
                             if tree.tags[tileTag] then
-                                Logging.LogPrint("tile tags: " .. TableUtils.TableKeyToCommaString(tileData.tags) .. "  --- tree tags: " .. TableUtils.TableKeyToCommaString(tree.tags), logTags)
+                                if LogTags then
+                                    LoggingUtils.ModLog("tile tags: " .. TableUtils.TableKeyToCommaString(tileData.tags) .. "  --- tree tags: " .. TableUtils.TableKeyToCommaString(tree.tags))
+                                end
                                 include = true
                                 break
                             end
@@ -166,7 +170,9 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
             end
         end
         if #suitableTrees > 0 then
-            Logging.LogPrint(#suitableTrees .. " found on accuracy: " .. accuracy, logPositives)
+            if LogPositives then
+                LoggingUtils.LogPrint(#suitableTrees .. " found on accuracy: " .. accuracy)
+            end
             break
         end
     end
@@ -192,7 +198,7 @@ BiomeTrees._GetEnvironmentData = function()
                 if tagToColors[tile.tags] then
                     tile.tags = tagToColors[tile.tags]
                 else
-                    Logging.LogPrint("Failed to find tile to tree colour mapping for tile tag: ' " .. tile.tags .. "'")
+                    LoggingUtils.LogPrintError("Failed to find tile to tree colour mapping for tile tag: ' " .. tile.tags .. "'")
                 end
             end
         end
@@ -223,7 +229,9 @@ BiomeTrees._GetTreeData = function()
     local treeEntities = game.get_filtered_entity_prototypes({{filter = "type", type = "tree"}, {mode = "and", filter = "autoplace"}})
 
     for _, prototype in pairs(treeEntities) do
-        Logging.LogPrint(prototype.name, logData)
+        if LogData then
+            LoggingUtils.LogPrint(prototype.name)
+        end
         local autoplace = nil
         for _, peak in pairs(prototype.autoplace_specification.peaks) do
             if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeName.optimal] ~= nil then
