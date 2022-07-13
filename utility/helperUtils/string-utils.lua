@@ -16,7 +16,7 @@ end
 ---@param text string
 ---@param splitCharacters string
 ---@param returnAsKey? boolean|nil @ If nil or false then an array of strings are returned. If true then a table with the string as the keys and the value as boolean true are returned.
----@return string[]|table<string, True>
+---@return string[]|table<string, true>
 StringUtils.SplitStringOnCharacters = function(text, splitCharacters, returnAsKey)
     local list = {}
     local results = text:gmatch("[^" .. splitCharacters .. "]*")

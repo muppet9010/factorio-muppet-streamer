@@ -29,8 +29,8 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 ---@field callRadius? double|nil
 ---@field sameTeamOnly boolean
 ---@field sameSurfaceOnly boolean
----@field blacklistedPlayerNames table<string, True> @ Table of player names as the key.
----@field whitelistedPlayerNames table<string, True> @ Table of player names as the key.
+---@field blacklistedPlayerNames table<string, true> @ Table of player names as the key.
+---@field whitelistedPlayerNames table<string, true> @ Table of player names as the key.
 ---@field callSelection CallForHelp_CallSelection
 ---@field number uint
 ---@field activePercentage double
@@ -156,13 +156,13 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local blacklistedPlayerNames_string = commandData.blacklistedPlayerNames
-    local blacklistedPlayerNames  ---@type table<string, True>|nil
+    local blacklistedPlayerNames  ---@type table<string, true>|nil
     if blacklistedPlayerNames_string ~= nil and blacklistedPlayerNames_string ~= "" then
         blacklistedPlayerNames = StringUtils.SplitStringOnCharacters(blacklistedPlayerNames_string, ",", true)
     end
 
     local whitelistedPlayerNames_string = commandData.whitelistedPlayerNames
-    local whitelistedPlayerNames  ---@type table<string, True>|nil
+    local whitelistedPlayerNames  ---@type table<string, true>|nil
     if whitelistedPlayerNames_string ~= nil and whitelistedPlayerNames_string ~= "" then
         whitelistedPlayerNames = StringUtils.SplitStringOnCharacters(whitelistedPlayerNames_string, ",", true)
     end

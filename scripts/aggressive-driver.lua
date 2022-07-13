@@ -40,7 +40,7 @@ local EffectEndStatus = {
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type int
-    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, True> @ Key'd by player_index.
+    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, true> @ Key'd by player_index.
 end
 
 AggressiveDriver.OnLoad = function()
