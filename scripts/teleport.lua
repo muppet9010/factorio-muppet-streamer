@@ -534,7 +534,7 @@ end
 Teleport.OnChunkGenerated = function(event)
     global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId + 1
     -- Check the chunk in 1 ticks time to let any other mod or scenario complete its actions first.
-    EventScheduler.ScheduleEventOnce(event.tick + 1 --[[@as uint]], "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
+    EventScheduler.ScheduleEventOnce(event.tick + 1 --[[@as UtilityScheduledEvent_UintNegative1]], "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
 end
 
 --- When a chunk is generated we wait for 1 tick and then this function is called. Lets any other mod/scenario mess with the spawner prior to use caching its details.

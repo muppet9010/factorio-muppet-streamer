@@ -175,7 +175,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             salvoWaveId = salvoWaveId,
             finalSalvo = batchNumber == maxBatchNumber
         }
-        EventScheduler.ScheduleEventOnce(scheduleTick + (batchNumber * salvoDelay) --[[@as uint]], "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
+        EventScheduler.ScheduleEventOnce(scheduleTick + (batchNumber * salvoDelay) --[[@as UtilityScheduledEvent_UintNegative1]], "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
     end
 end
 

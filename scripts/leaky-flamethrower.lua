@@ -205,7 +205,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         end
     end
 
-    local delay  ---@type uint
+    local nextShootDelay  ---@type uint
     data.currentBurstTicks = data.currentBurstTicks + 1
     -- Do the action for this tick.
     if data.currentBurstTicks > 100 then
@@ -220,17 +220,17 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         end
         data.angle = math.random(0, 360)
         data.distance = math.random(2, 10)
-        delay = 180
+        nextShootDelay = 180
     else
         -- Shoot this tick as a small random wonder from last ticks target.
         data.distance = math.min(math.max(data.distance + ((math.random() * 2) - 1), 2), 10)
         data.angle = data.angle + (math.random(-10, 10))
         local targetPos = PositionUtils.GetPositionForAngledDistance(player.position, data.distance, data.angle)
         player.shooting_state = {state = defines.shooting.shooting_selected, position = targetPos}
-        delay = 0
+        nextShootDelay = 1
     end
 
-    EventScheduler.ScheduleEventOnce(eventData.tick + delay --[[@as uint]], "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
+    EventScheduler.ScheduleEventOnce(eventData.tick + nextShootDelay --[[@as UtilityScheduledEvent_UintNegative1]], "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
 end
 
 --- Called when a player has died, but before thier character is turned in to a corpse.
@@ -251,57 +251,20 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     end
 
     player = player or game.get_player(playerIndex)
-    local playerHasCharacter = player ~= nil and player.valid and player.character ~= nil and player.character.valid
+    local playerHasCharacter = player ~= nil and player.character ~= nil
 
     -- Take back any weapon and ammo from a player with a character (alive or just dead).
     if playerHasCharacter then
         if affectedPlayer.flamethrowerGiven then
-            LeakyFlamethrower.TakeItemFromPlayerOrGround(player, "flamethrower", 1)
+            PlayerWeapon.TakeItemFromPlayerOrGround(player, "flamethrower", 1)
         end
         if affectedPlayer.burstsLeft > 0 then
-            LeakyFlamethrower.TakeItemFromPlayerOrGround(player, "flamethrower-ammo", affectedPlayer.burstsLeft)
+            PlayerWeapon.TakeItemFromPlayerOrGround(player, "flamethrower-ammo", affectedPlayer.burstsLeft)
         end
     end
 
     -- Return the player's weapon and ammo filters (alive or just dead) if there were any.
-    -- TODO: the returning of these details should be moved to the library function as the opposite to the ensuring player has weapon.
-    ---@typelist LuaInventory, LuaInventory, LuaInventory
-    local playerGunInventory, playerAmmoInventory, playerCharacterInventory = nil, nil, nil
-    local removedWeaponDetails = affectedPlayer.removedWeaponDetails
-    if removedWeaponDetails.weaponFilterName ~= nil then
-        playerGunInventory = playerGunInventory or player.get_inventory(defines.inventory.character_guns)
-        playerGunInventory.set_filter(removedWeaponDetails.gunInventoryIndex, removedWeaponDetails.weaponFilterName)
-    end
-    if removedWeaponDetails.ammoFilterName ~= nil then
-        playerAmmoInventory = playerAmmoInventory or player.get_inventory(defines.inventory.character_ammo)
-        playerAmmoInventory.set_filter(removedWeaponDetails.gunInventoryIndex, removedWeaponDetails.ammoFilterName)
-    end
-
-    -- Return the player's weapon and/or ammo if one was removed for the flamer and the player has a character (alive or just dead).
-    if playerHasCharacter then
-        -- If a weapon was removed from the slot, so assuming the player still has it in their inventory return it to the weapon slot.
-        if removedWeaponDetails.weaponItemName ~= nil then
-            playerCharacterInventory = playerCharacterInventory or player.get_main_inventory()
-            playerGunInventory = playerGunInventory or player.get_inventory(defines.inventory.character_guns)
-            if playerCharacterInventory.get_item_count(removedWeaponDetails.weaponItemName) >= 1 then
-                playerCharacterInventory.remove({name = removedWeaponDetails.weaponItemName, count = 1})
-                playerGunInventory[removedWeaponDetails.gunInventoryIndex].set_stack({name = removedWeaponDetails.weaponItemName, count = 1})
-            end
-        end
-
-        -- If an ammo item was removed from the slot, so assuming the player still has it in their inventory return it to the ammo slot.
-        if removedWeaponDetails.ammoItemName ~= nil then
-            playerCharacterInventory = playerCharacterInventory or player.get_main_inventory()
-            playerAmmoInventory = playerAmmoInventory or player.get_inventory(defines.inventory.character_ammo)
-            local ammoItemStackToReturn = playerCharacterInventory.find_item_stack(removedWeaponDetails.ammoItemName)
-            if ammoItemStackToReturn ~= nil then
-                playerAmmoInventory[removedWeaponDetails.gunInventoryIndex].swap_stack(ammoItemStackToReturn)
-            end
-        end
-
-        -- Restore the player's active weapon back to what it was before. To handle scenarios like we removed a nuke (non active) for the flamer and thne leave them with this.
-        player.character.selected_gun_index = removedWeaponDetails.beforeSelectedWeaponGunIndex
-    end
+    PlayerWeapon.ReturnRemovedWeapon(player, affectedPlayer.removedWeaponDetails)
 
     -- Return the player to their initial permission group.
     if player.permission_group.name == "LeakyFlamethrower" then
@@ -320,32 +283,6 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     if status == EffectEndStatus.completed then
         game.print({"message.muppet_streamer_leaky_flamethrower_stop", player.name})
     end
-end
-
---- Take the flamethrower from the player (weapon slot, inventory or dropped on ground).
----@param player LuaPlayer
----@param itemName string
----@param itemCount uint
----@return uint
-LeakyFlamethrower.TakeItemFromPlayerOrGround = function(player, itemName, itemCount)
-    local removed = 0 ---@type uint
-    removed = removed + player.remove_item({name = itemName, count = itemCount}) --[[@as uint]]
-    if itemCount == 0 then
-        return removed
-    end
-
-    local itemsOnGround = player.surface.find_entities_filtered {position = player.position, radius = 10, name = "item-on-ground"}
-    for _, itemOnGround in pairs(itemsOnGround) do
-        if itemOnGround.valid and itemOnGround.stack ~= nil and itemOnGround.stack.valid and itemOnGround.stack.name == itemName then
-            itemOnGround.destroy()
-            removed = removed + 1 --[[@as uint]]
-            itemCount = itemCount - 1 --[[@as uint]]
-            if itemCount == 0 then
-                break
-            end
-        end
-    end
-    return removed
 end
 
 return LeakyFlamethrower

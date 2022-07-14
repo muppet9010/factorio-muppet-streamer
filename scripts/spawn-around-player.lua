@@ -95,7 +95,6 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end
 
-    --TODO: not typed. left for now as part of: https://github.com/sumneko/lua-language-server/discussions/1333
     local forceString = commandData.force
     if forceString ~= nil then
         if game.forces[forceString] == nil then

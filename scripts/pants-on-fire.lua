@@ -12,15 +12,15 @@ local MathUtils = require("utility.helperUtils.math-utils")
 ---@field target string @ Target player's name.
 ---@field finishTick uint
 ---@field fireHeadStart uint
----@field fireGap uint
----@field flameCount uint
+---@field fireGap uint @ Must be > 0.
+---@field flameCount uint @ Must be > 0.
 
 ---@class PantsOnFire_EffectDetails
 ---@field player LuaPlayer
 ---@field finishTick uint
 ---@field fireHeadStart uint
----@field fireGap uint
----@field flameCount uint
+---@field fireGap uint @ Must be > 0.
+---@field flameCount uint @ Must be > 0.
 ---@field startFire boolean
 ---@field stepPos uint
 ---@field force LuaForce
@@ -85,7 +85,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
-    local finishTick = scheduleTick + math.ceil(durationSeconds * 60) --[[@as uint]] -- TODO: this needs to handle if scheduleTIck is -1.
+    local finishTick = (scheduleTick > 0 and scheduleTick or command.tick) + math.ceil(durationSeconds * 60) --[[@as uint]]
 
     ---@type number|nil
     local fireHeadStart = 3
@@ -210,7 +210,7 @@ PantsOnFire.WalkCheck = function(eventData)
 
     -- Schedule the next loop if not finished yet.
     if eventData.tick < data.finishTick then
-        EventScheduler.ScheduleEventOnce(eventData.tick + data.fireGap --[[@as uint]], "PantsOnFire.WalkCheck", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(eventData.tick + data.fireGap --[[@as UtilityScheduledEvent_UintNegative1]], "PantsOnFire.WalkCheck", playerIndex, data)
     else
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end

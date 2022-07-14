@@ -153,6 +153,75 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
     return weaponGiven, removedWeaponDetails
 end
 
+--- Sets the players weapon filter back to what was removed. Assumes that anything put in the wepaon slot in the mean time is to be overridden.
+--- If the player's character is currently alive then it also equips the weapon and ammo from their inventory (assuming they still have them).
+---@param player any
+---@param removedWeaponDetails any
+PlayerWeapon.ReturnRemovedWeapon = function(player, removedWeaponDetails)
+    ---@typelist LuaInventory, LuaInventory, LuaInventory
+    local playerGunInventory, playerAmmoInventory, playerCharacterInventory = nil, nil, nil
+    if removedWeaponDetails.weaponFilterName ~= nil then
+        playerGunInventory = playerGunInventory or player.get_inventory(defines.inventory.character_guns)
+        playerGunInventory.set_filter(removedWeaponDetails.gunInventoryIndex, removedWeaponDetails.weaponFilterName)
+    end
+    if removedWeaponDetails.ammoFilterName ~= nil then
+        playerAmmoInventory = playerAmmoInventory or player.get_inventory(defines.inventory.character_ammo)
+        playerAmmoInventory.set_filter(removedWeaponDetails.gunInventoryIndex, removedWeaponDetails.ammoFilterName)
+    end
+
+    -- Return the player's weapon and/or ammo if one was removed and the player has an alive character.
+    if player.character then
+        -- If a weapon was removed from the slot, so assuming the player still has it in their inventory return it to the weapon slot.
+        if removedWeaponDetails.weaponItemName ~= nil then
+            playerCharacterInventory = playerCharacterInventory or player.get_main_inventory()
+            playerGunInventory = playerGunInventory or player.get_inventory(defines.inventory.character_guns)
+            if playerCharacterInventory.get_item_count(removedWeaponDetails.weaponItemName) >= 1 then
+                playerCharacterInventory.remove({name = removedWeaponDetails.weaponItemName, count = 1})
+                playerGunInventory[removedWeaponDetails.gunInventoryIndex].set_stack({name = removedWeaponDetails.weaponItemName, count = 1})
+            end
+        end
+
+        -- If an ammo item was removed from the slot, so assuming the player still has it in their inventory return it to the ammo slot.
+        if removedWeaponDetails.ammoItemName ~= nil then
+            playerCharacterInventory = playerCharacterInventory or player.get_main_inventory()
+            playerAmmoInventory = playerAmmoInventory or player.get_inventory(defines.inventory.character_ammo)
+            local ammoItemStackToReturn = playerCharacterInventory.find_item_stack(removedWeaponDetails.ammoItemName)
+            if ammoItemStackToReturn ~= nil then
+                playerAmmoInventory[removedWeaponDetails.gunInventoryIndex].swap_stack(ammoItemStackToReturn)
+            end
+        end
+
+        -- Restore the player's active weapon back to what it was before.
+        player.character.selected_gun_index = removedWeaponDetails.beforeSelectedWeaponGunIndex
+    end
+end
+
+--- Take the flamethrower from the player (weapon slot, inventory or dropped on ground).
+---@param player LuaPlayer
+---@param itemName string
+---@param itemCount uint
+---@return uint
+PlayerWeapon.TakeItemFromPlayerOrGround = function(player, itemName, itemCount)
+    local removed = 0 ---@type uint
+    removed = removed + player.remove_item({name = itemName, count = itemCount}) --[[@as uint]]
+    if itemCount == 0 then
+        return removed
+    end
+
+    local itemsOnGround = player.surface.find_entities_filtered {position = player.position, radius = 10, name = "item-on-ground"}
+    for _, itemOnGround in pairs(itemsOnGround) do
+        if itemOnGround.valid and itemOnGround.stack ~= nil and itemOnGround.stack.valid and itemOnGround.stack.name == itemName then
+            itemOnGround.destroy()
+            removed = removed + 1 --[[@as uint]]
+            itemCount = itemCount - 1 --[[@as uint]]
+            if itemCount == 0 then
+                break
+            end
+        end
+    end
+    return removed
+end
+
 ----------------------------------------------------------------------------------
 --                          PRIVATE FUNCTIONS
 ----------------------------------------------------------------------------------

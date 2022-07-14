@@ -305,7 +305,7 @@ AggressiveDriver.Drive = function(eventData)
 
     -- Schedule next ticks action unless the effect has timed out.
     if data.duration >= 0 then
-        EventScheduler.ScheduleEventOnce(eventData.tick + 1 --[[@as uint]], "AggressiveDriver.Drive", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(eventData.tick + 1 --[[@as UtilityScheduledEvent_UintNegative1]], "AggressiveDriver.Drive", playerIndex, data)
     else
         AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end

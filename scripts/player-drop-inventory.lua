@@ -19,13 +19,13 @@ local QuantityType = {
 ---@field quantityType PlayerDropInventory_QuantityType
 ---@field quantityValue uint
 ---@field dropOnBelts boolean
----@field gap uint
+---@field gap uint @ Must be > 0.
 ---@field occurrences uint
 ---@field dropEquipment boolean
 
 ---@class PlayerDropInventory_ScheduledDropItemsData
 ---@field player LuaPlayer
----@field gap uint
+---@field gap uint @ Must be > 0.
 ---@field totaloccurrences uint
 ---@field dropOnBelts boolean
 ---@field dropEquipment boolean
@@ -113,8 +113,8 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local gap = tonumber(commandData.gap)
-    if gap == nil or gap < 0 then
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "gap is mandatory as a number and must be 0 or greater")
+    if gap == nil or gap <= 0 then
+        LoggingUtils.LogPrintError(ErrorMessageStart .. "gap is mandatory as a number and must be greater than 0")
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
@@ -302,7 +302,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     -- Schedule the next occurence if we haven't completed them all yet.
     data.currentoccurrences = data.currentoccurrences + 1 --[[@as uint]]
     if data.currentoccurrences < data.totaloccurrences then
-        EventScheduler.ScheduleEventOnce(event.tick + data.gap --[[@as uint]], "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(event.tick + data.gap --[[@as UtilityScheduledEvent_UintNegative1]], "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
         game.print({"message.muppet_streamer_player_drop_inventory_stop", player.name})
