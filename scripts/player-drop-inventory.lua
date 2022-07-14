@@ -14,6 +14,25 @@ local QuantityType = {
     realtimePercentage = ("realtimePercentage") --[[@as PlayerDropInventory_QuantityType]]
 }
 
+---@class PlayerDropInventory_ApplyDropItemsData
+---@field target string
+---@field quantityType PlayerDropInventory_QuantityType
+---@field quantityValue uint
+---@field dropOnBelts boolean
+---@field gap uint
+---@field occurrences uint
+---@field dropEquipment boolean
+
+---@class PlayerDropInventory_ScheduledDropItemsData
+---@field player LuaPlayer
+---@field gap uint
+---@field totaloccurrences uint
+---@field dropOnBelts boolean
+---@field dropEquipment boolean
+---@field staticItemCount uint|nil
+---@field dynamicPercentageItemCount uint|nil
+---@field currentoccurrences uint
+
 local ErrorMessageStart = "ERROR: muppet_streamer_player_drop_inventory command "
 
 PlayerDropInventory.CreateGlobals = function()
@@ -94,12 +113,13 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local gap = tonumber(commandData.gap)
-    if quantityValue == nil or gap < 0 then
+    if gap == nil or gap < 0 then
         LoggingUtils.LogPrintError(ErrorMessageStart .. "gap is mandatory as a number and must be 0 or greater")
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
-    gap = math.ceil(gap * 60)
+    ---@cast gap uint
+    gap = math.ceil(gap * 60) --[[@as uint]]
 
     local occurrences = tonumber(commandData.occurrences)
     if occurrences == nil or occurrences < 1 then
@@ -107,6 +127,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
+    ---@cast occurrences uint
 
     local dropEquipmentString = commandData.dropEquipment
     local dropEquipment  ---@type boolean|nil
@@ -122,8 +143,8 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1
-    ---@class PlayerDropInventory_ApplyDropItemsData
-    local data = {
+    ---@type PlayerDropInventory_ApplyDropItemsData
+    local applyDropItemsData = {
         target = target,
         quantityType = quantityType,
         quantityValue = quantityValue,
@@ -132,7 +153,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         occurrences = occurrences,
         dropEquipment = dropEquipment
     }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, data)
+    EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, applyDropItemsData)
 end
 
 --- Prepare to apply the effect to the player.
@@ -164,7 +185,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
 
     -- Do the first effect now.
     game.print({"message.muppet_streamer_player_drop_inventory_start", targetPlayer.name})
-    ---@class PlayerDropInventory_ScheduledDropItemsData
+    ---@type PlayerDropInventory_ScheduledDropItemsData
     local scheduledDropItemsData = {
         player = targetPlayer,
         gap = data.gap,
@@ -279,7 +300,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     end
 
     -- Schedule the next occurence if we haven't completed them all yet.
-    data.currentoccurrences = data.currentoccurrences + 1
+    data.currentoccurrences = data.currentoccurrences + 1 --[[@as uint]]
     if data.currentoccurrences < data.totaloccurrences then
         EventScheduler.ScheduleEventOnce(event.tick + data.gap --[[@as uint]], "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
@@ -293,7 +314,7 @@ PlayerDropInventory.OnPrePlayerDied = function(event)
     PlayerDropInventory.StopEffectOnPlayer(event.player_index)
 end
 
----@parm playerIndex Id
+---@parm playerIndex uint
 PlayerDropInventory.StopEffectOnPlayer = function(playerIndex)
     if global.playerDropInventory.affectedPlayers[playerIndex] == nil then
         return

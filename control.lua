@@ -48,6 +48,7 @@ local function OnLoad()
     PlayerInventoryShuffle.OnLoad()
 end
 
+---@param event on_runtime_mod_setting_changed
 local function OnSettingChanged(event)
     TeamMember.OnSettingChanged(event)
     SpawnAroundPlayer.OnStartup()

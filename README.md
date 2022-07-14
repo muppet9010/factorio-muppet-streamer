@@ -9,16 +9,18 @@ Features
 
 #### Streamer Events
 
-- Can schedule the delivery of some explosives to a player at speed via command.
-- A leaky flamethrower that shoots for short bursts intermittently via command.
-- Give a player a weapon and ammo, plus options to force it as an active weapon via command.
-- Spawn entities around the player with various placement options via command.
-- Make the player an aggressive driver via command.
-- Call other players to help by teleporting them in via command.
-- Teleport the player to a range of possible target types via command.
-- Sets the ground on fire behind a player via command.
-- Drop a player's inventory on the ground over time via command.
-- Mix up players' inventories between them via command.
+- Can schedule the delivery of some explosives to a player at speed.
+- A leaky flamethrower that shoots for short bursts intermittently.
+- Give a player a weapon and ammo, plus options to force it as an active weapon.
+- Spawn entities around the player with various placement options.
+- Make the player an aggressive driver.
+- Call other players to help by teleporting them in.
+- Teleport the player to a range of possible target types.
+- Sets the ground on fire behind a player.
+- Drop a player's inventory on the ground over time.
+- Mix up players' inventories between them.
+
+All are done via highly configurable RCON commands.
 
 #### Multiplayer Features
 
@@ -140,8 +142,8 @@ Spawns entities in the game around the named player on their side. Includes both
 	- radiusMax: DECIMAL - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: DECIMAL - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then 0 is used.
     - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
-	- quantity: INTEGER - Optional: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities.
-	- density: DECIMAL - Optional: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities.
+	- quantity: INTEGER - Mandatory Special: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities. Either `quantity` or `density` must be supplied.
+	- density: DECIMAL - Mandatory Special: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities. Either `quantity` or `density` must be supplied.
     - ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets it's the ammo count and ammo over the turrets max storage is ignored. For fire it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
     - followPlayer: BOOLEAN - Optional: if true the entities that can move will follow the player. If false they will be unmanaged. Some entities like defender combat bots have a maximum follow number, the remainder will not follow the player.
 - Example command tree ring: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`

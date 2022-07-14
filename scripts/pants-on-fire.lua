@@ -85,7 +85,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
-    local finishTick = scheduleTick + math.ceil(durationSeconds * 60)
+    local finishTick = scheduleTick + math.ceil(durationSeconds * 60) --[[@as uint]] -- TODO: this needs to handle if scheduleTIck is -1.
 
     ---@type number|nil
     local fireHeadStart = 3
@@ -97,6 +97,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
             return
         end
     end
+    ---@cast fireHeadStart uint
 
     ---@type number|nil
     local fireGap = 6
@@ -108,6 +109,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
             return
         end
     end
+    ---@cast fireGap uint
 
     ---@type number|nil
     local flameCount = 20
@@ -119,11 +121,15 @@ PantsOnFire.PantsOnFireCommand = function(command)
             return
         end
     end
+    ---@cast flameCount uint
 
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1
-    EventScheduler.ScheduleEventOnce(scheduleTick, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, {target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount})
+    ---@type PantsOnFire_ScheduledEventDetails
+    local scheduledEventDetails = {target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount}
+    EventScheduler.ScheduleEventOnce(scheduleTick, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, scheduledEventDetails)
 end
 
+---@param eventData UtilityScheduledEvent_CallbackObject
 PantsOnFire.ApplyToPlayer = function(eventData)
     local data = eventData.data ---@type PantsOnFire_ScheduledEventDetails
 
@@ -144,12 +150,17 @@ PantsOnFire.ApplyToPlayer = function(eventData)
     game.print({"message.muppet_streamer_pants_on_fire_start", targetPlayer.name})
 
     -- stepPos starts at 0 so the first step happens at offset 1
-    PantsOnFire.WalkCheck({tick = game.tick, instanceId = targetPlayer_index, data = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, force = targetPlayer.force, ticksInVehicle = 0}})
+    ---@type PantsOnFire_EffectDetails
+    local effectDetails = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, force = targetPlayer.force --[[@as LuaForce]], ticksInVehicle = 0}
+    ---@type UtilityScheduledEvent_CallbackObject
+    local walkCheckCallbackObject = {tick = game.tick, instanceId = targetPlayer_index, data = effectDetails}
+    PantsOnFire.WalkCheck(walkCheckCallbackObject)
 end
 
+---@param eventData UtilityScheduledEvent_CallbackObject
 PantsOnFire.WalkCheck = function(eventData)
     ---@typelist PantsOnFire_EffectDetails, LuaPlayer, uint
-    local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId
+    local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId --[[@as uint]]
     if player == nil or (not player.valid) then
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return

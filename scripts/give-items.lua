@@ -8,9 +8,9 @@ local Common = require("scripts.common")
 
 ---@class GiveItems_GiveWeaponAmmoScheduled
 ---@field target string @ Target player's name.
----@field ammoType LuaItemPrototype
----@field ammoCount uint
----@field weaponType LuaItemPrototype
+---@field ammoType? LuaItemPrototype|nil @ Nil if no ammo is being given.
+---@field ammoCount? uint|nil @ Nil if no ammo is being given.
+---@field weaponType? LuaItemPrototype|nil
 ---@field forceWeaponToSlot boolean
 ---@field selectWeapon boolean
 
@@ -75,6 +75,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
+    ---@cast forceWeaponToSlot -nil
     end
 
     ---@type boolean|nil
@@ -86,8 +87,10 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
+    ---@cast selectWeapon -nil
     end
 
+    ---@typelist string|nil, LuaItemPrototype|nil
     local ammoTypeString, ammoType = commandData.ammoType, nil
     if ammoTypeString ~= nil and ammoTypeString ~= "" then
         ammoType = game.item_prototypes[ammoTypeString]
@@ -98,15 +101,19 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         end
     end
 
-    local ammoCount = tonumber(commandData.ammoCount)
+    ---@type uint|nil
+    local ammoCount = tonumber(commandData.ammoCount) --[[@as uint]]
     if ammoCount == nil or ammoCount <= 0 then
         ammoType = nil
     end
 
     global.giveItems.nextId = global.giveItems.nextId + 1
-    EventScheduler.ScheduleEventOnce(scheduleTick, "GiveItems.GiveWeaponAmmoScheduled", global.giveItems.nextId, {target = target, ammoType = ammoType, ammoCount = ammoCount, weaponType = weaponType, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon})
+    ---@type GiveItems_GiveWeaponAmmoScheduled
+    local giveWeaponAmmoScheduled = {target = target, ammoType = ammoType, ammoCount = ammoCount, weaponType = weaponType, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon}
+    EventScheduler.ScheduleEventOnce(scheduleTick, "GiveItems.GiveWeaponAmmoScheduled", global.giveItems.nextId, giveWeaponAmmoScheduled)
 end
 
+---@param eventData UtilityScheduledEvent_CallbackObject
 GiveItems.GiveWeaponAmmoScheduled = function(eventData)
     local data = eventData.data ---@type GiveItems_GiveWeaponAmmoScheduled
 

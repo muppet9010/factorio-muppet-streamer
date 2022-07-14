@@ -34,7 +34,7 @@ local MaxRandomPositionsAroundTargetToTry = 50 -- Was 10, but upped to reduce od
 local MaxDistancePositionAroundTarget = 10
 
 ---@class Teleport_CommandDetails @ The details for a specific teleport event in an an RCON command.
----@field delay uint
+---@field delay UtilityScheduledEvent_UintNegative1
 ---@field target string @ Target player's name.
 ---@field arrivalRadius double
 ---@field minDistance double
@@ -79,7 +79,7 @@ local MaxDistancePositionAroundTarget = 10
 Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
     global.teleport.nextId = global.teleport.nextId or 0 ---@type uint
-    global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<uint, Teleport_TeleportDetails> @ The path request Id to its teleport details for whne the path request completes.
+    global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<uint, Teleport_TeleportDetails> @ The path request Id to its teleport details for when the path request completes.
     global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSpawnersOnAllSurfaces() ---@type surfaceForceBiterNests
     global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId or 0 ---@type uint
 end
@@ -174,6 +174,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
             LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
+        ---@cast arrivalRadius - nil
         end
     end
 
@@ -185,6 +186,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
             LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
+        ---@cast minDistance - nil
         end
     end
 
@@ -217,39 +219,38 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
         backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1 --[[@as uint]], commandStringText)
     end
 
-    return {delay = delay, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
+    ---@type Teleport_CommandDetails
+    local commandDetails = {delay = delay, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
+    return commandDetails
 end
 
 --- Schedule a commands details to occur after the set delay.
 ---@param commandValues Teleport_CommandDetails
 Teleport.ScheduleTeleportCommand = function(commandValues)
-    global.teleport.nextId = global.teleport.nextId + 1
-    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or -1 --[[@as uint]]
-    EventScheduler.ScheduleEventOnce(
-        scheduleTick,
-        "Teleport.PlanTeleportTarget",
-        global.teleport.nextId,
-        {
-            teleportId = global.teleport.nextId,
-            target = commandValues.target,
-            arrivalRadius = commandValues.arrivalRadius,
-            minDistance = commandValues.minDistance,
-            maxDistance = commandValues.maxDistance,
-            destinationType = commandValues.destinationType,
-            destinationTargetPosition = commandValues.destinationTargetPosition,
-            reachableOnly = commandValues.reachableOnly,
-            targetAttempt = 0,
-            backupTeleportSettings = commandValues.backupTeleportSettings,
-            destinationTypeDescription = commandValues.destinationTypeDescription,
-            thisAttemptPosition = nil,
-            spawnerDistances = {}
-        }
-    )
+    global.teleport.nextId = global.teleport.nextId + 1 --[[@as uint]]
+    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or -1 --[[@as UtilityScheduledEvent_UintNegative1]]
+    ---@type Teleport_TeleportDetails
+    local teleportDetails = {
+        teleportId = global.teleport.nextId,
+        target = commandValues.target,
+        arrivalRadius = commandValues.arrivalRadius,
+        minDistance = commandValues.minDistance,
+        maxDistance = commandValues.maxDistance,
+        destinationType = commandValues.destinationType,
+        destinationTargetPosition = commandValues.destinationTargetPosition,
+        reachableOnly = commandValues.reachableOnly,
+        targetAttempt = 0,
+        backupTeleportSettings = commandValues.backupTeleportSettings,
+        destinationTypeDescription = commandValues.destinationTypeDescription,
+        thisAttemptPosition = nil,
+        spawnerDistances = {}
+    }
+    EventScheduler.ScheduleEventOnce(scheduleTick, "Teleport.PlanTeleportTarget", global.teleport.nextId, teleportDetails)
 end
 
 --- When the actual teleport action needs to be planned and done (post scheduled delay).
 --- Refereshs all player data on each load as waiting for pathfinder requests can make subsequent executions have different player stata data.
----@param eventData any
+---@param eventData UtilityScheduledEvent_CallbackObject
 Teleport.PlanTeleportTarget = function(eventData)
     local data = eventData.data ---@type Teleport_TeleportDetails
 

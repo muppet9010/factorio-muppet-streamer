@@ -119,6 +119,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             LoggingUtils.LogPrintError(ErrorMessageStart .. "atleast 2 players must be listed if no force is included.")
             LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
+        ---@cast includedPlayerNames - nil
         end
     end
 
@@ -208,23 +209,21 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     ---@cast recipientItemMinToMaxRatio uint
 
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
-    EventScheduler.ScheduleEventOnce(
-        scheduleTick,
-        "PlayerInventoryShuffle.MixupPlayerInventories",
-        global.playerInventoryShuffle.nextId,
-        {
-            includedPlayerNames = includedPlayerNames,
-            includedForces = includedForces,
-            includeAllPlayersOnServer = includeAllPlayersOnServer,
-            includeEquipment = includeEquipment,
-            includeHandCrafting = includeHandCrafting,
-            destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
-            destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
-            recipientItemMinToMaxRatio = recipientItemMinToMaxRatio
-        }
-    )
+    ---@type PlayerInventoryShuffle_RequestData
+    local requestData = {
+        includedPlayerNames = includedPlayerNames,
+        includedForces = includedForces,
+        includeAllPlayersOnServer = includeAllPlayersOnServer,
+        includeEquipment = includeEquipment,
+        includeHandCrafting = includeHandCrafting,
+        destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
+        destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
+        recipientItemMinToMaxRatio = recipientItemMinToMaxRatio
+    }
+    EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerInventoryShuffle.MixupPlayerInventories", global.playerInventoryShuffle.nextId, requestData)
 end
 
+---@param event UtilityScheduledEvent_CallbackObject
 PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     local requestData = event.data ---@type PlayerInventoryShuffle_RequestData
 

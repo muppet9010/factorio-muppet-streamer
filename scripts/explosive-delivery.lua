@@ -8,8 +8,8 @@ local Common = require("scripts.common")
 ---@class ExplosiveDelivery_DelayedCommandDetails
 ---@field explosiveCount int
 ---@field explosiveType ExplosiveDelivery_ExplosiveType
----@field accuracyRadiusMin float
----@field accuracyRadiusMax float
+---@field accuracyRadiusMin double
+---@field accuracyRadiusMax double
 ---@field target string
 ---@field targetPosition MapPosition|nil
 ---@field targetOffset MapPosition|nil
@@ -32,6 +32,7 @@ ExplosiveDelivery.OnLoad = function()
     EventScheduler.RegisterScheduledEventType("ExplosiveDelivery.DeliverExplosives", ExplosiveDelivery.DeliverExplosives)
 end
 
+---@param command CustomCommandData
 ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_schedule_explosive_delivery command "
     local commandName = "muppet_streamer_schedule_explosive_delivery"
@@ -60,6 +61,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     elseif explosiveCount <= 0 then
         return
     end
+    explosiveCount = math.floor(explosiveCount) --[[@as uint]] ---@type uint
 
     local explosiveType = ExplosiveDelivery.ExplosiveTypes[commandData.explosiveType] ---@type ExplosiveDelivery_ExplosiveType
     if explosiveType == nil then
@@ -99,7 +101,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         end
     end
 
-    ---@type number|nil
+    ---@type double|nil
     local accuracyRadiusMin = 0
     if commandData.accuracyRadiusMin ~= nil then
         accuracyRadiusMin = tonumber(commandData.accuracyRadiusMin)
@@ -108,9 +110,10 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
+    ---@cast accuracyRadiusMin - nil
     end
 
-    ---@type number|nil
+    ---@type double|nil
     local accuracyRadiusMax = 0
     if commandData.accuracyRadiusMax ~= nil then
         accuracyRadiusMax = tonumber(commandData.accuracyRadiusMax)
@@ -119,6 +122,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
+    ---@cast accuracyRadiusMax - nil
     end
 
     ---@type number|nil
@@ -130,6 +134,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
+    ---@cast salvoSize - nil
     end
 
     ---@type number|nil
@@ -154,29 +159,27 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 
     local explosiveCountRemaining = explosiveCount
     for batchNumber = 0, maxBatchNumber do
-        explosiveCount = math.min(salvoSize, explosiveCountRemaining)
-        explosiveCountRemaining = explosiveCountRemaining - explosiveCount
+        explosiveCount = math.min(salvoSize, explosiveCountRemaining) --[[@as uint]]
+        explosiveCountRemaining = explosiveCountRemaining - explosiveCount --[[@as uint]]
 
         global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
-        EventScheduler.ScheduleEventOnce(
-            scheduleTick + (batchNumber * salvoDelay) --[[@as uint]],
-            "ExplosiveDelivery.DeliverExplosives",
-            global.explosiveDelivery.nextId,
-            {
-                explosiveCount = explosiveCount,
-                explosiveType = explosiveType,
-                accuracyRadiusMin = accuracyRadiusMin,
-                accuracyRadiusMax = accuracyRadiusMax,
-                target = target,
-                targetPosition = targetPosition,
-                targetOffset = targetOffset,
-                salvoWaveId = salvoWaveId,
-                finalSalvo = batchNumber == maxBatchNumber
-            }
-        )
+        ---@type ExplosiveDelivery_DelayedCommandDetails
+        local delayedCommandDetails = {
+            explosiveCount = explosiveCount,
+            explosiveType = explosiveType,
+            accuracyRadiusMin = accuracyRadiusMin,
+            accuracyRadiusMax = accuracyRadiusMax,
+            target = target,
+            targetPosition = targetPosition,
+            targetOffset = targetOffset,
+            salvoWaveId = salvoWaveId,
+            finalSalvo = batchNumber == maxBatchNumber
+        }
+        EventScheduler.ScheduleEventOnce(scheduleTick + (batchNumber * salvoDelay) --[[@as uint]], "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
     end
 end
 
+---@param eventData UtilityScheduledEvent_CallbackObject
 ExplosiveDelivery.DeliverExplosives = function(eventData)
     local data = eventData.data ---@type ExplosiveDelivery_DelayedCommandDetails
 

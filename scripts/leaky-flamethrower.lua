@@ -94,16 +94,19 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     else
-        ammoCount = math.ceil(ammoCount)
+        ammoCount = math.ceil(ammoCount) --[[@as uint]]
     end
     if ammoCount <= 0 then
         return
     end
 
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1
-    EventScheduler.ScheduleEventOnce(scheduleTick, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, {target = target, ammoCount = ammoCount})
+    ---@type LeakyFlamethrower_ScheduledEventDetails
+    local scheduledEventDetails = {target = target, ammoCount = ammoCount}
+    EventScheduler.ScheduleEventOnce(scheduleTick, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, scheduledEventDetails)
 end
 
+---@param eventData UtilityScheduledEvent_CallbackObject
 LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command "
     local data = eventData.data ---@type LeakyFlamethrower_ScheduledEventDetails
@@ -143,9 +146,15 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
     game.print({"message.muppet_streamer_leaky_flamethrower_start", targetPlayer.name})
-    LeakyFlamethrower.ShootFlamethrower({tick = eventData.tick, instanceId = targetPlayer_index, data = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index, usedSomeAmmo = false, startingAmmoItemstacksCount = startingAmmoItemstacksCount, startingAmmoItemstackAmmo = startingAmmoItemstackAmmo}})
+
+    ---@type LeakyFlamethrower_ShootFlamethrowerDetails
+    local shootFlamethrowerDetails = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index, usedSomeAmmo = false, startingAmmoItemstacksCount = startingAmmoItemstacksCount, startingAmmoItemstackAmmo = startingAmmoItemstackAmmo}
+    ---@type UtilityScheduledEvent_CallbackObject
+    local shootFlamethrowerCallbackObject = {tick = eventData.tick, instanceId = targetPlayer_index, data = shootFlamethrowerDetails}
+    LeakyFlamethrower.ShootFlamethrower(shootFlamethrowerCallbackObject)
 end
 
+---@param eventData UtilityScheduledEvent_CallbackObject
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
     ---@typelist LeakyFlamethrower_ShootFlamethrowerDetails, LuaPlayer, uint
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.data.player_index
@@ -313,9 +322,14 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     end
 end
 
+--- Take the flamethrower from the player (weapon slot, inventory or dropped on ground).
+---@param player LuaPlayer
+---@param itemName string
+---@param itemCount uint
+---@return uint
 LeakyFlamethrower.TakeItemFromPlayerOrGround = function(player, itemName, itemCount)
-    local removed = 0
-    removed = removed + player.remove_item({name = itemName, count = itemCount})
+    local removed = 0 ---@type uint
+    removed = removed + player.remove_item({name = itemName, count = itemCount}) --[[@as uint]]
     if itemCount == 0 then
         return removed
     end
@@ -324,8 +338,8 @@ LeakyFlamethrower.TakeItemFromPlayerOrGround = function(player, itemName, itemCo
     for _, itemOnGround in pairs(itemsOnGround) do
         if itemOnGround.valid and itemOnGround.stack ~= nil and itemOnGround.stack.valid and itemOnGround.stack.name == itemName then
             itemOnGround.destroy()
-            removed = removed + 1
-            itemCount = itemCount - 1
+            removed = removed + 1 --[[@as uint]]
+            itemCount = itemCount - 1 --[[@as uint]]
             if itemCount == 0 then
                 break
             end
