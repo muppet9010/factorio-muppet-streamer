@@ -1,13 +1,13 @@
 local CallForHelp = {}
-local Commands = require("utility.managerLibraries.commands")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
-local EventScheduler = require("utility.managerLibraries.event-scheduler")
-local PositionUtils = require("utility.helperUtils.position-utils")
-local Events = require("utility.managerLibraries.events")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local PositionUtils = require("utility.helper-utils.position-utils")
+local Events = require("utility.manager-libraries.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
-local BooleanUtils = require("utility.helperUtils.boolean-utils")
-local StringUtils = require("utility.helperUtils.string-utils")
-local MathUtils = require("utility.helperUtils.math-utils")
+local BooleanUtils = require("utility.helper-utils.boolean-utils")
+local StringUtils = require("utility.helper-utils.string-utils")
+local MathUtils = require("utility.helper-utils.math-utils")
 local Common = require("scripts.common")
 
 ---@class CallForHelp_CallSelection
@@ -68,7 +68,7 @@ CallForHelp.CreateGlobals = function()
 end
 
 CallForHelp.OnLoad = function()
-    Commands.Register("muppet_streamer_call_for_help", {"api-description.muppet_streamer_call_for_help"}, CallForHelp.CallForHelpCommand, true)
+    CommandsUtils.Register("muppet_streamer_call_for_help", {"api-description.muppet_streamer_call_for_help"}, CallForHelp.CallForHelpCommand, true)
     EventScheduler.RegisterScheduledEventType("CallForHelp.CallForHelp", CallForHelp.CallForHelp)
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "CallForHelp.OnScriptPathRequestFinished", CallForHelp.OnScriptPathRequestFinished)
 end
@@ -88,7 +88,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local delaySecondsRaw = commandData.delay ---@type any
-    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     ---@cast delaySecondsRaw uint

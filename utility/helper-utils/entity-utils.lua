@@ -4,7 +4,7 @@
 --
 
 local EntityUtils = {}
-local PositionUtils = require("utility.helperUtils.position-utils")
+local PositionUtils = require("utility.helper-utils.position-utils")
 
 ---@param surface LuaSurface
 ---@param positionedBoundingBox BoundingBox

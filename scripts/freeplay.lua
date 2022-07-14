@@ -1,5 +1,5 @@
 local Freeplay = {}
-local GameUtils = require("utility.helperUtils.game-utils")
+local GameUtils = require("utility.helper-utils.game-utils")
 
 Freeplay.OnStartup = function()
     if settings.startup["muppet_streamer-disable_intro_message"].value then

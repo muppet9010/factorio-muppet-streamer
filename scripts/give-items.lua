@@ -1,9 +1,9 @@
 local GiveItems = {}
 local PlayerWeapon = require("utility.functions.player-weapon")
-local Commands = require("utility.managerLibraries.commands")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
-local EventScheduler = require("utility.managerLibraries.event-scheduler")
-local BooleanUtils = require("utility.helperUtils.boolean-utils")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local Common = require("scripts.common")
 
 ---@class GiveItems_GiveWeaponAmmoScheduled
@@ -20,7 +20,7 @@ GiveItems.CreateGlobals = function()
 end
 
 GiveItems.OnLoad = function()
-    Commands.Register("muppet_streamer_give_player_weapon_ammo", {"api-description.muppet_streamer_give_player_weapon_ammo"}, GiveItems.GivePlayerWeaponAmmoCommand, true)
+    CommandsUtils.Register("muppet_streamer_give_player_weapon_ammo", {"api-description.muppet_streamer_give_player_weapon_ammo"}, GiveItems.GivePlayerWeaponAmmoCommand, true)
     EventScheduler.RegisterScheduledEventType("GiveItems.GiveWeaponAmmoScheduled", GiveItems.GiveWeaponAmmoScheduled)
 end
 
@@ -39,7 +39,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     end
 
     local delaySecondsRaw = commandData.delay ---@type any
-    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     ---@cast delaySecondsRaw uint

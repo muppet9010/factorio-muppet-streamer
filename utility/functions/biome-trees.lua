@@ -9,9 +9,9 @@
 ]]
 --
 
-local MathUtils = require("utility.helperUtils.math-utils")
-local TableUtils = require("utility.helperUtils.table-utils")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
+local MathUtils = require("utility.helper-utils.math-utils")
+local TableUtils = require("utility.helper-utils.table-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
 
 local BaseGameData = require("utility.functions.biome-trees-data.base-game")
 local AlienBiomesData = require("utility.functions.biome-trees-data.alien-biomes")

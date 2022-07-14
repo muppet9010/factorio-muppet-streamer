@@ -3,7 +3,7 @@
 ]]
 --
 
-local MathUtils = require("utility.helperUtils.math-utils")
+local MathUtils = require("utility.helper-utils.math-utils")
 local RandomChance = require("utility.functions.random-chance")
 
 local BiterSelection = {}

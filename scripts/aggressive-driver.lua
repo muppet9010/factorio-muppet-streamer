@@ -1,9 +1,9 @@
 local AggressiveDriver = {}
-local Commands = require("utility.managerLibraries.commands")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
-local EventScheduler = require("utility.managerLibraries.event-scheduler")
-local PositionUtils = require("utility.helperUtils.position-utils")
-local Events = require("utility.managerLibraries.events")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local PositionUtils = require("utility.helper-utils.position-utils")
+local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
 
 ---@class AggressiveDriver_ControlTypes
@@ -44,7 +44,7 @@ AggressiveDriver.CreateGlobals = function()
 end
 
 AggressiveDriver.OnLoad = function()
-    Commands.Register("muppet_streamer_aggressive_driver", {"api-description.muppet_streamer_aggressive_driver"}, AggressiveDriver.AggressiveDriverCommand, true)
+    CommandsUtils.Register("muppet_streamer_aggressive_driver", {"api-description.muppet_streamer_aggressive_driver"}, AggressiveDriver.AggressiveDriverCommand, true)
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "AggressiveDriver.OnPrePlayerDied", AggressiveDriver.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.Drive", AggressiveDriver.Drive)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.ApplyToPlayer", AggressiveDriver.ApplyToPlayer)
@@ -70,7 +70,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     end
 
     local delaySecondsRaw = commandData.delay ---@type any
-    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     ---@cast delaySecondsRaw uint

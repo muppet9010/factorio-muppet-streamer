@@ -1,12 +1,12 @@
 local Teleport = {}
-local Commands = require("utility.managerLibraries.commands")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
-local EventScheduler = require("utility.managerLibraries.event-scheduler")
-local Events = require("utility.managerLibraries.events")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local Events = require("utility.manager-libraries.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
-local BooleanUtils = require("utility.helperUtils.boolean-utils")
-local MathUtils = require("utility.helperUtils.math-utils")
-local PositionUtils = require("utility.helperUtils.position-utils")
+local BooleanUtils = require("utility.helper-utils.boolean-utils")
+local MathUtils = require("utility.helper-utils.math-utils")
+local PositionUtils = require("utility.helper-utils.position-utils")
 local Common = require("scripts.common")
 
 ---@class Teleport_DestinationTypeSelection
@@ -85,7 +85,7 @@ Teleport.CreateGlobals = function()
 end
 
 Teleport.OnLoad = function()
-    Commands.Register("muppet_streamer_teleport", {"api-description.muppet_streamer_teleport"}, Teleport.TeleportCommand, true)
+    CommandsUtils.Register("muppet_streamer_teleport", {"api-description.muppet_streamer_teleport"}, Teleport.TeleportCommand, true)
     EventScheduler.RegisterScheduledEventType("Teleport.PlanTeleportTarget", Teleport.PlanTeleportTarget)
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "Teleport.OnScriptPathRequestFinished", Teleport.OnScriptPathRequestFinished)
     Events.RegisterHandlerEvent(defines.events.on_biter_base_built, "Teleport.OnBiterBaseBuilt", Teleport.OnBiterBaseBuilt)
@@ -133,7 +133,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     -- Any errors raised need to include the depth message so we know how many backups it has got in to when it errored. So we add it to the end of the passed command name as this gets it to the right place in the produced error messages.
     local delaySecondsRaw = commandData.delay ---@type any
-    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay " .. depthErrorMessage, 0, nil, commandStringText) then
+    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay " .. depthErrorMessage, 0, nil, commandStringText) then
         return
     end
     ---@cast delaySecondsRaw uint

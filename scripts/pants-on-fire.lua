@@ -1,12 +1,12 @@
 -- Provided by andredrews (JD-Plays community) and inspired by Comfy scenario.
 
 local PantsOnFire = {}
-local Commands = require("utility.managerLibraries.commands")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
-local EventScheduler = require("utility.managerLibraries.event-scheduler")
-local Events = require("utility.managerLibraries.events")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
-local MathUtils = require("utility.helperUtils.math-utils")
+local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class PantsOnFire_ScheduledEventDetails
 ---@field target string @ Target player's name.
@@ -41,7 +41,7 @@ PantsOnFire.CreateGlobals = function()
 end
 
 PantsOnFire.OnLoad = function()
-    Commands.Register("muppet_streamer_pants_on_fire", {"api-description.muppet_streamer_pants_on_fire"}, PantsOnFire.PantsOnFireCommand, true)
+    CommandsUtils.Register("muppet_streamer_pants_on_fire", {"api-description.muppet_streamer_pants_on_fire"}, PantsOnFire.PantsOnFireCommand, true)
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "PantsOnFire.OnPrePlayerDied", PantsOnFire.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("PantsOnFire.WalkCheck", PantsOnFire.WalkCheck)
     EventScheduler.RegisterScheduledEventType("PantsOnFire.ApplyToPlayer", PantsOnFire.ApplyToPlayer)
@@ -62,7 +62,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end
 
     local delaySecondsRaw = commandData.delay ---@type any
-    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     ---@cast delaySecondsRaw uint

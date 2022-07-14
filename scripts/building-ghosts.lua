@@ -1,6 +1,6 @@
 local BuildingGhosts = {}
-local Events = require("utility.managerLibraries.events")
-local MathUtil = require("utility.helperUtils.math-utils")
+local Events = require("utility.manager-libraries.events")
+local MathUtil = require("utility.helper-utils.math-utils")
 
 local customGhostLife = 40000000 -- Different to the vanilla value so it can be distinguished. Vanilla adds 36288000 (36mil vs 40mil).
 

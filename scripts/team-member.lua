@@ -1,8 +1,8 @@
 local TeamMember = {}
-local Events = require("utility.managerLibraries.events")
-local GuiUtil = require("utility.managerLibraries.gui-util")
-local Commands = require("utility.managerLibraries.commands")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
+local Events = require("utility.manager-libraries.events")
+local GuiUtil = require("utility.manager-libraries.gui-util")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
 
 TeamMember.CreateGlobals = function()
     global.teamMember = global.teamMember or {}
@@ -21,7 +21,7 @@ TeamMember.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_player_joined_game, "TeamMember", TeamMember.OnPlayerJoinedGame)
     Events.RegisterHandlerEvent(defines.events.on_player_left_game, "TeamMember", TeamMember.OnPlayerLeftGame)
     remote.add_interface("muppet_streamer", {increase_team_member_level = TeamMember.RemoteIncreaseTeamMemberLevel})
-    Commands.Register("muppet_streamer_change_team_member_max", {"api-description.muppet_streamer_change_team_member_max"}, TeamMember.CommandChangeTeamMemberLevel, true)
+    CommandsUtils.Register("muppet_streamer_change_team_member_max", {"api-description.muppet_streamer_change_team_member_max"}, TeamMember.CommandChangeTeamMemberLevel, true)
 end
 
 TeamMember.OnStartup = function()
@@ -165,7 +165,7 @@ end
 
 ---@param command CustomCommandData
 TeamMember.CommandChangeTeamMemberLevel = function(command)
-    local args = Commands.GetArgumentsFromCommand(command.parameter)
+    local args = CommandsUtils.GetArgumentsFromCommand(command.parameter)
     local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max command "
     if #args ~= 1 then
         LoggingUtils.LogPrintError(errorMessageStartText .. "requires a value to be provided to change the level by.")

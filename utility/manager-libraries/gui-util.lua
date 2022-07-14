@@ -3,10 +3,10 @@
 -- Designed on the basis that the mod doesn't need to store references to the GUI Elements it creates and the structures involved with that. As they can all be obtained via the managed storage with the element name and type to improve code readability.
 
 local GuiUtil = {}
-local TableUtils = require("utility.helperUtils.table-utils")
-local GuiActionsClick = require("utility.managerLibraries.gui-actions-click")
-local GuiActionsChecked = require("utility.managerLibraries.gui-actions-checked")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
+local TableUtils = require("utility.helper-utils.table-utils")
+local GuiActionsClick = require("utility.manager-libraries.gui-actions-click")
+local GuiActionsChecked = require("utility.manager-libraries.gui-actions-checked")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
 local Constants = require("constants")
 local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 

@@ -1,12 +1,12 @@
 --- Library functions to help manage adding and handling Factorio commands.
 --- Requires the utility "constants" file to be populated within the root of the mod.
 
-local Commands = {}
-local BooleanUtils = require("utility.helperUtils.boolean-utils")
+local CommandsUtils = {}
+local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local Constants = require("constants")
 local Colors = require("utility.lists.colors")
-local TableUtils = require("utility.helperUtils.table-utils")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
+local TableUtils = require("utility.helper-utils.table-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
 
 --- Register a function to be triggered when a command is run. Includes support to restrict usage to admins.
 ---
@@ -17,7 +17,7 @@ local LoggingUtils = require("utility.helperUtils.logging-utils")
 ---@param helpText LocalisedString
 ---@param commandFunction function
 ---@param adminOnly boolean
-Commands.Register = function(name, helpText, commandFunction, adminOnly)
+CommandsUtils.Register = function(name, helpText, commandFunction, adminOnly)
     commands.remove_command(name)
     local handlerFunction
     if not adminOnly then
@@ -46,7 +46,7 @@ end
 --- String quotes can be escaped by "\"" within their own quote type, ie: 'don\'t' will come out as "don't". Note the same quote type rule, i.e. "don\'t" will come out as "don\'t" . Otherwise the escape character \ wil be passed through as regular text.
 ---@param parameterString string
 ---@return any[] arguments
-Commands.GetArgumentsFromCommand = function(parameterString)
+CommandsUtils.GetArgumentsFromCommand = function(parameterString)
     local args = {}
     if parameterString == nil or parameterString == "" or parameterString == " " then
         return args
@@ -73,7 +73,7 @@ Commands.GetArgumentsFromCommand = function(parameterString)
                     openChar = char
                     closeChar = openCloseChars[openChar]
                     if currentString ~= "" then
-                        table.insert(args, Commands._StringToTypedObject(currentString))
+                        table.insert(args, CommandsUtils._StringToTypedObject(currentString))
                         currentString = ""
                     end
                 else
@@ -81,7 +81,7 @@ Commands.GetArgumentsFromCommand = function(parameterString)
                 end
             elseif not inQuotedString and char == " " then
                 if currentString ~= "" then
-                    table.insert(args, Commands._StringToTypedObject(currentString))
+                    table.insert(args, CommandsUtils._StringToTypedObject(currentString))
                     currentString = ""
                 end
             elseif inQuotedString then
@@ -90,7 +90,7 @@ Commands.GetArgumentsFromCommand = function(parameterString)
                 else
                     if char == closeChar and not prevCharEscape then
                         inQuotedString = false
-                        table.insert(args, Commands._StringToTypedObject(currentString))
+                        table.insert(args, CommandsUtils._StringToTypedObject(currentString))
                         currentString = ""
                     elseif char == closeChar and prevCharEscape then
                         prevCharEscape = false
@@ -112,14 +112,14 @@ Commands.GetArgumentsFromCommand = function(parameterString)
                     jsonSteppedIn = jsonSteppedIn - 1
                 else
                     inJson = false
-                    table.insert(args, Commands._StringToTypedObject(currentString))
+                    table.insert(args, CommandsUtils._StringToTypedObject(currentString))
                     currentString = ""
                 end
             end
         end
     end
     if currentString ~= "" then
-        table.insert(args, Commands._StringToTypedObject(currentString))
+        table.insert(args, CommandsUtils._StringToTypedObject(currentString))
     end
 
     return args
@@ -133,7 +133,7 @@ end
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
 ---@param commandString string? @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
-Commands.ParseGenericArgument = function(value, requiredType, mandatory, commandName, argumentName, commandString)
+CommandsUtils.ParseGenericArgument = function(value, requiredType, mandatory, commandName, argumentName, commandString)
     if mandatory and value == nil then
         -- Mandatory and not provided so fail.
         LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be populated.")
@@ -172,9 +172,9 @@ end
 ---@param numberMaxLimit? number|nil @ An optional maximum allowed value can be specified.
 ---@param commandString string? @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
-Commands.ParseNumberArgument = function(value, requiredType, mandatory, commandName, argumentName, numberMinLimit, numberMaxLimit, commandString)
+CommandsUtils.ParseNumberArgument = function(value, requiredType, mandatory, commandName, argumentName, numberMinLimit, numberMaxLimit, commandString)
     -- Check its valid for generic requirements first.
-    if not Commands.ParseGenericArgument(value, "number", mandatory, commandName, argumentName) then
+    if not CommandsUtils.ParseGenericArgument(value, "number", mandatory, commandName, argumentName) then
         return false
     end
 
@@ -224,9 +224,9 @@ end
 ---@param allowedStrings? table<string, any>|nil @ A limited array of allowed strings can be specified as a table of string keys with non nil values.
 ---@param commandString string? @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
-Commands.ParseStringArgument = function(value, mandatory, commandName, argumentName, allowedStrings, commandString)
+CommandsUtils.ParseStringArgument = function(value, mandatory, commandName, argumentName, allowedStrings, commandString)
     -- Check its valid for generic requirements first.
-    if not Commands.ParseGenericArgument(value, "string", mandatory, commandName, argumentName) then
+    if not CommandsUtils.ParseGenericArgument(value, "string", mandatory, commandName, argumentName) then
         return false
     end
 
@@ -262,9 +262,9 @@ end
 ---@param allowedKeys? table<string, any>|nil @ A limited array of allowed keys of the table can be specified as a table of string keys with non nil values.
 ---@param commandString string? @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
-Commands.ParseTableArgument = function(value, mandatory, commandName, argumentName, allowedKeys, commandString)
+CommandsUtils.ParseTableArgument = function(value, mandatory, commandName, argumentName, allowedKeys, commandString)
     -- Check its valid for generic requirements first.
-    if not Commands.ParseGenericArgument(value, "table", mandatory, commandName, argumentName) then
+    if not CommandsUtils.ParseGenericArgument(value, "table", mandatory, commandName, argumentName) then
         return false
     end
 
@@ -297,7 +297,7 @@ end
 --- Internal commands function that returns the input text as its correct type.
 ---@param inputText string
 ---@return nil|number|boolean|table|string typedValue
-Commands._StringToTypedObject = function(inputText)
+CommandsUtils._StringToTypedObject = function(inputText)
     if inputText == "nil" then
         return nil
     end
@@ -322,4 +322,4 @@ Commands._StringToTypedObject = function(inputText)
     return inputText
 end
 
-return Commands
+return CommandsUtils

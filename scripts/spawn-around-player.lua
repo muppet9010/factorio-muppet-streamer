@@ -1,10 +1,10 @@
 local SpawnAroundPlayer = {}
-local Commands = require("utility.managerLibraries.commands")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
-local EventScheduler = require("utility.managerLibraries.event-scheduler")
-local PositionUtils = require("utility.helperUtils.position-utils")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local PositionUtils = require("utility.helper-utils.position-utils")
 local BiomeTrees = require("utility.functions.biome-trees")
-local BooleanUtils = require("utility.helperUtils.boolean-utils")
+local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local Common = require("scripts.common")
 
 ---@class SpawnAroundPlayer_ExistingEntities
@@ -55,7 +55,7 @@ SpawnAroundPlayer.CreateGlobals = function()
 end
 
 SpawnAroundPlayer.OnLoad = function()
-    Commands.Register("muppet_streamer_spawn_around_player", {"api-description.muppet_streamer_spawn_around_player"}, SpawnAroundPlayer.SpawnAroundPlayerCommand, true)
+    CommandsUtils.Register("muppet_streamer_spawn_around_player", {"api-description.muppet_streamer_spawn_around_player"}, SpawnAroundPlayer.SpawnAroundPlayerCommand, true)
     EventScheduler.RegisterScheduledEventType("SpawnAroundPlayer.SpawnAroundPlayerScheduled", SpawnAroundPlayer.SpawnAroundPlayerScheduled)
 end
 
@@ -78,7 +78,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end
 
     local delaySecondsRaw = commandData.delay ---@type any
-    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     ---@cast delaySecondsRaw uint

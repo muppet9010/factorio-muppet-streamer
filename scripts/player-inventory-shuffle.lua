@@ -1,12 +1,12 @@
 local PlayerInventoryShuffle = {}
-local Commands = require("utility.managerLibraries.commands")
-local LoggingUtils = require("utility.helperUtils.logging-utils")
-local EventScheduler = require("utility.managerLibraries.event-scheduler")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Colors = require("utility.lists.colors")
-local BooleanUtils = require("utility.helperUtils.boolean-utils")
-local StringUtils = require("utility.helperUtils.string-utils")
+local BooleanUtils = require("utility.helper-utils.boolean-utils")
+local StringUtils = require("utility.helper-utils.string-utils")
 local Common = require("scripts.common")
-local MathUtils = require("utility.helperUtils.math-utils")
+local MathUtils = require("utility.helper-utils.math-utils")
 
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 
@@ -55,7 +55,7 @@ PlayerInventoryShuffle.CreateGlobals = function()
 end
 
 PlayerInventoryShuffle.OnLoad = function()
-    Commands.Register("muppet_streamer_player_inventory_shuffle", {"api-description.muppet_streamer_player_inventory_shuffle"}, PlayerInventoryShuffle.PlayerInventoryShuffleCommand, true)
+    CommandsUtils.Register("muppet_streamer_player_inventory_shuffle", {"api-description.muppet_streamer_player_inventory_shuffle"}, PlayerInventoryShuffle.PlayerInventoryShuffleCommand, true)
     EventScheduler.RegisterScheduledEventType("PlayerInventoryShuffle.MixupPlayerInventories", PlayerInventoryShuffle.MixupPlayerInventories)
 end
 
@@ -73,7 +73,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local delaySecondsRaw = commandData.delay ---@type any
-    if not Commands.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end
     ---@cast delaySecondsRaw uint

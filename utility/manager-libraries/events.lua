@@ -5,7 +5,7 @@
 ]]
 --
 
-local TableUtils = require("utility.helperUtils.table-utils")
+local TableUtils = require("utility.helper-utils.table-utils")
 
 local Events = {}
 MOD = MOD or {}
