@@ -176,6 +176,7 @@ Notes:
 - This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
 - If the vehicle comes to a stop during the time (due to hitting something) it will automatically start going the opposite direction.
 - This feature affects all types of cars, tanks, trains and spider vehicles.
+- The player will only be teleported in to a vechile that has fuel, and the effect won't work if the player is in a vehcile that currently doesn't have fuel.
 
 
 

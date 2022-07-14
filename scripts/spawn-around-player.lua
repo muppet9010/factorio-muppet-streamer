@@ -95,6 +95,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end
 
+    --TODO: not typed. left for now as part of: https://github.com/sumneko/lua-language-server/discussions/1333
     local forceString = commandData.force
     if forceString ~= nil then
         if game.forces[forceString] == nil then
@@ -286,6 +287,67 @@ SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position
     end
 end
 
+--- Handler for the generic combat robot types.
+---
+--- CODE NOTE: must be before SpawnAroundPlayer.EntityTypeDetails() in file so that function can find this one at load (not run) time.
+---@param setEntityName string @ Prototype entity name
+---@param canFollow boolean @ If the robots should be set to follow the player.
+---@return SpawnAroundPlayer_EntityTypeDetails
+SpawnAroundPlayer.CombatBotEntityTypeDetails = function(setEntityName, canFollow)
+    ---@type SpawnAroundPlayer_EntityTypeDetails
+    local entityTypeDetails = {
+        GetEntityName = function()
+            return setEntityName
+        end,
+        GetEntityAlignedPosition = function(position)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+        end,
+        gridPlacementSize = 1,
+        FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
+            return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
+        end,
+        PlaceEntity = function(data)
+            local target
+            if canFollow and data.followPlayer then
+                target = data.targetPlayer.character
+            end
+            data.surface.create_entity {name = data.entityName, position = data.position, force = data.force, target = target}
+        end,
+        GetPlayersMaxBotFollowers = function(targetPlayer)
+            return SpawnAroundPlayer.GetPlayerMaxBotFollows(targetPlayer)
+        end
+    }
+    return entityTypeDetails
+end
+
+--- Handler for the generic gun turret with ammo types.
+---
+--- CODE NOTE: must be before SpawnAroundPlayer.EntityTypeDetails() in file so that function can find this one at load (not run) time.
+---@param ammoName string @ Prototype item name
+---@return SpawnAroundPlayer_EntityTypeDetails
+SpawnAroundPlayer.AmmoGunTurretEntityTypeDetails = function(ammoName)
+    ---@type SpawnAroundPlayer_EntityTypeDetails
+    local entityTypeDetails = {
+        GetEntityName = function()
+            return "gun-turret"
+        end,
+        GetEntityAlignedPosition = function(position)
+            return PositionUtils.RoundPosition(position, 0)
+        end,
+        gridPlacementSize = 2,
+        FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
+            return surface.find_non_colliding_position(entityName, position, searchRadius, 1)
+        end,
+        PlaceEntity = function(data)
+            local turret = data.surface.create_entity {name = data.entityName, position = data.position, force = data.force}
+            if turret ~= nil then
+                turret.insert({name = ammoName, count = data.ammoCount})
+            end
+        end
+    }
+    return entityTypeDetails
+end
+
 -- CODE NOTE: the inner functions don't know their data types (same in the sub generator functions). Raised as enhancement request with Sumneko: https://github.com/sumneko/lua-language-server/issues/1332
 ---@type SpawnAroundPlayer_EntityTypes
 SpawnAroundPlayer.EntityTypeDetails = {
@@ -396,63 +458,6 @@ SpawnAroundPlayer.EntityTypeDetails = {
     distractorBot = SpawnAroundPlayer.CombatBotEntityTypeDetails("distractor", false),
     destroyerBot = SpawnAroundPlayer.CombatBotEntityTypeDetails("destroyer", true)
 }
-
---- Handler for the generic combat robot types.
----@param setEntityName string @ Prototype entity name
----@param canFollow boolean @ If the robots should be set to follow the player.
----@return SpawnAroundPlayer_EntityTypeDetails
-SpawnAroundPlayer.CombatBotEntityTypeDetails = function(setEntityName, canFollow)
-    ---@type SpawnAroundPlayer_EntityTypeDetails
-    local entityTypeDetails = {
-        GetEntityName = function()
-            return setEntityName
-        end,
-        GetEntityAlignedPosition = function(position)
-            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
-        end,
-        gridPlacementSize = 1,
-        FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
-            return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
-        end,
-        PlaceEntity = function(data)
-            local target
-            if canFollow and data.followPlayer then
-                target = data.targetPlayer.character
-            end
-            data.surface.create_entity {name = data.entityName, position = data.position, force = data.force, target = target}
-        end,
-        GetPlayersMaxBotFollowers = function(targetPlayer)
-            return SpawnAroundPlayer.GetPlayerMaxBotFollows(targetPlayer)
-        end
-    }
-    return entityTypeDetails
-end
-
---- Handler for the generic gun turret with ammo types.
----@param ammoName string @ Prototype item name
----@return SpawnAroundPlayer_EntityTypeDetails
-SpawnAroundPlayer.AmmoGunTurretEntityTypeDetails = function(ammoName)
-    ---@type SpawnAroundPlayer_EntityTypeDetails
-    local entityTypeDetails = {
-        GetEntityName = function()
-            return "gun-turret"
-        end,
-        GetEntityAlignedPosition = function(position)
-            return PositionUtils.RoundPosition(position, 0)
-        end,
-        gridPlacementSize = 2,
-        FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
-            return surface.find_non_colliding_position(entityName, position, searchRadius, 1)
-        end,
-        PlaceEntity = function(data)
-            local turret = data.surface.create_entity {name = data.entityName, position = data.position, force = data.force}
-            if turret ~= nil then
-                turret.insert({name = ammoName, count = data.ammoCount})
-            end
-        end
-    }
-    return entityTypeDetails
-end
 
 ---Get how many bots can be set to follow the player currently.
 ---@param targetPlayer LuaPlayer

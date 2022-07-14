@@ -3,7 +3,7 @@ DOING NOW:
     - The INTEGER type arguments will accept a double, but this will fail/error when trying to be used. They should really check for a type Integer. New Utility library version has functions to validate types of numbers. This means replacing the current command paramater handling code to use the better libraries.
 
     - Once Sumneko 3.5 comes out we can add opreator to uint for add and then a lot of the --[[@as]] should be removable. Also maybe our generics math library will be more viable...
-    - Unknown is being accepted as anything. Think this should be flagged as warning.
+    - Unknown is being accepted as anything. Think this should be flagged as warning. Spawn aroud player - forceString. Asked in discussion: https://github.com/sumneko/lua-language-server/discussions/1333
 
 
 BUGS:
