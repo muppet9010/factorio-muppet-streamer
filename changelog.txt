@@ -3,10 +3,13 @@ Version: 20.0.24
 Date: 2022-XX-XX
   Features:
   Changes:
-    - All feature's command are now tighter on how they enforce option's value types, i.e. Integer vs decimal point number (FLOAT), or a numebr passed in as a string (number in double quotes). This means options either now explicitly enforce the value type listed in the readme; or when the code allowed a wider range of values than the README indicated, the README now matchs the wider allowed value type range. If you previously passed in the correct value types this will have no impact on you. Any tightened restrictions on a command's expected value type will be listed as a change separately.
+    - All feature's commands are now tighter on enforcing option's value types to what the readme says, so incorrect typed values will be rejected, i.e. passing in a decimal point number to an Integer setting, or entering a number as a string (number in double quotes). If you previously passed in the correct value types this will have no impact on you.
     - Player Drop Inventory - gap setting must be above 0 now.
   Bugfixes:
+    - Leaky Flamethrower - no longer errors if the flamethrower is forced in to a filtered weapon slot, but the ammo slot wasn't filtered.
+    - Leaky Flamethrower - if there isn't any flamer ammo when the weapon is given for some weird reason the effect will be stopped and a warning given. Before this errored as it's an unexpected and un-handlable state.
   Info:
+    - The tightening of setting types means options either now explicitly enforce the value type listed in the readme; or when the code allowed a wider range of values than the README indicated, the README now matchs the wider allowed value type range. Any tightened restrictions on a command's expected value type from this review of code and the readme will be listed as a change separately.
     - Updated to latest Muppet Utility library. Many code changes (hopefully non functional changing) across all of the features in the mod. This is done to enable more modern development tools and to utilise more advanced shared code functionality. Both of which should reduce bugs and make future additions quicker.
 ---------------------------------------------------------------------------------------------------
 Version: 20.0.23

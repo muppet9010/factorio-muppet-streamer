@@ -17,12 +17,12 @@ local PlayerWeapon = {}
 ---@field ammoFilterName? string|nil @ Nil if no ammo filter was set on the slot.
 ---@field beforeSelectedWeaponGunIndex uint @ The weapon slot that the player had selected before the weapon was removed.
 
---- Ensure the player has the specified weapon.
+--- Ensure the player has the specified weapon, clearing any filters if needed. If the weapon has to be given/equiped then it will clear the related ammo slot and any filter on it.
 ---@param player LuaPlayer
 ---@param weaponName string
 ---@param forceWeaponToWeaponInventorySlot boolean @ If the weapon should be forced to be equiped, otherwise it may end up in their inventory.
 ---@param selectWeapon boolean
----@return boolean|nil weaponGiven @ If the weapon item had to be given to the player, compared to them already having it and it possibly just being mvoed between their inventories. Returns nil for invalid situations, i.e. called on a player with no gun inventory.
+---@return boolean|nil weaponGiven @ If the weapon item had to be given to the player, compared to them already having it and it possibly just being moved between their inventories. Returns nil for invalid situations, i.e. called on a player with no gun inventory.
 ---@return UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon|nil removedWeaponDetails @ Details on the weapon that was removed to add the new wepaon. Is nil if no active weapon was set/found, i.e. weapon was found/put in to the players main inventory and not as an equiped weapon.
 PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInventorySlot, selectWeapon)
     if player == nil or not player.valid then
@@ -117,16 +117,21 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
         local ammoInventory = player.get_inventory(defines.inventory.character_ammo)
         local ammoItemStack = ammoInventory[weaponFoundIndex]
         if ammoItemStack ~= nil and ammoItemStack.valid_for_read then
+            -- Ammo in the slot so move it to the players inventory, or the floor.
             local currentName, currentCount = ammoItemStack.name, ammoItemStack.count
             local ammoInsertedCount = player.insert({name = currentName, count = currentCount, ammo = ammoItemStack.ammo})
             if ammoInsertedCount < currentCount then
                 player.surface.spill_item_stack(player.position, {name = currentName, count = currentCount - ammoInsertedCount --[[@as uint]]}, true, nil, false)
             end
             removedWeaponDetails.ammoItemName = currentName
+            ammoItemStack.clear()
         end
+
+        -- Clear the filter on the slot.
         removedWeaponDetails.ammoFilterName = ammoInventory.get_filter(weaponFoundIndex)
-        ammoInventory.set_filter(weaponFoundIndex, nil) ---@diagnostic disable-line:param-type-mismatch  -- Mistake in API Docs, bugged: https://forums.factorio.com/viewtopic.php?f=7&t=102859
-        ammoItemStack.clear()
+        if removedWeaponDetails.ammoFilterName ~= nil then
+            ammoInventory.set_filter(weaponFoundIndex, nil) ---@diagnostic disable-line:param-type-mismatch  -- Mistake in API Docs, bugged: https://forums.factorio.com/viewtopic.php?f=7&t=102859
+        end
 
         -- Remove 1 item of the weapon type from the players inventory if they had one, to simulate equiping the weapon. Otherwise we will flag this as giving the player a weapon.
         if characterInventory.get_item_count(weaponName) == 0 then

@@ -120,11 +120,16 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
     ---@cast removedWeaponDetails - nil
 
-    targetPlayer.get_inventory(defines.inventory.character_ammo).insert({name = "flamethrower-ammo", count = data.ammoCount})
+    -- Put the required ammo in the guns related ammo slot.
+    local selectedAmmoItemStack = targetPlayer.get_inventory(defines.inventory.character_ammo)[removedWeaponDetails.gunInventoryIndex]
+    selectedAmmoItemStack.set_stack({name = "flamethrower-ammo", count = data.ammoCount})
 
-    -- Get the starting ammo item and ammo counts.
-    local selectedAmmoInventory = targetPlayer.get_inventory(defines.inventory.character_ammo)[removedWeaponDetails.gunInventoryIndex]
-    local startingAmmoItemstacksCount, startingAmmoItemstackAmmo = selectedAmmoInventory.count, selectedAmmoInventory.ammo
+    -- Get the starting ammo item and ammo counts. As they may already have had flamer ammo and we've added to it.
+    if not selectedAmmoItemStack.valid_for_read then
+        LoggingUtils.LogPrintError(errorMessageStart .. "target player ammo state isn't right for some odd reason: " .. data.target)
+        return
+    end
+    local startingAmmoItemstacksCount, startingAmmoItemstackAmmo = selectedAmmoItemStack.count, selectedAmmoItemStack.ammo
 
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.origionalPlayersPermissionGroup[targetPlayer_index] = global.origionalPlayersPermissionGroup[targetPlayer_index] or targetPlayer.permission_group

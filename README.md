@@ -38,7 +38,7 @@ All are done via highly configurable RCON commands.
 General Usage Notes
 ---------------
 
-At present a Time Duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Multiple uses of the same time duration events will be ignored.
+At present a Time Duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Concurrent uses of the same time duration events will mean the later ones are ignored.
 
 Argument Data Types:
 

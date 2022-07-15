@@ -1,20 +1,22 @@
 DOING NOW:
-    - The INTEGER type arguments will accept a double, but this will fail/error when trying to be used. They should really check for a type Integer. New Utility library version has functions to validate types of numbers. This means replacing the current command paramater handling code to use the better libraries.
+    - The INTEGER type arguments will accept a double, but this will fail/error when trying to be used. They should really check for a type Integer. New Utility library version has functions to validate types of numbers. This means replacing the current command paramater handling code to use the better libraries. Starting Call-For-Help.
 
     - Once Sumneko 3.5 comes out we can add opreator to uint for add and then a lot of the --[[@as]] should be removable. Also maybe our generics math library will be more viable...
     - Unknown is being accepted as anything. Think this should be flagged as warning. Spawn aroud player - forceString. diagnostics.groupFileStatus set strong to Any. Theres a lot, so do other things first to start with a lower number.
 
 
 BUGS:
+    - Leaky flamethrower - if all gun slots are filtered, but the ammo slots aren't filtered. And all gun and ammo slots are empty, then it crashs. If all ammo slots are filtered then its fine.
 
 
 DO NEAR FUTURE:
+    - Aggressive Driver - Add option to place a vehicle if none is found. Would take the name of a vehicle, the name and quantity of fuel to put in the placed vehicle, and the radius to try and place it within of the player. Direction would be as random as we can currently do with the placement searching. Option to remove the vehicle at the end of the effect.
     - Add a remote interface to Explosive Delivery. Initally for calling by the JD Plays mod- Spider hunt feature, for the battleships idea that we want to contain within JD's map lane. IDEA ON HOLD.
 	- Change all effect notification game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
+    - Support modded entities across commands.
 
 
 Future Confirmed (bigger things):
-    - Support modded entities across commands.
     - Time duration events should add to existing ones if active.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room. Should never be "lost".
 
