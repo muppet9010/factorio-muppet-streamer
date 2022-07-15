@@ -6,7 +6,6 @@ DOING NOW:
 
 
 BUGS:
-    - Leaky flamethrower - if all gun slots are filtered, but the ammo slots aren't filtered. And all gun and ammo slots are empty, then it crashs. If all ammo slots are filtered then its fine.
 
 
 DO NEAR FUTURE:

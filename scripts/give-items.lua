@@ -110,13 +110,17 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
         return
     end
 
-    if data.weaponType ~= nil and data.weaponType.valid then
-        PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponType.name, data.forceWeaponToSlot, data.selectWeapon)
-    end
+    local ammoName  ---@type string|nil
     if data.ammoType ~= nil and data.ammoType.valid and data.ammoCount > 0 then
-        local inserted = targetPlayer.insert({name = data.ammoType.name, count = data.ammoCount})
+        ammoName = data.ammoType.name
+    end
+    if data.weaponType ~= nil and data.weaponType.valid then
+        PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponType.name, data.forceWeaponToSlot, data.selectWeapon, ammoName)
+    end
+    if ammoName ~= nil then
+        local inserted = targetPlayer.insert({name = ammoName, count = data.ammoCount})
         if inserted < data.ammoCount then
-            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = data.ammoType.name, count = data.ammoCount - inserted --[[@as uint]]}, true, nil, false)
+            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = ammoName, count = data.ammoCount - inserted --[[@as uint]]}, true, nil, false)
         end
     end
 end

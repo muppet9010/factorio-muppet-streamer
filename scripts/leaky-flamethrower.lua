@@ -112,7 +112,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     end
 
     targetPlayer.driving = false
-    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true)
+    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true, "flamethrower-ammo")
     if flamethrowerGiven == nil then
         LoggingUtils.LogPrintError(errorMessageStart .. "target player can't be given a flamethrower for some odd reason: " .. data.target)
         return
@@ -122,13 +122,35 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
 
     -- Put the required ammo in the guns related ammo slot.
     local selectedAmmoItemStack = targetPlayer.get_inventory(defines.inventory.character_ammo)[removedWeaponDetails.gunInventoryIndex]
-    selectedAmmoItemStack.set_stack({name = "flamethrower-ammo", count = data.ammoCount})
+    if selectedAmmoItemStack.valid_for_read then
+        -- Theres a stack there and it will be flamethrower ammo from when we forced the weapon to the player.
+        -- Just give the ammo to the player and it will auto assign it correctly.
+        local inserted = targetPlayer.insert({name = "flamethrower-ammo", count = data.ammoCount})
+        if inserted < data.ammoCount then
+            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = "flamethrower-ammo", count = data.ammoCount - inserted --[[@as uint]]}, true, nil, false)
+        end
+    else
+        -- No current ammo in the slot. So just set our required one.
+        selectedAmmoItemStack.set_stack({name = "flamethrower-ammo", count = data.ammoCount})
+    end
 
-    -- Get the starting ammo item and ammo counts. As they may already have had flamer ammo and we've added to it.
-    if not selectedAmmoItemStack.valid_for_read then
+    -- Check the player has the weapon equiped as expected. (same as checking logic as when it tries to fire the weapon).
+    local selectedGunIndex = targetPlayer.character.selected_gun_index
+    local selectedGunInventory = targetPlayer.get_inventory(defines.inventory.character_guns)[selectedGunIndex]
+    if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= "flamethrower" then
+        -- Flamethrower has been removed as active weapon by some script.
+        LoggingUtils.LogPrintError(errorMessageStart .. "target player weapon state isn't right for some odd reason: " .. data.target)
+        return
+    end
+    -- Check the player has the weapon's ammo equiped as expected. (same as checking logic as when it tries to fire the weapon).
+    local selectedAmmoInventory = targetPlayer.get_inventory(defines.inventory.character_ammo)[selectedGunIndex]
+    if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= "flamethrower-ammo" then
+        -- Ammo has been removed by some script. As we wouldn't have reached this point in a managed loop as its beyond the last burst.
         LoggingUtils.LogPrintError(errorMessageStart .. "target player ammo state isn't right for some odd reason: " .. data.target)
         return
     end
+
+    -- Get the starting ammo item and ammo counts. As they may already have had flamer ammo and we've added to it.
     local startingAmmoItemstacksCount, startingAmmoItemstackAmmo = selectedAmmoItemStack.count, selectedAmmoItemStack.ammo
 
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
@@ -157,6 +179,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         return
     end
 
+    -- Check the player has the weapon equiped as expected.
     local selectedGunIndex = player.character.selected_gun_index
     local selectedGunInventory = player.get_inventory(defines.inventory.character_guns)[selectedGunIndex]
     if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= "flamethrower" then
@@ -165,6 +188,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         return
     end
 
+    -- Check the player has the weapon's ammo equiped as expected.
     local selectedAmmoInventory = player.get_inventory(defines.inventory.character_ammo)[selectedGunIndex]
     if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= "flamethrower-ammo" then
         -- Ammo has been removed by some script. As we wouldn't have reached this point in a managed loop as its beyond the last burst.

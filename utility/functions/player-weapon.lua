@@ -17,14 +17,15 @@ local PlayerWeapon = {}
 ---@field ammoFilterName? string|nil @ Nil if no ammo filter was set on the slot.
 ---@field beforeSelectedWeaponGunIndex uint @ The weapon slot that the player had selected before the weapon was removed.
 
---- Ensure the player has the specified weapon, clearing any filters if needed. If the weapon has to be given/equiped then it will clear the related ammo slot and any filter on it.
+--- Ensure the player has the specified weapon, clearing any weapon filters if needed. Includes options to ensure compatibility with a specific ammo type, otherwise will ensure the ammo slot setup allows the gun to be placed even if the ammo filter is incompatible.
 ---@param player LuaPlayer
 ---@param weaponName string
 ---@param forceWeaponToWeaponInventorySlot boolean @ If the weapon should be forced to be equiped, otherwise it may end up in their inventory.
 ---@param selectWeapon boolean
+---@param ammoTypePlanned? string|nil @ The name of the ammo planned to be put in this weapon. Handles removing the ammo from the weapon slot and any fitlers if needed. Doesn't actaully give any ammo.
 ---@return boolean|nil weaponGiven @ If the weapon item had to be given to the player, compared to them already having it and it possibly just being moved between their inventories. Returns nil for invalid situations, i.e. called on a player with no gun inventory.
 ---@return UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon|nil removedWeaponDetails @ Details on the weapon that was removed to add the new wepaon. Is nil if no active weapon was set/found, i.e. weapon was found/put in to the players main inventory and not as an equiped weapon.
-PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInventorySlot, selectWeapon)
+PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInventorySlot, selectWeapon, ammoTypePlanned)
     if player == nil or not player.valid then
         return nil, nil
     end
@@ -57,7 +58,6 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
             if filteredName == nil or filteredName == weaponName then
                 -- Non filtered weapon slot or filtered to the weapon we want to assign.
                 freeGunIndex = gunInventoryIndex
-                break
             else
                 -- Filtered weapon slot to a different weapon.
                 freeButFilteredGunIndex = gunInventoryIndex
@@ -66,8 +66,11 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
     end
 
     -- Handle if the player doesn't already have the gun equiped.
+    local needsGunGiving = false
+    local characterInventory  ---@type LuaInventory @ Only populated if needsGunGiving is true.
     if weaponFoundIndex == nil then
-        local characterInventory = player.get_main_inventory()
+        needsGunGiving = true
+        characterInventory = player.get_main_inventory()
 
         if freeGunIndex ~= nil then
             -- Player has a free slot, so we can just use it.
@@ -112,30 +115,71 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                 end
             end
         end ---@cast weaponFoundIndex - nil
+    end
 
-        -- Clear the ammo slot ready for the weapon and its possible ammo.
-        local ammoInventory = player.get_inventory(defines.inventory.character_ammo)
-        local ammoItemStack = ammoInventory[weaponFoundIndex]
+    -- Get the ammo slot for the equiped gun.
+    local ammoInventory = player.get_inventory(defines.inventory.character_ammo)
+    local ammoItemStack = ammoInventory[weaponFoundIndex]
+
+    -- Make sure the ammo slot is safe with our set weapon based on any planned ammo type. As otherwise we can't give the gun.
+    if ammoTypePlanned ~= nil then
+        -- As an expected ammo type is set ensure the ammo stack doesn't have a different ammo type currently in it or filter set.
         if ammoItemStack ~= nil and ammoItemStack.valid_for_read then
-            -- Ammo in the slot so move it to the players inventory, or the floor.
-            local currentName, currentCount = ammoItemStack.name, ammoItemStack.count
-            local ammoInsertedCount = player.insert({name = currentName, count = currentCount, ammo = ammoItemStack.ammo})
-            if ammoInsertedCount < currentCount then
-                player.surface.spill_item_stack(player.position, {name = currentName, count = currentCount - ammoInsertedCount --[[@as uint]]}, true, nil, false)
+            -- Ammo in the slot so need to check its type.
+            local currentAmmoName = ammoItemStack.name
+
+            -- Clear the current ammo stack ready for the the planned ammo if not the same.
+            if ammoTypePlanned ~= currentAmmoName then
+                -- Move it to the players inventory, or the floor.
+                local currentAmmoCount = ammoItemStack.count
+                local ammoInsertedCount = player.insert({name = currentAmmoName, count = currentAmmoCount, ammo = ammoItemStack.ammo})
+                if ammoInsertedCount < currentAmmoCount then
+                    player.surface.spill_item_stack(player.position, {name = currentAmmoName, count = currentAmmoCount - ammoInsertedCount --[[@as uint]]}, true, nil, false)
+                end
+                removedWeaponDetails.ammoItemName = currentAmmoName
+                ammoItemStack.clear()
             end
-            removedWeaponDetails.ammoItemName = currentName
-            ammoItemStack.clear()
         end
 
-        -- Clear the filter on the slot.
-        removedWeaponDetails.ammoFilterName = ammoInventory.get_filter(weaponFoundIndex)
-        if removedWeaponDetails.ammoFilterName ~= nil then
+        -- Clear any incompatible filter on the ammo slot.
+        local currentAmmoFilterName = ammoInventory.get_filter(weaponFoundIndex)
+        if currentAmmoFilterName ~= nil and currentAmmoFilterName ~= ammoTypePlanned then
+            removedWeaponDetails.ammoFilterName = currentAmmoFilterName
             ammoInventory.set_filter(weaponFoundIndex, nil) ---@diagnostic disable-line:param-type-mismatch  -- Mistake in API Docs, bugged: https://forums.factorio.com/viewtopic.php?f=7&t=102859
         end
+    else
+        -- No expected ammo type so we just need to remove any incompatible ammo, any filter can stay.
+        if ammoItemStack ~= nil and ammoItemStack.valid_for_read then
+            -- Ammo in the slot so need to check its compatible with the gun.
+            local currentAmmoType_category = ammoItemStack.prototype.get_ammo_type("player").category
+            local newWeaponType_categories = game.item_prototypes[weaponName].attack_parameters.ammo_categories
 
+            -- Clear the current ammo stack ready for the the planned ammo if not compatible with the gun.
+            local isCompatible = false
+            for _, newWeaponType_category in pairs(newWeaponType_categories) do
+                if currentAmmoType_category == newWeaponType_category then
+                    isCompatible = true
+                    break
+                end
+            end
+            if not isCompatible then
+                -- Move it to the players inventory, or the floor.
+                local currentAmmoName, currentAmmoCount = ammoItemStack.name, ammoItemStack.count
+                local ammoInsertedCount = player.insert({name = currentAmmoName, count = currentAmmoCount, ammo = ammoItemStack.ammo})
+                if ammoInsertedCount < currentAmmoCount then
+                    player.surface.spill_item_stack(player.position, {name = currentAmmoName, count = currentAmmoCount - ammoInsertedCount --[[@as uint]]}, true, nil, false)
+                end
+                removedWeaponDetails.ammoItemName = currentAmmoName
+                ammoItemStack.clear()
+            end
+        end
+    end
+
+    -- Give the gun if needed. We had to handle ammo first for both when needing a gun giving and not.
+    if needsGunGiving then
         -- Remove 1 item of the weapon type from the players inventory if they had one, to simulate equiping the weapon. Otherwise we will flag this as giving the player a weapon.
         if characterInventory.get_item_count(weaponName) == 0 then
-            -- No instacne of the weapon in the player's inventory.
+            -- No instance of the weapon in the player's inventory.
             weaponGiven = true
         else
             -- Weapon in players inventory, so remove 1.
@@ -200,7 +244,7 @@ PlayerWeapon.ReturnRemovedWeapon = function(player, removedWeaponDetails)
     end
 end
 
---- Take the flamethrower from the player (weapon slot, inventory or dropped on ground).
+--- Take the item from the player (weapon slot, inventory or dropped on ground).
 ---@param player LuaPlayer
 ---@param itemName string
 ---@param itemCount uint
