@@ -51,18 +51,14 @@ end
 PantsOnFire.PantsOnFireCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_pants_on_fire command "
     local commandName = "muppet_streamer_pants_on_fire"
-    local commandData
-    if command.parameter ~= nil then
-        commandData = game.json_to_table(command.parameter)
-    end
-    if commandData == nil or type(commandData) ~= "table" then
-        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+
+    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount"})
+    if commandData == nil then
         return
-    end ---@cast commandData table<string, any>
+    end
 
     local delaySeconds = tonumber(commandData.delay)
-    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
     local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")

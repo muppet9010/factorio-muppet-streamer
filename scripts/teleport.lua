@@ -100,14 +100,11 @@ end
 ---@param command CustomCommandData
 Teleport.TeleportCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_teleport command "
-    local commandData
-    if command.parameter ~= nil then
-        commandData = game.json_to_table(command.parameter)
-    end
-    if commandData == nil or type(commandData) ~= "table" then
-        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-        return ---@cast commandData table<string, any>
+    local commandName = "muppet_streamer_teleport"
+
+    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings"})
+    if commandData == nil then
+        return
     end
 
     local commandValues = Teleport.GetCommandData(commandData, errorMessageStart, 0, command.parameter)
@@ -133,7 +130,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     -- Any errors raised need to include the depth message so we know how many backups it has got in to when it errored. So we add it to the end of the passed command name as this gets it to the right place in the produced error messages.
     local delaySeconds = tonumber(commandData.delay)
-    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, commandStringText) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, commandStringText) then
         return
     end ---@cast delaySeconds double|nil
     -- Don't pass the current tick value as we will add it later.

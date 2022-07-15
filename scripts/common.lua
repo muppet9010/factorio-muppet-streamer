@@ -33,7 +33,7 @@ end
 ---@return boolean isValid
 Common.CheckPlayerNameSettingValue = function(playerName, commandName, settingName, commandString)
     -- Check its a valid populated string first, then that it's a player's name.
-    if not CommandsUtils.ParseStringArgument(playerName, true, commandName, settingName, nil, commandString) then
+    if not CommandsUtils.CheckStringArgument(playerName, true, commandName, settingName, nil, commandString) then
         return false
     elseif game.get_player(playerName) == nil then
         LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - " .. settingName .. " is invalid player name")

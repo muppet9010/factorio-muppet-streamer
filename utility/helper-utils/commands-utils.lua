@@ -125,7 +125,68 @@ CommandsUtils.GetArgumentsFromCommand = function(parameterString)
     return args
 end
 
---- Parses a command's generic argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
+--- Gets the commands parameter string as a table of values. Used when a command only takes a single argument object and that is a table of options.
+---@param commandParamaterString string|nil @ The text string passed in on the command.
+---@param mandatory boolean @ If false then passign in nothing won't flag an error message, but will still error on malformed text string.
+---@param commandName string @ The ingame commmand name. Used in error messages.
+---@param allowedSettingNames string[] @ The setting names that are allowed in this command. Warns (not errors) about any that aren't expected. The values of this table are read as its a list of strings (done for easier calling of the function).
+---@return table<string, any>|nil dataTable @ The dataTable of arguments or nil if invalid or none provided.
+CommandsUtils.GetTableFromCommandParamaterString = function(commandParamaterString, mandatory, commandName, allowedSettingNames)
+    commandParamaterString = commandParamaterString or ""
+    local dataTable = game.json_to_table(commandParamaterString)
+
+    -- If populated check its valid.
+    if commandParamaterString ~= "" and dataTable == nil then
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " requires details in JSON format when provided.")
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandParamaterString)
+        return nil
+    end
+
+    -- If mandatory check its populated.
+    if mandatory and dataTable == nil then
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " requires details to be populated.")
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandParamaterString)
+        return nil
+    end
+
+    -- If its not mandatory and not populated then its fine.
+    if not mandatory and dataTable == nil then
+        return nil
+    end
+
+    -- Check its a table.
+    if type(dataTable) ~= "table" then
+        -- Wrong type so fail.
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " requires details to be a table in JSON format. Received type " .. type(dataTable) .. " instead.")
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandParamaterString)
+        return nil
+    end ---@cast dataTable table<string, any>
+
+    -- Flag any unexpected setting names. This doesn;t cause a nil return and so the command can try and continue with this setting being ignored.
+    for inputSettingName in pairs(dataTable) do
+        local keyFound = false
+        for _, allowedSettingName in pairs(allowedSettingNames) do
+            if allowedSettingName == inputSettingName then
+                keyFound = true
+                break
+            end
+        end
+
+        if not keyFound then
+            LoggingUtils.LogPrintWarning(Constants.ModFriendlyName .. " - command " .. commandName .. " received an unsupported setting that will be ignored: " .. tostring(inputSettingName))
+            if TableUtils.GetTableNonNilLength(allowedSettingNames) < 20 then
+                LoggingUtils.LogPrintWarning("Allowed settings are: " .. TableUtils.TableValueToCommaString(allowedSettingNames))
+            else
+                LoggingUtils.LogPrintWarning("Allowed settings list is too long to show here. See mod documentation")
+            end
+            LoggingUtils.LogPrintWarning(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandParamaterString)
+        end
+    end
+
+    return dataTable
+end
+
+--- Check a command's generic argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
 ---@param value any @ Will accept any data type and validate it.
 ---@param requiredType table|boolean|string|number @ The type of value we want.
 ---@param mandatory boolean
@@ -133,10 +194,10 @@ end
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
-CommandsUtils.ParseGenericArgument = function(value, requiredType, mandatory, commandName, argumentName, commandString)
+CommandsUtils.CheckGenericArgument = function(value, requiredType, mandatory, commandName, argumentName, commandString)
     if mandatory and value == nil then
         -- Mandatory and not provided so fail.
-        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be populated.")
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required '" .. argumentName .. "' to be populated.")
         if commandString ~= nil then
             LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
         end
@@ -147,7 +208,7 @@ CommandsUtils.ParseGenericArgument = function(value, requiredType, mandatory, co
         -- Check the type and handle the results.
         if type(value) ~= requiredType then
             -- Wrong type so fail.
-            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. type(value) .. " instead.")
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required '" .. argumentName .. "' to be of type '" .. requiredType .. "' when provided. Received type '" .. type(value) .. "' instead.")
             if commandString ~= nil then
                 LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
             end
@@ -162,7 +223,7 @@ CommandsUtils.ParseGenericArgument = function(value, requiredType, mandatory, co
     end
 end
 
---- Parses a command's argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName. Does not convert strings to numbers.
+--- Check a command's argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName. Does not convert strings to numbers.
 ---@param value any @ Will accept any data type and validate it.
 ---@param requiredType "'double'"|"'int'" @ The specific number type we want.
 ---@param mandatory boolean
@@ -172,9 +233,9 @@ end
 ---@param numberMaxLimit? number|nil @ An optional maximum allowed value can be specified.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
-CommandsUtils.ParseNumberArgument = function(value, requiredType, mandatory, commandName, argumentName, numberMinLimit, numberMaxLimit, commandString)
+CommandsUtils.CheckNumberArgument = function(value, requiredType, mandatory, commandName, argumentName, numberMinLimit, numberMaxLimit, commandString)
     -- Check its valid for generic requirements first.
-    if not CommandsUtils.ParseGenericArgument(value, "number", mandatory, commandName, argumentName, commandString) then
+    if not CommandsUtils.CheckGenericArgument(value, "number", mandatory, commandName, argumentName, commandString) then
         return false
     end ---@cast value number|nil
 
@@ -194,7 +255,7 @@ CommandsUtils.ParseNumberArgument = function(value, requiredType, mandatory, com
         end
 
         if isWrongType then
-            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. "double" .. " instead.")
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required '" .. argumentName .. "' to be of type '" .. requiredType .. "' when provided. Received type '" .. "double" .. "' instead.")
             if commandString ~= nil then
                 LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
             end
@@ -211,24 +272,24 @@ CommandsUtils.ParseNumberArgument = function(value, requiredType, mandatory, com
         numberOutsideLimits = true
     end
     if numberOutsideLimits then
-        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be between " .. numberMinLimit .. " and " .. numberMaxLimit .. ". Received value of " .. value .. " instead.")
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument '" .. argumentName .. "' must be between " .. numberMinLimit .. " and " .. numberMaxLimit .. ". Received value of '" .. value .. "' instead.")
         return false
     end
 
     return true
 end
 
---- Parses a command's string argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
+--- Check a command's string argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
 ---@param value any @ Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
----@param allowedStrings? table<string, any>|nil @ A limited array of allowed strings can be specified as a table of string keys with non nil values.
+---@param allowedStrings? table<string, any>|nil @ A limited array of allowed strings can be specified as a table of string keys with non nil values. Designed to recieve an enum type object.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
-CommandsUtils.ParseStringArgument = function(value, mandatory, commandName, argumentName, allowedStrings, commandString)
+CommandsUtils.CheckStringArgument = function(value, mandatory, commandName, argumentName, allowedStrings, commandString)
     -- Check its valid for generic requirements first.
-    if not CommandsUtils.ParseGenericArgument(value, "string", mandatory, commandName, argumentName, commandString) then
+    if not CommandsUtils.CheckGenericArgument(value, "string", mandatory, commandName, argumentName, commandString) then
         return false
     end ---@cast value string|nil
 
@@ -240,11 +301,11 @@ CommandsUtils.ParseStringArgument = function(value, mandatory, commandName, argu
     -- Check the value is in the allowed strings requirement if provided.
     if allowedStrings ~= nil then
         if allowedStrings[value] == nil then
-            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be one of the allowed text strings.")
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument '" .. argumentName .. "' must be one of the allowed text strings.")
             if TableUtils.GetTableNonNilLength(allowedStrings) < 20 then
                 LoggingUtils.LogPrintError("Allowed text strings are: " .. TableUtils.TableKeyToCommaString(allowedStrings))
             else
-                LoggingUtils.LogPrintError("Allowed strings list is too long to list. See mod documentation")
+                LoggingUtils.LogPrintError("Allowed strings list is too long to list here. See mod documentation")
             end
             if commandString ~= nil then
                 LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
@@ -256,17 +317,17 @@ CommandsUtils.ParseStringArgument = function(value, mandatory, commandName, argu
     return true
 end
 
---- Parses a command's table argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
+--- Check a command's table argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
 ---@param value any @ Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
----@param allowedKeys? table<string, any>|nil @ A limited array of allowed keys of the table can be specified as a table of string keys with non nil values.
+---@param allowedKeys? table<string, any>|nil @ A limited array of allowed keys of the table can be specified as a table of string keys with non nil values. Designed to recieve an enum type object.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
-CommandsUtils.ParseTableArgument = function(value, mandatory, commandName, argumentName, allowedKeys, commandString)
+CommandsUtils.CheckTableArgument = function(value, mandatory, commandName, argumentName, allowedKeys, commandString)
     -- Check its valid for generic requirements first.
-    if not CommandsUtils.ParseGenericArgument(value, "table", mandatory, commandName, argumentName, commandString) then
+    if not CommandsUtils.CheckGenericArgument(value, "table", mandatory, commandName, argumentName, commandString) then
         return false
     end ---@cast value table|nil
 
@@ -279,11 +340,11 @@ CommandsUtils.ParseTableArgument = function(value, mandatory, commandName, argum
     if allowedKeys ~= nil then
         for key in pairs(value) do
             if allowedKeys[key] == nil then
-                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " includes a non supported key: " .. tostring(key))
+                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument '" .. argumentName .. "' includes a non supported key: " .. tostring(key))
                 if TableUtils.GetTableNonNilLength(allowedKeys) < 20 then
                     LoggingUtils.LogPrintError("Allowed keys are: " .. TableUtils.TableKeyToCommaString(allowedKeys))
                 else
-                    LoggingUtils.LogPrintError("Allowed keys list is too long to list. See mod documentation")
+                    LoggingUtils.LogPrintError("Allowed keys list is too long to list here. See mod documentation")
                 end
                 if commandString ~= nil then
                     LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)

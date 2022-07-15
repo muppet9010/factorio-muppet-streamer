@@ -1,6 +1,5 @@
 local AggressiveDriver = {}
 local CommandsUtils = require("utility.helper-utils.commands-utils")
-local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local Events = require("utility.manager-libraries.events")
@@ -57,20 +56,15 @@ end
 
 ---@param command CustomCommandData
 AggressiveDriver.AggressiveDriverCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_aggressive_driver command "
     local commandName = "muppet_streamer_aggressive_driver"
-    local commandData
-    if command.parameter ~= nil then
-        commandData = game.json_to_table(command.parameter)
-    end
-    if commandData == nil or type(commandData) ~= "table" then
-        LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+
+    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "control", "teleportDistance"})
+    if commandData == nil then
         return
-    end ---@cast commandData table<string, any>
+    end
 
     local delaySeconds = tonumber(commandData.delay)
-    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
     local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
@@ -81,19 +75,19 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     end ---@cast target string
 
     local durationSeconds = tonumber(commandData.duration)
-    if not CommandsUtils.ParseNumberArgument(durationSeconds, "double", true, commandName, "duration", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 0, nil, command.parameter) then
         return
     end ---@cast durationSeconds double
     local duration = math.floor(durationSeconds * 60) --[[@as uint]]
 
     local control = commandData.control
-    if not CommandsUtils.ParseStringArgument(control, false, commandName, "control", ControlTypes, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(control, false, commandName, "control", ControlTypes, command.parameter) then
         return
     end ---@cast control AggressiveDriver_ControlTypes|nil
     control = control or ControlTypes.full ---@cast control - nil
 
     local teleportDistance = commandData.teleportDistance
-    if not CommandsUtils.ParseNumberArgument(teleportDistance, "double", false, commandName, "teleportDistance", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(teleportDistance, "double", false, commandName, "teleportDistance", 0, nil, command.parameter) then
         return
     end ---@cast teleportDistance double|nil
     teleportDistance = teleportDistance or 0.0 ---@cast teleportDistance - nil
