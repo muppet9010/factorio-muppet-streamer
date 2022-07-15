@@ -75,25 +75,18 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
+    end ---@cast commandData table<string, any>
 
-    local delaySecondsRaw = commandData.delay ---@type any
-    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySeconds = tonumber(commandData.delay)
+    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
-    end
-    ---@cast delaySecondsRaw uint
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     local target = commandData.target
-    if target == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
         return
-    elseif game.get_player(target) == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-        return
-    end
+    end ---@cast target string
 
     local forceString = commandData.force
     if forceString ~= nil then
@@ -109,22 +102,19 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "entityName is mandatory and must be a supported type")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
-    ---@cast entityName - nil
-    end
+    end ---@cast entityName - nil
 
     local radiusMax = tonumber(commandData.radiusMax)
     if radiusMax == nil or radiusMax <= 0 then
         LoggingUtils.LogPrintError(errorMessageStart .. "radiusMax is mandatory and must be a number greater than 0")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
-    ---@cast radiusMax uint
+    end ---@cast radiusMax uint
 
     local radiusMin = tonumber(commandData.radiusMin)
     if radiusMin == nil or radiusMin < 0 then
         radiusMin = 0
-    end
-    ---@cast radiusMin uint
+    end ---@cast radiusMin uint
 
     local existingEntitiesString = commandData.existingEntities ---@type string|nil
     if existingEntitiesString == nil or ExistingEntitiesTypes[existingEntitiesString] == nil then
@@ -134,8 +124,8 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end
     local existingEntities = ExistingEntitiesTypes[existingEntitiesString]
 
-    local quantity = tonumber(commandData.quantity)
-    ---@cast quantity uint|nil
+    local quantity = tonumber(commandData.quantity) ---@cast quantity uint|nil
+
     local density = tonumber(commandData.density)
     if quantity == nil and density == nil then
         LoggingUtils.LogPrintError(errorMessageStart .. "either quantity or density must be provided, otherwise the command will create nothing.")
@@ -143,8 +133,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end
 
-    local ammoCount = tonumber(commandData.ammoCount)
-    ---@cast ammoCount uint|nil
+    local ammoCount = tonumber(commandData.ammoCount) ---@cast ammoCount uint|nil
 
     local followPlayer = false ---@type boolean|nil
     if commandData.followPlayer ~= nil then
@@ -177,8 +166,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
         force = targetPlayer.force
     else
         force = game.forces[data.forceString]
-    end
-    ---@cast force LuaForce
+    end ---@cast force LuaForce
 
     if data.quantity ~= nil then
         local placed, targetPlaced, attempts, maxAttempts = 0, data.quantity, 0, data.quantity * 5

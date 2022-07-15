@@ -36,25 +36,18 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
+    end ---@cast commandData table<string, any>
 
-    local delaySecondsRaw = commandData.delay ---@type any
-    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySeconds = tonumber(commandData.delay)
+    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
-    end
-    ---@cast delaySecondsRaw uint
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     local target = commandData.target
-    if target == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
         return
-    elseif game.get_player(target) == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-        return
-    end
+    end ---@cast target string
 
     local weaponTypeString, weaponType = commandData.weaponType, nil
     if weaponTypeString ~= nil and weaponTypeString ~= "" then
@@ -75,8 +68,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
-    ---@cast forceWeaponToSlot -nil
-    end
+    end ---@cast forceWeaponToSlot -nil
 
     ---@type boolean|nil
     local selectWeapon = false
@@ -87,8 +79,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
-    ---@cast selectWeapon -nil
-    end
+    end ---@cast selectWeapon -nil
 
     ---@typelist string|nil, LuaItemPrototype|nil
     local ammoTypeString, ammoType = commandData.ammoType, nil

@@ -126,12 +126,12 @@ CommandsUtils.GetArgumentsFromCommand = function(parameterString)
 end
 
 --- Parses a command's generic argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
----@param value any
+---@param value any @ Will accept any data type and validate it.
 ---@param requiredType table|boolean|string|number @ The type of value we want.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
----@param commandString string? @ If provided it will be included in error messages. Not needed for operational use.
+---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
 CommandsUtils.ParseGenericArgument = function(value, requiredType, mandatory, commandName, argumentName, commandString)
     if mandatory and value == nil then
@@ -162,36 +162,37 @@ CommandsUtils.ParseGenericArgument = function(value, requiredType, mandatory, co
     end
 end
 
---- Parses a command's argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
----@param value number?
+--- Parses a command's argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName. Does not convert strings to numbers.
+---@param value any @ Will accept any data type and validate it.
 ---@param requiredType "'double'"|"'int'" @ The specific number type we want.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
 ---@param numberMinLimit? number|nil @ An optional minimum allowed value can be specified.
 ---@param numberMaxLimit? number|nil @ An optional maximum allowed value can be specified.
----@param commandString string? @ If provided it will be included in error messages. Not needed for operational use.
+---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
 CommandsUtils.ParseNumberArgument = function(value, requiredType, mandatory, commandName, argumentName, numberMinLimit, numberMaxLimit, commandString)
     -- Check its valid for generic requirements first.
-    if not CommandsUtils.ParseGenericArgument(value, "number", mandatory, commandName, argumentName) then
+    if not CommandsUtils.ParseGenericArgument(value, "number", mandatory, commandName, argumentName, commandString) then
         return false
-    end
+    end ---@cast value number|nil
 
     -- If value is nil and it passed the generic requirements which checks mandatory if needed, then end this parse successfully.
     if value == nil then
         return true
-    end
-
-    local isWrongType = false
+    end ---@cast value number
 
     -- If theres a specific fake type check that first.
+    -- Theres no check for a double as that can be anything.
     if requiredType == "int" then
-        -- Theres no check for a double as that can be anything.
+        local isWrongType = false
+
         if math.floor(value) ~= value then
             -- Not an int.
             isWrongType = true
         end
+
         if isWrongType then
             LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required " .. argumentName .. " to be of type " .. requiredType .. " when provided. Received type " .. "double" .. " instead.")
             if commandString ~= nil then
@@ -202,13 +203,14 @@ CommandsUtils.ParseNumberArgument = function(value, requiredType, mandatory, com
     end
 
     -- Check if the number is within limits, if restrictions are provided.
+    local numberOutsideLimits = false
     if numberMinLimit ~= nil and value < numberMinLimit then
-        isWrongType = true
+        numberOutsideLimits = true
     end
     if numberMaxLimit ~= nil and value > numberMaxLimit then
-        isWrongType = true
+        numberOutsideLimits = true
     end
-    if isWrongType then
+    if numberOutsideLimits then
         LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument " .. argumentName .. " must be between " .. numberMinLimit .. " and " .. numberMaxLimit .. ". Received value of " .. value .. " instead.")
         return false
     end
@@ -217,23 +219,23 @@ CommandsUtils.ParseNumberArgument = function(value, requiredType, mandatory, com
 end
 
 --- Parses a command's string argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
----@param value string
+---@param value any @ Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
 ---@param allowedStrings? table<string, any>|nil @ A limited array of allowed strings can be specified as a table of string keys with non nil values.
----@param commandString string? @ If provided it will be included in error messages. Not needed for operational use.
+---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
 CommandsUtils.ParseStringArgument = function(value, mandatory, commandName, argumentName, allowedStrings, commandString)
     -- Check its valid for generic requirements first.
-    if not CommandsUtils.ParseGenericArgument(value, "string", mandatory, commandName, argumentName) then
+    if not CommandsUtils.ParseGenericArgument(value, "string", mandatory, commandName, argumentName, commandString) then
         return false
-    end
+    end ---@cast value string|nil
 
     -- If value is nil and it passed the generic requirements which handles mandatory then end this parse successfully.
     if value == nil then
         return true
-    end
+    end ---@cast value string
 
     -- Check the value is in the allowed strings requirement if provided.
     if allowedStrings ~= nil then
@@ -255,23 +257,23 @@ CommandsUtils.ParseStringArgument = function(value, mandatory, commandName, argu
 end
 
 --- Parses a command's table argument and checks it is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
----@param value table
+---@param value any @ Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
 ---@param allowedKeys? table<string, any>|nil @ A limited array of allowed keys of the table can be specified as a table of string keys with non nil values.
----@param commandString string? @ If provided it will be included in error messages. Not needed for operational use.
+---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
 CommandsUtils.ParseTableArgument = function(value, mandatory, commandName, argumentName, allowedKeys, commandString)
     -- Check its valid for generic requirements first.
-    if not CommandsUtils.ParseGenericArgument(value, "table", mandatory, commandName, argumentName) then
+    if not CommandsUtils.ParseGenericArgument(value, "table", mandatory, commandName, argumentName, commandString) then
         return false
-    end
+    end ---@cast value table|nil
 
     -- If value is nil and it passed the generic requirements which handles mandatory then end this parse successfully.
     if value == nil then
         return true
-    end
+    end ---@cast value table
 
     -- Check the value's keys are in the allowed key requirement if provided.
     if allowedKeys ~= nil then

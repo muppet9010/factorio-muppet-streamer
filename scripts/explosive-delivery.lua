@@ -44,14 +44,13 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
+    end ---@cast commandData table<string, any>
 
-    local delaySecondsRaw = commandData.delay ---@type any
-    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySeconds = tonumber(commandData.delay)
+    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
-    end
-    ---@cast delaySecondsRaw uint
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     local explosiveCount = tonumber(commandData.explosiveCount)
     if explosiveCount == nil then
@@ -68,18 +67,12 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "explosiveType is mandatory and must be a supported type")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
+    end ---@cast commandData table<string, any>
 
     local target = commandData.target
-    if target == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
         return
-    elseif game.get_player(target) == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-        return
-    end
+    end ---@cast target string
 
     local targetPosition = commandData.targetPosition ---@type MapPosition|nil
     if targetPosition ~= nil then
@@ -109,8 +102,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "accuracyRadiusMin is Optional, but must be a non-negative number if supplied")
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
-        end
-    ---@cast accuracyRadiusMin - nil
+        end ---@cast accuracyRadiusMin - nil
     end
 
     ---@type double|nil
@@ -121,8 +113,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "accuracyRadiusMax is Optional, but must be a non-negative number if supplied")
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
-        end
-    ---@cast accuracyRadiusMax - nil
+        end ---@cast accuracyRadiusMax - nil
     end
 
     ---@type number|nil
@@ -133,8 +124,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "salvoSize is Optional, but must be a non-negative number if supplied")
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
-        end
-    ---@cast salvoSize - nil
+        end ---@cast salvoSize - nil
     end
 
     ---@type number|nil

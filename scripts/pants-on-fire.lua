@@ -59,25 +59,18 @@ PantsOnFire.PantsOnFireCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
+    end ---@cast commandData table<string, any>
 
-    local delaySecondsRaw = commandData.delay ---@type any
-    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySeconds = tonumber(commandData.delay)
+    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
-    end
-    ---@cast delaySecondsRaw uint
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     local target = commandData.target
-    if target == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
         return
-    elseif game.get_player(target) == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-        return
-    end
+    end ---@cast target string
 
     local durationSeconds = tonumber(commandData.duration)
     if durationSeconds == nil then
@@ -96,8 +89,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
-    end
-    ---@cast fireHeadStart uint
+    end ---@cast fireHeadStart uint
 
     ---@type number|nil
     local fireGap = 6
@@ -108,8 +100,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
-    end
-    ---@cast fireGap uint
+    end ---@cast fireGap uint
 
     ---@type number|nil
     local flameCount = 20
@@ -120,8 +111,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
-    end
-    ---@cast flameCount uint
+    end ---@cast flameCount uint
 
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1
     ---@type PantsOnFire_ScheduledEventDetails

@@ -42,8 +42,8 @@ At present a Time Duration event will interrupt a different type of time duratio
 
 Argument Data Types:
 
-- INTEGER = expects a whole number and not a fraction. So `1.5` is a bad value.
-- DECIMAL = can take a fraction, i.e `0.25` or `54.28437`. In some usage cases the final result will be rounded to a degree, i.e. 0.4 seconds will have to be rounded to a single tick accuracy.
+- INTEGER = expects a whole number and not a fraction. So `1.5` is a bad value. Integers are not wrapped in double quotes.
+- DECIMAL = can take a fraction, i.e `0.25` or `54.28437`. In some usage cases the final result will be rounded to a degree, i.e. 0.4 seconds will have to be rounded to a single tick accuracy. Decimals are not wrapped in double quotes.
 - STRING = a text string wrapped in double quotes, i.e. `"some text"`
 - STRING_LIST = a comma separated list of things in a single string, i.e. `"Player1,player2, Player3  "`. Any leading or trailing spaces will be removed from each entry in the list. The casing (capitalisation) of things must match the case within factorio exactly, i.e. player names must have the same case as within Factorio. This can be a single thing in a string, i.e. `"Player1"`.
 - OBJECT = some features accept an object as an argument. These are detailed in the notes for those functions. i.e. a position as an object with x and y coordinates: `{"x": 5, "y":23}`

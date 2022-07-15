@@ -70,14 +70,13 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         LoggingUtils.LogPrintError(ErrorMessageStart .. "requires details in JSON format.")
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
+    end ---@cast commandData table<string, any>
 
-    local delaySecondsRaw = commandData.delay ---@type any
-    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySeconds = tonumber(commandData.delay)
+    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
-    end
-    ---@cast delaySecondsRaw uint
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     -- Just get the Included Players with minimal checking as we do the checks once all the include settings are obtained.
     local includedPlayersString = commandData.includedPlayers ---@type string
@@ -119,8 +118,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             LoggingUtils.LogPrintError(ErrorMessageStart .. "atleast 2 players must be listed if no force is included.")
             LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
-        ---@cast includedPlayerNames - nil
-        end
+        end ---@cast includedPlayerNames - nil
     end
 
     local includeEquipmentString = commandData.includeEquipment
@@ -166,8 +164,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
-    end
-    ---@cast destinationPlayersMinimumVariance uint
+    end ---@cast destinationPlayersMinimumVariance uint
 
     local destinationPlayersVarianceFactorString = commandData.destinationPlayersVarianceFactor ---@type any
     local destinationPlayersVarianceFactor  ---@type any
@@ -185,8 +182,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
-    end
-    ---@cast destinationPlayersVarianceFactor double
+    end ---@cast destinationPlayersVarianceFactor double
 
     local recipientItemMinToMaxRatioString = commandData.recipientItemMinToMaxRatio
     local recipientItemMinToMaxRatio
@@ -205,8 +201,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
             return
         end
-    end
-    ---@cast recipientItemMinToMaxRatio uint
+    end ---@cast recipientItemMinToMaxRatio uint
 
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
     ---@type PlayerInventoryShuffle_RequestData

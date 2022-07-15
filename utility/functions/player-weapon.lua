@@ -82,7 +82,6 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                     -- The player has a gun slot with no weapon, but it is filtered. So use this for our gun.
                     weaponFoundIndex = freeButFilteredGunIndex
                 else
-                    ---@cast weaponFoundIndex - nil
                     -- The player only has gun slots with other weapons in them, so select one randomly for our gun.
                     weaponFoundIndex = math.random(1, #gunInventory) --[[@as uint]]
                 end
@@ -112,7 +111,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                     return false, nil
                 end
             end
-        end
+        end ---@cast weaponFoundIndex - nil
 
         -- Clear the ammo slot ready for the weapon and its possible ammo.
         local ammoInventory = player.get_inventory(defines.inventory.character_ammo)

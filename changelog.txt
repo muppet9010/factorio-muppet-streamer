@@ -3,7 +3,7 @@ Version: 20.0.24
 Date: 2022-XX-XX
   Features:
   Changes:
-    - All feature's command are now tighter on how they enforce option's value types, i.e. Integer vs decimal point number (FLOAT). This means options either now explicitly enforce the value type listed in the readme; or when the code allowed a wider range of values than the README indicated, the README now matchs the widr allowed value type range. If you previously passed in the correct value types this will have no impact on you. Any tightened restrictions on a command's expected value type will be listed as a change separately.
+    - All feature's command are now tighter on how they enforce option's value types, i.e. Integer vs decimal point number (FLOAT), or a numebr passed in as a string (number in double quotes). This means options either now explicitly enforce the value type listed in the readme; or when the code allowed a wider range of values than the README indicated, the README now matchs the wider allowed value type range. If you previously passed in the correct value types this will have no impact on you. Any tightened restrictions on a command's expected value type will be listed as a change separately.
     - Player Drop Inventory - gap setting must be above 0 now.
   Bugfixes:
   Info:

@@ -59,25 +59,18 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         LoggingUtils.LogPrintError(ErrorMessageStart .. "requires details in JSON format.")
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
+    end ---@cast commandData table<string, any>
 
-    local delaySecondsRaw = commandData.delay ---@type any
-    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySeconds = tonumber(commandData.delay)
+    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
-    end
-    ---@cast delaySecondsRaw uint
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
-    local target = commandData.target ---@type string
-    if target == nil then
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "target is mandatory")
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
+    local target = commandData.target
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
         return
-    elseif game.get_player(target) == nil then
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "target is invalid player name")
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-        return
-    end
+    end ---@cast target string
 
     local quantityTypeString = commandData.quantityType
     if target == nil then
@@ -117,8 +110,8 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         LoggingUtils.LogPrintError(ErrorMessageStart .. "gap is mandatory as a number and must be greater than 0")
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
-    ---@cast gap uint
+    end ---@cast gap uint
+
     gap = math.ceil(gap * 60) --[[@as uint]]
 
     local occurrences = tonumber(commandData.occurrences)
@@ -126,8 +119,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         LoggingUtils.LogPrintError(ErrorMessageStart .. "occurrences is mandatory as a number and must be 1 or greater")
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
-    ---@cast occurrences uint
+    end ---@cast occurrences uint
 
     local dropEquipmentString = commandData.dropEquipment
     local dropEquipment  ---@type boolean|nil

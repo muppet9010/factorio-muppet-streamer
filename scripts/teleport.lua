@@ -107,7 +107,7 @@ Teleport.TeleportCommand = function(command)
     if commandData == nil or type(commandData) ~= "table" then
         LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-        return
+        return ---@cast commandData table<string, any>
     end
 
     local commandValues = Teleport.GetCommandData(commandData, errorMessageStart, 0, command.parameter)
@@ -119,7 +119,7 @@ Teleport.TeleportCommand = function(command)
 end
 
 --- Validates the data from an RCON commands's arguments in to a table of details.
----@param commandData table @ Table of arguments passed in to the RCON command.
+---@param commandData table<string, any> @ Table of arguments passed in to the RCON command.
 ---@param errorMessageStart string
 ---@param depth uint @ Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
 ---@param commandStringText string @ The raw command text sent via RCON.
@@ -132,24 +132,17 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     end
 
     -- Any errors raised need to include the depth message so we know how many backups it has got in to when it errored. So we add it to the end of the passed command name as this gets it to the right place in the produced error messages.
-    local delaySecondsRaw = commandData.delay ---@type any
-    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay " .. depthErrorMessage, 0, nil, commandStringText) then
+    local delaySeconds = tonumber(commandData.delay)
+    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, commandStringText) then
         return
-    end
-    ---@cast delaySecondsRaw uint
+    end ---@cast delaySeconds double|nil
     -- Don't pass the current tick value as we will add it later.
-    local delay = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, 0, commandName, "delay " .. depthErrorMessage)
+    local delayTicks = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, 0, commandName, "delay " .. depthErrorMessage)
 
     local target = commandData.target
-    if target == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
-        return nil
-    elseif game.get_player(target) == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "target is invalid player name")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
-        return nil
-    end
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", commandStringText) then
+        return
+    end ---@cast target string
 
     local destinationTypeRaw = commandData.destinationType
     local destinationType, destinationTargetPosition = DestinationTypeSelection[destinationTypeRaw], nil
@@ -174,8 +167,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
             LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
-        ---@cast arrivalRadius - nil
-        end
+        end ---@cast arrivalRadius - nil
     end
 
     ---@typelist number, number|nil
@@ -186,8 +178,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
             LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
-        ---@cast minDistance - nil
-        end
+        end ---@cast minDistance - nil
     end
 
     local maxDistance = tonumber(commandData.maxDistance)
@@ -211,8 +202,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
             return nil
         end
-    end
-    ---@cast reachableOnly -nil
+    end ---@cast reachableOnly -nil
 
     local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
     if backupTeleportSettingsRaw ~= nil and type(backupTeleportSettingsRaw) == "table" then
@@ -220,7 +210,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     end
 
     ---@type Teleport_CommandDetails
-    local commandDetails = {delay = delay, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
+    local commandDetails = {delay = delayTicks, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
     return commandDetails
 end
 

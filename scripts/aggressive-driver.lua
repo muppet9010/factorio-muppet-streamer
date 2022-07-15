@@ -67,58 +67,36 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         LoggingUtils.LogPrintError(errorMessageStart .. "requires details in JSON format.")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
-    end
+    end ---@cast commandData table<string, any>
 
-    local delaySecondsRaw = commandData.delay ---@type any
-    if not CommandsUtils.ParseNumberArgument(delaySecondsRaw, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    local delaySeconds = tonumber(commandData.delay)
+    if not CommandsUtils.ParseNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
-    end
-    ---@cast delaySecondsRaw uint
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySecondsRaw, command.tick, commandName, "delay")
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     local target = commandData.target
-    if target == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is mandatory")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
         return
-    elseif game.get_player(target) == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target is invalid player name")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-        return
-    end
+    end ---@cast target string
 
-    local duration = tonumber(commandData.duration)
-    if duration == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    local durationSeconds = tonumber(commandData.duration)
+    if not CommandsUtils.ParseNumberArgument(durationSeconds, "double", true, commandName, "duration", 0, nil, command.parameter) then
         return
-    end
-    duration = math.floor(duration * 60) --[[@as uint]]
+    end ---@cast durationSeconds double
+    local duration = math.floor(durationSeconds * 60) --[[@as uint]]
 
     local control = commandData.control
-    if control ~= nil then
-        control = ControlTypes[control]
-        if control == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "control is Optional, but must be a valid type if supplied")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    else
-        control = ControlTypes.full
-    end
+    if not CommandsUtils.ParseStringArgument(control, false, commandName, "control", ControlTypes, command.parameter) then
+        return
+    end ---@cast control AggressiveDriver_ControlTypes|nil
+    control = control or ControlTypes.full ---@cast control - nil
 
-    local teleportDistanceString = commandData.teleportDistance
-    local teleportDistance
-    if teleportDistanceString ~= nil then
-        teleportDistance = tonumber(teleportDistanceString)
-        if teleportDistance == nil or teleportDistance < 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "teleportDistance is Optional, but must a number of 0 or greater")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    else
-        teleportDistance = 0
-    end
+    local teleportDistance = commandData.teleportDistance
+    if not CommandsUtils.ParseNumberArgument(teleportDistance, "double", false, commandName, "teleportDistance", 0, nil, command.parameter) then
+        return
+    end ---@cast teleportDistance double|nil
+    teleportDistance = teleportDistance or 0.0 ---@cast teleportDistance - nil
 
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
     ---@type AggressiveDriver_DelayedCommandDetails

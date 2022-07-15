@@ -6,12 +6,9 @@ local Colors = {}
 --Excel conversion string: =CONCATENATE("Colors.", B1, " = {",  SUBSTITUTE(SUBSTITUTE(D1, "(", ""),")",""), ",255}")
 -- Custom colors can be added, but shouldn't be removed or changed.
 
--- Named presets
-Colors.errorMessage = Colors.lightred
-Colors.warningMessage = Colors.orange
-
---Custom
-Colors.lightred = {255, 100, 100, 255} -- Ideal for error message text printed to screen.
+--Custom Colors
+Colors.lightred = {255, 100, 100, 255} -- Good for red writing on GUI backgrounds.
+Colors.midred = {255, 50, 50, 255} -- Between red and lightred, used for writing on the screen.
 Colors.guiheadingcolor = {255, 230, 192, 255}
 
 --Red
@@ -174,5 +171,9 @@ Colors.saddlebrown = {139, 69, 19, 255}
 Colors.sienna = {160, 82, 45, 255}
 Colors.brown = {165, 42, 42, 255}
 Colors.maroon = {128, 0, 0, 255}
+
+-- Named presets - Must be last so we can reference allready added values.
+Colors.errorMessage = Colors.midred
+Colors.warningMessage = Colors.orange
 
 return Colors
