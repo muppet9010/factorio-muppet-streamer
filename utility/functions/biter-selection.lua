@@ -8,7 +8,7 @@ local RandomChance = require("utility.functions.random-chance")
 
 local BiterSelection = {}
 
-function BiterSelection.GetBiterType(probabilityGlobalName, spawnerType, evolution)
+BiterSelection.GetBiterType = function(probabilityGlobalName, spawnerType, evolution)
     -- probabilityGlobalName option is a name for tracking this biter evolution probability line. Use unique names if different evolutions are being tracked.
     global.UTILITYBITERSELECTION = global.UTILITYBITERSELECTION or {}
     global.UTILITYBITERSELECTION[probabilityGlobalName] = global.UTILITYBITERSELECTION[probabilityGlobalName] or {}
@@ -24,7 +24,7 @@ function BiterSelection.GetBiterType(probabilityGlobalName, spawnerType, evoluti
     return RandomChance.GetRandomEntryFromNormalisedDataSet(modEnemyProbabilities[spawnerType].probabilities, "chance").unit
 end
 
-function BiterSelection._CalculateSpecificBiterSelectionProbabilities(spawnerType, currentEvolution)
+BiterSelection._CalculateSpecificBiterSelectionProbabilities = function(spawnerType, currentEvolution)
     local rawUnitProbs = game.entity_prototypes[spawnerType].result_units
     local currentEvolutionProbabilities = {}
     for _, possibility in pairs(rawUnitProbs) do
@@ -59,7 +59,7 @@ function BiterSelection._CalculateSpecificBiterSelectionProbabilities(spawnerTyp
     return normalisedcurrentEvolutionProbabilities
 end
 
-function BiterSelection.GetWormType(wormEvoGlobalName, evolution)
+BiterSelection.GetWormType = function(wormEvoGlobalName, evolution)
     -- wormEvoGlobalName parameter is a name for tracking this worm evolution line. Use unique names if different evolutions are being tracked.
     global.UTILITYBITERSELECTION = global.UTILITYBITERSELECTION or {}
     global.UTILITYBITERSELECTION[wormEvoGlobalName] = global.UTILITYBITERSELECTION[wormEvoGlobalName] or {}
@@ -72,7 +72,7 @@ function BiterSelection.GetWormType(wormEvoGlobalName, evolution)
     return wormEvoType.name
 end
 
-function BiterSelection._CalculateSpecificWormForEvolution(evolution)
+BiterSelection._CalculateSpecificWormForEvolution = function(evolution)
     local turrets = game.get_filtered_entity_prototypes({{filter = "turret"}, {mode = "and", filter = "build-base-evolution-requirement", comparison = "≤", value = evolution}, {mode = "and", filter = "flag", flag = "placeable-enemy"}, {mode = "and", filter = "flag", flag = "player-creation", invert = true}})
     if #turrets == 0 then
         return nil

@@ -12,17 +12,18 @@
 
     Require the file and obtain the MuppetStyles dictionary in any usage scenarios (lua files) to get autocomplete list of all the styles and their options. Saves having to remember them or check which options are available in this source code.
         local MuppetStyles = require("utility.lists.style-data").MuppetStyles
+        local MuppetFonts = require("utility.lists.style-data").MuppetFonts
     If a sub field is available in the autocomplete list then one must be selected, otherwise you will end up with a blank style at runtime. For this reason (and simplicity) the margin, padding and other optional settings are just a single string with each combintion covered.
         i.e: MuppetStyles.flow.vertical.marginTL_spaced
     The final type of "plain" is with no padding, margin, etc. Its provided to comply with the above statement that a style autocomplete entry is only valid if you reach the end of the sub options list.
 ]]
 --
 
-local styleData = {}
+local StyleData = {}
 
 local Colors = require("utility.lists.colors")
 
-styleData.styleVersion = "_1_1_0"
+StyleData.styleVersion = "_1_1_0"
 local styleNamesGenerated = {}
 
 -- Enable to write the styles out to a text file to use for updating EmmyLua class. This is for when updating the styles library only during development.
@@ -38,7 +39,7 @@ local GenerateDetailsName = function(detailsName)
 end
 
 --- Call in data.lua to actually generate the styles in to the game's prototypes.
-styleData.GeneratePrototypes = function()
+StyleData.GeneratePrototypes = function()
     local defaultStyle = data.raw["gui-style"]["default"]
 
     local frameShadowRisenColor = {0, 0, 0, 0.35}
@@ -71,7 +72,7 @@ styleData.GeneratePrototypes = function()
                 for _, spacing in pairs({{"", 0}, {"_spaced", 4}}) do
                     local detailsName = margin[1] .. padding[1] .. spacing[1]
                     local styleName = "muppet_flow" .. direction[1] .. detailsName
-                    defaultStyle[styleName .. styleData.styleVersion] = {
+                    defaultStyle[styleName .. StyleData.styleVersion] = {
                         type = direction[2] .. "_flow_style",
                         left_margin = margin[2],
                         top_margin = margin[3],
@@ -113,7 +114,7 @@ styleData.GeneratePrototypes = function()
             for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
                 local detailsName = margin[1] .. padding[1]
                 local styleName = "muppet_frame" .. graphic[1] .. detailsName
-                defaultStyle[styleName .. styleData.styleVersion] = {
+                defaultStyle[styleName .. StyleData.styleVersion] = {
                     type = "frame_style",
                     left_margin = margin[2] + graphic[3],
                     top_margin = margin[3] + graphic[3],
@@ -136,7 +137,7 @@ styleData.GeneratePrototypes = function()
         for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
             local detailsName = margin[1] .. padding[1]
             local styleName = "muppet_scroll" .. detailsName
-            defaultStyle[styleName .. styleData.styleVersion] = {
+            defaultStyle[styleName .. StyleData.styleVersion] = {
                 type = "scroll_pane_style",
                 left_margin = 2 + margin[2],
                 top_margin = 2 + margin[3],
@@ -164,7 +165,7 @@ styleData.GeneratePrototypes = function()
                     for _, horizontalSpaced in pairs({{"", 0}, {"_horizontalSpaced", 4}}) do
                         local detailsName = tableMargin[1] .. tablePadding[1] .. cellPadding[1] .. verticalSpaced[1] .. horizontalSpaced[1]
                         local styleName = "muppet_table" .. detailsName
-                        defaultStyle[styleName .. styleData.styleVersion] = {
+                        defaultStyle[styleName .. StyleData.styleVersion] = {
                             type = "table_style",
                             left_margin = tableMargin[2],
                             top_margin = tableMargin[3],
@@ -193,7 +194,7 @@ styleData.GeneratePrototypes = function()
     for _, size in pairs({{"_32", 32}, {"_48", 48}, {"_64", 64}}) do
         local detailsName = size[1]
         local styleName = "muppet_sprite" .. detailsName
-        defaultStyle[styleName .. styleData.styleVersion] = {
+        defaultStyle[styleName .. StyleData.styleVersion] = {
             type = "image_style",
             width = size[2],
             height = size[2],
@@ -217,7 +218,7 @@ styleData.GeneratePrototypes = function()
         for _, size in pairs({{"", nil}, {"_mod", 36}, {"_smallText", 28}, {"_clickable", 16}, {"_32", 32}, {"_48", 48}, {"_64", 64}}) do
             local detailsName = attributes[1] .. size[1]
             local styleName = "muppet_sprite_button" .. detailsName
-            local styleNameVersion = styleName .. styleData.styleVersion
+            local styleNameVersion = styleName .. StyleData.styleVersion
             defaultStyle[styleNameVersion] = {
                 type = "button_style",
                 width = size[2],
@@ -252,10 +253,10 @@ styleData.GeneratePrototypes = function()
                 for _, padding in pairs({{"", 0, -2, 0, -2}, {"_paddingSides", 4, 0, 4, 0}, {"_paddingNone", -2, -6, -2, -6}, {"_paddingTight", 0, -4, 0, -4}}) do
                     local detailsName = boldness[1] .. attributes[1] .. padding[1]
                     local styleName = "muppet_button_text" .. textSize[1] .. detailsName
-                    local styleNameVersion = styleName .. styleData.styleVersion
+                    local styleNameVersion = styleName .. StyleData.styleVersion
                     defaultStyle[styleNameVersion] = {
                         type = "button_style",
-                        font = "muppet" .. textSize[2] .. boldness[2] .. styleData.styleVersion,
+                        font = "muppet" .. textSize[2] .. boldness[2] .. StyleData.styleVersion,
                         margin = 0,
                         left_padding = padding[2],
                         top_padding = padding[3],
@@ -290,9 +291,9 @@ styleData.GeneratePrototypes = function()
                     for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}, {"_paddingSides", 4, 0, 4, 0}}) do
                         local detailsName = boldness[1] .. margin[1] .. padding[1]
                         local styleName = "muppet_label" .. purpose[1] .. textSize[1] .. detailsName
-                        defaultStyle[styleName .. styleData.styleVersion] = {
+                        defaultStyle[styleName .. StyleData.styleVersion] = {
                             type = "label_style",
-                            font = "muppet" .. textSize[2] .. boldness[2] .. styleData.styleVersion,
+                            font = "muppet" .. textSize[2] .. boldness[2] .. StyleData.styleVersion,
                             font_color = purpose[2],
                             single_line = false,
                             left_margin = margin[2],
@@ -317,7 +318,7 @@ styleData.GeneratePrototypes = function()
         for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
             local detailsName = margin[1] .. padding[1]
             local styleName = "muppet_textbox" .. detailsName
-            defaultStyle[styleName .. styleData.styleVersion] = {
+            defaultStyle[styleName .. StyleData.styleVersion] = {
                 type = "textbox_style",
                 left_margin = margin[2],
                 top_margin = margin[3],
@@ -332,99 +333,107 @@ styleData.GeneratePrototypes = function()
         end
     end
 
-    data:extend(
+    local muppetFonts = {
         {
-            {
-                type = "font",
-                name = "muppet_small" .. styleData.styleVersion,
-                from = "default",
-                size = 12
-            },
-            {
-                type = "font",
-                name = "muppet_small_semibold" .. styleData.styleVersion,
-                from = "default-semibold",
-                size = 12
-            },
-            {
-                type = "font",
-                name = "muppet_small_bold" .. styleData.styleVersion,
-                from = "default-bold",
-                size = 12
-            },
-            {
-                type = "font",
-                name = "muppet_medium" .. styleData.styleVersion,
-                from = "default",
-                size = 16
-            },
-            {
-                type = "font",
-                name = "muppet_medium_semibold" .. styleData.styleVersion,
-                from = "default-semibold",
-                size = 16
-            },
-            {
-                type = "font",
-                name = "muppet_medium_bold" .. styleData.styleVersion,
-                from = "default-bold",
-                size = 16
-            },
-            {
-                type = "font",
-                name = "muppet_large" .. styleData.styleVersion,
-                from = "default",
-                size = 18
-            },
-            {
-                type = "font",
-                name = "muppet_large_semibold" .. styleData.styleVersion,
-                from = "default-semibold",
-                size = 18
-            },
-            {
-                type = "font",
-                name = "muppet_large_bold" .. styleData.styleVersion,
-                from = "default-bold",
-                size = 18
-            }
+            type = "font",
+            name = "muppet_small" .. StyleData.styleVersion,
+            from = "default",
+            size = 12
+        },
+        {
+            type = "font",
+            name = "muppet_small_semibold" .. StyleData.styleVersion,
+            from = "default-semibold",
+            size = 12
+        },
+        {
+            type = "font",
+            name = "muppet_small_bold" .. StyleData.styleVersion,
+            from = "default-bold",
+            size = 12
+        },
+        {
+            type = "font",
+            name = "muppet_medium" .. StyleData.styleVersion,
+            from = "default",
+            size = 16
+        },
+        {
+            type = "font",
+            name = "muppet_medium_semibold" .. StyleData.styleVersion,
+            from = "default-semibold",
+            size = 16
+        },
+        {
+            type = "font",
+            name = "muppet_medium_bold" .. StyleData.styleVersion,
+            from = "default-bold",
+            size = 16
+        },
+        {
+            type = "font",
+            name = "muppet_large" .. StyleData.styleVersion,
+            from = "default",
+            size = 18
+        },
+        {
+            type = "font",
+            name = "muppet_large_semibold" .. StyleData.styleVersion,
+            from = "default-semibold",
+            size = 18
+        },
+        {
+            type = "font",
+            name = "muppet_large_bold" .. StyleData.styleVersion,
+            from = "default-bold",
+            size = 18
         }
-    )
+    }
+    data:extend(muppetFonts)
 
     -- Write out the generated styles and fonts if enabled to the log. Can't write to a text file as no "game" object at data stage.
     if writeStyleNames then
-        -- Hanle unknown layers of nesting.
-        local handleTypeChildren  ---@type function
-        handleTypeChildren = function(dictionary)
-            local text = ""
-            for styleDetailsName, styleFullName in pairs(dictionary) do
-                if type(styleFullName) == "string" then
-                    -- No extra nesting levels.
-                    text = text .. '["' .. styleDetailsName .. '"] = ' .. '"' .. styleFullName .. '",' .. "\r\n"
-                else
-                    -- Another layer of nesting
-                    text = text .. styleDetailsName .. " = {" .. "\r\n"
-                    text = text .. handleTypeChildren(styleFullName)
-                    text = text .. "}," .. "\r\n"
-                end
-            end
-            return text
-        end
-
-        local text = "\r\n\r\n\r\n" .. "---@class MuppetStyle" .. "\r\n" .. "styleData.MuppetStyles = {" .. "\r\n"
+        -- Write out the style data to the log for all the styles we generated.
+        local text = "\r\n\r\n\r\n" .. "---@class UtilityGuiStyle_MuppetStyle" .. "\r\n" .. "StyleData.MuppetStyles = {" .. "\r\n"
         for typeName, styles in pairs(styleNamesGenerated) do
             text = text .. typeName .. " = {" .. "\r\n"
-            text = text .. handleTypeChildren(styles)
+            text = text .. StyleData._TraverseStyleChildrenToString(styles)
             text = text .. "}," .. "\r\n"
         end
+        text = text .. "}" .. "\r\n"
+
+        -- Write out the font data to the log for all the fonts we generated.
+        text = text .. "\r\n" .. "---@class UtilityGuiStyle_MuppetFonts" .. "\r\n" .. "StyleData.MuppetFonts = {" .. "\r\n"
+        for _, font in pairs(muppetFonts) do
+            text = text .. font.name .. ' = "' .. font.name .. '", ' .. "\r\n"
+        end
         text = text .. "}" .. "\r\n\r\n\r\n"
+
         log(tostring(text))
     end
 end
 
+--- Traverse the variable nesting layers of the muppet styles and make a Lua object string for them.
+---@param styleChildren table @ A dictionary of the current style children.
+StyleData._TraverseStyleChildrenToString = function(styleChildren)
+    local text = ""
+    for styleDetailsName, styleFullName in pairs(styleChildren) do
+        if type(styleFullName) == "string" then
+            -- No extra nesting levels.
+            text = text .. '["' .. styleDetailsName .. '"] = ' .. '"' .. styleFullName .. '",' .. "\r\n"
+        else
+            -- Another layer of nesting
+            text = text .. styleDetailsName .. " = {" .. "\r\n"
+            text = text .. StyleData._TraverseStyleChildrenToString(styleFullName)
+            text = text .. "}," .. "\r\n"
+        end
+    end
+    return text
+end
+
 --- The style options pre-defined by Muppet Utils. For use in runtime code by IDE's to auto select pre-defined style names.
----@class MuppetStyle
-styleData.MuppetStyles = {
+---@class UtilityGuiStyle_MuppetStyle
+StyleData.MuppetStyles = {
     flow = {
         horizontal = {
             ["plain"] = "muppet_flow_horizontal",
@@ -846,4 +855,17 @@ styleData.MuppetStyles = {
     }
 }
 
-return styleData
+---@class UtilityGuiStyle_MuppetFonts
+StyleData.MuppetFonts = {
+    muppet_small_1_1_0 = "muppet_small_1_1_0",
+    muppet_small_semibold_1_1_0 = "muppet_small_semibold_1_1_0",
+    muppet_small_bold_1_1_0 = "muppet_small_bold_1_1_0",
+    muppet_medium_1_1_0 = "muppet_medium_1_1_0",
+    muppet_medium_semibold_1_1_0 = "muppet_medium_semibold_1_1_0",
+    muppet_medium_bold_1_1_0 = "muppet_medium_bold_1_1_0",
+    muppet_large_1_1_0 = "muppet_large_1_1_0",
+    muppet_large_semibold_1_1_0 = "muppet_large_semibold_1_1_0",
+    muppet_large_bold_1_1_0 = "muppet_large_bold_1_1_0"
+}
+
+return StyleData
