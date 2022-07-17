@@ -51,7 +51,7 @@ SpawnAroundPlayer.offgridPlacementJitter = 0.3
 
 SpawnAroundPlayer.CreateGlobals = function()
     global.spawnAroundPlayer = global.spawnAroundPlayer or {}
-    global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId or 0
+    global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId or 0 ---@type uint
 end
 
 SpawnAroundPlayer.OnLoad = function()
@@ -141,7 +141,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         end
     end
 
-    global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1
+    global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1 --[[@as uint]]
     ---@type SpawnAroundPlayer_ScheduledDetails
     local scheduledDetails = {target = target, entityName = entityName, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString}
     EventScheduler.ScheduleEventOnce(scheduleTick, "SpawnAroundPlayer.SpawnAroundPlayerScheduled", global.spawnAroundPlayer.nextId, scheduledDetails)

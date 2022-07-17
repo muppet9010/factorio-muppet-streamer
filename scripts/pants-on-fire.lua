@@ -37,7 +37,7 @@ local EffectEndStatus = {
 PantsOnFire.CreateGlobals = function()
     global.PantsOnFire = global.PantsOnFire or {}
     global.PantsOnFire.nextId = global.PantsOnFire.nextId or 0
-    global.PantsOnFire.playerSteps = global.PantsOnFire.playerSteps or {}
+    global.PantsOnFire.playerSteps = global.PantsOnFire.playerSteps or {} ---@type uint
 end
 
 PantsOnFire.OnLoad = function()
@@ -109,7 +109,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         end
     end ---@cast flameCount uint
 
-    global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1
+    global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1 --[[@as uint]]
     ---@type PantsOnFire_ScheduledEventDetails
     local scheduledEventDetails = {target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount}
     EventScheduler.ScheduleEventOnce(scheduleTick, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, scheduledEventDetails)

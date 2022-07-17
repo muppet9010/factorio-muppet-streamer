@@ -39,7 +39,7 @@ local EffectEndStatus = {
 LeakyFlamethrower.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
     global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<uint, LeakyFlamethrower_AffectedPlayersDetails> @ Key'd by player_index.
-    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId or 0
+    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId or 0 ---@type uint
 end
 
 LeakyFlamethrower.OnLoad = function()
@@ -89,7 +89,7 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         return
     end
 
-    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1
+    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 --[[@as uint]]
     ---@type LeakyFlamethrower_ScheduledEventDetails
     local scheduledEventDetails = {target = target, ammoCount = ammoCount}
     EventScheduler.ScheduleEventOnce(scheduleTick, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, scheduledEventDetails)

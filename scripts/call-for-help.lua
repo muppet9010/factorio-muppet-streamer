@@ -5,7 +5,6 @@ local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local Events = require("utility.manager-libraries.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
-local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local StringUtils = require("utility.helper-utils.string-utils")
 local MathUtils = require("utility.helper-utils.math-utils")
 local Common = require("scripts.common")
@@ -29,8 +28,8 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 ---@field callRadius? double|nil
 ---@field sameTeamOnly boolean
 ---@field sameSurfaceOnly boolean
----@field blacklistedPlayerNames table<string, true> @ Table of player names as the key.
----@field whitelistedPlayerNames table<string, true> @ Table of player names as the key.
+---@field blacklistedPlayerNames table<string, true>|nil @ Table of player names as the key.
+---@field whitelistedPlayerNames table<string, true>|nil @ Table of player names as the key.
 ---@field callSelection CallForHelp_CallSelection
 ---@field number uint
 ---@field activePercentage double
@@ -75,7 +74,6 @@ end
 
 ---@param command CustomCommandData
 CallForHelp.CallForHelpCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_call_for_help command "
     local commandName = "muppet_streamer_call_for_help"
 
     local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "arrivalRadius", "callRadius", "sameSurfaceOnly", "sameTeamOnly", "blacklistedPlayerNames", "whitelistedPlayerNames", "callSelection", "number", "activePercentage"})
@@ -94,108 +92,77 @@ CallForHelp.CallForHelpCommand = function(command)
         return
     end ---@cast target string
 
-    ---@typelist number, number|nil
-    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10
-    if arrivalRadiusRaw ~= nil then
-        arrivalRadius = tonumber(arrivalRadiusRaw)
-        if arrivalRadius == nil or arrivalRadius < 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    local arrivalRadius = commandData.arrivalRadius
+    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius", 0, nil, command.parameter) then
+        return
+    end ---@cast arrivalRadius double|nil
+    arrivalRadius = arrivalRadius or 10 ---@cast arrivalRadius - nil
 
     -- Nil is a valid final value if the argument isn't provided.
-    local callRadius = tonumber(commandData.callRadius)
-    if callRadius ~= nil then
-        callRadius = tonumber(callRadius)
-        if callRadius == nil or callRadius <= 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "callRadius is Optional, but if provided must be greater than 0")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    local callRadius = commandData.callRadius
+    if not CommandsUtils.CheckNumberArgument(callRadius, "double", false, commandName, "callRadius", 0, nil, command.parameter) then
+        return
+    end ---@cast callRadius double|nil
 
     local sameSurfaceOnly = commandData.sameSurfaceOnly
-    if sameSurfaceOnly ~= nil then
-        sameSurfaceOnly = BooleanUtils.ToBoolean(sameSurfaceOnly)
-        if sameSurfaceOnly == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "sameSurfaceOnly is Optional, but must be a valid boolean if provided")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    else
-        sameSurfaceOnly = true
-    end
+    if not CommandsUtils.CheckBooleanArgument(sameSurfaceOnly, false, commandName, "sameSurfaceOnly", command.parameter) then
+        return
+    end ---@cast sameSurfaceOnly boolean|nil
+    sameSurfaceOnly = sameSurfaceOnly or true ---@cast sameSurfaceOnly - nil
     -- If not same surface then there's no callRadius result to be processed.
     if not sameSurfaceOnly then
         callRadius = nil
     end
 
     local sameTeamOnly = commandData.sameTeamOnly
-    if sameTeamOnly ~= nil then
-        sameTeamOnly = BooleanUtils.ToBoolean(sameTeamOnly)
-        if sameTeamOnly == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "sameTeamOnly is Optional, but must be a valid boolean if provided")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    else
-        sameTeamOnly = true
-    end
+    if not CommandsUtils.CheckBooleanArgument(sameTeamOnly, false, commandName, "sameTeamOnly", command.parameter) then
+        return
+    end ---@cast sameTeamOnly boolean|nil
+    sameTeamOnly = sameTeamOnly or true ---@cast sameTeamOnly - nil
 
     local blacklistedPlayerNames_string = commandData.blacklistedPlayerNames
+    if not CommandsUtils.CheckStringArgument(blacklistedPlayerNames_string, false, commandName, "blacklistedPlayerNames", nil, command.parameter) then
+        return
+    end ---@cast blacklistedPlayerNames_string string|nil
     local blacklistedPlayerNames  ---@type table<string, true>|nil
     if blacklistedPlayerNames_string ~= nil and blacklistedPlayerNames_string ~= "" then
-        blacklistedPlayerNames = StringUtils.SplitStringOnCharacters(blacklistedPlayerNames_string, ",", true)
+        blacklistedPlayerNames = StringUtils.SplitStringOnCharacters(blacklistedPlayerNames_string --[[@as string]], ",", true)
     end
 
     local whitelistedPlayerNames_string = commandData.whitelistedPlayerNames
+    if not CommandsUtils.CheckStringArgument(whitelistedPlayerNames_string, false, commandName, "whitelistedPlayerNames", nil, command.parameter) then
+        return
+    end ---@cast whitelistedPlayerNames_string string|nil
     local whitelistedPlayerNames  ---@type table<string, true>|nil
     if whitelistedPlayerNames_string ~= nil and whitelistedPlayerNames_string ~= "" then
-        whitelistedPlayerNames = StringUtils.SplitStringOnCharacters(whitelistedPlayerNames_string, ",", true)
+        whitelistedPlayerNames = StringUtils.SplitStringOnCharacters(whitelistedPlayerNames_string --[[@as string]], ",", true)
     end
 
-    local callSelection = CallSelection[commandData.callSelection]
-    if callSelection == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "callSelection is Mandatory and must be a valid type")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not CommandsUtils.CheckStringArgument(commandData.callSelection, true, commandName, "callSelection", CallSelection, command.parameter) then
         return
     end
+    local callSelection = CallSelection[commandData.callSelection --[[@as string]]] ---@type CallForHelp_CallSelection
 
     local number = commandData.number
-    if number ~= nil then
-        number = tonumber(number)
-        if number == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "number is Optional, but must be a valid number if provided")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        number = math.floor(number)
-    else
-        number = 0
-    end
+    if not CommandsUtils.CheckNumberArgument(number, "int", false, commandName, "number", 0, nil, command.parameter) then
+        return
+    end ---@cast number uint|nil
+    number = number or 0 ---@cast number - nil
 
     local activePercentage = commandData.activePercentage
-    if activePercentage ~= nil then
-        activePercentage = tonumber(activePercentage)
-        if activePercentage == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "activePercentage is Optional, but must be a valid number if provided")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        activePercentage = activePercentage / 100
-    else
-        activePercentage = 0
-    end
+    if not CommandsUtils.CheckNumberArgument(activePercentage, "double", false, commandName, "activePercentage", 0, nil, command.parameter) then
+        return
+    end ---@cast activePercentage double|nil
+    activePercentage = activePercentage and (activePercentage / 100) or 0 ---@cast activePercentage - nil
 
+    -- Atleast one of number or activePercentage must have been set above 0.
     if number == 0 and activePercentage == 0 then
-        LoggingUtils.LogPrintError(errorMessageStart .. "either number or activePercentage must be provided")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+        CommandsUtils.LogPrintError(commandName, "either number or activePercentage must be provided", command.parameter)
         return
     end
 
-    global.callForHelp.nextId = global.callForHelp.nextId + 1
+    global.callForHelp.nextId = global.callForHelp.nextId + 1 --[[@as uint]]
+    ---@type CallForHelp_DelayedCommandDetails
     local delayedCommandDetails = {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameTeamOnly = sameTeamOnly, sameSurfaceOnly = sameSurfaceOnly, blacklistedPlayerNames = blacklistedPlayerNames, whitelistedPlayerNames = whitelistedPlayerNames, callSelection = callSelection, number = number, activePercentage = activePercentage}
     EventScheduler.ScheduleEventOnce(scheduleTick, "CallForHelp.CallForHelp", global.callForHelp.nextId, delayedCommandDetails)
 end

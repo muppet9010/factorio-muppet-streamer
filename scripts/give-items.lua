@@ -16,7 +16,7 @@ local Common = require("scripts.common")
 
 GiveItems.CreateGlobals = function()
     global.giveItems = global.giveItems or {}
-    global.giveItems.nextId = global.giveItems.nextId or 0
+    global.giveItems.nextId = global.giveItems.nextId or 0 ---@type uint
 end
 
 GiveItems.OnLoad = function()
@@ -94,7 +94,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         ammoType = nil
     end
 
-    global.giveItems.nextId = global.giveItems.nextId + 1
+    global.giveItems.nextId = global.giveItems.nextId + 1 --[[@as uint]]
     ---@type GiveItems_GiveWeaponAmmoScheduled
     local giveWeaponAmmoScheduled = {target = target, ammoType = ammoType, ammoCount = ammoCount, weaponType = weaponType, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon}
     EventScheduler.ScheduleEventOnce(scheduleTick, "GiveItems.GiveWeaponAmmoScheduled", global.giveItems.nextId, giveWeaponAmmoScheduled)

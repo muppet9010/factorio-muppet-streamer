@@ -43,10 +43,16 @@ At present a Time Duration event will interrupt a different type of time duratio
 Argument Data Types:
 
 - INTEGER = expects a whole number and not a fraction. So `1.5` is a bad value. Integers are not wrapped in double quotes.
-- DECIMAL = can take a fraction, i.e `0.25` or `54.28437`. In some usage cases the final result will be rounded to a degree, i.e. 0.4 seconds will have to be rounded to a single tick accuracy. Decimals are not wrapped in double quotes.
+- DECIMAL = can take a fraction, i.e `0.25` or `54.28437`. In some usage cases the final result will be rounded to a degree when processed, i.e. 0.4 seconds will have to be rounded to a single tick accuracy to be timed within the game. Decimals are not wrapped in double quotes.
 - STRING = a text string wrapped in double quotes, i.e. `"some text"`
 - STRING_LIST = a comma separated list of things in a single string, i.e. `"Player1,player2, Player3  "`. Any leading or trailing spaces will be removed from each entry in the list. The casing (capitalisation) of things must match the case within factorio exactly, i.e. player names must have the same case as within Factorio. This can be a single thing in a string, i.e. `"Player1"`.
 - OBJECT = some features accept an object as an argument. These are detailed in the notes for those functions. i.e. a position as an object with x and y coordinates: `{"x": 5, "y":23}`
+
+Argument Requirements:
+
+- Mandatory = the setting must be provided.
+- Mandatory Special - the setting is/can be mandatory, see the details on the setting for specifics.
+- Optional = you are free to include or exclude the setting. The default value will be listed and used when the setting isn't included.
 
 When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
 
@@ -196,8 +202,8 @@ Teleports other players on the server to near your position.
     - sameSurfaceOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same surface as the target player or not. If `false` then the `callRadius` argument is ignored as it can't logically be applied. Defaults to `true`.
     - sameTeamOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same team (force) as the target player or not. Defaults to `true`.
     - callSelection - STRING - Mandatory: the logic to select which available players in the callRadius are teleported, either: `random`, `nearest`.
-    - number - INTEGER - Mandatory Special: how many players to call. Either `number` or `activePercentage` must be supplied.
-    - activePercentage - DECIMAL - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting the number of available players. Either `number` or `activePercentage` must be supplied.
+    - number - INTEGER - Mandatory Special: how many players to call. Atleast one of `number` or `activePercentage` must be supplied.
+    - activePercentage - DECIMAL - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting the number of available players. Atleast one of `number` or `activePercentage` must be supplied.
 - Example command to call in the greater of either 3 or 50% of valid players : `/muppet_streamer_call_for_help {"target":"muppet9010", "callSelection": "random", "number": 3, "activePercentage": 50}`
 - Example command to call in all the players nearby : `/muppet_streamer_call_for_help {"target":"muppet9010", "callRadius": 200, "callSelection": "random", "activePercentage": 100}`
 
@@ -222,7 +228,7 @@ Teleports the player to the nearest type of thing.
     - destinationType: STRING/OBJECT - Mandatory: the type of teleport to do, either the text string of `random`, `biterNest`, `enemyUnit`, `spawn` or a specific position as an object. For biterNest and enemyUnit it will be the nearest one found within range.
     - arrivalRadius - DECIMAL - Optional: the max distance the player will be teleported to from the targeted destinationType. Defaults to 10.
     - minDistance: DECIMAL - Optional: the minimum distance to teleport. If not provided then the value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `enemyUnit`.
-    - maxDistance: DECIMAL - Mandatory Special: the maximum distance to teleport. Is not mandatory and ignored for destinationType of `spawn` or specific position.
+    - maxDistance: DECIMAL - Mandatory Special: the maximum distance to teleport. Is not mandatory and ignored for destinationType of `spawn` or a specific position.
     - reachableOnly: BOOLEAN - Optional: if the place you are teleported must be walkable back to where you were. Defaults to false. Only applicable for destinationType of `random` and `biterNest`.
     - backupTeleportSettings: Teleport details in JSON string - Optional: a backup complete teleport action that will be done if the main destinationType is unsuccessful. Is a complete copy of the main muppet_streamer_teleport settings as a JSON object.
 - Example command biter nest: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"biterNest", "maxDistance": 1000, "reachableOnly": true}`

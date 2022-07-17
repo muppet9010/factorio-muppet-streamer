@@ -3,14 +3,16 @@ Version: 20.0.24
 Date: 2022-XX-XX
   Features:
   Changes:
-    - All feature's commands are now tighter on enforcing option's value types to what the readme says, so incorrect typed values will be rejected, i.e. passing in a decimal point number to an Integer setting, or entering a number as a string (number in double quotes). If you previously passed in the correct value types this will have no impact on you.
+    - All feature's commands are now tighter on enforcing option's value types to what the readme says, so incorrect typed values will be rejected, i.e. passing in a decimal point number to an Integer (whole number) setting, or entering a number as a string (number in double quotes). If you previously passed in the correct value types this will have no impact on you. In the past "some" commands would convert "some" incorrect setting values to "some" degree, i.e. a decimal number might be rounded either up/down to an integer number.
     - Player Drop Inventory - gap setting must be above 0 now.
     - Give Weapon & Ammo - a given ammo type for the gun will be forced to be equiped now.
+    - Any unsupported option/setting provided when a command is run will raise a warning on screen. This is to aid user recognition of any mistakes in their command's options/settings.
   Bugfixes:
-    - Leaky Flamethrower - no longer errors if the flamethrower is forced in to a filtered weapon slot, but the ammo slot wasn't filtered.
+    - Leaky Flamethrower - no longer errors in edge case when the flamethrower is forced in to a players weapons inventory. Case was with a filtered weapon slot, non filtered ammo slot, both weapon and ammo slot were empty of an actual item.
     - Leaky Flamethrower - if there isn't any flamer ammo when the weapon is given for some weird reason the effect will be stopped and a warning given. Before this errored as it's an unexpected and un-handlable state. Shouldn't occur, but thought this before.
   Info:
     - The tightening of setting types means options either now explicitly enforce the value type listed in the readme; or when the code allowed a wider range of values than the README indicated, the README now matchs the wider allowed value type range. Any tightened restrictions on a command's expected value type from this review of code and the readme will be listed as a change separately.
+    - The tightening on value types and removal of type conversions when they were present is due to its past eratic inclusion and issues with documenting and users utilising these conversations when they differed between each usage case, i.e. some rounded up, some down, some not at all (errored). So the new setup is explicit and removes the greyness, plus makes the code easier to maintain and document.
     - Updated to latest Muppet Utility library. Many code changes (hopefully non functional changing) across all of the features in the mod. This is done to enable more modern development tools and to utilise more advanced shared code functionality. Both of which should reduce bugs and make future additions quicker.
 ---------------------------------------------------------------------------------------------------
 Version: 20.0.23

@@ -51,7 +51,7 @@ local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force th
 
 PlayerInventoryShuffle.CreateGlobals = function()
     global.playerInventoryShuffle = global.playerInventoryShuffle or {}
-    global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId or 0
+    global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId or 0 ---@type uint
 end
 
 PlayerInventoryShuffle.OnLoad = function()
@@ -199,7 +199,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         end
     end ---@cast recipientItemMinToMaxRatio uint
 
-    global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
+    global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1 --[[@as uint]]
     ---@type PlayerInventoryShuffle_RequestData
     local requestData = {
         includedPlayerNames = includedPlayerNames,

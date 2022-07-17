@@ -22,7 +22,7 @@ local Common = require("scripts.common")
 
 ExplosiveDelivery.CreateGlobals = function()
     global.explosiveDelivery = global.explosiveDelivery or {}
-    global.explosiveDelivery.nextId = global.explosiveDelivery.nextId or 0 ---@type int
+    global.explosiveDelivery.nextId = global.explosiveDelivery.nextId or 0 ---@type uint
     global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId or 0 ---@type int
     global.explosiveDelivery.salvoWaveDetails = global.explosiveDelivery.salvoWaveDetails or {} ---@type table<int,ExplosiveDelivery_SalvoWaveDetails>
 end
@@ -148,7 +148,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         explosiveCount = math.min(salvoSize, explosiveCountRemaining) --[[@as uint]]
         explosiveCountRemaining = explosiveCountRemaining - explosiveCount --[[@as uint]]
 
-        global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
+        global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1 --[[@as uint]]
         ---@type ExplosiveDelivery_DelayedCommandDetails
         local delayedCommandDetails = {
             explosiveCount = explosiveCount,

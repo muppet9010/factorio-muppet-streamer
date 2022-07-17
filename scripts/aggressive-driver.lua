@@ -38,7 +38,7 @@ local EffectEndStatus = {
 
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
-    global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type int
+    global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type uint
     global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, true> @ Key'd by player_index.
 end
 
@@ -92,7 +92,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     end ---@cast teleportDistance double|nil
     teleportDistance = teleportDistance or 0.0 ---@cast teleportDistance - nil
 
-    global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
+    global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1 --[[@as uint]]
     ---@type AggressiveDriver_DelayedCommandDetails
     local delayedCommandDetails = {target = target, duration = duration, control = control, teleportDistance = teleportDistance}
     EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, delayedCommandDetails)

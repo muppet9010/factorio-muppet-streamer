@@ -38,7 +38,7 @@ local ErrorMessageStart = "ERROR: muppet_streamer_player_drop_inventory command 
 PlayerDropInventory.CreateGlobals = function()
     global.playerDropInventory = global.playerDropInventory or {}
     global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {}
-    global.playerDropInventory.nextId = global.playerDropInventory.nextId or 0
+    global.playerDropInventory.nextId = global.playerDropInventory.nextId or 0 ---@type uint
 end
 
 PlayerDropInventory.OnLoad = function()
@@ -130,7 +130,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         end
     end
 
-    global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1
+    global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1 --[[@as uint]]
     ---@type PlayerDropInventory_ApplyDropItemsData
     local applyDropItemsData = {
         target = target,
