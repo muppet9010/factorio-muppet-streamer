@@ -32,7 +32,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         return
     end
 
-    local delaySeconds = tonumber(commandData.delay)
+    local delaySeconds = commandData.delay
     if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
@@ -81,7 +81,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         end
     end
 
-    local ammoCount = tonumber(commandData.ammoCount)
+    local ammoCount = commandData.ammoCount
     if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, commandName, "ammoCount", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast ammoCount uint|nil

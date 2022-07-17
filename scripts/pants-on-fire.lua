@@ -55,7 +55,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         return
     end
 
-    local delaySeconds = tonumber(commandData.delay)
+    local delaySeconds = commandData.delay
     if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
@@ -66,25 +66,25 @@ PantsOnFire.PantsOnFireCommand = function(command)
         return
     end ---@cast target string
 
-    local durationSeconds = tonumber(commandData.duration)
+    local durationSeconds = commandData.duration
     if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast durationSeconds double
     local finishTick = (scheduleTick > 0 and scheduleTick or command.tick) + math.floor(durationSeconds * 60) --[[@as uint]] ---@type uint
 
-    local fireHeadStart = tonumber(commandData.fireHeadStart)
+    local fireHeadStart = commandData.fireHeadStart
     if not CommandsUtils.CheckNumberArgument(fireHeadStart, "int", false, commandName, "fireHeadStart", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast fireHeadStart uint|nil
     fireHeadStart = fireHeadStart or 3 ---@cast fireHeadStart - nil
 
-    local fireGap = tonumber(commandData.fireGap)
+    local fireGap = commandData.fireGap
     if not CommandsUtils.CheckNumberArgument(fireGap, "int", false, commandName, "fireGap", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast fireGap uint|nil
     fireGap = fireGap or 6 ---@cast fireGap - nil
 
-    local flameCount = tonumber(commandData.flameCount)
+    local flameCount = commandData.flameCount
     if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast flameCount uint|nil

@@ -12,7 +12,7 @@ TeamMember.CreateGlobals = function()
 end
 
 TeamMember.OnLoad = function()
-    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) < 0 then
+    if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] < 0 then
         return
     end
 
@@ -25,7 +25,7 @@ TeamMember.OnLoad = function()
 end
 
 TeamMember.OnStartup = function()
-    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) < 0 then
+    if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] < 0 then
         return
     end
 
@@ -155,7 +155,7 @@ end
 ---@param changeQuantity int
 TeamMember.RemoteIncreaseTeamMemberLevel = function(changeQuantity)
     local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max remote interface "
-    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) ~= 0 then
+    if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] ~= 0 then
         LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
         return
     end
@@ -182,7 +182,7 @@ TeamMember.CommandChangeTeamMemberLevel = function(command)
         changeValue = math.floor(changeValue) ---@type int
     end
 
-    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) ~= 0 then
+    if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] ~= 0 then
         LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
         LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
         return

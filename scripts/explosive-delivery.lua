@@ -41,13 +41,13 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         return
     end
 
-    local delaySeconds = tonumber(commandData.delay)
+    local delaySeconds = commandData.delay
     if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
     local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
-    local explosiveCount = tonumber(commandData.explosiveCount)
+    local explosiveCount = commandData.explosiveCount
     if not CommandsUtils.CheckNumberArgument(explosiveCount, "int", true, commandName, "explosiveCount", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast explosiveCount uint

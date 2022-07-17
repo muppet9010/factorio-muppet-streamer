@@ -68,7 +68,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         return
     end
 
-    local delaySeconds = tonumber(commandData.delay)
+    local delaySeconds = commandData.delay
     if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
@@ -148,7 +148,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if destinationPlayersMinimumVarianceString == nil then
         destinationPlayersMinimumVariance = 1
     else
-        destinationPlayersMinimumVariance = tonumber(destinationPlayersMinimumVarianceString)
+        destinationPlayersMinimumVariance = destinationPlayersMinimumVarianceString
         if destinationPlayersMinimumVariance == nil then
             LoggingUtils.LogPrintError(ErrorMessageStart .. "if destinationPlayersMinimumVariance is supplied it must be a number.")
             LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -167,7 +167,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if destinationPlayersVarianceFactorString == nil then
         destinationPlayersVarianceFactor = 0.25
     else
-        destinationPlayersVarianceFactor = tonumber(destinationPlayersVarianceFactorString)
+        destinationPlayersVarianceFactor = destinationPlayersVarianceFactorString
         if destinationPlayersVarianceFactor == nil then
             LoggingUtils.LogPrintError(ErrorMessageStart .. "if destinationPlayersVarianceFactor is supplied it must be a number.")
             LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -185,7 +185,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if recipientItemMinToMaxRatioString == nil then
         recipientItemMinToMaxRatio = 4
     else
-        recipientItemMinToMaxRatio = tonumber(recipientItemMinToMaxRatioString)
+        recipientItemMinToMaxRatio = recipientItemMinToMaxRatioString
         if recipientItemMinToMaxRatio == nil then
             LoggingUtils.LogPrintError(ErrorMessageStart .. "if recipientItemMinToMaxRatio is supplied it must be a number.")
             LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)

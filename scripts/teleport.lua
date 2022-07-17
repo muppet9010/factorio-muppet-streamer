@@ -129,7 +129,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     end
 
     -- Any errors raised need to include the depth message so we know how many backups it has got in to when it errored. So we add it to the end of the passed command name as this gets it to the right place in the produced error messages.
-    local delaySeconds = tonumber(commandData.delay)
+    local delaySeconds = commandData.delay
     if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, commandStringText) then
         return
     end ---@cast delaySeconds double|nil
@@ -159,7 +159,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     ---@typelist double, double|nil
     local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10.0
     if arrivalRadiusRaw ~= nil then
-        arrivalRadius = tonumber(arrivalRadiusRaw)
+        arrivalRadius = arrivalRadiusRaw
         if arrivalRadius == nil or arrivalRadius < 0 then
             LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
@@ -170,7 +170,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     ---@typelist double, double|nil
     local minDistanceRaw, minDistance = commandData.minDistance, 0
     if minDistanceRaw ~= nil then
-        minDistance = tonumber(minDistanceRaw)
+        minDistance = minDistanceRaw
         if minDistance == nil or minDistance < 0 then
             LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
             LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
@@ -178,7 +178,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
         end ---@cast minDistance - nil
     end
 
-    local maxDistance = tonumber(commandData.maxDistance)
+    local maxDistance = commandData.maxDistance
     if destinationType == DestinationTypeSelection.position or destinationType == DestinationTypeSelection.spawn then
         maxDistance = 0
     elseif maxDistance == nil or maxDistance < 0 then

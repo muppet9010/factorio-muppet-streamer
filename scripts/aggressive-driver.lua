@@ -64,8 +64,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         return
     end
 
-    --TODO: should i still be doing tonumber(), i suspect not based on what I put in the changelog.
-    local delaySeconds = tonumber(commandData.delay)
+    local delaySeconds = commandData.delay
     if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
@@ -76,7 +75,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         return
     end ---@cast target string
 
-    local durationSeconds = tonumber(commandData.duration)
+    local durationSeconds = commandData.duration
     if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast durationSeconds double

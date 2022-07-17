@@ -57,7 +57,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         return
     end
 
-    local delaySeconds = tonumber(commandData.delay)
+    local delaySeconds = commandData.delay
     if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
@@ -81,14 +81,14 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         return
     end
 
-    local quantityValue = tonumber(commandData.quantityValue) --[[@as uint]] ---@type uint
+    local quantityValue = commandData.quantityValue --[[@as uint]] ---@type uint
     if quantityValue == nil or quantityValue <= 0 then
         LoggingUtils.LogPrintError(ErrorMessageStart .. "quantityValue is mandatory as a number and above 0")
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
-    local dropOnBeltsRaw = commandData.dropOnBelts ---@type boolean
+    local dropOnBeltsRaw = commandData.dropOnBelts
     local dropOnBelts  ---@type boolean|nil
     if dropOnBeltsRaw == nil then
         dropOnBelts = false
@@ -101,7 +101,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         end
     end
 
-    local gap = tonumber(commandData.gap)
+    local gap = commandData.gap
     if gap == nil or gap <= 0 then
         LoggingUtils.LogPrintError(ErrorMessageStart .. "gap is mandatory as a number and must be greater than 0")
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
@@ -110,7 +110,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
 
     gap = math.ceil(gap * 60) --[[@as uint]]
 
-    local occurrences = tonumber(commandData.occurrences)
+    local occurrences = commandData.occurrences
     if occurrences == nil or occurrences < 1 then
         LoggingUtils.LogPrintError(ErrorMessageStart .. "occurrences is mandatory as a number and must be 1 or greater")
         LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)

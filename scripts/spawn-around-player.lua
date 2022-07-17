@@ -73,7 +73,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end
 
-    local delaySeconds = tonumber(commandData.delay)
+    local delaySeconds = commandData.delay
     if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
@@ -100,14 +100,14 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end ---@cast entityName - nil
 
-    local radiusMax = tonumber(commandData.radiusMax)
+    local radiusMax = commandData.radiusMax
     if radiusMax == nil or radiusMax <= 0 then
         LoggingUtils.LogPrintError(errorMessageStart .. "radiusMax is mandatory and must be a number greater than 0")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end ---@cast radiusMax uint
 
-    local radiusMin = tonumber(commandData.radiusMin)
+    local radiusMin = commandData.radiusMin
     if radiusMin == nil or radiusMin < 0 then
         radiusMin = 0
     end ---@cast radiusMin uint
@@ -120,16 +120,16 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end
     local existingEntities = ExistingEntitiesTypes[existingEntitiesString]
 
-    local quantity = tonumber(commandData.quantity) ---@cast quantity uint|nil
+    local quantity = commandData.quantity ---@cast quantity uint|nil
 
-    local density = tonumber(commandData.density)
+    local density = commandData.density
     if quantity == nil and density == nil then
         LoggingUtils.LogPrintError(errorMessageStart .. "either quantity or density must be provided, otherwise the command will create nothing.")
         LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
         return
     end
 
-    local ammoCount = tonumber(commandData.ammoCount) ---@cast ammoCount uint|nil
+    local ammoCount = commandData.ammoCount ---@cast ammoCount uint|nil
 
     local followPlayer = false ---@type boolean|nil
     if commandData.followPlayer ~= nil then
