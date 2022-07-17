@@ -68,7 +68,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_spawn_around_player command "
     local commandName = "muppet_streamer_spawn_around_player"
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "force", "entityName", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "force", "entityName", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer"})
     if commandData == nil then
         return
     end

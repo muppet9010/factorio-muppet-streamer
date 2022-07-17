@@ -63,7 +63,7 @@ end
 PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     local commandName = "muppet_streamer_player_inventory_shuffle"
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "includedPlayers", "includedForces", "includeEquipment", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "includedPlayers", "includedForces", "includeEquipment", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio"})
     if commandData == nil then
         return
     end

@@ -61,7 +61,7 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command "
     local commandName = "muppet_streamer_leaky_flamethrower"
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "ammoCount"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "ammoCount"})
     if commandData == nil then
         return
     end

@@ -51,8 +51,13 @@ Argument Data Types:
 Argument Requirements:
 
 - Mandatory = the setting must be provided.
-- Mandatory Special - the setting is/can be mandatory, see the details on the setting for specifics.
+- Mandatory Special = the setting is/can be mandatory, see the details on the setting for specifics.
 - Optional = you are free to include or exclude the setting. The default value will be listed and used when the setting isn't included.
+
+Number ranges:
+
+- Many settings will have non-documented common sense minimum number requirements. i.e. you can't have leaky flamethrower activate for 0 or less bursts. These will raise a warning on screen and the command won't run.
+- Many settings will have non-documented maximum values at extremes. The known ones will be capped to the maximum allowed, i.e. number of seconds to delay an event for. However, so will be unknown about and are generally Factorio internal limits, so will not be prevented and may cause crashes. For this reason experimenting with ridiculously large numbers isn't advised.
 
 When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
 
@@ -66,7 +71,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - Command syntax: `/muppet_streamer_schedule_explosive_delivery [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds the creation of the explosives will be delayed for. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay. This doesn't include the in-flight time.
-    - explosiveCount: INTEGER - Mandatory: the quantity of explosives to be delivered, if 0 then the command is ignored.
+    - explosiveCount: INTEGER - Mandatory: the quantity of explosives to be delivered.
     - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "slowdownCapsule", "poisonCapsule", "artilleryShell", "explosiveRocket", "atomicRocket", "smallSpit", "mediumSpit", "largeSpit". Is case sensitive.
     - target: STRING - Mandatory: a player name to target the position and surface of (case sensitive).
     - targetPosition: OBJECT - Optional: a position to target instead of the player's position. Will still come on to the target players map (surface). See notes for syntax examples.
@@ -96,7 +101,7 @@ Forces the targeted player to wield a flamethrower that shoots in random directi
 - Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds the flamethrower and effects are delayed before starting. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
-    - ammoCount: INTEGER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired, if 0 then the command is ignored.
+    - ammoCount: INTEGER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired.
     - target: STRING - Mandatory: the player name to target (case sensitive).
 - Example command: `/muppet_streamer_leaky_flamethrower {"ammoCount":5, "target":"muppet9010"}`
 

@@ -127,16 +127,20 @@ end
 
 --- Prints and logs a command error in the same style as other command setting/argument errors are handled.
 ---@param commandName string @ The ingame commmand name.
+---@param argumentName? string|nil @ The setting name if wanted to be included in error.
 ---@param errorText string @ If starts without a leading space one will be added.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
-CommandsUtils.LogPrintError = function(commandName, errorText, commandString)
-    if string.sub(errorText, 1, 1) ~= "" then
-        errorText = " " .. errorText
-    end
-    LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. errorText)
-    if commandString ~= nil and commandString ~= "" then
-        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
-    end
+CommandsUtils.LogPrintError = function(commandName, argumentName, errorText, commandString)
+    CommandsUtils._LogPrint(LoggingUtils.LogPrintError, commandName, argumentName, errorText, commandString)
+end
+
+--- Prints and logs a command warning in the same style as other command setting/argument errors are handled.
+---@param commandName string @ The ingame commmand name.
+---@param argumentName? string|nil @ The setting name if wanted to be included in error.
+---@param errorText string @ If starts without a leading space one will be added.
+---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
+CommandsUtils.LogPrintWarning = function(commandName, argumentName, errorText, commandString)
+    CommandsUtils._LogPrint(LoggingUtils.LogPrintWarning, commandName, argumentName, errorText, commandString)
 end
 
 --- Gets the commands parameter string as a table of values. Used when a command only takes a single argument object and that is a table of options.
@@ -145,7 +149,7 @@ end
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param allowedSettingNames string[] @ The setting names that are allowed in this command. Warns (not errors) about any that aren't expected. The values of this table are read as its a list of strings (done for easier calling of the function).
 ---@return table<string, any>|nil dataTable @ The dataTable of arguments or nil if invalid or none provided.
-CommandsUtils.GetTableFromCommandParamaterString = function(commandParamaterString, mandatory, commandName, allowedSettingNames)
+CommandsUtils.GetSettingsTableFromCommandParamaterString = function(commandParamaterString, mandatory, commandName, allowedSettingNames)
     commandParamaterString = commandParamaterString or ""
     local dataTable = game.json_to_table(commandParamaterString)
 
@@ -315,43 +319,6 @@ CommandsUtils.CheckBooleanArgument = function(value, mandatory, commandName, arg
     return true
 end
 
---- Check a command's generic argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
----@param value any @ Will accept any data type and validate it.
----@param requiredType table|boolean|string|number @ The type of value we want.
----@param mandatory boolean
----@param commandName string @ The ingame commmand name. Used in error messages.
----@param argumentName string @ The argument name in its hierachy. Used in error messages.
----@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
----@return boolean argumentValid
-CommandsUtils.CheckGenericArgument = function(value, requiredType, mandatory, commandName, argumentName, commandString)
-    if mandatory and value == nil then
-        -- Mandatory and not provided so fail.
-        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required '" .. argumentName .. "' to be populated.")
-        if commandString ~= nil then
-            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
-        end
-        return false
-    elseif mandatory or (not mandatory and value ~= nil) then
-        -- Is either mandatory and not nil (implicit), or not mandatory and is provided, so check it both ways.
-
-        -- Check the type and handle the results.
-        if type(value) ~= requiredType then
-            -- Wrong type so fail.
-            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required '" .. argumentName .. "' to be of type '" .. requiredType .. "' when provided. Received type '" .. type(value) .. "' instead.")
-            if commandString ~= nil then
-                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
-            end
-            return false
-        else
-            -- Right type
-            return true
-        end
-    else
-        -- Not mandatory and value is nil. So its a non provided optional argument.
-        return true
-    end
-end
-
 --- Check a command's table argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
 ---@param value any @ Will accept any data type and validate it.
 ---@param mandatory boolean
@@ -392,6 +359,47 @@ CommandsUtils.CheckTableArgument = function(value, mandatory, commandName, argum
     return true
 end
 
+--- Check a command's generic argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
+---@param value any @ Will accept any data type and validate it.
+---@param requiredType table|boolean|string|number @ The type of value we want.
+---@param mandatory boolean
+---@param commandName string @ The ingame commmand name. Used in error messages.
+---@param argumentName string @ The argument name in its hierachy. Used in error messages.
+---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
+---@return boolean argumentValid
+CommandsUtils.CheckGenericArgument = function(value, requiredType, mandatory, commandName, argumentName, commandString)
+    if mandatory and value == nil then
+        -- Mandatory and not provided so fail.
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required '" .. argumentName .. "' to be populated.")
+        if commandString ~= nil then
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
+        end
+        return false
+    elseif mandatory or (not mandatory and value ~= nil) then
+        -- Is either mandatory and not nil (implicit), or not mandatory and is provided, so check it both ways.
+
+        -- Check the type and handle the results.
+        if type(value) ~= requiredType then
+            -- Wrong type so fail.
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " required '" .. argumentName .. "' to be of type '" .. requiredType .. "' when provided. Received type '" .. type(value) .. "' instead.")
+            if commandString ~= nil then
+                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
+            end
+            return false
+        else
+            -- Right type
+            return true
+        end
+    else
+        -- Not mandatory and value is nil. So its a non provided optional argument.
+        return true
+    end
+end
+
+----------------------------------------------------------------------------------
+--                          PRIVATE FUNCTIONS
+----------------------------------------------------------------------------------
+
 --- Internal commands function that returns the input text as its correct type.
 ---@param inputText string
 ---@return nil|number|boolean|table|string typedValue
@@ -418,6 +426,29 @@ CommandsUtils._StringToTypedObject = function(inputText)
     end
 
     return inputText
+end
+
+--- Prints and logs a command error/warning using the provided logging function in the same style as other command setting/argument errors are handled.
+---@param logprintFunction function @ The logging function to use.
+---@param commandName string @ The ingame commmand name.
+---@param argumentName? string|nil @ The setting name if wanted to be included in error.
+---@param errorText string @ If starts without a leading space one will be added.
+---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
+CommandsUtils._LogPrint = function(logprintFunction, commandName, argumentName, errorText, commandString)
+    if string.sub(errorText, 1, 1) ~= "" then
+        errorText = " " .. errorText
+    end
+
+    local text = Constants.ModFriendlyName .. " - command " .. commandName
+    if argumentName ~= nil and argumentName ~= "" then
+        text = text .. " - argument '" .. argumentName .. "'"
+    end
+    text = text .. errorText
+    logprintFunction(text)
+
+    if commandString ~= nil and commandString ~= "" then
+        logprintFunction(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
+    end
 end
 
 return CommandsUtils

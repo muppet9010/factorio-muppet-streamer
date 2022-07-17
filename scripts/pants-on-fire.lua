@@ -52,7 +52,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_pants_on_fire command "
     local commandName = "muppet_streamer_pants_on_fire"
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount"})
     if commandData == nil then
         return
     end

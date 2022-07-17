@@ -76,7 +76,7 @@ end
 CallForHelp.CallForHelpCommand = function(command)
     local commandName = "muppet_streamer_call_for_help"
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "arrivalRadius", "callRadius", "sameSurfaceOnly", "sameTeamOnly", "blacklistedPlayerNames", "whitelistedPlayerNames", "callSelection", "number", "activePercentage"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "arrivalRadius", "callRadius", "sameSurfaceOnly", "sameTeamOnly", "blacklistedPlayerNames", "whitelistedPlayerNames", "callSelection", "number", "activePercentage"})
     if commandData == nil then
         return
     end
@@ -93,14 +93,14 @@ CallForHelp.CallForHelpCommand = function(command)
     end ---@cast target string
 
     local arrivalRadius = commandData.arrivalRadius
-    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius", 1, nil, command.parameter) then
         return
     end ---@cast arrivalRadius double|nil
     arrivalRadius = arrivalRadius or 10 ---@cast arrivalRadius - nil
 
     -- Nil is a valid final value if the argument isn't provided.
     local callRadius = commandData.callRadius
-    if not CommandsUtils.CheckNumberArgument(callRadius, "double", false, commandName, "callRadius", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(callRadius, "double", false, commandName, "callRadius", 1, nil, command.parameter) then
         return
     end ---@cast callRadius double|nil
 
@@ -144,7 +144,7 @@ CallForHelp.CallForHelpCommand = function(command)
     local callSelection = CallSelection[commandData.callSelection --[[@as string]]] ---@type CallForHelp_CallSelection
 
     local number = commandData.number
-    if not CommandsUtils.CheckNumberArgument(number, "int", false, commandName, "number", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(number, "int", false, commandName, "number", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast number uint|nil
     number = number or 0 ---@cast number - nil
@@ -157,7 +157,7 @@ CallForHelp.CallForHelpCommand = function(command)
 
     -- Atleast one of number or activePercentage must have been set above 0.
     if number == 0 and activePercentage == 0 then
-        CommandsUtils.LogPrintError(commandName, "either number or activePercentage must be provided", command.parameter)
+        CommandsUtils.LogPrintError(commandName, nil, "either number or activePercentage must be provided", command.parameter)
         return
     end
 

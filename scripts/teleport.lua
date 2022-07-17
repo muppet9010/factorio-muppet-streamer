@@ -102,7 +102,7 @@ Teleport.TeleportCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_teleport command "
     local commandName = "muppet_streamer_teleport"
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings"})
     if commandData == nil then
         return
     end

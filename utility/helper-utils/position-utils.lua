@@ -515,4 +515,13 @@ PositionUtils.IsPositionWithinCircled = function(circleCenter, radius, position)
     end
 end
 
+--- The valid key names in a table that can be converted in to a MapPosition with PositionUtils.TableToProperPosition(). Useful when you want to just check that no unexpected keys are present, i.e. command argument checking.
+---@type table<string|uint, string|uint>
+PositionUtils.MapPositionConvertableTableValidKeysList = {
+    [1] = 1,
+    [2] = 2,
+    x = "x",
+    y = "y"
+}
+
 return PositionUtils

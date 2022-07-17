@@ -1,19 +1,19 @@
 local ExplosiveDelivery = {}
 local CommandsUtils = require("utility.helper-utils.commands-utils")
-local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local Common = require("scripts.common")
+local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class ExplosiveDelivery_DelayedCommandDetails
----@field explosiveCount int
+---@field explosiveCount uint
 ---@field explosiveType ExplosiveDelivery_ExplosiveType
 ---@field accuracyRadiusMin double
 ---@field accuracyRadiusMax double
 ---@field target string
 ---@field targetPosition MapPosition|nil
 ---@field targetOffset MapPosition|nil
----@field salvoWaveId int|nil
+---@field salvoWaveId uint|nil
 ---@field finalSalvo boolean
 
 ---@class ExplosiveDelivery_SalvoWaveDetails
@@ -23,7 +23,7 @@ local Common = require("scripts.common")
 ExplosiveDelivery.CreateGlobals = function()
     global.explosiveDelivery = global.explosiveDelivery or {}
     global.explosiveDelivery.nextId = global.explosiveDelivery.nextId or 0 ---@type uint
-    global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId or 0 ---@type int
+    global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId or 0 ---@type uint
     global.explosiveDelivery.salvoWaveDetails = global.explosiveDelivery.salvoWaveDetails or {} ---@type table<int,ExplosiveDelivery_SalvoWaveDetails>
 end
 
@@ -34,10 +34,9 @@ end
 
 ---@param command CustomCommandData
 ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_schedule_explosive_delivery command "
     local commandName = "muppet_streamer_schedule_explosive_delivery"
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "explosiveCount", "explosiveType", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "explosiveCount", "explosiveType", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay"})
     if commandData == nil then
         return
     end
@@ -49,98 +48,75 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     local explosiveCount = tonumber(commandData.explosiveCount)
-    if explosiveCount == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "explosiveCount is mandatory as a number")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not CommandsUtils.CheckNumberArgument(explosiveCount, "int", true, commandName, "explosiveCount", 1, MathUtils.uintMax, command.parameter) then
         return
-    elseif explosiveCount <= 0 then
+    end ---@cast explosiveCount uint
+
+    if not CommandsUtils.CheckStringArgument(commandData.explosiveType, true, commandName, "explosiveType", ExplosiveDelivery.ExplosiveTypes, command.parameter) then
         return
     end
-    explosiveCount = math.floor(explosiveCount) --[[@as uint]] ---@type uint
-
-    local explosiveType = ExplosiveDelivery.ExplosiveTypes[commandData.explosiveType] ---@type ExplosiveDelivery_ExplosiveType
-    if explosiveType == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "explosiveType is mandatory and must be a supported type")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-        return
-    end ---@cast commandData table<string, any>
+    local explosiveType = ExplosiveDelivery.ExplosiveTypes[commandData.explosiveType --[[@as string]]] ---@type ExplosiveDelivery_ExplosiveType
 
     local target = commandData.target
     if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
         return
     end ---@cast target string
 
-    local targetPosition = commandData.targetPosition ---@type MapPosition|nil
+    local targetPosition = commandData.targetPosition
+    if not CommandsUtils.CheckTableArgument(targetPosition, false, commandName, "targetPosition", PositionUtils.MapPositionConvertableTableValidKeysList, command.parameter) then
+        return
+    end ---@cast targetPosition MapPosition|nil
     if targetPosition ~= nil then
-        targetPosition = PositionUtils.TableToProperPosition(targetPosition)
+        targetPosition = PositionUtils.TableToProperPosition(targetPosition --[[@as MapPosition]])
         if targetPosition == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "targetPosition is Optional, but if provided must be a valid position table string")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+            CommandsUtils.LogPrintError(commandName, "targetPosition", "must be a valid position table string", command.parameter)
             return
         end
     end
 
     local targetOffset = commandData.targetOffset ---@type MapPosition|nil
+    if not CommandsUtils.CheckTableArgument(targetOffset, false, commandName, "targetOffset", PositionUtils.MapPositionConvertableTableValidKeysList, command.parameter) then
+        return
+    end ---@cast targetOffset MapPosition|nil
     if targetOffset ~= nil then
-        targetOffset = PositionUtils.TableToProperPosition(targetOffset)
+        targetOffset = PositionUtils.TableToProperPosition(targetOffset --[[@as MapPosition]])
         if targetOffset == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "targetOffset is Optional, but if provided must be a valid position table string")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+            CommandsUtils.LogPrintError(commandName, "targetOffset", "must be a valid position table string", command.parameter)
             return
         end
     end
 
-    ---@type double|nil
-    local accuracyRadiusMin = 0
-    if commandData.accuracyRadiusMin ~= nil then
-        accuracyRadiusMin = tonumber(commandData.accuracyRadiusMin)
-        if accuracyRadiusMin == nil or accuracyRadiusMin < 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "accuracyRadiusMin is Optional, but must be a non-negative number if supplied")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end ---@cast accuracyRadiusMin - nil
-    end
+    local accuracyRadiusMin = commandData.accuracyRadiusMin
+    if not CommandsUtils.CheckNumberArgument(accuracyRadiusMin, "double", false, commandName, "accuracyRadiusMin", 0, nil, command.parameter) then
+        return
+    end ---@cast accuracyRadiusMin double|nil
+    accuracyRadiusMin = accuracyRadiusMin or 0 ---@cast accuracyRadiusMin - nil
 
-    ---@type double|nil
-    local accuracyRadiusMax = 0
-    if commandData.accuracyRadiusMax ~= nil then
-        accuracyRadiusMax = tonumber(commandData.accuracyRadiusMax)
-        if accuracyRadiusMax == nil or accuracyRadiusMax < 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "accuracyRadiusMax is Optional, but must be a non-negative number if supplied")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end ---@cast accuracyRadiusMax - nil
-    end
+    local accuracyRadiusMax = commandData.accuracyRadiusMax
+    if not CommandsUtils.CheckNumberArgument(accuracyRadiusMax, "double", false, commandName, "accuracyRadiusMax", 0, nil, command.parameter) then
+        return
+    end ---@cast accuracyRadiusMax double|nil
+    accuracyRadiusMax = accuracyRadiusMax or 0 ---@cast accuracyRadiusMax - nil
 
-    ---@type number|nil
-    local salvoSize = explosiveCount
-    if commandData.salvoSize ~= nil then
-        salvoSize = tonumber(commandData.salvoSize)
-        if salvoSize == nil or salvoSize < 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "salvoSize is Optional, but must be a non-negative number if supplied")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end ---@cast salvoSize - nil
-    end
+    local salvoSize = commandData.salvoSize
+    if not CommandsUtils.CheckNumberArgument(salvoSize, "int", false, commandName, "salvoSize", 0, nil, command.parameter) then
+        return
+    end ---@cast salvoSize uint|nil
+    salvoSize = salvoSize or explosiveCount
 
-    ---@type number|nil
-    local salvoDelay = 0
-    if commandData.salvoDelay ~= nil then
-        salvoDelay = tonumber(commandData.salvoDelay)
-        if salvoDelay == nil or salvoDelay < 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "salvoDelay is Optional, but must be a non-negative number if supplied")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    local salvoDelayTicks = commandData.salvoDelay
+    if not CommandsUtils.CheckNumberArgument(salvoDelayTicks, "int", false, commandName, "salvoDelay", 0, nil, command.parameter) then
+        return
+    end ---@cast salvoDelayTicks uint|nil
+    salvoDelayTicks = salvoDelayTicks or 0
 
     -- If this is a multi salvo wave we need to cache the target position from the first delivery for the subsequent deliveryies of that wave. So setup the salvoWaveId for later population.
-    local maxBatchNumber = 0 -- Batch 0 is the first batch.
-    local salvoWaveId
+    local maxBatchNumber = 0 ---@type uint @ Batch 0 is the first batch.
+    local salvoWaveId  ---@type uint
     if explosiveCount > salvoSize then
-        global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1
+        global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1 --[[@as uint]]
         salvoWaveId = global.explosiveDelivery.nextSalvoWaveId
-        maxBatchNumber = math.ceil(explosiveCount / salvoSize) - 1
+        maxBatchNumber = math.floor(explosiveCount / salvoSize) --[[@as uint]] -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
     end
 
     local explosiveCountRemaining = explosiveCount
@@ -161,7 +137,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             salvoWaveId = salvoWaveId,
             finalSalvo = batchNumber == maxBatchNumber
         }
-        EventScheduler.ScheduleEventOnce(scheduleTick + (batchNumber * salvoDelay) --[[@as UtilityScheduledEvent_UintNegative1]], "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
+        EventScheduler.ScheduleEventOnce(scheduleTick + (batchNumber * salvoDelayTicks) --[[@as UtilityScheduledEvent_UintNegative1]], "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
     end
 end
 
@@ -209,7 +185,7 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     end
 
     local explosiveType = data.explosiveType
-    for i = 1, data.explosiveCount do
+    for _ = 1, data.explosiveCount do
         -- The explosives have to be fired at something, so we make a temporary dummy target entity at the desired explosion position.
         local targetEntityPos = PositionUtils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
         local targetEntity = surface.create_entity {name = "muppet_streamer-explosive-delivery-target", position = targetEntityPos}

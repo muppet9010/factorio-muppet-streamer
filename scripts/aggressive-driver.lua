@@ -4,6 +4,7 @@ local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
+local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class AggressiveDriver_ControlTypes
 ---@class AggressiveDriver_ControlTypes.__index
@@ -57,8 +58,9 @@ end
 ---@param command CustomCommandData
 AggressiveDriver.AggressiveDriverCommand = function(command)
     local commandName = "muppet_streamer_aggressive_driver"
+    local valueWasOutsideRange  ---@type boolean
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "control", "teleportDistance"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "control", "teleportDistance"})
     if commandData == nil then
         return
     end
@@ -75,10 +77,10 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     end ---@cast target string
 
     local durationSeconds = tonumber(commandData.duration)
-    if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast durationSeconds double
-    local duration = math.floor(durationSeconds * 60) --[[@as uint]]
+    local duration = math.floor(durationSeconds * 60) --[[@as uint]] ---@type uint
 
     local control = commandData.control
     if not CommandsUtils.CheckStringArgument(control, false, commandName, "control", ControlTypes, command.parameter) then

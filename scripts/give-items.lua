@@ -29,7 +29,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     local errorMessageStart = "ERROR: muppet_streamer_give_player_weapon_ammo command "
     local commandName = "muppet_streamer_give_player_weapon_ammo"
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount"})
     if commandData == nil then
         return
     end

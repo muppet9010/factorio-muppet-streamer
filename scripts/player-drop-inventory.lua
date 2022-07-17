@@ -52,7 +52,7 @@ end
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     local commandName = "muppet_streamer_player_drop_inventory"
 
-    local commandData = CommandsUtils.GetTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment"})
     if commandData == nil then
         return
     end
