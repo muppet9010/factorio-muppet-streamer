@@ -90,22 +90,22 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(accuracyRadiusMin, "double", false, commandName, "accuracyRadiusMin", 0, nil, command.parameter) then
         return
     end ---@cast accuracyRadiusMin double|nil
-    accuracyRadiusMin = accuracyRadiusMin or 0 ---@cast accuracyRadiusMin - nil
+    accuracyRadiusMin = accuracyRadiusMin or 0.0 ---@cast accuracyRadiusMin - nil
 
     local accuracyRadiusMax = commandData.accuracyRadiusMax
     if not CommandsUtils.CheckNumberArgument(accuracyRadiusMax, "double", false, commandName, "accuracyRadiusMax", 0, nil, command.parameter) then
         return
     end ---@cast accuracyRadiusMax double|nil
-    accuracyRadiusMax = accuracyRadiusMax or 0 ---@cast accuracyRadiusMax - nil
+    accuracyRadiusMax = accuracyRadiusMax or 0.0 ---@cast accuracyRadiusMax - nil
 
     local salvoSize = commandData.salvoSize
-    if not CommandsUtils.CheckNumberArgument(salvoSize, "int", false, commandName, "salvoSize", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(salvoSize, "int", false, commandName, "salvoSize", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast salvoSize uint|nil
     salvoSize = salvoSize or explosiveCount
 
     local salvoDelayTicks = commandData.salvoDelay
-    if not CommandsUtils.CheckNumberArgument(salvoDelayTicks, "int", false, commandName, "salvoDelay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(salvoDelayTicks, "int", false, commandName, "salvoDelay", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast salvoDelayTicks uint|nil
     salvoDelayTicks = salvoDelayTicks or 0

@@ -306,7 +306,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     local storageInventoryStackCount, storageInventoryFull = 0, false
 
     -- Loop over each player and handle their inventories.
-    ---@typelist LuaItemStack, LuaInventory, string, int, table<string, true>
+    ---@typelist LuaItemStack, LuaInventory, string, uint, table<string, true>
     local playerInventoryStack, playersInventory, stackItemName, playersInitialInventorySlotBonus, playersItemSources
     for _, player in pairs(players) do
         -- Return the players cursor stack to their inventory before handling.

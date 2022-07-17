@@ -6,6 +6,7 @@ local Events = require("utility.manager-libraries.events")
 local PlayerWeapon = require("utility.functions.player-weapon")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local Common = require("scripts.common")
+local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class LeakyFlamethrower_EffectEndStatus
 ---@class LeakyFlamethrower_EffectEndStatus.__index
@@ -24,12 +25,12 @@ local EffectEndStatus = {
 ---@field player_index uint
 ---@field angle double
 ---@field distance double
----@field currentBurstTicks int
+---@field currentBurstTicks uint
 ---@field burstsDone uint
 ---@field maxBursts uint
 ---@field usedSomeAmmo boolean @ If the player has actually used some of their ammo, otherwise the player's weapons are still on cooldown.
----@field startingAmmoItemstacksCount int @ How many itemstacks of ammo the player had when we start trying to fire the weapon.
----@field startingAmmoItemstackAmmo int @ The "ammo" property of the ammo itemstack the player had when we start trying to fire the weapon.
+---@field startingAmmoItemstacksCount uint @ How many itemstacks of ammo the player had when we start trying to fire the weapon.
+---@field startingAmmoItemstackAmmo uint @ The "ammo" property of the ammo itemstack the player had when we start trying to fire the weapon.
 
 ---@class LeakyFlamethrower_AffectedPlayersDetails
 ---@field flamethrowerGiven boolean @ If a flamethrower weapon had to be given to the player or if they already had one.
@@ -58,7 +59,6 @@ end
 
 ---@param command CustomCommandData
 LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command "
     local commandName = "muppet_streamer_leaky_flamethrower"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "ammoCount"})
@@ -77,17 +77,10 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         return
     end ---@cast target string
 
-    local ammoCount = tonumber(commandData.ammoCount)
-    if ammoCount == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "ammoCount is mandatory as a number")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    local ammoCount = commandData.ammoCount
+    if not CommandsUtils.CheckNumberArgument(ammoCount, "int", true, commandName, "ammoCount", 1, MathUtils.uintMax, command.parameter) then
         return
-    else
-        ammoCount = math.ceil(ammoCount) --[[@as uint]]
-    end
-    if ammoCount <= 0 then
-        return
-    end
+    end ---@cast ammoCount uint
 
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 --[[@as uint]]
     ---@type LeakyFlamethrower_ScheduledEventDetails
@@ -210,7 +203,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
                 data.usedSomeAmmo = true
             elseif currentAmmoItemstackAmmo == data.startingAmmoItemstackAmmo then
                 -- Nothings changed so continue to monitor.
-                data.currentBurstTicks = data.currentBurstTicks - 1 -- Take one off as nothing's relaly started yet.
+                data.currentBurstTicks = data.currentBurstTicks - 1 --[[@as uint]] -- Take one off as nothing's relaly started yet.
             else
                 -- Ammo prototype has increased, so players picked up ammo. So update counts and we will continue monitoring next tick from these new values.
                 data.startingAmmoItemstacksCount = currentAmmoItemstacksCount
@@ -224,7 +217,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
     end
 
     local nextShootDelay  ---@type uint
-    data.currentBurstTicks = data.currentBurstTicks + 1
+    data.currentBurstTicks = data.currentBurstTicks + 1 --[[@as uint]]
     -- Do the action for this tick.
     if data.currentBurstTicks > 100 then
         -- End of shooting ticks. Ready for next shooting and take break.

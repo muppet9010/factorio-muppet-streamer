@@ -156,7 +156,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType]
 
-    ---@typelist number, number|nil
+    ---@typelist double, double|nil
     local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10.0
     if arrivalRadiusRaw ~= nil then
         arrivalRadius = tonumber(arrivalRadiusRaw)
@@ -167,7 +167,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
         end ---@cast arrivalRadius - nil
     end
 
-    ---@typelist number, number|nil
+    ---@typelist double, double|nil
     local minDistanceRaw, minDistance = commandData.minDistance, 0
     if minDistanceRaw ~= nil then
         minDistance = tonumber(minDistanceRaw)

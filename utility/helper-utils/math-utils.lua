@@ -32,7 +32,7 @@ end
 --- Checks if the provided number is a NaN value.
 ---
 --- Should be done locally if called frequently.
----@param value number
+---@param value double
 ---@return boolean valueIsANan
 MathUtils.IsNumberNan = function(value)
     if value ~= value then
@@ -58,10 +58,10 @@ MathUtils.LoopIntValueWithinRange = function(value, min, max)
 end
 
 --- This treats the min and max values as equal when looping: max - 0.1, max/min, min + 0.1. Depending on starting input value you get either the min or max value at the border.
----@param value number
----@param min number
----@param max number
----@return number
+---@param value double
+---@param min double
+---@param max double
+---@return double
 MathUtils.LoopFloatValueWithinRange = function(value, min, max)
     if value > max then
         return min + (value - max)
@@ -75,10 +75,10 @@ end
 --- This treats the min and max values as equal when looping: max - 0.1, max/min, min + 0.1. But maxExclusive will give the minInclusive value. So maxExclsuive can never be returned.
 ---
 --- Should be done locally if called frequently.
----@param value number
----@param minInclusive number
----@param maxExclusive number
----@return number
+---@param value double
+---@param minInclusive double
+---@param maxExclusive double
+---@return double
 MathUtils.LoopFloatValueWithinRangeMaxExclusive = function(value, minInclusive, maxExclusive)
     if value >= maxExclusive then
         return minInclusive + (value - maxExclusive)
@@ -90,10 +90,10 @@ MathUtils.LoopFloatValueWithinRangeMaxExclusive = function(value, minInclusive, 
 end
 
 --- Return the passed in number clamped to within the max and min limits inclusively.
----@param value number
----@param min number
----@param max number
----@return number
+---@param value double
+---@param min double
+---@param max double
+---@return double
 ---@return boolean valueWasOutsideRange
 MathUtils.ClampNumber = function(value, min, max)
     local newValue = math_min(math_max(value, min), max)
@@ -123,7 +123,7 @@ MathUtils.ClampToInt = function(value, min, max)
 end
 
 --- Returns the passed in number clamped to within the range of an uint (min 0), with optional additional min and max's applied.
----@param value number
+---@param value double
 ---@param min? uint|nil
 ---@param max? uint|nil
 ---@return uint clampedValue
@@ -140,7 +140,7 @@ MathUtils.ClampToUInt = function(value, min, max)
 end
 
 --- Returns the passed in number clamped to within the range of a float, with optional additional min and max's applied.
----@param value number
+---@param value double
 ---@param min? float|nil
 ---@param max? float|nil
 ---@return float clampedValue

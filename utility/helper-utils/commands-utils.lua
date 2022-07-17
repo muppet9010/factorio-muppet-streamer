@@ -210,20 +210,20 @@ end
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
 ---@param argumentName string @ The argument name in its hierachy. Used in error messages.
----@param numberMinLimit? number|nil @ An optional minimum allowed value can be specified.
----@param numberMaxLimit? number|nil @ An optional maximum allowed value can be specified.
+---@param numberMinLimit? double|nil @ An optional minimum allowed value can be specified.
+---@param numberMaxLimit? double|nil @ An optional maximum allowed value can be specified.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
 CommandsUtils.CheckNumberArgument = function(value, requiredType, mandatory, commandName, argumentName, numberMinLimit, numberMaxLimit, commandString)
     -- Check its valid for generic requirements first.
     if not CommandsUtils.CheckGenericArgument(value, "number", mandatory, commandName, argumentName, commandString) then
         return false
-    end ---@cast value number|nil
+    end ---@cast value double|nil
 
     -- If value is nil and it passed the generic requirements which checks mandatory if needed, then end this parse successfully.
     if value == nil then
         return true
-    end ---@cast value number
+    end ---@cast value double
 
     -- If theres a specific fake type check that first.
     -- Theres no check for a double as that can be anything.
@@ -269,6 +269,11 @@ end
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
 CommandsUtils.CheckStringArgument = function(value, mandatory, commandName, argumentName, allowedStrings, commandString)
+    --View blank strings equal to nil.
+    if value == "" then
+        value = nil
+    end
+
     -- Check its valid for generic requirements first.
     if not CommandsUtils.CheckGenericArgument(value, "string", mandatory, commandName, argumentName, commandString) then
         return false

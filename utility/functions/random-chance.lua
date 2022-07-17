@@ -6,7 +6,7 @@
 local RandomChance = {}
 local math_floor, math_random = math.floor, math.random
 
---- Takes a number and returns an int of the value with any partial int value being converted to a chance of +1.
+--- Takes a number and returns an int of the value with any partial int value being converted to a chance of +1 included in the returned result.
 ---
 --- i.e. 5.3 as input will return 5 30% of the time and 6 the other 70% of the time.
 ---@param value double
@@ -21,7 +21,7 @@ RandomChance.HandleFloatNumberAsChancedValue = function(value)
             chancedValue = chancedValue + 1
         end
     end
-    return chancedValue --[[@as int]]
+    return chancedValue
 end
 
 --- Updates the 'chancePropertyName' named attribute of each entry in the referenced `dataSet` table to be proportional of a combined dataSet value of 1.

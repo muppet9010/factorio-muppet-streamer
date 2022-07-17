@@ -96,7 +96,7 @@ CallForHelp.CallForHelpCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius", 1, nil, command.parameter) then
         return
     end ---@cast arrivalRadius double|nil
-    arrivalRadius = arrivalRadius or 10 ---@cast arrivalRadius - nil
+    arrivalRadius = arrivalRadius or 10.0 ---@cast arrivalRadius - nil
 
     -- Nil is a valid final value if the argument isn't provided.
     local callRadius = commandData.callRadius

@@ -356,7 +356,7 @@ end
 -- Gets the distance between the 2 positions.
 ---@param pos1 MapPosition
 ---@param pos2 MapPosition
----@return number @ is inheriently a positive number.
+---@return double @ is inheriently a positive number.
 PositionUtils.GetDistance = function(pos1, pos2)
     local dx = pos1.x - pos2.x
     local dy = pos1.y - pos2.y
@@ -367,7 +367,7 @@ end
 ---@param pos1 MapPosition
 ---@param pos2 MapPosition
 ---@param axis Axis
----@return number @ is inheriently a positive number.
+---@return double @ is inheriently a positive number.
 PositionUtils.GetDistanceSingleAxis = function(pos1, pos2, axis)
     return math_abs(pos1[axis] - pos2[axis])
 end
@@ -431,7 +431,7 @@ PositionUtils.GetPositionForAngledDistance = function(startingPos, distance, ang
 end
 
 ---@param startingPos MapPosition
----@param distance number
+---@param distance double
 ---@param orientation RealOrientation
 ---@return MapPosition
 PositionUtils.GetPositionForOrientationDistance = function(startingPos, distance, orientation)
@@ -450,7 +450,7 @@ end
 --- Gets the position for a distance along a line from a starting positon towards a target position.
 ---@param startingPos MapPosition
 ---@param targetPos MapPosition
----@param distance number
+---@param distance double
 ---@return MapPosition
 PositionUtils.GetPositionForDistanceBetween2Points = function(startingPos, targetPos, distance)
     local angleRad = -math.atan2(startingPos.y - targetPos.y, targetPos.x - startingPos.x) + 1.5707963267949 -- Static value is to re-align it from east to north as 0 value.

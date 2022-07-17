@@ -2,7 +2,6 @@
 
 local PantsOnFire = {}
 local CommandsUtils = require("utility.helper-utils.commands-utils")
-local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
@@ -49,7 +48,6 @@ end
 
 ---@param command CustomCommandData
 PantsOnFire.PantsOnFireCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_pants_on_fire command "
     local commandName = "muppet_streamer_pants_on_fire"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount"})
@@ -69,45 +67,28 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end ---@cast target string
 
     local durationSeconds = tonumber(commandData.duration)
-    if durationSeconds == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "duration is Mandatory, must be 0 or greater")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
-    end
-    local finishTick = (scheduleTick > 0 and scheduleTick or command.tick) + math.ceil(durationSeconds * 60) --[[@as uint]]
+    end ---@cast durationSeconds double
+    local finishTick = (scheduleTick > 0 and scheduleTick or command.tick) + math.floor(durationSeconds * 60) --[[@as uint]] ---@type uint
 
-    ---@type number|nil
-    local fireHeadStart = 3
-    if commandData.fireHeadStart ~= nil then
-        fireHeadStart = tonumber(commandData.fireHeadStart)
-        if fireHeadStart == nil or fireHeadStart < 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "fireHeadStart is Optional, but must be 0 or greater if supplied")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end ---@cast fireHeadStart uint
+    local fireHeadStart = tonumber(commandData.fireHeadStart)
+    if not CommandsUtils.CheckNumberArgument(fireHeadStart, "int", false, commandName, "fireHeadStart", 0, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast fireHeadStart uint|nil
+    fireHeadStart = fireHeadStart or 3 ---@cast fireHeadStart - nil
 
-    ---@type number|nil
-    local fireGap = 6
-    if commandData.fireGap ~= nil then
-        fireGap = tonumber(commandData.fireGap)
-        if fireGap == nil or fireGap <= 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "fireGap is Optional, but must be 1 or greater if supplied")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end ---@cast fireGap uint
+    local fireGap = tonumber(commandData.fireGap)
+    if not CommandsUtils.CheckNumberArgument(fireGap, "int", false, commandName, "fireGap", 1, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast fireGap uint|nil
+    fireGap = fireGap or 6 ---@cast fireGap - nil
 
-    ---@type number|nil
-    local flameCount = 20
-    if commandData.flameCount ~= nil then
-        flameCount = tonumber(commandData.flameCount)
-        if flameCount == nil or flameCount <= 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. "flameCount is Optional, but must be 1 or greater if supplied")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end ---@cast flameCount uint
+    local flameCount = tonumber(commandData.flameCount)
+    if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast flameCount uint|nil
+    flameCount = flameCount or 20 ---@cast flameCount - nil
 
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1 --[[@as uint]]
     ---@type PantsOnFire_ScheduledEventDetails

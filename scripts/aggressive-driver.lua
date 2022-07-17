@@ -58,13 +58,13 @@ end
 ---@param command CustomCommandData
 AggressiveDriver.AggressiveDriverCommand = function(command)
     local commandName = "muppet_streamer_aggressive_driver"
-    local valueWasOutsideRange  ---@type boolean
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "control", "teleportDistance"})
     if commandData == nil then
         return
     end
 
+    --TODO: should i still be doing tonumber(), i suspect not based on what I put in the changelog.
     local delaySeconds = tonumber(commandData.delay)
     if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
         return

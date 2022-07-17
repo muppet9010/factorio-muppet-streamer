@@ -246,7 +246,7 @@ end
 -- Often this is copied in to code inline for repeated calling.
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param initialSpeedAbsolute double
----@return number newAbsoluteSpeed
+---@return double newAbsoluteSpeed
 TrainUtils.CalculateAcceleratingTrainSpeedForSingleTick = function(trainData, initialSpeedAbsolute)
     return math_min((math_max(0, initialSpeedAbsolute - trainData.trainWeightedFrictionForce) + trainData.locomotiveFuelAccelerationPower) * trainData.trainAirResistanceReductionMultiplier, trainData.maxSpeed)
 end
@@ -258,7 +258,7 @@ end
 ---@param initialSpeedAbsolute double
 ---@param distance double
 ---@return uint ticks @ Rounded up.
----@return number absoluteFinalSpeed
+---@return double absoluteFinalSpeed
 TrainUtils.EstimateAcceleratingTrainTicksAndFinalSpeedToCoverDistance = function(trainData, initialSpeedAbsolute, distance)
     -- Work out how long it will take to accelerate over the distance. This doesn't (can't) limit the train to its max speed.
     local initialSpeedAirResistence = (1 - trainData.trainAirResistanceReductionMultiplier) * initialSpeedAbsolute

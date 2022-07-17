@@ -1,10 +1,9 @@
 local GiveItems = {}
 local PlayerWeapon = require("utility.functions.player-weapon")
 local CommandsUtils = require("utility.helper-utils.commands-utils")
-local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
-local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local Common = require("scripts.common")
+local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class GiveItems_GiveWeaponAmmoScheduled
 ---@field target string @ Target player's name.
@@ -26,7 +25,6 @@ end
 
 ---@param command CustomCommandData
 GiveItems.GivePlayerWeaponAmmoCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_give_player_weapon_ammo command "
     local commandName = "muppet_streamer_give_player_weapon_ammo"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount"})
@@ -45,54 +43,48 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         return
     end ---@cast target string
 
-    local weaponTypeString, weaponType = commandData.weaponType, nil
+    local weaponTypeString = commandData.weaponType
+    if not CommandsUtils.CheckStringArgument(weaponTypeString, false, commandName, "weaponType", nil, command.parameter) then
+        return
+    end
+    local weaponType  ---@type LuaItemPrototype|nil
     if weaponTypeString ~= nil and weaponTypeString ~= "" then
         weaponType = game.item_prototypes[weaponTypeString]
         if weaponType == nil or weaponType.type ~= "gun" then
-            LoggingUtils.LogPrintError(errorMessageStart .. "optional weaponType provide, but isn't a valid type")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+            CommandsUtils.LogPrintError(commandName, "weaponType", "isn't a valid weapon type: " .. tostring(weaponTypeString), command.parameter)
             return
         end
     end
 
-    ---@type boolean|nil
-    local forceWeaponToSlot = false
-    if commandData.forceWeaponToSlot ~= nil then
-        forceWeaponToSlot = BooleanUtils.ToBoolean(commandData.forceWeaponToSlot)
-        if forceWeaponToSlot == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "optional forceWeaponToSlot provided, but isn't a boolean true/false")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end ---@cast forceWeaponToSlot -nil
+    local forceWeaponToSlot = commandData.forceWeaponToSlot
+    if not CommandsUtils.CheckBooleanArgument(forceWeaponToSlot, false, commandName, "forceWeaponToSlot", command.parameter) then
+        return
+    end ---@cast forceWeaponToSlot boolean|nil
+    forceWeaponToSlot = forceWeaponToSlot or false ---@cast forceWeaponToSlot - nil
 
-    ---@type boolean|nil
-    local selectWeapon = false
-    if commandData.selectWeapon ~= nil then
-        selectWeapon = BooleanUtils.ToBoolean(commandData.selectWeapon)
-        if selectWeapon == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "optional selectWeapon provided, but isn't a boolean true/false")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end ---@cast selectWeapon -nil
+    local selectWeapon = commandData.selectWeapon
+    if not CommandsUtils.CheckBooleanArgument(selectWeapon, false, commandName, "selectWeapon", command.parameter) then
+        return
+    end ---@cast selectWeapon boolean|nil
+    selectWeapon = selectWeapon or false ---@cast selectWeapon - nil
 
-    ---@typelist string|nil, LuaItemPrototype|nil
-    local ammoTypeString, ammoType = commandData.ammoType, nil
+    local ammoTypeString = commandData.ammoType
+    if not CommandsUtils.CheckStringArgument(ammoTypeString, false, commandName, "ammoType", nil, command.parameter) then
+        return
+    end
+    local ammoType  ---@type LuaItemPrototype|nil
     if ammoTypeString ~= nil and ammoTypeString ~= "" then
         ammoType = game.item_prototypes[ammoTypeString]
         if ammoType == nil or ammoType.type ~= "ammo" then
-            LoggingUtils.LogPrintError(errorMessageStart .. "optional ammoType provide, but isn't a valid type")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+            CommandsUtils.LogPrintError(commandName, "ammoType", "isn't a valid ammo type: " .. tostring(ammoTypeString), command.parameter)
             return
         end
     end
 
-    ---@type uint|nil
-    local ammoCount = tonumber(commandData.ammoCount) --[[@as uint]]
-    if ammoCount == nil or ammoCount <= 0 then
-        ammoType = nil
-    end
+    local ammoCount = tonumber(commandData.ammoCount)
+    if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, commandName, "ammoCount", 1, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast ammoCount uint|nil
 
     global.giveItems.nextId = global.giveItems.nextId + 1 --[[@as uint]]
     ---@type GiveItems_GiveWeaponAmmoScheduled
