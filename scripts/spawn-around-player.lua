@@ -1,11 +1,10 @@
 local SpawnAroundPlayer = {}
 local CommandsUtils = require("utility.helper-utils.commands-utils")
-local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local BiomeTrees = require("utility.functions.biome-trees")
-local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local Common = require("scripts.common")
+local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class SpawnAroundPlayer_ExistingEntities
 ---@class SpawnAroundPlayer_ExistingEntities.__index
@@ -65,7 +64,6 @@ end
 
 ---@param command CustomCommandData
 SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_spawn_around_player command "
     local commandName = "muppet_streamer_spawn_around_player"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "force", "entityName", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer"})
@@ -85,61 +83,64 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end ---@cast target string
 
     local forceString = commandData.force
+    if not CommandsUtils.CheckStringArgument(forceString, false, commandName, "force", nil, command.parameter) then
+        return
+    end ---@cast forceString string|nil
     if forceString ~= nil then
         if game.forces[forceString] == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "optional force provided, but isn't a valid force name")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+            CommandsUtils.LogPrintError(commandName, "force", "has an invalid force name: " .. tostring(forceString), command.parameter)
             return
         end
     end
 
-    local entityName = commandData.entityName ---@type string|nil
-    if entityName == nil or SpawnAroundPlayer.EntityTypeDetails[entityName] == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "entityName is mandatory and must be a supported type")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    local entityName = commandData.entityName
+    if not CommandsUtils.CheckStringArgument(entityName, true, commandName, "entityName", SpawnAroundPlayer.EntityTypeDetails, command.parameter) then
         return
-    end ---@cast entityName - nil
+    end ---@cast entityName string
 
     local radiusMax = commandData.radiusMax
-    if radiusMax == nil or radiusMax <= 0 then
-        LoggingUtils.LogPrintError(errorMessageStart .. "radiusMax is mandatory and must be a number greater than 0")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not CommandsUtils.CheckNumberArgument(radiusMax, "int", true, commandName, "radiusMax", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast radiusMax uint
 
     local radiusMin = commandData.radiusMin
-    if radiusMin == nil or radiusMin < 0 then
-        radiusMin = 0
-    end ---@cast radiusMin uint
-
-    local existingEntitiesString = commandData.existingEntities ---@type string|nil
-    if existingEntitiesString == nil or ExistingEntitiesTypes[existingEntitiesString] == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "existingEntities is mandatory and must be a supported setting type")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not CommandsUtils.CheckNumberArgument(radiusMin, "int", false, commandName, "radiusMin", 0, MathUtils.uintMax, command.parameter) then
         return
-    end
-    local existingEntities = ExistingEntitiesTypes[existingEntitiesString]
+    end ---@cast radiusMin uint|nil
+    if radiusMin == nil then
+        radiusMin = 0
+    end ---@cast radiusMin - nil
 
-    local quantity = commandData.quantity ---@cast quantity uint|nil
+    local existingEntitiesString = commandData.existingEntities
+    if not CommandsUtils.CheckStringArgument(existingEntitiesString, true, commandName, "existingEntities", SpawnAroundPlayer.EntityTypeDetails, command.parameter) then
+        return
+    end ---@cast existingEntitiesString string
+    local existingEntities = ExistingEntitiesTypes[existingEntitiesString] ---@type SpawnAroundPlayer_ExistingEntities
+
+    local quantity = commandData.quantity
+    if not CommandsUtils.CheckNumberArgument(quantity, "int", false, commandName, "quantity", 0, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast quantity uint|nil
 
     local density = commandData.density
+    if not CommandsUtils.CheckNumberArgument(density, "double", false, commandName, "density", 0, nil, command.parameter) then
+        return
+    end ---@cast density double|nil
+
     if quantity == nil and density == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "either quantity or density must be provided, otherwise the command will create nothing.")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
+        CommandsUtils.LogPrintError(commandName, nil, "either quantity or density must be provided, otherwise the command will create nothing.", command.parameter)
         return
     end
 
-    local ammoCount = commandData.ammoCount ---@cast ammoCount uint|nil
+    local ammoCount = commandData.ammoCount
+    if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, commandName, "ammoCount", 0, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast ammoCount uint|nil
 
-    local followPlayer = false ---@type boolean|nil
-    if commandData.followPlayer ~= nil then
-        followPlayer = BooleanUtils.ToBoolean(commandData.followPlayer)
-        if followPlayer == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "followPlayer is Optional, but if provided must be a boolean")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    local followPlayer = commandData.followPlayer
+    if not CommandsUtils.CheckBooleanArgument(followPlayer, false, commandName, "followPlayer", command.parameter) then
+        return
+    end ---@cast followPlayer boolean|nil
 
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1 --[[@as uint]]
     ---@type SpawnAroundPlayer_ScheduledDetails

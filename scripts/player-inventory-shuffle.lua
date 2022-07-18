@@ -3,14 +3,12 @@ local CommandsUtils = require("utility.helper-utils.commands-utils")
 local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Colors = require("utility.lists.colors")
-local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local StringUtils = require("utility.helper-utils.string-utils")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 
-local ErrorMessageStart = "ERROR: muppet_streamer_player_inventory_shuffle command "
 local StorageInventorySizeIncrements = 1000 ---@type uint16 @ The starting size of the shared storage inventory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
 local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements --[[@as uint16]] ---@type uint16 @ Max size when the inventory can still grow by another increment.
 
@@ -106,7 +104,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             if force ~= nil then
                 table.insert(includedForces, force)
             else
-                CommandsUtils.LogPrintError(commandName, "includedForces", "includedForces has an invalid force name: " .. tostring(includedForceName), command.parameter)
+                CommandsUtils.LogPrintError(commandName, "includedForces", "has an invalid force name: " .. tostring(includedForceName), command.parameter)
                 return
             end
         end
@@ -121,88 +119,45 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         end
     end
 
-    --TODO: up to here
-    local includeEquipmentString = commandData.includeEquipment
-    local includeEquipment  ---@type boolean|nil
-    if includeEquipmentString == nil then
+    local includeEquipment = commandData.includeEquipment
+    if not CommandsUtils.CheckBooleanArgument(includeEquipment, false, commandName, "includeEquipment", command.parameter) then
+        return
+    end ---@cast includeEquipment boolean|nil
+    if includeEquipment == nil then
         includeEquipment = true
-    else
-        includeEquipment = BooleanUtils.ToBoolean(includeEquipmentString)
-        if includeEquipment == nil then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "if includeEquipment is supplied it must be a boolean.")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    end ---@cast includeEquipment - nil
 
-    local includeHandCraftingString = commandData.includeHandCrafting
-    local includeHandCrafting  ---@type boolean|nil
-    if includeHandCraftingString == nil then
+    local includeHandCrafting = commandData.includeHandCrafting
+    if not CommandsUtils.CheckBooleanArgument(includeHandCrafting, false, commandName, "includeHandCrafting", command.parameter) then
+        return
+    end ---@cast includeHandCrafting boolean|nil
+    if includeHandCrafting == nil then
         includeHandCrafting = true
-    else
-        includeHandCrafting = BooleanUtils.ToBoolean(includeHandCraftingString)
-        if includeHandCrafting == nil then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "if includeHandCrafting is supplied it must be a boolean.")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    end ---@cast includeHandCrafting - nil
 
-    local destinationPlayersMinimumVarianceString = commandData.destinationPlayersMinimumVariance ---@type any
-    local destinationPlayersMinimumVariance  ---@type any
-    if destinationPlayersMinimumVarianceString == nil then
+    local destinationPlayersMinimumVariance = commandData.destinationPlayersMinimumVariance
+    if not CommandsUtils.CheckNumberArgument(destinationPlayersMinimumVariance, "int", false, commandName, "destinationPlayersMinimumVariance", 0, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast destinationPlayersMinimumVariance uint|nil
+    if destinationPlayersMinimumVariance == nil then
         destinationPlayersMinimumVariance = 1
-    else
-        destinationPlayersMinimumVariance = destinationPlayersMinimumVarianceString
-        if destinationPlayersMinimumVariance == nil then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "if destinationPlayersMinimumVariance is supplied it must be a number.")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        destinationPlayersMinimumVariance = math_floor(destinationPlayersMinimumVariance)
-        if destinationPlayersMinimumVariance < 0 then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "destinationPlayersMinimumVariance must be a number >= 0.")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end ---@cast destinationPlayersMinimumVariance uint
+    end ---@cast destinationPlayersMinimumVariance - nil
 
-    local destinationPlayersVarianceFactorString = commandData.destinationPlayersVarianceFactor ---@type any
-    local destinationPlayersVarianceFactor  ---@type any
-    if destinationPlayersVarianceFactorString == nil then
+    local destinationPlayersVarianceFactor = commandData.destinationPlayersVarianceFactor
+    if not CommandsUtils.CheckNumberArgument(destinationPlayersVarianceFactor, "double", false, commandName, "destinationPlayersVarianceFactor", 0, nil, command.parameter) then
+        return
+    end ---@cast destinationPlayersVarianceFactor double|nil
+    if destinationPlayersVarianceFactor == nil then
         destinationPlayersVarianceFactor = 0.25
-    else
-        destinationPlayersVarianceFactor = destinationPlayersVarianceFactorString
-        if destinationPlayersVarianceFactor == nil then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "if destinationPlayersVarianceFactor is supplied it must be a number.")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        if destinationPlayersVarianceFactor < 0 then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "destinationPlayersVarianceFactor must be a number >= 0.")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end ---@cast destinationPlayersVarianceFactor double
+    end ---@cast destinationPlayersVarianceFactor - nil
 
-    local recipientItemMinToMaxRatioString = commandData.recipientItemMinToMaxRatio
-    local recipientItemMinToMaxRatio
-    if recipientItemMinToMaxRatioString == nil then
-        recipientItemMinToMaxRatio = 4
-    else
-        recipientItemMinToMaxRatio = recipientItemMinToMaxRatioString
-        if recipientItemMinToMaxRatio == nil then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "if recipientItemMinToMaxRatio is supplied it must be a number.")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        recipientItemMinToMaxRatio = math_floor(recipientItemMinToMaxRatio)
-        if recipientItemMinToMaxRatio < 1 then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recipientItemMinToMaxRatio must be a number >= 1.")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end ---@cast recipientItemMinToMaxRatio uint
+    local recipientItemMinToMaxRatio = commandData.recipientItemMinToMaxRatio
+    if not CommandsUtils.CheckNumberArgument(recipientItemMinToMaxRatio, "int", false, commandName, "recipientItemMinToMaxRatio", 1, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast recipientItemMinToMaxRatio uint|nil
+    if recipientItemMinToMaxRatio == nil then
+        recipientItemMinToMaxRatio = 5
+    end ---@cast recipientItemMinToMaxRatio - nil
 
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1 --[[@as uint]]
     ---@type PlayerInventoryShuffle_RequestData

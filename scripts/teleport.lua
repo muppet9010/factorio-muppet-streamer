@@ -4,7 +4,6 @@ local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
-local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local MathUtils = require("utility.helper-utils.math-utils")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local Common = require("scripts.common")
@@ -130,80 +129,101 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
 
     -- Any errors raised need to include the depth message so we know how many backups it has got in to when it errored. So we add it to the end of the passed command name as this gets it to the right place in the produced error messages.
     local delaySeconds = commandData.delay
-    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, commandStringText) then
-        return
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay" .. depthErrorMessage, 0, nil, commandStringText) then
+        return nil
     end ---@cast delaySeconds double|nil
     -- Don't pass the current tick value as we will add it later.
     local delayTicks = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, 0, commandName, "delay " .. depthErrorMessage)
 
     local target = commandData.target
-    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", commandStringText) then
-        return
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target" .. depthErrorMessage, commandStringText) then
+        return nil
     end ---@cast target string
 
+    -- Can't check type in standard way as might be a string or table.
     local destinationTypeRaw = commandData.destinationType
-    local destinationType, destinationTargetPosition = DestinationTypeSelection[destinationTypeRaw], nil
-    if destinationType == nil then
+    if destinationTypeRaw == nil then
+        CommandsUtils.LogPrintError(commandName, "destinationType" .. depthErrorMessage, "is Mandatory and must be populated", commandData.parameter)
+        return nil
+    end
+    ---@typelist Teleport_DestinationTypeSelection, MapPosition|nil
+    local destinationType, destinationTargetPosition
+    if type(destinationTypeRaw) == "string" then
+        if not CommandsUtils.CheckStringArgument(destinationTypeRaw, true, commandName, "destinationType" .. depthErrorMessage, DestinationTypeSelection, commandData.parameter) then
+            return nil
+        end
+        destinationType = DestinationTypeSelection[destinationTypeRaw]
+    elseif type(destinationTypeRaw) == "table" then
         destinationTargetPosition = PositionUtils.TableToProperPosition(destinationTypeRaw)
         if destinationTargetPosition == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "destinationType is Mandatory and must be a valid type or a table for position")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
+            CommandsUtils.LogPrintError(commandName, "destinationType" .. depthErrorMessage, "must be a valid map position object", commandData.parameter)
             return nil
         else
             destinationType = DestinationTypeSelection.position
         end
-    end
-
-    local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType]
-
-    ---@typelist double, double|nil
-    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10.0
-    if arrivalRadiusRaw ~= nil then
-        arrivalRadius = arrivalRadiusRaw
-        if arrivalRadius == nil or arrivalRadius < 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
-            return nil
-        end ---@cast arrivalRadius - nil
-    end
-
-    ---@typelist double, double|nil
-    local minDistanceRaw, minDistance = commandData.minDistance, 0
-    if minDistanceRaw ~= nil then
-        minDistance = minDistanceRaw
-        if minDistance == nil or minDistance < 0 then
-            LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
-            return nil
-        end ---@cast minDistance - nil
-    end
-
-    local maxDistance = commandData.maxDistance
-    if destinationType == DestinationTypeSelection.position or destinationType == DestinationTypeSelection.spawn then
-        maxDistance = 0
-    elseif maxDistance == nil or maxDistance < 0 then
-        LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "maxDistance is Mandatory, must be 0 or greater")
-        LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
+    else
+        CommandsUtils.LogPrintError(commandName, "destinationType", "must be a string or a map position object, but was a: " .. type(destinationTypeRaw), commandData.parameter)
         return nil
     end
 
-    local reachableOnly = false ---@type boolean|nil
-    if commandData.reachableOnly ~= nil then
-        reachableOnly = BooleanUtils.ToBoolean(commandData.reachableOnly)
-        if reachableOnly == nil then
-            LoggingUtils.LogPrintError(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
+    local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType] ---@type Teleport_DestinationTypeSelectionDescription
+
+    local arrivalRadius = commandData.arrivalRadius
+    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius" .. depthErrorMessage, 0, nil, commandData.parameter) then
+        return nil
+    end ---@cast arrivalRadius double|nil
+    if arrivalRadius == nil then
+        arrivalRadius = 10.0
+    end ---@cast arrivalRadius - nil
+
+    local minDistance = commandData.minDistance
+    if not CommandsUtils.CheckNumberArgument(minDistance, "double", false, commandName, "minDistance" .. depthErrorMessage, 0, nil, commandData.parameter) then
+        return nil
+    end ---@cast minDistance double|nil
+    if minDistance == nil then
+        minDistance = 0.0
+    end ---@cast minDistance - nil
+
+    local maxDistance = commandData.maxDistance
+    if destinationType == DestinationTypeSelection.position or destinationType == DestinationTypeSelection.spawn then
+        if maxDistance ~= nil then
+            CommandsUtils.LogPrintWarning(commandName, "maxDistance" .. depthErrorMessage, "maxDistance setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)
+        end
+        maxDistance = 0
+    else
+        if not CommandsUtils.CheckNumberArgument(maxDistance, "double", true, commandName, "maxDistance" .. depthErrorMessage, 0, nil, commandData.parameter) then
             return nil
-        elseif reachableOnly == true and not (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
-            LoggingUtils.LogPrintError(errorMessageStart .. depthErrorMessage .. "reachableOnly is enabled set for unsupported destinationType")
-            LoggingUtils.LogPrintError(errorMessageStart .. "recieved text: " .. commandStringText)
+        end ---@cast maxDistance double
+    end
+
+    local reachableOnly = commandData.reachableOnly
+    if (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
+        if not CommandsUtils.CheckBooleanArgument(reachableOnly, false, commandName, "reachableOnly" .. depthErrorMessage, commandData.parameter) then
+            return
+        end ---@cast reachableOnly boolean|nil
+        if reachableOnly == nil then
+            reachableOnly = false
+        end ---@cast reachableOnly - nil
+    else
+        if maxDistance ~= nil then
+            CommandsUtils.LogPrintWarning(commandName, "reachableOnly" .. depthErrorMessage, "reachableOnly setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)
+        end
+        reachableOnly = false
+    end
+
+    ---@typelist any, Teleport_CommandDetails|nil
+    local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
+    if backupTeleportSettingsRaw ~= nil then
+        if type(backupTeleportSettingsRaw) == "table" then
+            backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1 --[[@as uint]], commandStringText)
+            if backupTeleportSettings == nil then
+                -- The error will have been already reported to screen during the function handling the contents, so just stop the command from executing here.
+                return nil
+            end
+        else
+            CommandsUtils.LogPrintError(commandName, "backupTeleportSettings" .. depthErrorMessage, "backupTeleportSettings setting is populated but isn't a table of extra teleport settings, its type is: " .. type(backupTeleportSettings), commandData.parameter)
             return nil
         end
-    end ---@cast reachableOnly -nil
-
-    local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
-    if backupTeleportSettingsRaw ~= nil and type(backupTeleportSettingsRaw) == "table" then
-        backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1 --[[@as uint]], commandStringText)
     end
 
     ---@type Teleport_CommandDetails
