@@ -96,7 +96,9 @@ CallForHelp.CallForHelpCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius", 1, nil, command.parameter) then
         return
     end ---@cast arrivalRadius double|nil
-    arrivalRadius = arrivalRadius or 10.0 ---@cast arrivalRadius - nil
+    if arrivalRadius == nil then
+        arrivalRadius = 10.0
+    end ---@cast arrivalRadius - nil
 
     -- Nil is a valid final value if the argument isn't provided.
     local callRadius = commandData.callRadius
@@ -108,7 +110,9 @@ CallForHelp.CallForHelpCommand = function(command)
     if not CommandsUtils.CheckBooleanArgument(sameSurfaceOnly, false, commandName, "sameSurfaceOnly", command.parameter) then
         return
     end ---@cast sameSurfaceOnly boolean|nil
-    sameSurfaceOnly = sameSurfaceOnly or true ---@cast sameSurfaceOnly - nil
+    if sameSurfaceOnly == nil then
+        sameSurfaceOnly = true
+    end ---@cast sameSurfaceOnly - nil
     -- If not same surface then there's no callRadius result to be processed.
     if not sameSurfaceOnly then
         callRadius = nil
@@ -118,7 +122,9 @@ CallForHelp.CallForHelpCommand = function(command)
     if not CommandsUtils.CheckBooleanArgument(sameTeamOnly, false, commandName, "sameTeamOnly", command.parameter) then
         return
     end ---@cast sameTeamOnly boolean|nil
-    sameTeamOnly = sameTeamOnly or true ---@cast sameTeamOnly - nil
+    if sameTeamOnly == nil then
+        sameTeamOnly = true
+    end ---@cast sameTeamOnly - nil
 
     local blacklistedPlayerNames_string = commandData.blacklistedPlayerNames
     if not CommandsUtils.CheckStringArgument(blacklistedPlayerNames_string, false, commandName, "blacklistedPlayerNames", nil, command.parameter) then
@@ -126,7 +132,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end ---@cast blacklistedPlayerNames_string string|nil
     local blacklistedPlayerNames  ---@type table<string, true>|nil
     if blacklistedPlayerNames_string ~= nil and blacklistedPlayerNames_string ~= "" then
-        blacklistedPlayerNames = StringUtils.SplitStringOnCharacters(blacklistedPlayerNames_string --[[@as string]], ",", true)
+        blacklistedPlayerNames = StringUtils.SplitStringOnCharacters(blacklistedPlayerNames_string --[[@as string]], ",", true) --[[@as table<string, true>]]
     end
 
     local whitelistedPlayerNames_string = commandData.whitelistedPlayerNames
@@ -135,7 +141,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end ---@cast whitelistedPlayerNames_string string|nil
     local whitelistedPlayerNames  ---@type table<string, true>|nil
     if whitelistedPlayerNames_string ~= nil and whitelistedPlayerNames_string ~= "" then
-        whitelistedPlayerNames = StringUtils.SplitStringOnCharacters(whitelistedPlayerNames_string --[[@as string]], ",", true)
+        whitelistedPlayerNames = StringUtils.SplitStringOnCharacters(whitelistedPlayerNames_string --[[@as string]], ",", true) --[[@as table<string, true>]]
     end
 
     if not CommandsUtils.CheckStringArgument(commandData.callSelection, true, commandName, "callSelection", CallSelection, command.parameter) then
@@ -147,13 +153,19 @@ CallForHelp.CallForHelpCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(number, "int", false, commandName, "number", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast number uint|nil
-    number = number or 0 ---@cast number - nil
+    if number == nil then
+        number = 0
+    end ---@cast number - nil
 
     local activePercentage = commandData.activePercentage
     if not CommandsUtils.CheckNumberArgument(activePercentage, "double", false, commandName, "activePercentage", 0, nil, command.parameter) then
         return
     end ---@cast activePercentage double|nil
-    activePercentage = activePercentage and (activePercentage / 100) or 0 ---@cast activePercentage - nil
+    if activePercentage ~= nil then
+        activePercentage = activePercentage / 100
+    else
+        activePercentage = 0
+    end ---@cast activePercentage - nil
 
     -- Atleast one of number or activePercentage must have been set above 0.
     if number == 0 and activePercentage == 0 then

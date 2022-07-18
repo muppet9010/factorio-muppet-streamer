@@ -60,13 +60,17 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     if not CommandsUtils.CheckBooleanArgument(forceWeaponToSlot, false, commandName, "forceWeaponToSlot", command.parameter) then
         return
     end ---@cast forceWeaponToSlot boolean|nil
-    forceWeaponToSlot = forceWeaponToSlot or false ---@cast forceWeaponToSlot - nil
+    if forceWeaponToSlot == nil then
+        forceWeaponToSlot = false
+    end ---@cast forceWeaponToSlot - nil
 
     local selectWeapon = commandData.selectWeapon
     if not CommandsUtils.CheckBooleanArgument(selectWeapon, false, commandName, "selectWeapon", command.parameter) then
         return
     end ---@cast selectWeapon boolean|nil
-    selectWeapon = selectWeapon or false ---@cast selectWeapon - nil
+    if selectWeapon == nil then
+        selectWeapon = false
+    end ---@cast selectWeapon - nil
 
     local ammoTypeString = commandData.ammoType
     if not CommandsUtils.CheckStringArgument(ammoTypeString, false, commandName, "ammoType", nil, command.parameter) then

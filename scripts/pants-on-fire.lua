@@ -70,25 +70,37 @@ PantsOnFire.PantsOnFireCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast durationSeconds double
-    local finishTick = (scheduleTick > 0 and scheduleTick or command.tick) + math.floor(durationSeconds * 60) --[[@as uint]] ---@type uint
+    local finishTick  ---@type uint
+    if scheduleTick > 0 then
+        finishTick = scheduleTick --[[@as uint]]
+    else
+        finishTick = command.tick
+    end
+    finishTick = finishTick + math.floor(durationSeconds * 60) --[[@as uint]]
 
     local fireHeadStart = commandData.fireHeadStart
     if not CommandsUtils.CheckNumberArgument(fireHeadStart, "int", false, commandName, "fireHeadStart", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast fireHeadStart uint|nil
-    fireHeadStart = fireHeadStart or 3 ---@cast fireHeadStart - nil
+    if fireHeadStart == nil then
+        fireHeadStart = 3
+    end ---@cast fireHeadStart - nil
 
     local fireGap = commandData.fireGap
     if not CommandsUtils.CheckNumberArgument(fireGap, "int", false, commandName, "fireGap", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast fireGap uint|nil
-    fireGap = fireGap or 6 ---@cast fireGap - nil
+    if fireGap == nil then
+        fireGap = 6
+    end ---@cast fireGap - nil
 
     local flameCount = commandData.flameCount
     if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast flameCount uint|nil
-    flameCount = flameCount or 20 ---@cast flameCount - nil
+    if flameCount == nil then
+        flameCount = 20
+    end ---@cast flameCount - nil
 
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1 --[[@as uint]]
     ---@type PantsOnFire_ScheduledEventDetails

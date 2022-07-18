@@ -75,33 +75,38 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     -- Just get the Included Players with minimal checking as we do the checks once all the include settings are obtained.
-    local includedPlayersString = commandData.includedPlayers ---@type string
-    local includedPlayerNames = {} ---@type string[]|nil
-    local includeAllPlayersOnServer = false
+    local includedPlayersString = commandData.includedPlayers
+    if not CommandsUtils.CheckStringArgument(includedPlayersString, false, commandName, "includedPlayers", nil, command.parameter) then
+        return
+    end ---@cast includedPlayersString string|nil
+    local includedPlayerNames = {} ---@type string[]
+    local includeAllPlayersOnServer = false ---@type boolean
     if includedPlayersString ~= nil and includedPlayersString ~= "" then
         -- Can't check if the names are valid players right now, as they may just not have joined the server yet, but may in the future.
-        includedPlayerNames = StringUtils.SplitStringOnCharacters(includedPlayersString, ",", false)
+        includedPlayerNames = StringUtils.SplitStringOnCharacters(includedPlayersString --[[@as string]], ",", false) --[[@as string[]--]]
         if #includedPlayerNames == 1 then
             -- If it's only one name then check if its the special ALL value.
             if includedPlayerNames[1] == "[ALL]" then
-                includedPlayerNames = nil
+                includedPlayerNames = {}
                 includeAllPlayersOnServer = true
             end
         end
     end
 
     -- Get the Included Forces and just check anything provided is valid.
-    local includedForcesString = commandData.includedForces ---@type string
-    local includedForces = {} ---@type string[]
+    local includedForcesString = commandData.includedForces
+    if not CommandsUtils.CheckStringArgument(includedForcesString, false, commandName, "includedForces", nil, command.parameter) then
+        return
+    end ---@cast includedForcesString string|nil
+    local includedForces = {} ---@type LuaForce[]
     if includedForcesString ~= nil and includedForcesString ~= "" then
-        local includedForceNames = StringUtils.SplitStringOnCharacters(includedForcesString, ",", false)
+        local includedForceNames = StringUtils.SplitStringOnCharacters(includedForcesString --[[@as string]], ",", false) ---@type string[]
         for _, includedForceName in pairs(includedForceNames) do
             local force = game.forces[includedForceName]
             if force ~= nil then
                 table.insert(includedForces, force)
             else
-                LoggingUtils.LogPrintError(ErrorMessageStart .. "includedForces has an invalid force name: " .. tostring(includedForceName))
-                LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
+                CommandsUtils.LogPrintError(commandName, "includedForces", "includedForces has an invalid force name: " .. tostring(includedForceName), command.parameter)
                 return
             end
         end
@@ -111,12 +116,12 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if not includeAllPlayersOnServer and #includedForces == 0 then
         -- As not all players and no forces fully included, we actually have to check the player list.
         if includedPlayerNames == nil or #includedPlayerNames < 2 then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "atleast 2 players must be listed if no force is included.")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            CommandsUtils.LogPrintError(commandName, nil, "atleast 2 player's names must be included in the `includedPlayers` option if no force is included in the 'includedForces' option.", command.parameter)
             return
-        end ---@cast includedPlayerNames - nil
+        end
     end
 
+    --TODO: up to here
     local includeEquipmentString = commandData.includeEquipment
     local includeEquipment  ---@type boolean|nil
     if includeEquipmentString == nil then

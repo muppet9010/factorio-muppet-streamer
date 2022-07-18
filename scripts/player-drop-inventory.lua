@@ -1,10 +1,10 @@
 local PlayerDropInventory = {}
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local LoggingUtils = require("utility.helper-utils.logging-utils")
-local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
+local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class PlayerDropInventory_QuantityType
 ---@class PlayerDropInventory_QuantityType.__index
@@ -68,67 +68,42 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         return
     end ---@cast target string
 
-    local quantityTypeString = commandData.quantityType
-    if target == nil then
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "quantityType is mandatory")
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
+    if not CommandsUtils.CheckStringArgument(commandData.quantityType, true, commandName, "quantityType", QuantityType, command.parameter) then
         return
     end
-    local quantityType = QuantityType[quantityTypeString] ---@type PlayerDropInventory_QuantityType
-    if quantityType == nil then
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "quantityType is invalid quantityType string")
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-        return
-    end
+    local quantityType = QuantityType[commandData.quantityType --[[@as string]]] ---@type PlayerDropInventory_QuantityType
 
-    local quantityValue = commandData.quantityValue --[[@as uint]] ---@type uint
-    if quantityValue == nil or quantityValue <= 0 then
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "quantityValue is mandatory as a number and above 0")
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
+    local quantityValue = commandData.quantityValue
+    if not CommandsUtils.CheckNumberArgument(quantityValue, "int", true, commandName, "quantityValue", 1, MathUtils.uintMax, command.parameter) then
         return
-    end
+    end ---@cast quantityValue uint
 
-    local dropOnBeltsRaw = commandData.dropOnBelts
-    local dropOnBelts  ---@type boolean|nil
-    if dropOnBeltsRaw == nil then
+    local dropOnBelts = commandData.dropOnBelts
+    if not CommandsUtils.CheckBooleanArgument(dropOnBelts, false, commandName, "dropOnBelts", command.parameter) then
+        return
+    end ---@cast dropOnBelts boolean|nil
+    if dropOnBelts == nil then
         dropOnBelts = false
-    else
-        dropOnBelts = BooleanUtils.ToBoolean(dropOnBeltsRaw)
-        if dropOnBelts == nil then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "if dropOnBelts is provided it must be a boolean: true, false")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    end ---@cast dropOnBelts - nil
 
-    local gap = commandData.gap
-    if gap == nil or gap <= 0 then
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "gap is mandatory as a number and must be greater than 0")
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
+    local gapSeconds = commandData.gap
+    if not CommandsUtils.CheckNumberArgument(gapSeconds, "double", true, commandName, "gap", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
-    end ---@cast gap uint
-
-    gap = math.ceil(gap * 60) --[[@as uint]]
+    end ---@cast gapSeconds double
+    local gap = math.floor(gapSeconds * 60) --[[@as uint]] ---@type uint
 
     local occurrences = commandData.occurrences
-    if occurrences == nil or occurrences < 1 then
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "occurrences is mandatory as a number and must be 1 or greater")
-        LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
+    if not CommandsUtils.CheckNumberArgument(occurrences, "int", true, commandName, "occurrences", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast occurrences uint
 
-    local dropEquipmentString = commandData.dropEquipment
-    local dropEquipment  ---@type boolean|nil
-    if dropEquipmentString == nil then
+    local dropEquipment = commandData.dropEquipment
+    if not CommandsUtils.CheckBooleanArgument(dropEquipment, false, commandName, "dropEquipment", command.parameter) then
+        return
+    end ---@cast dropEquipment boolean|nil
+    if dropEquipment == nil then
         dropEquipment = true
-    else
-        dropEquipment = BooleanUtils.ToBoolean(dropEquipmentString)
-        if dropEquipment == nil then
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "if dropEquipment is provided it must be a boolean: true, false")
-            LoggingUtils.LogPrintError(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    end ---@cast dropEquipment - nil
 
     global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1 --[[@as uint]]
     ---@type PlayerDropInventory_ApplyDropItemsData

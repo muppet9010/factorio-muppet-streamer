@@ -90,13 +90,17 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(accuracyRadiusMin, "double", false, commandName, "accuracyRadiusMin", 0, nil, command.parameter) then
         return
     end ---@cast accuracyRadiusMin double|nil
-    accuracyRadiusMin = accuracyRadiusMin or 0.0 ---@cast accuracyRadiusMin - nil
+    if accuracyRadiusMin == nil then
+        accuracyRadiusMin = 0.0
+    end ---@cast accuracyRadiusMin - nil
 
     local accuracyRadiusMax = commandData.accuracyRadiusMax
     if not CommandsUtils.CheckNumberArgument(accuracyRadiusMax, "double", false, commandName, "accuracyRadiusMax", 0, nil, command.parameter) then
         return
     end ---@cast accuracyRadiusMax double|nil
-    accuracyRadiusMax = accuracyRadiusMax or 0.0 ---@cast accuracyRadiusMax - nil
+    if accuracyRadiusMax == nil then
+        accuracyRadiusMax = 0.0
+    end ---@cast accuracyRadiusMax - nil
 
     local salvoSize = commandData.salvoSize
     if not CommandsUtils.CheckNumberArgument(salvoSize, "int", false, commandName, "salvoSize", 1, MathUtils.uintMax, command.parameter) then
@@ -112,7 +116,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 
     -- If this is a multi salvo wave we need to cache the target position from the first delivery for the subsequent deliveryies of that wave. So setup the salvoWaveId for later population.
     local maxBatchNumber = 0 ---@type uint @ Batch 0 is the first batch.
-    local salvoWaveId  ---@type uint
+    local salvoWaveId  ---@type uint|nil
     if explosiveCount > salvoSize then
         global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1 --[[@as uint]]
         salvoWaveId = global.explosiveDelivery.nextSalvoWaveId
@@ -135,9 +139,19 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             targetPosition = targetPosition,
             targetOffset = targetOffset,
             salvoWaveId = salvoWaveId,
-            finalSalvo = batchNumber == maxBatchNumber
+            finalSalvo = (batchNumber == maxBatchNumber)
         }
-        EventScheduler.ScheduleEventOnce(scheduleTick + (batchNumber * salvoDelayTicks) --[[@as UtilityScheduledEvent_UintNegative1]], "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
+
+        local batchScheduleTick  ---@type UtilityScheduledEvent_UintNegative1
+        if scheduleTick == -1 then
+            -- Is the special do it now value.
+            batchScheduleTick = command.tick
+        else
+            -- Is greater than 0.
+            batchScheduleTick = scheduleTick
+        end
+        batchScheduleTick = batchScheduleTick + (batchNumber * salvoDelayTicks) --[[@as UtilityScheduledEvent_UintNegative1]]
+        EventScheduler.ScheduleEventOnce(batchScheduleTick, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
     end
 end
 
