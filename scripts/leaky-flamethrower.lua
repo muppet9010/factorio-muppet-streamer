@@ -111,6 +111,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
         return
     end
     -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
+    -- TEMP FIX: this should be directly after the fucntion return, but that breaks in 3.4.
     ---@cast removedWeaponDetails - nil
 
     -- Put the required ammo in the guns related ammo slot.

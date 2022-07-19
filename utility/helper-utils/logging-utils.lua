@@ -183,7 +183,7 @@ LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
 
     -- Simple values just get returned.
     if type(thing) ~= "table" then
-        return tostring(thing)
+        return {LITERAL_VALUE = thing}
     end
 
     -- Handle specific Factorio Lua objects

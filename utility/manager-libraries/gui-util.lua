@@ -348,7 +348,7 @@ end
 ---
 --- Is safe to call for a attributeName that doesn;t exist in the elementDetails, it will just return nil.
 ---@param elementDetails UtilityGuiUtil_ElementDetails_Add
----@param attributeName "'caption'"|"''tooltip"
+---@param attributeName "'caption'"|"'tooltip'"
 ---@return string|table|nil updatedAttributeNameObject
 GuiUtil._ReplaceLocaleNameSelfWithGeneratedName = function(elementDetails, attributeName)
     -- Reference the "name" key by this indirect way to avoid EmmyLua picking it up. Can use array reference as just reading it.
@@ -375,8 +375,6 @@ end
 --------------------------------------------------------------------------
 -- Custom Objects for use in mutliple public classes
 --------------------------------------------------------------------------
----@meta
----@diagnostic disable
 
 --- A table of LuaStyle attribute names and values (key/value) to be applied post element creation (after style). Saves having to capture the added element and then set style attributes one at a time in calling code.
 ---

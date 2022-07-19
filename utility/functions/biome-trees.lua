@@ -44,7 +44,7 @@ BiomeTrees.GetBiomeTreeName = function(surface, position)
         local tileName = tile.hidden_tile
         tileData = global.UTILITYBIOMETREES.tileData[tileName]
         if tileData == nil then
-            LoggingUtils.ModLog("Failed to get tile data for ''" .. tostring(tile.name) .. "'' and hidden tile '" .. tostring(tileName) .. "'", true, LogNonPositives)
+            LoggingUtils.ModLog("Failed to get tile data for '" .. tostring(tile.name) .. "' and hidden tile '" .. tostring(tileName) .. "'", true, LogNonPositives)
             return BiomeTrees.GetRandomTreeLastResort(tile)
         end
     end
