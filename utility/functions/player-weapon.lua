@@ -36,7 +36,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
     }
 
     -- See if the gun is already equipped by the player in their active gun inventory, or find which of their weapon slots is best to assign too.
-    ---@typelist boolean, uint|nil, uint|nil, uint|nil
+    ---@type boolean, uint|nil, uint|nil, uint|nil
     local weaponGiven, weaponFoundIndex, freeGunIndex, freeButFilteredGunIndex = false, nil, nil, nil
     local gunInventory = player.get_inventory(defines.inventory.character_guns)
     if gunInventory == nil then
@@ -206,7 +206,7 @@ end
 ---@param player any
 ---@param removedWeaponDetails any
 PlayerWeapon.ReturnRemovedWeapon = function(player, removedWeaponDetails)
-    ---@typelist LuaInventory, LuaInventory, LuaInventory
+    ---@type LuaInventory, LuaInventory, LuaInventory
     local playerGunInventory, playerAmmoInventory, playerCharacterInventory = nil, nil, nil
     if removedWeaponDetails.weaponFilterName ~= nil then
         playerGunInventory = playerGunInventory or player.get_inventory(defines.inventory.character_guns)

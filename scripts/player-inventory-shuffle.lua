@@ -282,7 +282,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     local storageInventoryStackCount, storageInventoryFull = 0, false
 
     -- Loop over each player and handle their inventories.
-    ---@typelist LuaItemStack, LuaInventory, string, uint, table<string, true>
+    ---@type LuaItemStack, LuaInventory, string, uint, table<string, true>
     local playerInventoryStack, playersInventory, stackItemName, playersInitialInventorySlotBonus, playersItemSources
     for _, player in pairs(players) do
         -- Return the players cursor stack to their inventory before handling.
@@ -444,7 +444,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
     end
 
     -- Work out the distribution of items to players.
-    ---@typelist uint, uint, double, uint[], double, uint, uint, uint[], uint, uint, uint, uint, uint
+    ---@type uint, uint, double, uint[], double, uint, uint, uint[], uint, uint, uint, uint, uint
     local sourcesCount, destinationCount, totalAssignedRatio, destinationRatios, standardisedPercentageModifier, itemsLeftToAssign, destinationRatio, playersAvailableToRecieveThisItem, playerIndex, playerIndexListIndex, itemCountForPlayerIndex, destinationCountMin, destinationCountMax
     for itemName, itemCount in pairs(itemsToDistribute) do
         sourcesCount = itemSources[itemName]
@@ -496,7 +496,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
     end
 
     -- Randomly order the items we will be distributing as otherwise the same type of things are those forced in to inventories out of ratio or dropped on the ground. WIthout this also the worst armor was always assigned as well (lowest order).
-    ---@typelist uint, PlayerInventoryShuffle_orderedItemCounts
+    ---@type uint, PlayerInventoryShuffle_orderedItemCounts
     local randomOrderPosition, randomItemCountsList
     for itemCountsPlayerIndex, itemCountsList in pairs(playersItemCounts) do
         randomItemCountsList = {}
@@ -535,7 +535,7 @@ PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInvento
         playerIndexsWithFreeInventorySpace_table[i] = player
     end
 
-    ---@typelist boolean, LuaPlayer
+    ---@type boolean, LuaPlayer
     local playersInventoryIsFull, player
     for playerIndex, orderedPlayerItemCountList in pairs(playersItemCounts) do
         player = players[playerIndex]
@@ -574,7 +574,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
         end
 
         -- Try and shove the items in players inventories that aren't full first
-        ---@typelist uint, LuaPlayer, boolean
+        ---@type uint, LuaPlayer, boolean
         local playerListIndex, player, playersInventoryIsFull
         for itemName, itemCount in pairs(itemsLeftInStorage) do
             -- Keep on trying to insert these items across all available players until its all inserted or no players have any room left.
@@ -613,7 +613,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
             -- CODE NOTE: the spilling on the ground is very UPS costly, espically the further away from each player. So Distributing semi equally across all players should help reduce this impact. Ideally this state won't be reached.
             game.print({"message.muppet_streamer_player_inventory_shuffle_not_enough_room_for_items"})
             storageInventory.sort_and_merge()
-            ---@typelist LuaItemStack, LuaPlayer
+            ---@type LuaItemStack, LuaPlayer
             local storageItemStack, randomPlayer
             for i = 1, #storageInventory do
                 storageItemStack = storageInventory[i]
@@ -637,7 +637,7 @@ end
 ---@return boolean playersInventoryIsFull
 ---@return uint itemCountNotInserted
 PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemName, itemCount, player)
-    ---@typelist LuaItemStack, uint, ItemStackDefinition, uint, uint
+    ---@type LuaItemStack, uint, ItemStackDefinition, uint, uint
     local itemStackToTakeFrom, itemsInserted, itemToInsert, itemStackToTakeFrom_count, itemCountToTakeFromThisStack
     local playersInventoryIsFull = false
 

@@ -138,7 +138,7 @@ end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
 PantsOnFire.WalkCheck = function(eventData)
-    ---@typelist PantsOnFire_EffectDetails, LuaPlayer, uint
+    ---@type PantsOnFire_EffectDetails, LuaPlayer, uint
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId --[[@as uint]]
     if player == nil or (not player.valid) then
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)

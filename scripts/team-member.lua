@@ -39,7 +39,7 @@ TeamMember.OnSettingChanged = function(event)
         settingName = event.setting
     end
     if (settingName == nil or settingName == "muppet_streamer-recruited_team_member_gui_title") then
-        global.teamMember.recruitTeamMemberTitle = settings.global["muppet_streamer-recruited_team_member_gui_title"].value
+        global.teamMember.recruitTeamMemberTitle = settings.global["muppet_streamer-recruited_team_member_gui_title"].value --[[@as string]] --TODO: why is this needed now?
     end
 end
 

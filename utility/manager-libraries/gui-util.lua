@@ -115,7 +115,7 @@ GuiUtil.AddElement = function(elementDetails)
         if elementDetailsNoClass.descriptiveName == nil then
             error("GuiUtil.AddElement storeName attribute requires element descriptiveName to be supplied.")
         else
-            GuiUtil.AddElementToPlayersReferenceStorage(element.player_index --[[@as uint TODO: short term fix for bug in debugger]], storeName, elementDetailsNoClass.name, element)
+            GuiUtil.AddElementToPlayersReferenceStorage(element.player_index, storeName, elementDetailsNoClass.name, element)
         end
     end
     if styling ~= nil then

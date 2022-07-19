@@ -105,14 +105,13 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     end
 
     targetPlayer.driving = false
-    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true, "flamethrower-ammo")
+    -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
+    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true, "flamethrower-ammo") ---@cast removedWeaponDetails - nil
+
     if flamethrowerGiven == nil then
         LoggingUtils.LogPrintError(errorMessageStart .. "target player can't be given a flamethrower for some odd reason: " .. data.target)
         return
     end
-    -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
-    -- TEMP FIX: this should be directly after the fucntion return, but that breaks in 3.4.
-    ---@cast removedWeaponDetails - nil
 
     -- Put the required ammo in the guns related ammo slot.
     local selectedAmmoItemStack = targetPlayer.get_inventory(defines.inventory.character_ammo)[removedWeaponDetails.gunInventoryIndex]
@@ -166,7 +165,7 @@ end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
-    ---@typelist LeakyFlamethrower_ShootFlamethrowerDetails, LuaPlayer, uint
+    ---@type LeakyFlamethrower_ShootFlamethrowerDetails, LuaPlayer, uint
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.data.player_index
     if (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
         LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)

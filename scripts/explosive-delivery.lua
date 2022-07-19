@@ -174,7 +174,7 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     local targetPlayer = game.get_player(data.target)
     -- Don't need to check if the target is alive or anything. We will happily bomb their corpse.
 
-    ---@typelist MapPosition, LuaSurface
+    ---@type MapPosition, LuaSurface
     local targetPos, surface
     -- Check if we need to obtain a target position from the salvo wave rather than calculate it now.
     if data.salvoWaveId ~= nil and global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] ~= nil then

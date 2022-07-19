@@ -146,7 +146,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
         CommandsUtils.LogPrintError(commandName, "destinationType" .. depthErrorMessage, "is Mandatory and must be populated", commandData.parameter)
         return nil
     end
-    ---@typelist Teleport_DestinationTypeSelection, MapPosition|nil
+    ---@type Teleport_DestinationTypeSelection, MapPosition|nil
     local destinationType, destinationTargetPosition
     if type(destinationTypeRaw) == "string" then
         if not CommandsUtils.CheckStringArgument(destinationTypeRaw, true, commandName, "destinationType" .. depthErrorMessage, DestinationTypeSelection, commandData.parameter) then
@@ -211,7 +211,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
         reachableOnly = false
     end
 
-    ---@typelist any, Teleport_CommandDetails|nil
+    ---@type any, Teleport_CommandDetails|nil
     local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
     if backupTeleportSettingsRaw ~= nil then
         if type(backupTeleportSettingsRaw) == "table" then
@@ -292,7 +292,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         -- Populate data.spawnerDistance with valid enemy spawners on the player's current surface if needed, otherwise handle last bad result.
         if data.targetAttempt > 1 then
             -- This target position has been found to be bad so remove any spawners too close to this bad location for this player.
-            ---@typelist double, double, double
+            ---@type double, double, double
             local distanceXDiff, distanceYDiff, spawnerDistance
             for index, spawnerDistanceDetails in pairs(data.spawnerDistances) do
                 -- CODE NOTE: Do locally rather than via function call as we call this a lot and its so simple logic.
@@ -307,7 +307,7 @@ Teleport.PlanTeleportTarget = function(eventData)
             end
         else
             -- Is a first loop for this target player so build up the spawner list.
-            ---@typelist double, double, double
+            ---@type double, double, double
             local spawnerDistance, distanceXDiff, distanceYDiff
             for spawnersForceName, forcesSpawnerDetails in pairs(global.teleport.surfaceBiterNests[targetPlayer_surface_index]) do
                 -- Check the force is an enemy. So we ignore all non-enemy spawners in bulk.
@@ -360,7 +360,7 @@ Teleport.PlanTeleportTarget = function(eventData)
             end
 
             -- Check if the nearest spawner is still valid. Its possible to remove spawners without us knowing about it, i.e. via Editor or via script and not raising an event for it. So we have to check.
-            if not nearestSpawnerDistanceDetails.spawnerDetails.entity.valid then ---@diagnostic disable-line:need-check-nil @ Bug in Sumneko: https://github.com/sumneko/lua-language-server/issues/1320
+            if not nearestSpawnerDistanceDetails.spawnerDetails.entity.valid then
                 -- Remove the spawner from this search.
                 data.spawnerDistances[firstSpawnerDistancesIndex] = nil
 
@@ -373,7 +373,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
 
         -- Set the target position to the valid spawner.
-        data.destinationTargetPosition = nearestSpawnerDistanceDetails.spawnerDetails.position ---@diagnostic disable-line:need-check-nil @ Bug in Sumneko: https://github.com/sumneko/lua-language-server/issues/1320
+        data.destinationTargetPosition = nearestSpawnerDistanceDetails.spawnerDetails.position
     elseif data.destinationType == DestinationTypeSelection.enemyUnit then
         local nearestEnemy = targetPlayer_surface.find_nearest_enemy {position = targetPlayer_position, max_distance = data.maxDistance, force = targetPlayer_force}
         if nearestEnemy == nil then

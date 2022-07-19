@@ -135,7 +135,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     end
 
     -- Work out how many items to drop per cycle here if its a starting number type.
-    ---@typelist uint|nil, uint|nil
+    ---@type uint|nil, uint|nil
     local staticItemCount, dynamicPercentageItemCount
     if data.quantityType == QuantityType.constant then
         staticItemCount = math.floor(data.quantityValue) --[[@as uint]]
@@ -164,7 +164,7 @@ end
 
 --- Apply the drop item effect to the player.
 PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
-    ---@typelist PlayerDropInventory_ScheduledDropItemsData, LuaPlayer, uint
+    ---@type PlayerDropInventory_ScheduledDropItemsData, LuaPlayer, uint
     local data, player, playerIndex = event.data, event.data.player, event.instanceId
     if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) then
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)

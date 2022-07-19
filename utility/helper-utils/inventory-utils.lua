@@ -27,7 +27,7 @@ end
 ---@return boolean anythingMoved @ If any items were moved successfully in to the targetInventory. Ignores if things were dumped on the ground.
 InventoryUtils.TryMoveInventoriesLuaItemStacks = function(sourceInventory, targetInventory, dropUnmovedOnGround, ratioToMove)
     -- Set default values.
-    ---@typelist LuaEntity, boolean, boolean
+    ---@type LuaEntity, boolean, boolean
     local sourceOwner, itemAllMoved, anythingMoved = nil, true, false
     if dropUnmovedOnGround == nil then
         dropUnmovedOnGround = false

@@ -171,7 +171,7 @@ end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
 AggressiveDriver.Drive = function(eventData)
-    ---@typelist AggressiveDriver_DriveEachTickDetails, LuaPlayer, uint
+    ---@type AggressiveDriver_DriveEachTickDetails, LuaPlayer, uint
     local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId --[[@as uint]]
     local vehicle = player.vehicle
     if (not player.valid) or vehicle == nil then

@@ -127,7 +127,7 @@ TrainUtils.GetTrainSpeedCalculationData = function(train, train_speed, trainCarr
     end
 
     local firstCarriage = true
-    ---@typelist TrainUtils_TrainCarriageData, string, string, boolean
+    ---@type TrainUtils_TrainCarriageData, string, string, boolean
     local carriageCachedData, carriage_type, carriage_name, carriage_faceingFrontOfTrain
     for currentSourceTrainCarriageIndex = minCarriageIndex, maxCarriageIndex, carriageIterator do
         carriageCachedData = trainCarriagesDataArray[currentSourceTrainCarriageIndex]
