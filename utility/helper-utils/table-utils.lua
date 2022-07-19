@@ -28,6 +28,7 @@ TableUtils.TableMergeOrigionalsShallow = function(sourceTables)
     return mergedTable
 end
 
+--- Checks if a table is empty or not. A nil value table is considered empty.
 ---@param table table
 ---@return boolean
 TableUtils.IsTableEmpty = function(table)
@@ -63,6 +64,7 @@ TableUtils.GetFirstTableValue = function(table)
     return table[next(table)]
 end
 
+--- Get the maximum key in a table of gappy keys (not sequential where # would work).
 ---@param table table
 ---@return uint
 TableUtils.GetMaxKey = function(table)
@@ -75,6 +77,7 @@ TableUtils.GetMaxKey = function(table)
     return max_key
 end
 
+-- Get the X (indexCount) item in the table of a gappy list.
 ---@param table table
 ---@param indexCount int
 ---@return any
@@ -346,6 +349,11 @@ TableUtils.GetTableValueWithInnerKeyValue = function(theTable, innerKey, innerVa
     return valuesFound
 end
 
+--- Returns a copy of a table's values with each value also being the key. Doesn't clone any internal data structures, so use on tables of tables with care.
+---
+--- Useful for converting a list in to dictionary of the list items.
+---@param tableWithValues table
+---@return table|nil tableOfKeys @ Returns nil when nil is passed in.
 TableUtils.TableValuesToKey = function(tableWithValues)
     if tableWithValues == nil then
         return nil
@@ -357,6 +365,12 @@ TableUtils.TableValuesToKey = function(tableWithValues)
     return newTable
 end
 
+--- Returns a copy of a table's values with each value's named inner key's (innerValueAttributeName) value also being the key. Doesn't clone any internal data structures, so use on tables of tables with care.
+---
+--- Useful for converting a list of objects in to dictionary of the list items's with a specific inner field being the new dictionary key.
+---@param refTable table
+---@param innerValueAttributeName any
+---@return table|nil
 TableUtils.TableInnerValueToKey = function(refTable, innerValueAttributeName)
     if refTable == nil then
         return nil

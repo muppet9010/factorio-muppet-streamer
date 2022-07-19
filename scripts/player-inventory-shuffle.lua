@@ -98,6 +98,10 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end ---@cast includedForcesString string|nil
     local includedForces = {} ---@type LuaForce[]
     if includedForcesString ~= nil and includedForcesString ~= "" then
+        if includeAllPlayersOnServer then
+            CommandsUtils.LogPrintError(commandName, "includedForces", "is invalid option as all players on the server are already being included", command.parameter)
+            return
+        end
         local includedForceNames = StringUtils.SplitStringOnCharacters(includedForcesString --[[@as string]], ",", false) ---@type string[]
         for _, includedForceName in pairs(includedForceNames) do
             local force = game.forces[includedForceName]
@@ -180,6 +184,8 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
 
     -- Get the active players to shuffle.
     local players = {} ---@type LuaPlayer[]
+    local playerNamesAddedByForce = {} ---@type table<string, string> @ Key and value both player name.
+    local playerNamesAddedByName = {} ---@type table<string, string> @ Key and value both player name.
     if requestData.includeAllPlayersOnServer == true then
         -- Just include everyone.
         for _, player in pairs(game.connected_players) do
@@ -188,19 +194,26 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
             end
         end
     else
-        -- Include the named players and force's players.
-        for _, playerName in pairs(requestData.includedPlayerNames) do
-            local player = game.get_player(playerName)
-            if player ~= nil and player.connected and player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
-                table.insert(players, player)
-            end
-        end
+        -- Include the named players and force's players. Does forces first and then any non included listed players.
         for _, force in pairs(requestData.includedForces) do
             if force.valid then
                 for _, player in pairs(force.connected_players) do
                     if player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
                         table.insert(players, player)
+                        local player_name = player.name
+                        playerNamesAddedByForce[player_name] = player_name
                     end
+                end
+            end
+        end
+        for _, playerName in pairs(requestData.includedPlayerNames) do
+            local player = game.get_player(playerName)
+            if player ~= nil and player.connected and player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
+                local player_name = player.name
+                -- Only include the player if they aren't already included by their force.
+                if playerNamesAddedByForce[player_name] == nil then
+                    table.insert(players, player)
+                    playerNamesAddedByName[player_name] = player_name
                 end
             end
         end
@@ -224,8 +237,11 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
         playerNamePrettyList = {"message.muppet_streamer_player_inventory_shuffle_all_players"}
     else
         playerNamePrettyList = ""
-        for _, player in pairs(players) do
-            playerNamePrettyList = playerNamePrettyList .. ", " .. player.name
+        for _, force in pairs(requestData.includedForces) do
+            playerNamePrettyList = playerNamePrettyList .. ", force '" .. force.name .. "'"
+        end
+        for _, playerName in pairs(playerNamesAddedByName) do
+            playerNamePrettyList = playerNamePrettyList .. ", " .. playerName
         end
         -- Remove leading comma and space
         playerNamePrettyList = string.sub(playerNamePrettyList, 3)

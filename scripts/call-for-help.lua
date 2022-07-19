@@ -8,6 +8,7 @@ local PlayerTeleport = require("utility.functions.player-teleport")
 local StringUtils = require("utility.helper-utils.string-utils")
 local MathUtils = require("utility.helper-utils.math-utils")
 local Common = require("scripts.common")
+local DirectionUtils = require("utility.helper-utils.direction-utils")
 
 ---@class CallForHelp_CallSelection
 ---@class CallForHelp_CallSelection.__index
@@ -406,7 +407,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
-            currentPlayerPlacementEntity_vehicleDirectionFacing = MathUtils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2 --[[@as defines.direction]]
+            currentPlayerPlacementEntity_vehicleDirectionFacing = DirectionUtils.OrientationToDirection(currentPlayerPlacementEntity.orientation)
         end
 
         -- Check the helping player's character/vehicle is still as expected.

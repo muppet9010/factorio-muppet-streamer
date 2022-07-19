@@ -1,6 +1,4 @@
 DOING NOW:
-    - TEST all the command inputs seem ok after their bulk updating to new handling processes.
-
     - Once Sumneko 3.5 comes out we can add opreator to uint for add and then a lot of the --[[@as]] should be removable. Also maybe our generics math library will be more viable...
     - Unknown is being accepted as anything. Think this should be flagged as warning. Spawn aroud player - forceString. diagnostics.groupFileStatus set strong to Any. Theres a lot, so do other things first to start with a lower number.
 

@@ -112,7 +112,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end ---@cast radiusMin - nil
 
     local existingEntitiesString = commandData.existingEntities
-    if not CommandsUtils.CheckStringArgument(existingEntitiesString, true, commandName, "existingEntities", SpawnAroundPlayer.EntityTypeDetails, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(existingEntitiesString, true, commandName, "existingEntities", ExistingEntitiesTypes, command.parameter) then
         return
     end ---@cast existingEntitiesString string
     local existingEntities = ExistingEntitiesTypes[existingEntitiesString] ---@type SpawnAroundPlayer_ExistingEntities
@@ -298,7 +298,7 @@ SpawnAroundPlayer.CombatBotEntityTypeDetails = function(setEntityName, canFollow
             data.surface.create_entity {name = data.entityName, position = data.position, force = data.force, target = target}
         end,
         GetPlayersMaxBotFollowers = function(targetPlayer)
-            return SpawnAroundPlayer.GetPlayerMaxBotFollows(targetPlayer)
+            return SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer(targetPlayer)
         end
     }
     return entityTypeDetails
@@ -446,7 +446,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
 ---Get how many bots can be set to follow the player currently.
 ---@param targetPlayer LuaPlayer
 ---@return uint
-SpawnAroundPlayer.GetPlayersMaxBotFollowers = function(targetPlayer)
+SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer = function(targetPlayer)
     if targetPlayer.character == nil then
         return 0
     end

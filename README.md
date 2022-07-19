@@ -33,33 +33,9 @@ All are done via highly configurable RCON commands.
 - Disable rocket win condition in freeplay.
 - Set a custom area of the map revealed at game start.
 
+#### General Usage Notes
 
-
-General Usage Notes
----------------
-
-At present a Time Duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Concurrent uses of the same time duration events will mean the later ones are ignored.
-
-Argument Data Types:
-
-- INTEGER = expects a whole number and not a fraction. So `1.5` is a bad value. Integers are not wrapped in double quotes.
-- DECIMAL = can take a fraction, i.e `0.25` or `54.28437`. In some usage cases the final result will be rounded to a degree when processed, i.e. 0.4 seconds will have to be rounded to a single tick accuracy to be timed within the game. Decimals are not wrapped in double quotes.
-- STRING = a text string wrapped in double quotes, i.e. `"some text"`
-- STRING_LIST = a comma separated list of things in a single string, i.e. `"Player1,player2, Player3  "`. Any leading or trailing spaces will be removed from each entry in the list. The casing (capitalisation) of things must match the case within factorio exactly, i.e. player names must have the same case as within Factorio. This can be a single thing in a string, i.e. `"Player1"`.
-- OBJECT = some features accept an object as an argument. These are detailed in the notes for those functions. i.e. a position as an object with x and y coordinates: `{"x": 5, "y":23}`
-
-Argument Requirements:
-
-- Mandatory = the setting must be provided.
-- Mandatory Special = the setting is/can be mandatory, see the details on the setting for specifics.
-- Optional = you are free to include or exclude the setting. The default value will be listed and used when the setting isn't included.
-
-Number ranges:
-
-- Many settings will have non-documented common sense minimum number requirements. i.e. you can't have leaky flamethrower activate for 0 or less bursts. These will raise a warning on screen and the command won't run.
-- Many settings will have non-documented maximum values at extremes. The known ones will be capped to the maximum allowed, i.e. number of seconds to delay an event for. However, so will be unknown about and are generally Factorio internal limits, so will not be prevented and may cause crashes. For this reason experimenting with ridiculously large numbers isn't advised.
-
-When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
+See the end of the file for descriptions of the data types and other wordings used in this explanation document.
 
 
 
@@ -83,7 +59,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - Example command atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command grenades: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
 - Example command offset grenade: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"grenade", "target":"muppet9010", "targetOffset":{"x":10,"y":10}}`
-- Example command large count of atomic rockets with salvo: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":150, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":180}`
+- Example command large count of atomic rockets with salvo: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":50, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":300}`
 
 Notes:
 
@@ -238,7 +214,7 @@ Teleports the player to the nearest type of thing.
     - backupTeleportSettings: Teleport details in JSON string - Optional: a backup complete teleport action that will be done if the main destinationType is unsuccessful. Is a complete copy of the main muppet_streamer_teleport settings as a JSON object.
 - Example command biter nest: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"biterNest", "maxDistance": 1000, "reachableOnly": true}`
 - Example command random location: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"random", "minDistance": 100, "maxDistance": 500, "reachableOnly": true}`
-- Example command specific position: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":[1000, 500], "maxDistance": 0}`
+- Example command specific position: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":[200, 100]}`
 - Example command backup teleport: `/muppet_streamer_teleport {"target":"muppet9010", "destinationType":"biterNest", "maxDistance": 100, "reachableOnly": true, "backupTeleportSettings": {"target":"muppet9010", "destinationType":"random", "minDistance": 100, "maxDistance": 500, "reachableOnly": true} }`
 
 Notes:
@@ -266,7 +242,7 @@ Sets the ground on fire behind a player forcing them to run.
     - fireHeadStart: INTEGER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continuous running.
     - flameCount: INTEGER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire.
 - Example command continuous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
-- Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireGap": 30, "fireHeadStart": 6}`
+- Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireHeadStart": 12}`
 
 Notes:
 
@@ -288,7 +264,7 @@ Schedules the targeted player to drop their inventory on the ground over time.
     - gap: DECIMAL - Mandatory: how many seconds between each drop event. Must be 1 second or more.
     - occurrences: INTEGER - Mandatory: how many times the drop events are done.
     - dropEquipment: BOOLEAN - Optional: if the player's armour and weapons are dropped or not. Defaults to True.
-- Example command for 50% of starting inventory items over 5 drops: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurrences":5}`
+- Example command for dropping 10% of starting inventory items 5 times: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurrences":5}`
 - Example command for 10 drops of 5 items, including on belts: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"constant", "quantityValue":5, "gap":2, "occurrences":10, "dropOnBelts":true}`
 
 Notes:
@@ -314,9 +290,9 @@ Takes all the inventory items from the target players, shuffles them and then di
     - destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to recieve an item type compared to the number of source inventories. A value of 0 will allow the for the same number of players to recieve an item as lost it, greater than 1 ensures a wider distribution away from the source number of inventories. Defaults to 1 to ensure some uneven spreading of items. See notes for logic on item distribution and how this setting interacts with other settings.
     - destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to recieve the item. Used to allow scaling of item recipients for large player counts. A value of 0 will mean have no scaling of source to desitination inventories. Defaults to 0.25. See notes for logic on item distribution and how this setting interacts with other settings.
     - recipientItemMinToMaxRatio: INTEGER - Optional: The approximate min/max ratio range of the number of items a destination player will receive compared to others. Defaults to 4. See notes for logic on item distribution.
-- Example command for 3 players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"muppet9010,Test_1,Test_2"}`
+- Example command for 3 named players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"muppet9010,Test_1,Test_2"}`
 - Example command for all active players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"[ALL]"}`
-- Example command for 2 players and all players on a specific force: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"Test_1,Test2", "includedForces":"player"}`
+- Example command for 2 named players and all players on a specific force: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"Test_1,Test_2", "includedForces":"enemy"}`
 
 Notes:
 
@@ -355,3 +331,31 @@ Start with building's ghost on death unlocked
 A mod setting that can make all forces start with ghosts being placed upon entity deaths. Ideal if your chat blows up your base often early game and you freehand build, so don't have a blueprint to just paste down again.
 
 This is the same as if the force had researched the vanilla construction robot technology to unlock it, by giving entity ghosts a long life time. The mod setting can be safely disabled post technology research if desired without it undoing any researched ghost lifetimer.
+
+
+
+General Usage Notes
+---------------
+
+At present a Time Duration event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Concurrent uses of the same time duration events will mean the later ones are ignored.
+
+Argument Data Types:
+
+- INTEGER = expects a whole number and not a fraction. So `1.5` is a bad value. Integers are not wrapped in double quotes.
+- DECIMAL = can take a fraction, i.e `0.25` or `54.28437`. In some usage cases the final result will be rounded to a degree when processed, i.e. 0.4 seconds will have to be rounded to a single tick accuracy to be timed within the game. Decimals are not wrapped in double quotes.
+- STRING = a text string wrapped in double quotes, i.e. `"some text"`
+- STRING_LIST = a comma separated list of things in a single string, i.e. `"Player1,player2, Player3  "`. Any leading or trailing spaces will be removed from each entry in the list. The casing (capitalisation) of things must match the case within factorio exactly, i.e. player names must have the same case as within Factorio. This can be a single thing in a string, i.e. `"Player1"`.
+- OBJECT = some features accept an object as an argument. These are detailed in the notes for those functions. i.e. a position as an object with x and y coordinates: `{"x": 5, "y":23}`
+
+Argument Requirements:
+
+- Mandatory = the setting must be provided.
+- Mandatory Special = the setting is/can be mandatory, see the details on the setting for specifics.
+- Optional = you are free to include or exclude the setting. The default value will be listed and used when the setting isn't included.
+
+Number ranges:
+
+- Many settings will have non-documented common sense minimum number requirements. i.e. you can't have leaky flamethrower activate for 0 or less bursts. These will raise a warning on screen and the command won't run.
+- Many settings will have non-documented maximum values at extremes. The known ones will be capped to the maximum allowed, i.e. number of seconds to delay an event for. However, so will be unknown about and are generally Factorio internal limits, so will not be prevented and may cause crashes. For this reason experimenting with ridiculously large numbers isn't advised.
+
+When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.

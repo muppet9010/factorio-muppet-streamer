@@ -143,14 +143,26 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         }
 
         local batchScheduleTick  ---@type UtilityScheduledEvent_UintNegative1
-        if scheduleTick == -1 then
-            -- Is the special do it now value.
-            batchScheduleTick = command.tick
+        local batchSalvoDelay = batchNumber * salvoDelayTicks
+        if batchSalvoDelay > 0 then
+            -- There's a salvo delay.
+            if scheduleTick == -1 then
+                -- Is the special do it now value.
+                batchScheduleTick = command.tick + batchSalvoDelay --[[@as UtilityScheduledEvent_UintNegative1]]
+            else
+                -- Is greater than 0.
+                batchScheduleTick = scheduleTick + batchSalvoDelay --[[@as UtilityScheduledEvent_UintNegative1]]
+            end
         else
-            -- Is greater than 0.
-            batchScheduleTick = scheduleTick
+            -- No salvo delay so do at main delayed time.
+            if scheduleTick == -1 then
+                -- Is the special do it now value.
+                batchScheduleTick = -1
+            else
+                -- Is greater than 0.
+                batchScheduleTick = scheduleTick + batchSalvoDelay --[[@as UtilityScheduledEvent_UintNegative1]]
+            end
         end
-        batchScheduleTick = batchScheduleTick + (batchNumber * salvoDelayTicks) --[[@as UtilityScheduledEvent_UintNegative1]]
         EventScheduler.ScheduleEventOnce(batchScheduleTick, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
     end
 end

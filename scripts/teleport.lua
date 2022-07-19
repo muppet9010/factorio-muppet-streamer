@@ -4,7 +4,7 @@ local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
-local MathUtils = require("utility.helper-utils.math-utils")
+local DirectionUtils = require("utility.helper-utils.direction-utils")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local Common = require("scripts.common")
 
@@ -205,7 +205,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
             reachableOnly = false
         end ---@cast reachableOnly - nil
     else
-        if maxDistance ~= nil then
+        if reachableOnly ~= nil then
             CommandsUtils.LogPrintWarning(commandName, "reachableOnly" .. depthErrorMessage, "reachableOnly setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)
         end
         reachableOnly = false
@@ -478,7 +478,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
-            currentPlayerPlacementEntity_vehicleDirectionFacing = MathUtils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2 --[[@as defines.direction]]
+            currentPlayerPlacementEntity_vehicleDirectionFacing = DirectionUtils.OrientationToDirection(currentPlayerPlacementEntity.orientation)
         end
 
         -- Check the player's character/vehicle is still as expected.

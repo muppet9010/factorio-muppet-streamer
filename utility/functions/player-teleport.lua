@@ -3,8 +3,8 @@
 
     Usage: Call any public functions (not starting with "_") as required to request a teleport for a player. Other public functions can also be utilised as required.
 ]]
-local MathUtils = require("utility.helper-utils.math-utils")
 local PositionUtils = require("utility.helper-utils.position-utils")
+local DirectionUtils = require("utility.helper-utils.direction-utils")
 
 local PlayerTeleport = {}
 
@@ -41,7 +41,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
     -- CODE NOTE: This isn't perfect, but is better than nothing until this Interface Request is done: https://forums.factorio.com/viewtopic.php?f=28&t=102792
     local playersVehicle_directionToCheck  ---@type defines.direction|nil
     if targetPlayerPlacementEntity_isVehicle then
-        playersVehicle_directionToCheck = MathUtils.RoundNumberToDecimalPlaces(targetPlayerPlacementEntity.orientation * 4, 0) * 2 --[[@as defines.direction]]
+        playersVehicle_directionToCheck = DirectionUtils.OrientationToDirection(targetPlayerPlacementEntity.orientation)
     end
 
     -- Record the current placement entity for checking post path request.
