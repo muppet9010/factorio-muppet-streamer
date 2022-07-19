@@ -213,7 +213,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
     if backupTeleportSettingsRaw ~= nil then
         if type(backupTeleportSettingsRaw) == "table" then
-            backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1 --[[@as uint]], commandStringText)
+            backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1, commandStringText)
             if backupTeleportSettings == nil then
                 -- The error will have been already reported to screen during the function handling the contents, so just stop the command from executing here.
                 return nil
@@ -232,8 +232,8 @@ end
 --- Schedule a commands details to occur after the set delay.
 ---@param commandValues Teleport_CommandDetails
 Teleport.ScheduleTeleportCommand = function(commandValues)
-    global.teleport.nextId = global.teleport.nextId + 1 --[[@as uint]]
-    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or -1 --[[@as UtilityScheduledEvent_UintNegative1]]
+    global.teleport.nextId = global.teleport.nextId + 1
+    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or (-1) --[[@as UtilityScheduledEvent_UintNegative1]]
     ---@type Teleport_TeleportDetails
     local teleportDetails = {
         teleportId = global.teleport.nextId,
@@ -274,7 +274,7 @@ Teleport.PlanTeleportTarget = function(eventData)
     local targetPlayer_position = targetPlayer.position
 
     -- Increment the attempt counter for trying to find a target to teleport too.
-    data.targetAttempt = data.targetAttempt + 1 --[[@as uint]]
+    data.targetAttempt = data.targetAttempt + 1
 
     -- Find a target based on the command settings.
     if data.destinationType == DestinationTypeSelection.spawn then
@@ -433,7 +433,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
     -- Check some key LuaObjects still exist. This is to avoid risk of crashes during any checks for changes.
     if not data.targetPlayer_surface.valid or not data.targetPlayer_force.valid then
         -- Something critical isn't valid, so we should always retry to get fresh data.
-        data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
+        data.targetAttempt = data.targetAttempt - 1
         Teleport.PlanTeleportTarget({data = data})
         return
     end
@@ -459,14 +459,14 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- Check the player's surface is the same as start of pathing request.
         if data.targetPlayer.surface ~= data.targetPlayer_surface then
-            data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
+            data.targetAttempt = data.targetAttempt - 1
             Teleport.PlanTeleportTarget({data = data})
             return
         end
 
         -- Check the player's force is the same as start of pathing request.
         if data.targetPlayer.force ~= data.targetPlayer_force then
-            data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
+            data.targetAttempt = data.targetAttempt - 1
             Teleport.PlanTeleportTarget({data = data})
             return
         end
@@ -481,14 +481,14 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- Check the player's character/vehicle is still as expected.
         if currentPlayerPlacementEntity ~= data.targetPlayerPlacementEntity then
-            data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
+            data.targetAttempt = data.targetAttempt - 1
             Teleport.PlanTeleportTarget({data = data})
             return
         end
 
         -- Check the target location hasn't been blocked since we made the path request. This also checks the entity can be placed with its current orientation rounded to a direction, so if its changed from when the pathfinder request was made it will either be confirmed as being fine or fail and be retried.
         if not data.targetPlayer_surface.can_place_entity {name = currentPlayerPlacementEntity.name, position = data.thisAttemptPosition, direction = currentPlayerPlacementEntity_vehicleDirectionFacing, force = data.targetPlayer_force, build_check_type = defines.build_check_type.manual} then
-            data.targetAttempt = data.targetAttempt - 1 --[[@as uint]]
+            data.targetAttempt = data.targetAttempt - 1
             Teleport.PlanTeleportTarget({data = data})
             return
         end
@@ -539,7 +539,7 @@ end
 Teleport.OnChunkGenerated = function(event)
     global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId + 1
     -- Check the chunk in 1 ticks time to let any other mod or scenario complete its actions first.
-    EventScheduler.ScheduleEventOnce(event.tick + 1 --[[@as UtilityScheduledEvent_UintNegative1]], "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
+    EventScheduler.ScheduleEventOnce(event.tick + 1, "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
 end
 
 --- When a chunk is generated we wait for 1 tick and then this function is called. Lets any other mod/scenario mess with the spawner prior to use caching its details.

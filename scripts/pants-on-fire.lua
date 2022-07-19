@@ -101,7 +101,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         flameCount = 20
     end
 
-    global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1 --[[@as uint]]
+    global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1
     ---@type PantsOnFire_ScheduledEventDetails
     local scheduledEventDetails = {target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount}
     EventScheduler.ScheduleEventOnce(scheduleTick, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, scheduledEventDetails)
@@ -152,7 +152,7 @@ PantsOnFire.WalkCheck = function(eventData)
     end
 
     -- Increment position in step buffer.
-    data.stepPos = data.stepPos + 1 --[[@as uint]]
+    data.stepPos = data.stepPos + 1
 
     if data.stepPos >= data.fireHeadStart then
         -- Restart the circular buffer cycle and start the fire creation if not already (first cycle without).
@@ -173,7 +173,7 @@ PantsOnFire.WalkCheck = function(eventData)
             if player.vehicle then
                 local playerCharacter = player.character
                 if playerCharacter then
-                    data.ticksInVehicle = data.ticksInVehicle + data.fireGap --[[@as uint]]
+                    data.ticksInVehicle = data.ticksInVehicle + data.fireGap
                     -- Damage is square of how long they are in a vehicle to give a scale between those with no shields/armour and heavily shielded players. Total damage is done as an amount per second regardless of how often the fire gap delay has the ground effect created and thus this function called.
                     local secondsInVehicle = math.ceil(data.ticksInVehicle / 60)
                     local damageForPeriodOfSecond = MathUtils.ClampToFloat((secondsInVehicle ^ 4) / (60 / data.fireGap)) -- We don't care if the value is clamped within the allowed range as its already so large.
@@ -188,7 +188,7 @@ PantsOnFire.WalkCheck = function(eventData)
 
     -- Schedule the next loop if not finished yet.
     if eventData.tick < data.finishTick then
-        EventScheduler.ScheduleEventOnce(eventData.tick + data.fireGap --[[@as UtilityScheduledEvent_UintNegative1]], "PantsOnFire.WalkCheck", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(eventData.tick + data.fireGap, "PantsOnFire.WalkCheck", playerIndex, data)
     else
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end

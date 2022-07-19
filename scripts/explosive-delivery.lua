@@ -79,7 +79,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         return
     end ---@cast targetOffset MapPosition|nil
     if targetOffset ~= nil then
-        targetOffset = PositionUtils.TableToProperPosition(targetOffset --[[@as MapPosition]])
+        targetOffset = PositionUtils.TableToProperPosition(targetOffset)
         if targetOffset == nil then
             CommandsUtils.LogPrintError(commandName, "targetOffset", "must be a valid position table string", command.parameter)
             return
@@ -118,17 +118,18 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local maxBatchNumber = 0 ---@type uint @ Batch 0 is the first batch.
     local salvoWaveId  ---@type uint|nil
     if explosiveCount > salvoSize then
-        global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1 --[[@as uint]]
+        global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1
         salvoWaveId = global.explosiveDelivery.nextSalvoWaveId
         maxBatchNumber = math.floor(explosiveCount / salvoSize) --[[@as uint]] -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
     end
 
     local explosiveCountRemaining = explosiveCount
+    ---@type uint
     for batchNumber = 0, maxBatchNumber do
         explosiveCount = math.min(salvoSize, explosiveCountRemaining) --[[@as uint]]
-        explosiveCountRemaining = explosiveCountRemaining - explosiveCount --[[@as uint]]
+        explosiveCountRemaining = explosiveCountRemaining - explosiveCount
 
-        global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1 --[[@as uint]]
+        global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
         ---@type ExplosiveDelivery_DelayedCommandDetails
         local delayedCommandDetails = {
             explosiveCount = explosiveCount,
@@ -148,10 +149,10 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             -- There's a salvo delay.
             if scheduleTick == -1 then
                 -- Is the special do it now value.
-                batchScheduleTick = command.tick + batchSalvoDelay --[[@as UtilityScheduledEvent_UintNegative1]]
+                batchScheduleTick = command.tick + batchSalvoDelay
             else
                 -- Is greater than 0.
-                batchScheduleTick = scheduleTick + batchSalvoDelay --[[@as UtilityScheduledEvent_UintNegative1]]
+                batchScheduleTick = scheduleTick + batchSalvoDelay
             end
         else
             -- No salvo delay so do at main delayed time.
@@ -160,7 +161,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
                 batchScheduleTick = -1
             else
                 -- Is greater than 0.
-                batchScheduleTick = scheduleTick + batchSalvoDelay --[[@as UtilityScheduledEvent_UintNegative1]]
+                batchScheduleTick = scheduleTick + batchSalvoDelay
             end
         end
         EventScheduler.ScheduleEventOnce(batchScheduleTick, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)

@@ -90,7 +90,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         return
     end ---@cast ammoCount uint|nil
 
-    global.giveItems.nextId = global.giveItems.nextId + 1 --[[@as uint]]
+    global.giveItems.nextId = global.giveItems.nextId + 1
     ---@type GiveItems_GiveWeaponAmmoScheduled
     local giveWeaponAmmoScheduled = {target = target, ammoType = ammoType, ammoCount = ammoCount, weaponType = weaponType, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon}
     EventScheduler.ScheduleEventOnce(scheduleTick, "GiveItems.GiveWeaponAmmoScheduled", global.giveItems.nextId, giveWeaponAmmoScheduled)
@@ -116,7 +116,7 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
     if ammoName ~= nil then
         local inserted = targetPlayer.insert({name = ammoName, count = data.ammoCount})
         if inserted < data.ammoCount then
-            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = ammoName, count = data.ammoCount - inserted --[[@as uint]]}, true, nil, false)
+            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = ammoName, count = data.ammoCount - inserted}, true, nil, false)
         end
     end
 end

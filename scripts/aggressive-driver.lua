@@ -95,7 +95,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         teleportDistance = 0.0
     end
 
-    global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1 --[[@as uint]]
+    global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
     ---@type AggressiveDriver_DelayedCommandDetails
     local delayedCommandDetails = {target = target, duration = duration, control = control, teleportDistance = teleportDistance}
     EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, delayedCommandDetails)
@@ -161,7 +161,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
 
     ---@type AggressiveDriver_DriveEachTickDetails
-    local driveEachTickDetails = {player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0}
+    local driveEachTickDetails = {player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = (0) --[[@as uint]], accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0}
     ---@type UtilityScheduledEvent_CallbackObject
     local driveCallbackObject = {tick = game.tick, instanceId = targetPlayer.index, data = driveEachTickDetails}
     AggressiveDriver.Drive(driveCallbackObject)
@@ -201,7 +201,7 @@ AggressiveDriver.Drive = function(eventData)
                 data.directionDurationTicks = math.random(30, 180) --[[@as uint]]
                 data.spiderDirection = math.random(0, 7) --[[@as defines.direction]]
             else
-                data.directionDurationTicks = data.directionDurationTicks - 1 --[[@as uint]]
+                data.directionDurationTicks = data.directionDurationTicks - 1
             end
 
             player.walking_state = {walking = true, direction = data.spiderDirection}
@@ -264,7 +264,7 @@ AggressiveDriver.Drive = function(eventData)
                 end
                 data.ridingDirection = math.random(0, 2) --[[@as defines.riding.direction]]
             else
-                data.directionDurationTicks = data.directionDurationTicks - 1 --[[@as uint]]
+                data.directionDurationTicks = data.directionDurationTicks - 1
             end
 
             player.riding_state = {
@@ -275,12 +275,12 @@ AggressiveDriver.Drive = function(eventData)
     end
 
     -- Iterate the various counters for this effect.
-    data.accelerationTicks = data.accelerationTicks + 1 --[[@as uint]]
-    data.duration = data.duration - 1 --[[@as uint]]
+    data.accelerationTicks = data.accelerationTicks + 1
+    data.duration = data.duration - 1
 
     -- Schedule next ticks action unless the effect has timed out.
     if data.duration >= 0 then
-        EventScheduler.ScheduleEventOnce(eventData.tick + 1 --[[@as UtilityScheduledEvent_UintNegative1]], "AggressiveDriver.Drive", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(eventData.tick + 1, "AggressiveDriver.Drive", playerIndex, data)
     else
         AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end

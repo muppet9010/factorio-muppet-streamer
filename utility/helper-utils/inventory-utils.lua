@@ -58,7 +58,7 @@ InventoryUtils.TryMoveInventoriesLuaItemStacks = function(sourceInventory, targe
             -- Have to set the source count to be the max amount to move, try the insert, and then set the source count back to the required final result. As this is a game object and so I can't just clone it to try the insert with without losing its associated data.
             itemStack.count = maxToMoveCount
             local movedCount = targetInventory.insert(itemStack)
-            itemStack.count = itemStack_origionalCount - movedCount --[[@as uint]]
+            itemStack.count = itemStack_origionalCount - movedCount
 
             -- Check what was moved and any next steps.
             if movedCount > 0 then
@@ -146,7 +146,7 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
     for name, count in pairs(contents) do
         local toMove = math_ceil(count * ratioToMove) --[[@as uint]]
         local moved = targetInventory.insert({name = name, count = toMove})
-        local remaining = count - moved --[[@as uint]]
+        local remaining = count - moved
         if moved > 0 then
             contents[name] = remaining
         end
@@ -193,7 +193,7 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
     for index, simpleItemStack in pairs(simpleItemStacks) do
         local toMove = math_ceil(simpleItemStack.count * ratioToMove) --[[@as uint]]
         local moved = targetInventory.insert({name = simpleItemStack.name, count = toMove, health = simpleItemStack.health, ammo = simpleItemStack.ammo})
-        local remaining = simpleItemStack.count - moved --[[@as uint]]
+        local remaining = simpleItemStack.count - moved
         if moved > 0 then
             simpleItemStacks[index].count = remaining
         end

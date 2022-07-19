@@ -95,7 +95,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                     local currentName, currentCount = gunItemStack.name, gunItemStack.count
                     local gunInsertedCount = player.insert({name = currentName, count = currentCount})
                     if gunInsertedCount < currentCount then
-                        player.surface.spill_item_stack(player.position, {name = currentName, count = currentCount - gunInsertedCount --[[@as uint]]}, true, nil, false)
+                        player.surface.spill_item_stack(player.position, {name = currentName, count = currentCount - gunInsertedCount}, true, nil, false)
                     end
                     removedWeaponDetails.weaponItemName = currentName
                 end
@@ -134,7 +134,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                 local currentAmmoCount = ammoItemStack.count
                 local ammoInsertedCount = player.insert({name = currentAmmoName, count = currentAmmoCount, ammo = ammoItemStack.ammo})
                 if ammoInsertedCount < currentAmmoCount then
-                    player.surface.spill_item_stack(player.position, {name = currentAmmoName, count = currentAmmoCount - ammoInsertedCount --[[@as uint]]}, true, nil, false)
+                    player.surface.spill_item_stack(player.position, {name = currentAmmoName, count = currentAmmoCount - ammoInsertedCount}, true, nil, false)
                 end
                 removedWeaponDetails.ammoItemName = currentAmmoName
                 ammoItemStack.clear()
@@ -167,7 +167,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                 local currentAmmoName, currentAmmoCount = ammoItemStack.name, ammoItemStack.count
                 local ammoInsertedCount = player.insert({name = currentAmmoName, count = currentAmmoCount, ammo = ammoItemStack.ammo})
                 if ammoInsertedCount < currentAmmoCount then
-                    player.surface.spill_item_stack(player.position, {name = currentAmmoName, count = currentAmmoCount - ammoInsertedCount --[[@as uint]]}, true, nil, false)
+                    player.surface.spill_item_stack(player.position, {name = currentAmmoName, count = currentAmmoCount - ammoInsertedCount}, true, nil, false)
                 end
                 removedWeaponDetails.ammoItemName = currentAmmoName
                 ammoItemStack.clear()
@@ -251,7 +251,7 @@ end
 ---@return uint
 PlayerWeapon.TakeItemFromPlayerOrGround = function(player, itemName, itemCount)
     local removed = 0 ---@type uint
-    removed = removed + player.remove_item({name = itemName, count = itemCount}) --[[@as uint]]
+    removed = removed + player.remove_item({name = itemName, count = itemCount})
     if itemCount == 0 then
         return removed
     end
@@ -260,8 +260,8 @@ PlayerWeapon.TakeItemFromPlayerOrGround = function(player, itemName, itemCount)
     for _, itemOnGround in pairs(itemsOnGround) do
         if itemOnGround.valid and itemOnGround.stack ~= nil and itemOnGround.stack.valid and itemOnGround.stack.name == itemName then
             itemOnGround.destroy()
-            removed = removed + 1 --[[@as uint]]
-            itemCount = itemCount - 1 --[[@as uint]]
+            removed = removed + 1
+            itemCount = itemCount - 1
             if itemCount == 0 then
                 break
             end

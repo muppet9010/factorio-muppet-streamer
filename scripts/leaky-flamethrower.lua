@@ -81,7 +81,7 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         return
     end ---@cast ammoCount uint
 
-    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 --[[@as uint]]
+    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 ---@type uint @ Needed for weird bug reason, maybe in Sumneko or maybe the plugin with its fake global.
     ---@type LeakyFlamethrower_ScheduledEventDetails
     local scheduledEventDetails = {target = target, ammoCount = ammoCount}
     EventScheduler.ScheduleEventOnce(scheduleTick, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, scheduledEventDetails)
@@ -118,7 +118,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
         -- Just give the ammo to the player and it will auto assign it correctly.
         local inserted = targetPlayer.insert({name = "flamethrower-ammo", count = data.ammoCount})
         if inserted < data.ammoCount then
-            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = "flamethrower-ammo", count = data.ammoCount - inserted --[[@as uint]]}, true, nil, false)
+            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = "flamethrower-ammo", count = data.ammoCount - inserted}, true, nil, false)
         end
     else
         -- No current ammo in the slot. So just set our required one.
@@ -201,7 +201,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
                 data.usedSomeAmmo = true
             elseif currentAmmoItemstackAmmo == data.startingAmmoItemstackAmmo then
                 -- Nothings changed so continue to monitor.
-                data.currentBurstTicks = data.currentBurstTicks - 1 --[[@as uint]] -- Take one off as nothing's relaly started yet.
+                data.currentBurstTicks = data.currentBurstTicks - 1 -- Take one off as nothing's relaly started yet.
             else
                 -- Ammo prototype has increased, so players picked up ammo. So update counts and we will continue monitoring next tick from these new values.
                 data.startingAmmoItemstacksCount = currentAmmoItemstacksCount
@@ -215,13 +215,13 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
     end
 
     local nextShootDelay  ---@type uint
-    data.currentBurstTicks = data.currentBurstTicks + 1 --[[@as uint]]
+    data.currentBurstTicks = data.currentBurstTicks + 1
     -- Do the action for this tick.
     if data.currentBurstTicks > 100 then
         -- End of shooting ticks. Ready for next shooting and take break.
         data.currentBurstTicks = 0
-        data.burstsDone = data.burstsDone + 1 --[[@as uint]]
-        global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft = global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft - 1 --[[@as uint]]
+        data.burstsDone = data.burstsDone + 1
+        global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft = global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft - 1
         player.shooting_state = {state = defines.shooting.not_shooting}
         if data.burstsDone == data.maxBursts then
             LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
@@ -239,7 +239,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         nextShootDelay = 1
     end
 
-    EventScheduler.ScheduleEventOnce(eventData.tick + nextShootDelay --[[@as UtilityScheduledEvent_UintNegative1]], "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
+    EventScheduler.ScheduleEventOnce(eventData.tick + nextShootDelay, "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
 end
 
 --- Called when a player has died, but before thier character is turned in to a corpse.

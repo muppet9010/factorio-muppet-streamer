@@ -141,7 +141,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end ---@cast followPlayer boolean|nil
 
-    global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1 --[[@as uint]]
+    global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1
     ---@type SpawnAroundPlayer_ScheduledDetails
     local scheduledDetails = {target = target, entityName = entityName, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString}
     EventScheduler.ScheduleEventOnce(scheduleTick, "SpawnAroundPlayer.SpawnAroundPlayerScheduled", global.spawnAroundPlayer.nextId, scheduledDetails)
@@ -451,7 +451,7 @@ SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer = function(targetPlayer)
     end
     local max = targetPlayer.character_maximum_following_robot_count_bonus + targetPlayer.force.maximum_following_robot_count --[[@as uint]]
     local current = #targetPlayer.following_robots --[[@as uint]]
-    return max - current --[[@as uint]]
+    return max - current
 end
 
 return SpawnAroundPlayer

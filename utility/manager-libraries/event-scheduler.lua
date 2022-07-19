@@ -75,7 +75,7 @@ EventScheduler.ScheduleEventOnce = function(eventTick, eventName, instanceId, ev
     end
     local nowTick = game.tick
     if eventTick == nil then
-        eventTick = nowTick + 1 --[[@as uint]]
+        eventTick = nowTick + 1
     elseif eventTick == -1 then
         -- Special case for callbacks within same tick.
         eventTick = nowTick

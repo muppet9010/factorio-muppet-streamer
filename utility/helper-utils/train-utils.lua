@@ -278,7 +278,7 @@ TrainUtils.EstimateAcceleratingTrainTicksAndFinalSpeedToCoverDistance = function
         local ticksAtMaxSpeed = math_ceil((distance - distanceToMaxSpeed) / trainData.maxSpeed) --[[@as uint]]
 
         -- Set the final results.
-        ticks = ticksToMaxSpeed + ticksAtMaxSpeed --[[@as uint]]
+        ticks = ticksToMaxSpeed + ticksAtMaxSpeed
         finalSpeed = trainData.maxSpeed
     end
 

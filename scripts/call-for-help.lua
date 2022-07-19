@@ -172,7 +172,7 @@ CallForHelp.CallForHelpCommand = function(command)
         return
     end
 
-    global.callForHelp.nextId = global.callForHelp.nextId + 1 --[[@as uint]]
+    global.callForHelp.nextId = global.callForHelp.nextId + 1
     ---@type CallForHelp_DelayedCommandDetails
     local delayedCommandDetails = {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameTeamOnly = sameTeamOnly, sameSurfaceOnly = sameSurfaceOnly, blacklistedPlayerNames = blacklistedPlayerNames, whitelistedPlayerNames = whitelistedPlayerNames, callSelection = callSelection, number = number, activePercentage = activePercentage}
     EventScheduler.ScheduleEventOnce(scheduleTick, "CallForHelp.CallForHelp", global.callForHelp.nextId, delayedCommandDetails)
@@ -363,7 +363,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
 
     if event.path == nil then
         -- Path request failed
-        pathRequest.attempt = pathRequest.attempt + 1 --[[@as uint]]
+        pathRequest.attempt = pathRequest.attempt + 1
         if pathRequest.attempt > MaxPathfinderAttemptsForTargetLocation then
             game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", helpPlayer.name, pathRequest.targetPlayer.name})
         else

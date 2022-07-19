@@ -49,9 +49,9 @@ end
 ---@return int
 MathUtils.LoopIntValueWithinRange = function(value, min, max)
     if value > max then
-        return min - (max - value) - 1 --[[@as int]]
+        return min - (max - value) - 1
     elseif value < min then
-        return max + (value - min) + 1 --[[@as int]]
+        return max + (value - min) + 1
     else
         return value
     end

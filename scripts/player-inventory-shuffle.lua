@@ -10,7 +10,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
 
 local StorageInventorySizeIncrements = 1000 ---@type uint16 @ The starting size of the shared storage inventory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
-local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements --[[@as uint16]] ---@type uint16 @ Max size when the inventory can still grow by another increment.
+local StorageInventoryMaxGrowthSize = (65535) --[[@as uint16]] - StorageInventorySizeIncrements ---@type uint16 @ Max size when the inventory can still grow by another increment.
 
 --[[----------------------------------------------------------------------------------------
                                         CODE DEV NOTES
@@ -163,7 +163,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         recipientItemMinToMaxRatio = 5
     end
 
-    global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1 --[[@as uint]]
+    global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
     ---@type PlayerInventoryShuffle_RequestData
     local requestData = {
         includedPlayerNames = includedPlayerNames,
@@ -307,7 +307,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                             if itemSources[stackItemName] == nil then
                                 itemSources[stackItemName] = 1
                             else
-                                itemSources[stackItemName] = itemSources[stackItemName] + 1 --[[@as uint]]
+                                itemSources[stackItemName] = itemSources[stackItemName] + 1
                             end
                         end
 
@@ -320,7 +320,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                         if storageInventoryStackCount == storageInventorySize then
                             if storageInventorySize <= StorageInventoryMaxGrowthSize then
                                 -- Can just grow it.
-                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements --[[@as uint16]] -- This is safe to blindly do as we already avoid exceeding the smaller size of uint 16 in the previous logic.
+                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements -- This is safe to blindly do as we already avoid exceeding the smaller size of uint 16 in the previous logic.
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
@@ -369,7 +369,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                         if itemSources[name] == nil then
                             itemSources[name] = 1
                         else
-                            itemSources[name] = itemSources[name] + 1 --[[@as uint]]
+                            itemSources[name] = itemSources[name] + 1
                         end
                     end
 
@@ -385,7 +385,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                         if storageInventoryStackCount == storageInventorySize then
                             if storageInventorySize < StorageInventoryMaxGrowthSize then
                                 -- Can just grow it.
-                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements --[[@as uint16]] -- This is safe to blindly do as we already avoid exceeding the smaller size of uint 16 in the previous logic.
+                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements -- This is safe to blindly do as we already avoid exceeding the smaller size of uint 16 in the previous logic.
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
@@ -485,7 +485,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
                 -- Round down the initial number and then keep it below the number of items left. Never try to use more than are left to assign.
                 itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint]]
             end
-            itemsLeftToAssign = itemsLeftToAssign - itemCountForPlayerIndex --[[@as uint]]
+            itemsLeftToAssign = itemsLeftToAssign - itemCountForPlayerIndex
             table.insert(playersItemCounts[playerIndex], {name = itemName, count = itemCountForPlayerIndex})
 
             if itemsLeftToAssign == 0 then
@@ -669,10 +669,10 @@ PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemNa
         end
 
         -- Update the old storage stack count for how many we removed.
-        itemStackToTakeFrom.count = itemStackToTakeFrom_count - itemsInserted --[[@as uint]]
+        itemStackToTakeFrom.count = itemStackToTakeFrom_count - itemsInserted
 
         -- Update the count remaining to be moved based on how many were actually moved.
-        itemCount = itemCount - itemsInserted --[[@as uint]]
+        itemCount = itemCount - itemsInserted
 
         if playersInventoryIsFull then
             break

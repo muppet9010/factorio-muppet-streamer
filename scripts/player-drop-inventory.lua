@@ -104,7 +104,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         dropEquipment = true
     end
 
-    global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1 --[[@as uint]]
+    global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1
     ---@type PlayerDropInventory_ApplyDropItemsData
     local applyDropItemsData = {
         target = target,
@@ -162,9 +162,10 @@ PlayerDropInventory.ApplyToPlayer = function(event)
 end
 
 --- Apply the drop item effect to the player.
+---@param event UtilityScheduledEvent_CallbackObject
 PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     ---@type PlayerDropInventory_ScheduledDropItemsData, LuaPlayer, uint
-    local data, player, playerIndex = event.data, event.data.player, event.instanceId
+    local data, player, playerIndex = event.data, event.data.player, event.instanceId --[[@as uint]]
     if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) then
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
         return
@@ -177,8 +178,8 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     if data.staticItemCount ~= nil then
         itemCountToDrop = data.staticItemCount
     else
-        itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount)))
-    end
+        itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint]]
+    end ---@cast itemCountToDrop - nil
 
     -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurence count has completed.
     if totalItemCount > 0 then
@@ -198,7 +199,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 if itemCountedUpTo >= itemNumberToDrop then
                     inventoryNameOfItemNumberToDrop = inventoryName
                     itemNumberInSpecificInventory = itemNumberToDrop - (itemCountedUpTo - countInInventory)
-                    itemsCountsInInventories[inventoryName] = countInInventory - 1 --[[@as uint]]
+                    itemsCountsInInventories[inventoryName] = countInInventory - 1
                     break
                 end
             end
@@ -214,7 +215,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 inventoryItemsCounted = inventoryItemsCounted + itemCount
                 if inventoryItemsCounted >= itemNumberInSpecificInventory then
                     itemNameToDrop = itemName
-                    inventoriesContents[inventoryNameOfItemNumberToDrop][itemName] = itemCount - 1 --[[@as uint]]
+                    inventoriesContents[inventoryNameOfItemNumberToDrop][itemName] = itemCount - 1
                     break
                 end
             end
@@ -247,24 +248,24 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                     itemToDrop.tags = itemStackToDropFrom.tags
                 end
                 surface.spill_item_stack(position, itemToDrop, false, nil, data.dropOnBelts)
-                itemStackToDropFrom.count = itemStackToDropFrom_count - 1 --[[@as uint]]
+                itemStackToDropFrom.count = itemStackToDropFrom_count - 1
             end
 
             -- Count that the item was dropped.
             itemCountDropped = itemCountDropped + 1
-            totalItemCount = totalItemCount - 1 --[[@as uint]]
+            totalItemCount = totalItemCount - 1
 
             -- If no items left stop trying to drop things this event and await the next one.
             if totalItemCount == 0 then
-                itemCountDropped = itemCountToDrop --[[@as uint]]
+                itemCountDropped = itemCountToDrop
             end
         end
     end
 
     -- Schedule the next occurence if we haven't completed them all yet.
-    data.currentoccurrences = data.currentoccurrences + 1 --[[@as uint]]
+    data.currentoccurrences = data.currentoccurrences + 1
     if data.currentoccurrences < data.totaloccurrences then
-        EventScheduler.ScheduleEventOnce(event.tick + data.gap --[[@as UtilityScheduledEvent_UintNegative1]], "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
+        EventScheduler.ScheduleEventOnce(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
         game.print({"message.muppet_streamer_player_drop_inventory_stop", player.name})
@@ -293,18 +294,18 @@ PlayerDropInventory.GetPlayersItemCount = function(player, includeEquipment)
     local totalItemsCount = 0 ---@type uint
     for _, inventoryName in pairs({defines.inventory.character_main, defines.inventory.character_trash}) do
         for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
-            totalItemsCount = totalItemsCount + count --[[@as uint]]
+            totalItemsCount = totalItemsCount + count
         end
     end
     local cursorStack = player.cursor_stack
     if cursorStack.valid_for_read then
-        totalItemsCount = totalItemsCount + cursorStack.count --[[@as uint]]
+        totalItemsCount = totalItemsCount + cursorStack.count
     end
 
     if includeEquipment then
         for _, inventoryName in pairs({defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo}) do
             for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
-                totalItemsCount = totalItemsCount + count --[[@as uint]]
+                totalItemsCount = totalItemsCount + count
             end
         end
     end
@@ -326,15 +327,15 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
         inventoryContents[inventoryName] = contents
         local inventoryTotalCount = 0 ---@type uint
         for _, count in pairs(contents) do
-            inventoryTotalCount = inventoryTotalCount + count --[[@as uint]]
+            inventoryTotalCount = inventoryTotalCount + count
         end
-        totalItemsCount = totalItemsCount + inventoryTotalCount --[[@as uint]]
+        totalItemsCount = totalItemsCount + inventoryTotalCount
         inventoryItemCounts[inventoryName] = inventoryTotalCount
     end
     local cursorStack = player.cursor_stack
     if cursorStack.valid_for_read then
         local count = cursorStack.count
-        totalItemsCount = totalItemsCount + count --[[@as uint]]
+        totalItemsCount = totalItemsCount + count
         inventoryItemCounts["cursorStack"] = count
         inventoryContents["cursorStack"] = {[cursorStack.name] = count}
     end
@@ -345,9 +346,9 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
             inventoryContents[inventoryName] = contents
             local inventoryTotalCount = 0 ---@type uint
             for _, count in pairs(contents) do
-                inventoryTotalCount = inventoryTotalCount + count --[[@as uint]]
+                inventoryTotalCount = inventoryTotalCount + count
             end
-            totalItemsCount = totalItemsCount + inventoryTotalCount --[[@as uint]]
+            totalItemsCount = totalItemsCount + inventoryTotalCount
             inventoryItemCounts[inventoryName] = inventoryTotalCount
         end
     end
