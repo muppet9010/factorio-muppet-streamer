@@ -92,7 +92,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end ---@cast accuracyRadiusMin double|nil
     if accuracyRadiusMin == nil then
         accuracyRadiusMin = 0.0
-    end ---@cast accuracyRadiusMin - nil
+    end
 
     local accuracyRadiusMax = commandData.accuracyRadiusMax
     if not CommandsUtils.CheckNumberArgument(accuracyRadiusMax, "double", false, commandName, "accuracyRadiusMax", 0, nil, command.parameter) then
@@ -100,7 +100,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end ---@cast accuracyRadiusMax double|nil
     if accuracyRadiusMax == nil then
         accuracyRadiusMax = 0.0
-    end ---@cast accuracyRadiusMax - nil
+    end
 
     local salvoSize = commandData.salvoSize
     if not CommandsUtils.CheckNumberArgument(salvoSize, "int", false, commandName, "salvoSize", 1, MathUtils.uintMax, command.parameter) then

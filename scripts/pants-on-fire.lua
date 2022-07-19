@@ -83,7 +83,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end ---@cast fireHeadStart uint|nil
     if fireHeadStart == nil then
         fireHeadStart = 3
-    end ---@cast fireHeadStart - nil
+    end
 
     local fireGap = commandData.fireGap
     if not CommandsUtils.CheckNumberArgument(fireGap, "int", false, commandName, "fireGap", 1, MathUtils.uintMax, command.parameter) then
@@ -91,7 +91,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end ---@cast fireGap uint|nil
     if fireGap == nil then
         fireGap = 6
-    end ---@cast fireGap - nil
+    end
 
     local flameCount = commandData.flameCount
     if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, MathUtils.uintMax, command.parameter) then
@@ -99,7 +99,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end ---@cast flameCount uint|nil
     if flameCount == nil then
         flameCount = 20
-    end ---@cast flameCount - nil
+    end
 
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1 --[[@as uint]]
     ---@type PantsOnFire_ScheduledEventDetails

@@ -114,7 +114,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                     return false, nil
                 end
             end
-        end ---@cast weaponFoundIndex - nil
+        end ---@cast weaponFoundIndex - nil @ All logic paths either ensure its populated or return.
     end
 
     -- Get the ammo slot for the equiped gun.

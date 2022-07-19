@@ -172,7 +172,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     end ---@cast arrivalRadius double|nil
     if arrivalRadius == nil then
         arrivalRadius = 10.0
-    end ---@cast arrivalRadius - nil
+    end
 
     local minDistance = commandData.minDistance
     if not CommandsUtils.CheckNumberArgument(minDistance, "double", false, commandName, "minDistance" .. depthErrorMessage, 0, nil, commandData.parameter) then
@@ -180,7 +180,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     end ---@cast minDistance double|nil
     if minDistance == nil then
         minDistance = 0.0
-    end ---@cast minDistance - nil
+    end
 
     local maxDistance = commandData.maxDistance
     if destinationType == DestinationTypeSelection.position or destinationType == DestinationTypeSelection.spawn then
@@ -201,7 +201,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
         end ---@cast reachableOnly boolean|nil
         if reachableOnly == nil then
             reachableOnly = false
-        end ---@cast reachableOnly - nil
+        end
     else
         if reachableOnly ~= nil then
             CommandsUtils.LogPrintWarning(commandName, "reachableOnly" .. depthErrorMessage, "reachableOnly setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)

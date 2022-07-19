@@ -129,7 +129,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end ---@cast includeEquipment boolean|nil
     if includeEquipment == nil then
         includeEquipment = true
-    end ---@cast includeEquipment - nil
+    end
 
     local includeHandCrafting = commandData.includeHandCrafting
     if not CommandsUtils.CheckBooleanArgument(includeHandCrafting, false, commandName, "includeHandCrafting", command.parameter) then
@@ -137,7 +137,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end ---@cast includeHandCrafting boolean|nil
     if includeHandCrafting == nil then
         includeHandCrafting = true
-    end ---@cast includeHandCrafting - nil
+    end
 
     local destinationPlayersMinimumVariance = commandData.destinationPlayersMinimumVariance
     if not CommandsUtils.CheckNumberArgument(destinationPlayersMinimumVariance, "int", false, commandName, "destinationPlayersMinimumVariance", 0, MathUtils.uintMax, command.parameter) then
@@ -145,7 +145,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end ---@cast destinationPlayersMinimumVariance uint|nil
     if destinationPlayersMinimumVariance == nil then
         destinationPlayersMinimumVariance = 1
-    end ---@cast destinationPlayersMinimumVariance - nil
+    end
 
     local destinationPlayersVarianceFactor = commandData.destinationPlayersVarianceFactor
     if not CommandsUtils.CheckNumberArgument(destinationPlayersVarianceFactor, "double", false, commandName, "destinationPlayersVarianceFactor", 0, nil, command.parameter) then
@@ -153,7 +153,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end ---@cast destinationPlayersVarianceFactor double|nil
     if destinationPlayersVarianceFactor == nil then
         destinationPlayersVarianceFactor = 0.25
-    end ---@cast destinationPlayersVarianceFactor - nil
+    end
 
     local recipientItemMinToMaxRatio = commandData.recipientItemMinToMaxRatio
     if not CommandsUtils.CheckNumberArgument(recipientItemMinToMaxRatio, "int", false, commandName, "recipientItemMinToMaxRatio", 1, MathUtils.uintMax, command.parameter) then
@@ -161,7 +161,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end ---@cast recipientItemMinToMaxRatio uint|nil
     if recipientItemMinToMaxRatio == nil then
         recipientItemMinToMaxRatio = 5
-    end ---@cast recipientItemMinToMaxRatio - nil
+    end
 
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1 --[[@as uint]]
     ---@type PlayerInventoryShuffle_RequestData

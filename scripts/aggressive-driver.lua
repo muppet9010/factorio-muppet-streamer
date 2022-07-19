@@ -85,7 +85,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     end ---@cast control AggressiveDriver_ControlTypes|nil
     if control == nil then
         control = ControlTypes.full
-    end ---@cast control - nil
+    end
 
     local teleportDistance = commandData.teleportDistance
     if not CommandsUtils.CheckNumberArgument(teleportDistance, "double", false, commandName, "teleportDistance", 0, nil, command.parameter) then
@@ -93,7 +93,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     end ---@cast teleportDistance double|nil
     if teleportDistance == nil then
         teleportDistance = 0.0
-    end ---@cast teleportDistance - nil
+    end
 
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1 --[[@as uint]]
     ---@type AggressiveDriver_DelayedCommandDetails

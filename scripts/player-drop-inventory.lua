@@ -83,7 +83,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end ---@cast dropOnBelts boolean|nil
     if dropOnBelts == nil then
         dropOnBelts = false
-    end ---@cast dropOnBelts - nil
+    end
 
     local gapSeconds = commandData.gap
     if not CommandsUtils.CheckNumberArgument(gapSeconds, "double", true, commandName, "gap", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
@@ -102,7 +102,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end ---@cast dropEquipment boolean|nil
     if dropEquipment == nil then
         dropEquipment = true
-    end ---@cast dropEquipment - nil
+    end
 
     global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1 --[[@as uint]]
     ---@type PlayerDropInventory_ApplyDropItemsData

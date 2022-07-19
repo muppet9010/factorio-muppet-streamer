@@ -104,8 +104,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     end
 
     targetPlayer.driving = false
-    -- CODE NOTE: removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
-    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true, "flamethrower-ammo") ---@cast removedWeaponDetails - nil
+    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true, "flamethrower-ammo") ---@cast removedWeaponDetails - nil @ removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
 
     if flamethrowerGiven == nil then
         LoggingUtils.LogPrintError(errorMessageStart .. "target player can't be given a flamethrower for some odd reason: " .. data.target)

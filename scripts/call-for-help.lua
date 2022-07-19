@@ -98,9 +98,8 @@ CallForHelp.CallForHelpCommand = function(command)
     end ---@cast arrivalRadius double|nil
     if arrivalRadius == nil then
         arrivalRadius = 10.0
-    end ---@cast arrivalRadius - nil
+    end
 
-    -- Nil is a valid final value if the argument isn't provided.
     local callRadius = commandData.callRadius
     if not CommandsUtils.CheckNumberArgument(callRadius, "double", false, commandName, "callRadius", 1, nil, command.parameter) then
         return
@@ -112,7 +111,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end ---@cast sameSurfaceOnly boolean|nil
     if sameSurfaceOnly == nil then
         sameSurfaceOnly = true
-    end ---@cast sameSurfaceOnly - nil
+    end
     -- If not same surface then there's no callRadius result to be processed.
     if not sameSurfaceOnly then
         callRadius = nil
@@ -124,7 +123,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end ---@cast sameTeamOnly boolean|nil
     if sameTeamOnly == nil then
         sameTeamOnly = true
-    end ---@cast sameTeamOnly - nil
+    end
 
     local blacklistedPlayerNames_string = commandData.blacklistedPlayerNames
     if not CommandsUtils.CheckStringArgument(blacklistedPlayerNames_string, false, commandName, "blacklistedPlayerNames", nil, command.parameter) then
@@ -155,7 +154,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end ---@cast number uint|nil
     if number == nil then
         number = 0
-    end ---@cast number - nil
+    end
 
     local activePercentage = commandData.activePercentage
     if not CommandsUtils.CheckNumberArgument(activePercentage, "double", false, commandName, "activePercentage", 0, nil, command.parameter) then
@@ -165,7 +164,7 @@ CallForHelp.CallForHelpCommand = function(command)
         activePercentage = activePercentage / 100
     else
         activePercentage = 0
-    end ---@cast activePercentage - nil
+    end
 
     -- Atleast one of number or activePercentage must have been set above 0.
     if number == 0 and activePercentage == 0 then
