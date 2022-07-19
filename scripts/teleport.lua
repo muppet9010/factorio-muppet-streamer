@@ -8,24 +8,22 @@ local DirectionUtils = require("utility.helper-utils.direction-utils")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local Common = require("scripts.common")
 
----@class Teleport_DestinationTypeSelection
----@class Teleport_DestinationTypeSelection.__index
+---@enum Teleport_DestinationTypeSelection
 local DestinationTypeSelection = {
-    random = ("random") --[[@as Teleport_DestinationTypeSelection]],
-    biterNest = ("biterNest") --[[@as Teleport_DestinationTypeSelection]],
-    enemyUnit = ("enemyUnit") --[[@as Teleport_DestinationTypeSelection]],
-    spawn = ("spawn") --[[@as Teleport_DestinationTypeSelection]],
-    position = ("position") --[[@as Teleport_DestinationTypeSelection]]
+    random = "random",
+    biterNest = "biterNest",
+    enemyUnit = "enemyUnit",
+    spawn = "spawn",
+    position = "position"
 }
 
----@class Teleport_DestinationTypeSelectionDescription
----@class Teleport_DestinationTypeSelectionDescription
+---@enum Teleport_DestinationTypeSelectionDescription
 local DestinationTypeSelectionDescription = {
-    random = ("Random Location") --[[@as Teleport_DestinationTypeSelectionDescription]],
-    biterNest = ("Nearest Biter Nest") --[[@as Teleport_DestinationTypeSelectionDescription]],
-    enemyUnit = ("Enemy Unit") --[[@as Teleport_DestinationTypeSelectionDescription]],
-    spawn = ("spawn") --[[@as Teleport_DestinationTypeSelectionDescription]],
-    position = ("Set Position") --[[@as Teleport_DestinationTypeSelectionDescription]]
+    random = "Random Location",
+    biterNest = "Nearest Biter Nest",
+    enemyUnit = "Enemy Unit",
+    spawn = "spawn",
+    position = "Set Position"
 }
 
 local MaxTargetAttempts = 5

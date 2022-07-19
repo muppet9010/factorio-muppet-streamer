@@ -25,12 +25,11 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field force LuaForce
 ---@field ticksInVehicle uint
 
----@class PantsOnFire_EffectEndStatus
----@class PantsOnFire_EffectEndStatus.__index
+---@enum PantsOnFire_EffectEndStatus
 local EffectEndStatus = {
-    completed = ("completed") --[[@as PantsOnFire_EffectEndStatus]],
-    died = ("died") --[[@as PantsOnFire_EffectEndStatus]],
-    invalid = ("invalid") --[[@as PantsOnFire_EffectEndStatus]]
+    completed = "completed",
+    died = "died",
+    invalid = "invalid"
 }
 
 PantsOnFire.CreateGlobals = function()

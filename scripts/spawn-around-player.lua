@@ -6,11 +6,10 @@ local BiomeTrees = require("utility.functions.biome-trees")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
----@class SpawnAroundPlayer_ExistingEntities
----@class SpawnAroundPlayer_ExistingEntities.__index
+---@enum SpawnAroundPlayer_ExistingEntities
 local ExistingEntitiesTypes = {
-    overlap = ("overlap") --[[@as SpawnAroundPlayer_ExistingEntities]],
-    avoid = ("avoid") --[[@as SpawnAroundPlayer_ExistingEntities]]
+    overlap = "overlap",
+    avoid = "avoid"
 }
 
 ---@class SpawnAroundPlayer_ScheduledDetails

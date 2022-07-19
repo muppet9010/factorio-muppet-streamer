@@ -8,12 +8,11 @@ local PositionUtils = require("utility.helper-utils.position-utils")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
----@class LeakyFlamethrower_EffectEndStatus
----@class LeakyFlamethrower_EffectEndStatus.__index
+---@enum LeakyFlamethrower_EffectEndStatus
 local EffectEndStatus = {
-    completed = ("completed") --[[@as LeakyFlamethrower_EffectEndStatus]],
-    died = ("died") --[[@as LeakyFlamethrower_EffectEndStatus]],
-    invalid = ("invalid") --[[@as LeakyFlamethrower_EffectEndStatus]]
+    completed = "completed",
+    died = "died",
+    invalid = "invalid"
 }
 
 ---@class LeakyFlamethrower_ScheduledEventDetails

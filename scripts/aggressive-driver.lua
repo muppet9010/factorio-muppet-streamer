@@ -6,19 +6,17 @@ local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
----@class AggressiveDriver_ControlTypes
----@class AggressiveDriver_ControlTypes.__index
+---@enum AggressiveDriver_ControlTypes
 local ControlTypes = {
-    full = ("full") --[[@as AggressiveDriver_ControlTypes]],
-    random = ("random") --[[@as AggressiveDriver_ControlTypes]]
+    full = "full",
+    random = "random"
 }
 
----@class AggressiveDriver_EffectEndStatus
----@class AggressiveDriver_EffectEndStatus.__index
+---@enum AggressiveDriver_EffectEndStatus
 local EffectEndStatus = {
-    completed = ("completed") --[[@as AggressiveDriver_EffectEndStatus]],
-    died = ("died") --[[@as AggressiveDriver_EffectEndStatus]],
-    invalid = ("invalid") --[[@as AggressiveDriver_EffectEndStatus]]
+    completed = "completed",
+    died = "died",
+    invalid = "invalid"
 }
 
 ---@class AggressiveDriver_DelayedCommandDetails

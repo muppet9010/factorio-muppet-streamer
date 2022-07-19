@@ -10,11 +10,10 @@ local MathUtils = require("utility.helper-utils.math-utils")
 local Common = require("scripts.common")
 local DirectionUtils = require("utility.helper-utils.direction-utils")
 
----@class CallForHelp_CallSelection
----@class CallForHelp_CallSelection.__index
+---@enum CallForHelp_CallSelection
 local CallSelection = {
-    random = "random" --[[@as CallForHelp_CallSelection]],
-    nearest = "nearest" --[[@as CallForHelp_CallSelection]]
+    random = "random",
+    nearest = "nearest"
 }
 
 local SPTesting = false -- Set to true to let yourself go to your own support.

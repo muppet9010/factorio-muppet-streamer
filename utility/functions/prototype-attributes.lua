@@ -56,16 +56,15 @@ PrototypeAttributes.GetAttribute = function(prototypeType, prototypeName, attrib
     end
 end
 
----@class UtilityPrototypeAttributes_PrototypeType @ not all prototype types are supported at present as not needed before.
----@class UtilityPrototypeAttributes_PrototypeType.__index
+---@enum UtilityPrototypeAttributes_PrototypeType @ not all prototype types are supported at present as not needed before.
 PrototypeAttributes.PrototypeTypes = {
-    entity = ("entity") --[[@as UtilityPrototypeAttributes_PrototypeType]],
-    item = ("item") --[[@as UtilityPrototypeAttributes_PrototypeType]],
-    fluid = ("fluid") --[[@as UtilityPrototypeAttributes_PrototypeType]],
-    tile = ("tile") --[[@as UtilityPrototypeAttributes_PrototypeType]],
-    equipment = ("equipment") --[[@as UtilityPrototypeAttributes_PrototypeType]],
-    recipe = ("recipe") --[[@as UtilityPrototypeAttributes_PrototypeType]],
-    technology = ("technology") --[[@as UtilityPrototypeAttributes_PrototypeType]]
+    entity = "entity",
+    item = "item",
+    fluid = "fluid",
+    tile = "tile",
+    equipment = "equipment",
+    recipe = "recipe",
+    technology = "technology"
 }
 
 ---@alias UtilityPrototypeAttributes_CachedTypes table<string, UtilityPrototypeAttributes_CachedPrototypes> @ a table of each prototype type name (key) and the prototypes it has of that type.

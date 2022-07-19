@@ -6,12 +6,11 @@ local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
----@class PlayerDropInventory_QuantityType
----@class PlayerDropInventory_QuantityType.__index
+---@enum PlayerDropInventory_QuantityType
 local QuantityType = {
-    constant = ("constant") --[[@as PlayerDropInventory_QuantityType]],
-    startingPercentage = ("startingPercentage") --[[@as PlayerDropInventory_QuantityType]],
-    realtimePercentage = ("realtimePercentage") --[[@as PlayerDropInventory_QuantityType]]
+    constant = "constant",
+    startingPercentage = "startingPercentage",
+    realtimePercentage = "realtimePercentage"
 }
 
 ---@class PlayerDropInventory_ApplyDropItemsData
