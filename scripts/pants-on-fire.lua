@@ -15,6 +15,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field flameCount uint @ Must be > 0.
 
 ---@class PantsOnFire_EffectDetails
+---@field player_index uint
 ---@field player LuaPlayer
 ---@field finishTick uint
 ---@field fireHeadStart uint
@@ -129,7 +130,7 @@ PantsOnFire.ApplyToPlayer = function(eventData)
 
     -- stepPos starts at 0 so the first step happens at offset 1
     ---@type PantsOnFire_EffectDetails
-    local effectDetails = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, force = targetPlayer.force --[[@as LuaForce @ read/write work around]], ticksInVehicle = 0}
+    local effectDetails = {player_index = targetPlayer_index, player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, force = targetPlayer.force --[[@as LuaForce @ read/write work around]], ticksInVehicle = 0}
     ---@type UtilityScheduledEvent_CallbackObject
     local walkCheckCallbackObject = {tick = game.tick, instanceId = targetPlayer_index, data = effectDetails}
     PantsOnFire.WalkCheck(walkCheckCallbackObject)
@@ -137,8 +138,8 @@ end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
 PantsOnFire.WalkCheck = function(eventData)
-    ---@type PantsOnFire_EffectDetails, LuaPlayer, uint
-    local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId --[[@as uint]]
+    local data = eventData.data ---@type PantsOnFire_EffectDetails
+    local player, playerIndex = data.player, data.player_index
     if player == nil or (not player.valid) then
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return

@@ -5,6 +5,7 @@ local PositionUtils = require("utility.helper-utils.position-utils")
 local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
+local VehicleUtils = require("utility.helper-utils.vehicle-utils")
 
 ---@enum AggressiveDriver_ControlTypes
 local ControlTypes = {
@@ -26,6 +27,7 @@ local EffectEndStatus = {
 ---@field teleportDistance double
 
 ---@class AggressiveDriver_DriveEachTickDetails
+---@field player_index uint
 ---@field player LuaPlayer
 ---@field duration uint @ Ticks
 ---@field control AggressiveDriver_ControlTypes
@@ -123,8 +125,8 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         for _, vehicle in pairs(vehicles) do
             -- If the vehicle has an empty drivers seat and isn't lacking fuel then include it in the suitable vehicles list.
             if vehicle.get_driver() == nil then
-                local vehicleFuelInventory = vehicle.get_fuel_inventory()
-                if vehicleFuelInventory == nil or not vehicleFuelInventory.is_empty() then
+                local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(vehicle)
+                if currentFuel ~= nil then
                     local distance = PositionUtils.GetDistance(targetPlayer.position, vehicle.position)
                     table.insert(distanceSortedVehicles, {distance = distance, vehicle = vehicle})
                 end
@@ -156,16 +158,16 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
 
     ---@type AggressiveDriver_DriveEachTickDetails
-    local driveEachTickDetails = {player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0}
+    local driveEachTickDetails = {player_index = targetPlayer.index, player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0}
     ---@type UtilityScheduledEvent_CallbackObject
-    local driveCallbackObject = {tick = game.tick, instanceId = targetPlayer.index, data = driveEachTickDetails}
+    local driveCallbackObject = {tick = game.tick, instanceId = driveEachTickDetails.player_index, data = driveEachTickDetails}
     AggressiveDriver.Drive(driveCallbackObject)
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
 AggressiveDriver.Drive = function(eventData)
-    ---@type AggressiveDriver_DriveEachTickDetails, LuaPlayer, uint
-    local data, player, playerIndex = eventData.data, eventData.data.player, eventData.instanceId --[[@as uint]]
+    local data = eventData.data ---@type AggressiveDriver_DriveEachTickDetails
+    local player, playerIndex = data.player, data.player_index
     local vehicle = player.vehicle
     if (not player.valid) or vehicle == nil then
         AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)

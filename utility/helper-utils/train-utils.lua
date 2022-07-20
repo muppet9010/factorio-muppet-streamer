@@ -7,6 +7,7 @@ local TrainUtils = {}
 local PrototypeAttributes = require("utility.functions.prototype-attributes")
 local EntityUtils = require("utility.helper-utils.entity-utils")
 local PositionUtils = require("utility.helper-utils.position-utils")
+local VehicleUtils = require("utility.helper-utils.vehicle-utils")
 local math_min, math_max, math_ceil, math_sqrt = math.min, math.max, math.ceil, math.sqrt
 
 --- Gets the carriage at the head (leading) the train in its current direction.
@@ -21,32 +22,6 @@ TrainUtils.GetLeadingCarriageOfTrain = function(train, isFrontStockLeading)
     else
         return train.back_stock
     end
-end
-
---- Checks the locomtive for its current fuel and returns it's prototype. Checks fuel inventories if nothing is currently burning.
----@param locomotive LuaEntity
----@return LuaItemPrototype|nil currentFuelPrototype @ Will be nil if there's no current fuel in the locomotive.
-TrainUtils.GetLocomotivesCurrentFuelPrototype = function(locomotive)
-    local loco_burner = locomotive.burner
-
-    -- Check any currently burning fuel inventory first.
-    local currentFuelItem = loco_burner.currently_burning
-    if currentFuelItem ~= nil then
-        return currentFuelItem
-    end
-
-    -- Check the fuel inventories as this will be burnt next.
-    local burner_inventory = loco_burner.inventory
-    local currentFuelStack
-    for i = 1, #burner_inventory do
-        currentFuelStack = burner_inventory[i] ---@type LuaItemStack
-        if currentFuelStack ~= nil and currentFuelStack.valid_for_read then
-            return currentFuelStack.prototype
-        end
-    end
-
-    -- No fuel found.
-    return nil
 end
 
 --- Gets the length of a rail entity.
@@ -206,7 +181,7 @@ TrainUtils.UpdateTrainSpeedCalculationDataForCurrentFuel = function(trainSpeedCa
         if carriageCachedData.prototypeType == "locomotive" and trainMovingForwardsToCacheData == carriageCachedData.faceingFrontOfTrain then
             local carriage = carriageCachedData.entity
             -- Coding Note: No point caching this as we only get 1 attribute of the prototype and we'd have to additionally get its name each time to utilsie a cache.
-            fuelPrototype = TrainUtils.GetLocomotivesCurrentFuelPrototype(carriage)
+            fuelPrototype = VehicleUtils.GetVehicleCurrentFuelPrototype(carriage)
             if fuelPrototype ~= nil then
                 -- Just get fuel from one forward facing loco that has fuel. Have to check the inventory as the train will be braking for the signal theres no currently burning.
                 noFuelFound = false
@@ -505,37 +480,6 @@ TrainUtils.MineCarriagesOnRailEntity = function(railEntity, surface, ignoreMinab
             end
         end
     end
-end
-
---[[
-    This function will set trackingTable to have the below entry. Query these keys in calling function:
-        trackingTable {
-            fuelName = STRING,
-            fuelCount = INT,
-            fuelValue = INT,
-        }
---]]
----@param trackingTable table @ Reference to an existing table that the function will populate.
----@param itemName string
----@param itemCount uint
----@return boolean|nil @ Returns true when the fuel is a new best and false when its not. Returns nil if the item isn't a fuel type.
-TrainUtils.TrackBestFuelCount = function(trackingTable, itemName, itemCount)
-    local itemPrototype = game.item_prototypes[itemName]
-    local fuelValue = itemPrototype.fuel_value
-    if fuelValue == nil then
-        return nil
-    end
-    if trackingTable.fuelValue == nil or fuelValue > trackingTable.fuelValue then
-        trackingTable.fuelName = itemName
-        trackingTable.fuelCount = itemCount
-        trackingTable.fuelValue = fuelValue
-        return true
-    end
-    if trackingTable.fuelName == itemName and itemCount > trackingTable.fuelCount then
-        trackingTable.fuelCount = itemCount
-        return true
-    end
-    return false
 end
 
 return TrainUtils

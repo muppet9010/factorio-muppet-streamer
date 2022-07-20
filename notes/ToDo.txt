@@ -1,5 +1,4 @@
 DOING NOW:
-    - Move from using event.instanceId to get the player_index and store it in the data. Will make code cleaner and safe for future uses.
     - Unknown is being accepted as anything. Think this should be flagged as warning. Spawn aroud player - forceString. diagnostics.groupFileStatus set strong to Any. Theres a lot, so do other things first to start with a lower number.
     - Check if unknown also includes unknown functions, as by default they aren't warned against.
 

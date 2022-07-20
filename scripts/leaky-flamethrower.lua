@@ -163,8 +163,8 @@ end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
 LeakyFlamethrower.ShootFlamethrower = function(eventData)
-    ---@type LeakyFlamethrower_ShootFlamethrowerDetails, LuaPlayer, uint
-    local data, player, playerIndex = eventData.data, eventData.data.player, eventData.data.player_index
+    local data = eventData.data ---@type LeakyFlamethrower_ShootFlamethrowerDetails
+    local player, playerIndex = data.player, data.player_index
     if (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
         LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return

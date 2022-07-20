@@ -23,6 +23,7 @@ local QuantityType = {
 ---@field dropEquipment boolean
 
 ---@class PlayerDropInventory_ScheduledDropItemsData
+---@field player_index uint
 ---@field player LuaPlayer
 ---@field gap uint @ Must be > 0.
 ---@field totaloccurrences uint
@@ -150,6 +151,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     game.print({"message.muppet_streamer_player_drop_inventory_start", targetPlayer.name})
     ---@type PlayerDropInventory_ScheduledDropItemsData
     local scheduledDropItemsData = {
+        player_index = targetPlayer.index,
         player = targetPlayer,
         gap = data.gap,
         totaloccurrences = data.occurrences,
@@ -159,14 +161,14 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         dynamicPercentageItemCount = dynamicPercentageItemCount,
         currentoccurrences = 0
     }
-    PlayerDropInventory.PlayerDropItems_Scheduled({tick = event.tick, instanceId = targetPlayer.index, data = scheduledDropItemsData})
+    PlayerDropInventory.PlayerDropItems_Scheduled({tick = event.tick, instanceId = scheduledDropItemsData.player_index, data = scheduledDropItemsData})
 end
 
 --- Apply the drop item effect to the player.
 ---@param event UtilityScheduledEvent_CallbackObject
 PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
-    ---@type PlayerDropInventory_ScheduledDropItemsData, LuaPlayer, uint
-    local data, player, playerIndex = event.data, event.data.player, event.instanceId --[[@as uint]]
+    local data = event.data ---@type PlayerDropInventory_ScheduledDropItemsData
+    local player, playerIndex = data.player, data.player_index
     if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) then
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
         return
