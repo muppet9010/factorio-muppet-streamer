@@ -7,29 +7,46 @@ local StringUtils = {}
 local math_floor = math.floor
 local string_match, string_find, string_sub, string_len, string_gsub = string.match, string.find, string.sub, string.len, string.gsub
 
--- trim6 from http://lua-users.org/wiki/StringTrim
+--- Trims leading and trailing spaces off a text string.
+---
+--- trim6 from http://lua-users.org/wiki/StringTrim
+---@param text string
+---@return string trimmedString
 StringUtils.StringTrim = function(text)
     return string_match(text, "^()%s*$") and "" or string_match(text, "^%s*(.*%S)")
 end
 
---- Split a string on the specified characters. The splitting characters aren't included in the output. The results are trimmed of blank spaces.
+--- Split a string on the specified characters in to a list of strings. The splitting characters aren't included in the output. The results are trimmed of blank spaces.
 ---@param text string
 ---@param splitCharacters string
----@param returnAsKey? boolean|nil @ If nil or false then an array of strings are returned. If true then a table with the string as the keys and the value as boolean true are returned.
----@return string[]|table<string, true>
-StringUtils.SplitStringOnCharacters = function(text, splitCharacters, returnAsKey)
-    local list = {}
+---@return string[]
+StringUtils.SplitStringOnCharactersToList = function(text, splitCharacters)
+    local list = {} ---@type string[]
     local results = text:gmatch("[^" .. splitCharacters .. "]*")
     for phrase in results do
         -- Trim spaces from the phrase text. Code from StringUtils.StringTrim()
         phrase = string_match(phrase, "^()%s*$") and "" or string_match(phrase, "^%s*(.*%S)")
 
         if phrase ~= nil and phrase ~= "" then
-            if returnAsKey ~= nil and returnAsKey == true then
-                list[phrase] = true
-            else
-                table.insert(list, phrase)
-            end
+            table.insert(list, phrase)
+        end
+    end
+    return list
+end
+
+--- Split a string on the specified characters to a dictionary of the strings. The splitting characters aren't included in the output. The results are trimmed of blank spaces.
+---@param text string
+---@param splitCharacters string
+---@return table<string, true>
+StringUtils.SplitStringOnCharactersToDictionary = function(text, splitCharacters)
+    local list = {} ---@type table<string, true>
+    local results = text:gmatch("[^" .. splitCharacters .. "]*")
+    for phrase in results do
+        -- Trim spaces from the phrase text. Code from StringUtils.StringTrim()
+        phrase = string_match(phrase, "^()%s*$") and "" or string_match(phrase, "^%s*(.*%S)")
+
+        if phrase ~= nil and phrase ~= "" then
+            list[phrase] = true
         end
     end
     return list
@@ -63,19 +80,27 @@ StringUtils.SurfacePositionStringToSurfaceAndPosition = function(surfacePosition
     return surfaceId, {x = positionX, y = positionY}
 end
 
-StringUtils.PadNumberToMinimumDigits = function(input, requiredLength)
-    local shortBy = requiredLength - string_len(input)
+--- Pad a number with leading 0's up to the required length and return as a string.
+---@param number double
+---@param requiredLength uint
+---@return string paddedNumber
+StringUtils.PadNumberToMinimumDigits = function(number, requiredLength)
+    local numberString = tostring(number)
+    local shortBy = requiredLength - string_len(numberString)
     for i = 1, shortBy do
-        input = "0" .. input
+        numberString = "0" .. numberString
     end
-    return input
+    return numberString
 end
 
+--- Adds commas to a number and returns it as a string.
+---@param number double
+---@return string
 StringUtils.DisplayNumberPretty = function(number)
     if number == nil then
         return ""
     end
-    local formatted = number
+    local formatted = tostring(number)
     local k
     while true do
         formatted, k = string_gsub(formatted, "^(-?%d+)(%d%d%d)", "%1,%2")
@@ -86,7 +111,10 @@ StringUtils.DisplayNumberPretty = function(number)
     return formatted
 end
 
--- display time units: hour, minute, second
+--- Display time in a string broken down to hour, minute and second. With the range of time units configurable.
+---@param inputTicks int
+---@param displayLargestTimeUnit 'auto'|'hour'|'minute'|'second'
+---@param displaySmallestTimeUnit 'auto'|'hour'|'minute'|'second'
 StringUtils.DisplayTimeOfTicks = function(inputTicks, displayLargestTimeUnit, displaySmallestTimeUnit)
     if inputTicks == nil then
         return ""
@@ -105,7 +133,7 @@ StringUtils.DisplayTimeOfTicks = function(inputTicks, displayLargestTimeUnit, di
     local seconds = math_floor(inputTicks / 60)
     local displaySeconds = StringUtils.PadNumberToMinimumDigits(seconds, 2)
 
-    if displayLargestTimeUnit == nil or displayLargestTimeUnit == "" or displayLargestTimeUnit == "auto" then
+    if displayLargestTimeUnit == "auto" then
         if hours > 0 then
             displayLargestTimeUnit = "hour"
         elseif minutes > 0 then
@@ -150,6 +178,10 @@ StringUtils.DisplayTimeOfTicks = function(inputTicks, displayLargestTimeUnit, di
     end
 end
 
+--- Seperates out the number and unit from when they combined in a single string, i.e. 5Kwh
+---@param text string
+---@return double number
+---@return string unit
 StringUtils.GetValueAndUnitFromString = function(text)
     return string_match(text, "%d+%.?%d*"), string_match(text, "%a+")
 end

@@ -144,7 +144,7 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
 
     --Do the actual item moving.
     for name, count in pairs(contents) do
-        local toMove = math_ceil(count * ratioToMove) --[[@as uint]] -- This can't have a multiplier above 1.
+        local toMove = math_ceil(count * ratioToMove) --[[@as uint @ This can't have a multiplier above 1.]]
         local moved = targetInventory.insert({name = name, count = toMove})
         local remaining = count - moved
         if moved > 0 then

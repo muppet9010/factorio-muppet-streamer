@@ -81,7 +81,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     local includeAllPlayersOnServer = false ---@type boolean
     if includedPlayersString ~= nil and includedPlayersString ~= "" then
         -- Can't check if the names are valid players right now, as they may just not have joined the server yet, but may in the future.
-        includedPlayerNames = StringUtils.SplitStringOnCharacters(includedPlayersString --[[@as string]], ",", false) --[[@as string[]--]]
+        includedPlayerNames = StringUtils.SplitStringOnCharactersToList(includedPlayersString, ",")
         if #includedPlayerNames == 1 then
             -- If it's only one name then check if its the special ALL value.
             if includedPlayerNames[1] == "[ALL]" then
@@ -102,7 +102,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             CommandsUtils.LogPrintError(commandName, "includedForces", "is invalid option as all players on the server are already being included", command.parameter)
             return
         end
-        local includedForceNames = StringUtils.SplitStringOnCharacters(includedForcesString --[[@as string]], ",", false) ---@type string[]
+        local includedForceNames = StringUtils.SplitStringOnCharactersToList(includedForcesString, ",")
         for _, includedForceName in pairs(includedForceNames) do
             local force = game.forces[includedForceName]
             if force ~= nil then
@@ -451,7 +451,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
 
         -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random +/- of the greatest between the ItemDestinationPlayerCountRange and destinationPlayersMinimumVariance.
         destinationCountVariance = math_max(requestData.destinationPlayersMinimumVariance, math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor)))
-        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance --[[@as integer]], destinationCountVariance), 1), playersCount) --[[@as uint]] -- The min and max values are uints.
+        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance --[[@as integer @ needed due to expected type in math.random().]], destinationCountVariance), 1), playersCount) --[[@as uint @ The min and max values are uints.]]
 
         -- Work out the raw ratios of items each destination will get.
         totalAssignedRatio, destinationRatios = 0, {}
@@ -482,7 +482,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
                 itemCountForPlayerIndex = itemsLeftToAssign
             else
                 -- Round down the initial number and then keep it below the number of items left. Never try to use more than are left to assign.
-                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint]] -- The min and max values are uints.
+                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint @ The min and max values are uints.]]
             end
             itemsLeftToAssign = itemsLeftToAssign - itemCountForPlayerIndex
             table.insert(playersItemCounts[playerIndex], {name = itemName, count = itemCountForPlayerIndex})

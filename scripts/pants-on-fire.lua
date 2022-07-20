@@ -71,7 +71,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end ---@cast durationSeconds double
     local finishTick  ---@type uint
     if scheduleTick > 0 then
-        finishTick = scheduleTick --[[@as uint]] -- The scheduleTick can only be -1 or a uint, and the criteria of <0 ensures a uint.
+        finishTick = scheduleTick --[[@as uint @ The scheduleTick can only be -1 or a uint, and the criteria of <0 ensures a uint.]]
     else
         finishTick = command.tick
     end
@@ -129,7 +129,7 @@ PantsOnFire.ApplyToPlayer = function(eventData)
 
     -- stepPos starts at 0 so the first step happens at offset 1
     ---@type PantsOnFire_EffectDetails
-    local effectDetails = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, force = targetPlayer.force --[[@as LuaForce]], ticksInVehicle = 0}
+    local effectDetails = {player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, force = targetPlayer.force --[[@as LuaForce @ read/write work around]], ticksInVehicle = 0}
     ---@type UtilityScheduledEvent_CallbackObject
     local walkCheckCallbackObject = {tick = game.tick, instanceId = targetPlayer_index, data = effectDetails}
     PantsOnFire.WalkCheck(walkCheckCallbackObject)

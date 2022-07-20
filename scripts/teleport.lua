@@ -233,7 +233,7 @@ end
 ---@param commandValues Teleport_CommandDetails
 Teleport.ScheduleTeleportCommand = function(commandValues)
     global.teleport.nextId = global.teleport.nextId + 1
-    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or (-1) --[[@as UtilityScheduledEvent_UintNegative1]]
+    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or (-1) --[[@as UtilityScheduledEvent_UintNegative1]] ---@type UtilityScheduledEvent_UintNegative1
     ---@type Teleport_TeleportDetails
     local teleportDetails = {
         teleportId = global.teleport.nextId,
@@ -320,7 +320,7 @@ Teleport.PlanTeleportTarget = function(eventData)
                         --spawnerDistance = PositionUtils.GetDistance(targetPlayer_position, spawnerDetails.position)
 
                         if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
-                            table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails} --[[@as Teleport_TargetPlayerSpawnerDistanceDetails]]) -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
+                            table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails} --[[@as Teleport_TargetPlayerSpawnerDistanceDetails @ While this is inserted as consistent key ID's it can be manipulated later to be gappy.]])
                         end
                     end
                 end

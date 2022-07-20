@@ -1,24 +1,14 @@
 ---@meta
 
--- TODO: experiemental. not used at present and requires the builting mathlib to be disbaled in extension settings.
+-- TODO: experiemental. not used at present.
 -- Allows for better (not perfect) math_generic.random() input to output typing via generics.
 -- Also allows for @as typed to work, but these don't do it natively as the defines objects have no actual values in VSCode in the current API emyLua files: math_generic.random((0) --[[@as defines.riding.direction]], (2) --[[@as defines.riding.direction]])
 
 -- Taken from Sumneko 3.5.0 - tree/master/meta/template/math_generic.lua
 
 ---#DES 'math'
----@class mathlib_generic --TODO name changed to avoid it applying currently.
----#DES 'math_generic.huge'
----@field huge       number
----#if VERSION >= 5.3 then
----#DES 'math_generic.maxinteger'
----@field maxinteger integer
----#DES 'math_generic.mininteger'
----@field mininteger integer
----#end
----#DES 'math_generic.pi'
----@field pi         number
-math_generic = {}
+---@class mathlib_generic
+math_generic = math --[[@as mathlib_generic]]
 
 ---#DES 'math_generic.abs'
 ---@param x number
@@ -204,17 +194,11 @@ function math_generic.rad(x)
 end
 
 ---#DES 'math_generic.random' - Modified from Sumneko default
----@return number
----@nodiscard
-function math_generic.random()
-end
-
----#DES 'math_generic.random' - Modified from Sumneko default
 ---
 --- WARNING: Does not warn on invalid types and allow anything to be passed in, i.e. boolean types.
----@generic TArg1
----@param m TArg1
----@return TArg1
+---@generic Number: number
+---@param m Number
+---@return Number
 ---@nodiscard
 function math_generic.random(m)
 end
@@ -222,10 +206,10 @@ end
 --- #DES 'math_generic.random' - Modified from Sumneko default.
 ---
 --- WARNING: Does not warn on invalid types and allow anything to be passed in, i.e. boolean types.
----@generic TArg1
----@param m TArg1
----@param n TArg1
----@return TArg1
+---@generic Number: number
+---@param m Number
+---@param n Number
+---@return Number
 ---@nodiscard
 function math_generic.random(m, n)
 end

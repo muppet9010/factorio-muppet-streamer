@@ -77,7 +77,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast durationSeconds double
-    local duration = math.floor(durationSeconds * 60) --[[@as uint]] -- duration was validated as not exceeding a uint during input validation.
+    local duration = math.floor(durationSeconds * 60) --[[@as uint @ Duration was validated as not exceeding a uint during input validation.]]
 
     local control = commandData.control
     if not CommandsUtils.CheckStringArgument(control, false, commandName, "control", ControlTypes, command.parameter) then

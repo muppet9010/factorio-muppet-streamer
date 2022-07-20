@@ -131,7 +131,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end ---@cast blacklistedPlayerNames_string string|nil
     local blacklistedPlayerNames  ---@type table<string, true>|nil
     if blacklistedPlayerNames_string ~= nil and blacklistedPlayerNames_string ~= "" then
-        blacklistedPlayerNames = StringUtils.SplitStringOnCharacters(blacklistedPlayerNames_string --[[@as string]], ",", true) --[[@as table<string, true>]]
+        blacklistedPlayerNames = StringUtils.SplitStringOnCharactersToDictionary(blacklistedPlayerNames_string, ",")
     end
 
     local whitelistedPlayerNames_string = commandData.whitelistedPlayerNames
@@ -140,13 +140,14 @@ CallForHelp.CallForHelpCommand = function(command)
     end ---@cast whitelistedPlayerNames_string string|nil
     local whitelistedPlayerNames  ---@type table<string, true>|nil
     if whitelistedPlayerNames_string ~= nil and whitelistedPlayerNames_string ~= "" then
-        whitelistedPlayerNames = StringUtils.SplitStringOnCharacters(whitelistedPlayerNames_string --[[@as string]], ",", true) --[[@as table<string, true>]]
+        whitelistedPlayerNames = StringUtils.SplitStringOnCharactersToDictionary(whitelistedPlayerNames_string, ",")
     end
 
-    if not CommandsUtils.CheckStringArgument(commandData.callSelection, true, commandName, "callSelection", CallSelection, command.parameter) then
+    local callSelection_string = commandData.callSelection
+    if not CommandsUtils.CheckStringArgument(callSelection_string, true, commandName, "callSelection", CallSelection, command.parameter) then
         return
-    end
-    local callSelection = CallSelection[commandData.callSelection --[[@as string]]] ---@type CallForHelp_CallSelection
+    end ---@cast callSelection_string string
+    local callSelection = CallSelection[callSelection_string] ---@type CallForHelp_CallSelection
 
     local number = commandData.number
     if not CommandsUtils.CheckNumberArgument(number, "int", false, commandName, "number", 0, MathUtils.uintMax, command.parameter) then
@@ -312,7 +313,7 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
             pathRequestId = teleportResponse.pathRequestId,
             helpPlayer = helpPlayer,
             helpPlayerPlacementEntity = teleportResponse.targetPlayerTeleportEntity,
-            helpPlayerForce = helpPlayer.force --[[@as LuaForce @Debugger temp fix until Sumneko supports different read/write data types.]],
+            helpPlayerForce = helpPlayer.force --[[@as LuaForce @ read/write work around]],
             helpPlayerSurface = helpPlayer.surface,
             targetPlayer = targetPlayer,
             targetPlayerPosition = targetPlayerPosition,

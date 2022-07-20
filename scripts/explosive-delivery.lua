@@ -52,10 +52,11 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         return
     end ---@cast explosiveCount uint
 
-    if not CommandsUtils.CheckStringArgument(commandData.explosiveType, true, commandName, "explosiveType", ExplosiveDelivery.ExplosiveTypes, command.parameter) then
+    local explosiveType_string = commandData.explosiveType
+    if not CommandsUtils.CheckStringArgument(explosiveType_string, true, commandName, "explosiveType", ExplosiveDelivery.ExplosiveTypes, command.parameter) then
         return
-    end
-    local explosiveType = ExplosiveDelivery.ExplosiveTypes[commandData.explosiveType --[[@as string]]] ---@type ExplosiveDelivery_ExplosiveType
+    end ---@cast explosiveType_string string
+    local explosiveType = ExplosiveDelivery.ExplosiveTypes[explosiveType_string] ---@type ExplosiveDelivery_ExplosiveType
 
     local target = commandData.target
     if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
@@ -67,7 +68,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         return
     end ---@cast targetPosition MapPosition|nil
     if targetPosition ~= nil then
-        targetPosition = PositionUtils.TableToProperPosition(targetPosition --[[@as MapPosition]])
+        targetPosition = PositionUtils.TableToProperPosition(targetPosition)
         if targetPosition == nil then
             CommandsUtils.LogPrintError(commandName, "targetPosition", "must be a valid position table string", command.parameter)
             return
@@ -120,13 +121,13 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if explosiveCount > salvoSize then
         global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1
         salvoWaveId = global.explosiveDelivery.nextSalvoWaveId
-        maxBatchNumber = math.floor(explosiveCount / salvoSize --[[@as uint @ Both inputs are verified uints and with the math.floor() it can't go below 0 ]]) --[[@as uint]] -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
+        maxBatchNumber = math.floor(explosiveCount / salvoSize --[[@as uint @ Both inputs are verified uints and with the math.floor() it can't go below 0 ]]) --[[@as uint]] -- Counting starts at 0 so flooring gives the -1 from total needed by loop. --TODO: is this really a safe UITN output?
     end
 
     local explosiveCountRemaining = explosiveCount
     ---@type uint
     for batchNumber = 0, maxBatchNumber do
-        explosiveCount = math.min(salvoSize, explosiveCountRemaining) --[[@as uint]]
+        explosiveCount = math.min(salvoSize, explosiveCountRemaining)
         explosiveCountRemaining = explosiveCountRemaining - explosiveCount
 
         global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
@@ -187,7 +188,7 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     else
         -- Calculate the target position now.
         if data.targetPosition ~= nil then
-            targetPos = data.targetPosition --[[@as MapPosition]] -- This is never nil within this IF block.
+            targetPos = data.targetPosition --[[@as MapPosition @ This is never nil within this IF block. Logged as Sumneko bug: https://github.com/sumneko/lua-language-server/issues/1361]]
         else
             targetPos = targetPlayer.position
         end

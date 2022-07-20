@@ -170,9 +170,10 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
             local position = PositionUtils.RandomLocationInRadius(targetPos, data.radiusMax, data.radiusMin)
             local entityName = entityTypeDetails.GetEntityName(surface, position)
             if entityName ~= nil then
-                local entityAlignedPosition = entityTypeDetails.GetEntityAlignedPosition(position) ---@type MapPosition|nil
+                local entityAlignedPosition  ---@type MapPosition|nil @ While initially always set, it can be unset during its processing.
+                entityAlignedPosition = entityTypeDetails.GetEntityAlignedPosition(position)
                 if data.existingEntities == "avoid" then
-                    entityAlignedPosition = entityTypeDetails.FindValidPlacementPosition(surface, entityName, entityAlignedPosition --[[@as MapPosition]], SpawnAroundPlayer.quantitySearchRadius)
+                    entityAlignedPosition = entityTypeDetails.FindValidPlacementPosition(surface, entityName, entityAlignedPosition, SpawnAroundPlayer.quantitySearchRadius)
                 end
                 if entityAlignedPosition ~= nil then
                     local thisOneFollows = false
@@ -450,7 +451,7 @@ SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer = function(targetPlayer)
         return 0
     end
     local max = targetPlayer.character_maximum_following_robot_count_bonus + targetPlayer.force.maximum_following_robot_count
-    local current = #targetPlayer.following_robots --[[@as uint]] -- The game doesn't allow more than a uint max following robots, so the count can't be abpove a uint.
+    local current = #targetPlayer.following_robots --[[@as uint @ The game doesn't allow more than a uint max following robots, so the count can't be abpove a uint.]]
     return max - current
 end
 
