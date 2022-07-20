@@ -105,7 +105,7 @@ MathUtils.ClampNumber = function(value, min, max)
 end
 
 --- Returns the passed in number clamped to within the range of an int, with optional additional min and max's applied.
---- Use Int over Integer as this is the Factorio data type and Lua 5.2 doesn't have real `integer` types. Although Sumneko does have some numeric values of this type for reasons...
+--- Use Int over Integer as this is the Factorio data type and Lua 5.2 doesn't have real `integer` types. Although Sumneko does have some numeric values of the Integer type to aid usage limitations detection.
 ---@param value number
 ---@param min? int|nil
 ---@param max? int|nil

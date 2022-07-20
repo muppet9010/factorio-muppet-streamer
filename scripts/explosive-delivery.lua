@@ -187,11 +187,7 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         end
     else
         -- Calculate the target position now.
-        if data.targetPosition ~= nil then
-            targetPos = data.targetPosition --[[@as MapPosition @ This is never nil within this IF block. Logged as Sumneko bug: https://github.com/sumneko/lua-language-server/issues/1361]]
-        else
-            targetPos = targetPlayer.position
-        end
+        targetPos = data.targetPosition or targetPlayer.position
         if data.targetOffset ~= nil then
             targetPos.x = targetPos.x + data.targetOffset.x
             targetPos.y = targetPos.y + data.targetOffset.y

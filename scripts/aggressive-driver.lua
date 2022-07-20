@@ -121,18 +121,13 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "locomotive", "spider-vehicle"}}
         local distanceSortedVehicles = {}
         for _, vehicle in pairs(vehicles) do
-            local vehicleValid = true
-            if vehicle.get_driver() ~= nil then
-                vehicleValid = false
-            end
-            local vehicleFuelInventory = vehicle.get_fuel_inventory()
-            if vehicleFuelInventory ~= nil and vehicle.get_fuel_inventory().is_empty() then
-                -- There is a fuel inventory for this vehcile and it is empty.
-                vehicleValid = false
-            end
-            if vehicleValid then
-                local distance = PositionUtils.GetDistance(targetPlayer.position, vehicle.position)
-                table.insert(distanceSortedVehicles, {distance = distance, vehicle = vehicle})
+            -- If the vehicle has an empty drivers seat and isn't lacking fuel then include it in the suitable vehicles list.
+            if vehicle.get_driver() == nil then
+                local vehicleFuelInventory = vehicle.get_fuel_inventory()
+                if vehicleFuelInventory == nil or not vehicleFuelInventory.is_empty() then
+                    local distance = PositionUtils.GetDistance(targetPlayer.position, vehicle.position)
+                    table.insert(distanceSortedVehicles, {distance = distance, vehicle = vehicle})
+                end
             end
         end
         if #distanceSortedVehicles > 0 then
