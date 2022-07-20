@@ -89,7 +89,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(gapSeconds, "double", true, commandName, "gap", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast gapSeconds double
-    local gap = math.floor(gapSeconds * 60) --[[@as uint]] ---@type uint
+    local gap = math.floor(gapSeconds * 60) --[[@as uint]] -- gapSeconds was validated as not exceeding a uint during input validation.
 
     local occurrences = commandData.occurrences
     if not CommandsUtils.CheckNumberArgument(occurrences, "int", true, commandName, "occurrences", 1, MathUtils.uintMax, command.parameter) then
@@ -137,10 +137,10 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     ---@type uint|nil, uint|nil
     local staticItemCount, dynamicPercentageItemCount
     if data.quantityType == QuantityType.constant then
-        staticItemCount = math.floor(data.quantityValue) --[[@as uint]]
+        staticItemCount = data.quantityValue
     elseif data.quantityType == QuantityType.startingPercentage then
         local totalItemCount = PlayerDropInventory.GetPlayersItemCount(targetPlayer, data.dropEquipment)
-        staticItemCount = math.max(1, math.floor(totalItemCount / (100 / data.quantityValue))) --[[@as uint]]
+        staticItemCount = math.max(1, math.floor(totalItemCount / (100 / data.quantityValue))) -- Output will always be a uint based on the input values prior valdiation.
     elseif data.quantityType == QuantityType.realtimePercentage then
         dynamicPercentageItemCount = data.quantityValue
     end
@@ -178,7 +178,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     if data.staticItemCount ~= nil then
         itemCountToDrop = data.staticItemCount
     else
-        itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint]]
+        itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint]] -- End value will always end up as a uint from the validated input values.
     end ---@cast itemCountToDrop - nil
 
     -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurence count has completed.

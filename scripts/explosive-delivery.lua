@@ -120,7 +120,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if explosiveCount > salvoSize then
         global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1
         salvoWaveId = global.explosiveDelivery.nextSalvoWaveId
-        maxBatchNumber = math.floor(explosiveCount / salvoSize) --[[@as uint]] -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
+        maxBatchNumber = math.floor(explosiveCount / salvoSize --[[@as uint @ Both inputs are verified uints and with the math.floor() it can't go below 0 ]]) --[[@as uint]] -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
     end
 
     local explosiveCountRemaining = explosiveCount

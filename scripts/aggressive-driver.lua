@@ -77,7 +77,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast durationSeconds double
-    local duration = math.floor(durationSeconds * 60) --[[@as uint]] ---@type uint
+    local duration = math.floor(durationSeconds * 60) --[[@as uint]] -- duration was validated as not exceeding a uint during input validation.
 
     local control = commandData.control
     if not CommandsUtils.CheckStringArgument(control, false, commandName, "control", ControlTypes, command.parameter) then
@@ -161,7 +161,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
 
     ---@type AggressiveDriver_DriveEachTickDetails
-    local driveEachTickDetails = {player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = (0) --[[@as uint]], accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0}
+    local driveEachTickDetails = {player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0}
     ---@type UtilityScheduledEvent_CallbackObject
     local driveCallbackObject = {tick = game.tick, instanceId = targetPlayer.index, data = driveEachTickDetails}
     AggressiveDriver.Drive(driveCallbackObject)

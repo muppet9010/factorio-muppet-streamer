@@ -132,7 +132,7 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
     end
 
     -- Clamp ratio to between 0 and 1.
-    ratioToMove = math_min(math_max(ratioToMove, 0), 1)
+    ratioToMove = math_min(math_max(ratioToMove, 0), 1) --[[@as double]]
 
     -- Handle simple returns that don't require item moving.
     if TableUtils.IsTableEmpty(contents) then
@@ -144,7 +144,7 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
 
     --Do the actual item moving.
     for name, count in pairs(contents) do
-        local toMove = math_ceil(count * ratioToMove) --[[@as uint]]
+        local toMove = math_ceil(count * ratioToMove) --[[@as uint]] -- This can't have a multiplier above 1.
         local moved = targetInventory.insert({name = name, count = toMove})
         local remaining = count - moved
         if moved > 0 then
@@ -179,7 +179,7 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
     end
 
     -- Clamp ratio to between 0 and 1.
-    ratioToMove = math_min(math_max(ratioToMove, 0), 1)
+    ratioToMove = math_min(math_max(ratioToMove, 0), 1) --[[@as double]]
 
     -- Handle simple returns that don't require item moving.
     if simpleItemStacks == nil or #simpleItemStacks == 0 then
@@ -191,7 +191,7 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
 
     --Do the actual item moving.
     for index, simpleItemStack in pairs(simpleItemStacks) do
-        local toMove = math_ceil(simpleItemStack.count * ratioToMove) --[[@as uint]]
+        local toMove = math_ceil(simpleItemStack.count * ratioToMove) --[[@as uint]] -- This can't have a multiplier above 1.
         local moved = targetInventory.insert({name = simpleItemStack.name, count = toMove, health = simpleItemStack.health, ammo = simpleItemStack.ammo})
         local remaining = simpleItemStack.count - moved
         if moved > 0 then

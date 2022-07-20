@@ -449,8 +449,8 @@ SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer = function(targetPlayer)
     if targetPlayer.character == nil then
         return 0
     end
-    local max = targetPlayer.character_maximum_following_robot_count_bonus + targetPlayer.force.maximum_following_robot_count --[[@as uint]]
-    local current = #targetPlayer.following_robots --[[@as uint]]
+    local max = targetPlayer.character_maximum_following_robot_count_bonus + targetPlayer.force.maximum_following_robot_count
+    local current = #targetPlayer.following_robots --[[@as uint]] -- The game doesn't allow more than a uint max following robots, so the count can't be abpove a uint.
     return max - current
 end
 

@@ -56,7 +56,7 @@ end
 ---@return MapPosition position
 StringUtils.SurfacePositionStringToSurfaceAndPosition = function(surfacePositionString)
     local underscoreIndex = string_find(surfacePositionString, "_")
-    local surfaceId = tonumber(string_sub(surfacePositionString, 1, underscoreIndex - 1)) --[[@as uint]]
+    local surfaceId = tonumber(string_sub(surfacePositionString, 1, underscoreIndex - 1)) --[[@as uint]] -- It went in from a uint, so must come out as one.
     local commaIndex = string_find(surfacePositionString, ",")
     local positionX = tonumber(string_sub(surfacePositionString, underscoreIndex + 1, commaIndex - 1))
     local positionY = tonumber(string_sub(surfacePositionString, commaIndex + 1, string_len(surfacePositionString)))

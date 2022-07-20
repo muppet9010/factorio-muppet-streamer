@@ -1,5 +1,5 @@
 DOING NOW:
-    - Once Sumneko 3.5 comes out we can add opreator to uint for add and then a lot of the --[[@as]] should be removable. Also maybe our generics math library will be more viable...
+    - With Sumneko 3.5 refine the generics math library to remvoe a lot of the casting requirements.
     - Unknown is being accepted as anything. Think this should be flagged as warning. Spawn aroud player - forceString. diagnostics.groupFileStatus set strong to Any. Theres a lot, so do other things first to start with a lower number.
 
     - Add remote interfaces to all the commands. As otherwise some rcon interface tools can't handle the type changes, given they rely on using Factorio for data value manipulation (/c) and this can't call commands. Simple code option would be to require the end user pass in settings as JSON so I can use the same recieving function as commands. They can use game.table_to_json from in their code and then pass this JSON in to my remote interface. Although a proper interface with types could just do this for the user and then call the command recievers to validate the data. This remote would also allow others to do multiple streamer commands in simplier integration tools (i.e. mukkie could make a fortress).

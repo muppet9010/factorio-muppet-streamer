@@ -7,7 +7,7 @@ local StringUtils = require("utility.helper-utils.string-utils")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
-local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
+local math_random, math_min, math_max, math_floor = math.random, math.min, math.max, math.floor
 
 local StorageInventorySizeIncrements = 1000 ---@type uint16 @ The starting size of the shared storage inventory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
 local StorageInventoryMaxGrowthSize = (65535) --[[@as uint16]] - StorageInventorySizeIncrements ---@type uint16 @ Max size when the inventory can still grow by another increment.
@@ -445,14 +445,13 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
 
     -- Work out the distribution of items to players.
     ---@type uint, uint, double, uint[], double, uint, uint, uint[], uint, uint, uint, uint, uint
-    local sourcesCount, destinationCount, totalAssignedRatio, destinationRatios, standardisedPercentageModifier, itemsLeftToAssign, destinationRatio, playersAvailableToRecieveThisItem, playerIndex, playerIndexListIndex, itemCountForPlayerIndex, destinationCountMin, destinationCountMax
+    local sourcesCount, destinationCount, totalAssignedRatio, destinationRatios, standardisedPercentageModifier, itemsLeftToAssign, destinationRatio, playersAvailableToRecieveThisItem, playerIndex, playerIndexListIndex, itemCountForPlayerIndex, destinationCountVariance
     for itemName, itemCount in pairs(itemsToDistribute) do
         sourcesCount = itemSources[itemName]
 
         -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random +/- of the greatest between the ItemDestinationPlayerCountRange and destinationPlayersMinimumVariance.
-        destinationCountMin = math_min(-requestData.destinationPlayersMinimumVariance, -math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor))) --[[@as uint]] --- Min is a uint, so always a uint.
-        destinationCountMax = math_max(requestData.destinationPlayersMinimumVariance, math_ceil((sourcesCount * requestData.destinationPlayersVarianceFactor)))
-        destinationCount = math_min(math_max(sourcesCount + math_random(destinationCountMin, destinationCountMax), 1), playersCount) --[[@as uint]] --- Min in a uint (post calculations), so always a uint.
+        destinationCountVariance = math_max(requestData.destinationPlayersMinimumVariance, math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor)))
+        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance --[[@as integer]], destinationCountVariance), 1), playersCount) --[[@as uint]] -- The min and max values are uints.
 
         -- Work out the raw ratios of items each destination will get.
         totalAssignedRatio, destinationRatios = 0, {}
@@ -483,7 +482,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
                 itemCountForPlayerIndex = itemsLeftToAssign
             else
                 -- Round down the initial number and then keep it below the number of items left. Never try to use more than are left to assign.
-                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint]]
+                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint]] -- The min and max values are uints.
             end
             itemsLeftToAssign = itemsLeftToAssign - itemCountForPlayerIndex
             table.insert(playersItemCounts[playerIndex], {name = itemName, count = itemCountForPlayerIndex})

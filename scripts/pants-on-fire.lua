@@ -71,11 +71,11 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end ---@cast durationSeconds double
     local finishTick  ---@type uint
     if scheduleTick > 0 then
-        finishTick = scheduleTick --[[@as uint]]
+        finishTick = scheduleTick --[[@as uint]] -- The scheduleTick can only be -1 or a uint, and the criteria of <0 ensures a uint.
     else
         finishTick = command.tick
     end
-    finishTick = finishTick + math.floor(durationSeconds * 60) --[[@as uint]]
+    finishTick = MathUtils.ClampToUInt(finishTick + math.floor(durationSeconds * 60))
 
     local fireHeadStart = commandData.fireHeadStart
     if not CommandsUtils.CheckNumberArgument(fireHeadStart, "int", false, commandName, "fireHeadStart", 0, MathUtils.uintMax, command.parameter) then
