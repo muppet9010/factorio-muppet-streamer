@@ -96,7 +96,7 @@ end
 --- Triggered when the RCON command is run.
 ---@param command CustomCommandData
 Teleport.TeleportCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_teleport command "
+    local errorMessageStart = "ERROR: muppet_streamer_teleport command " --TODO: replace me
     local commandName = "muppet_streamer_teleport"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings"})

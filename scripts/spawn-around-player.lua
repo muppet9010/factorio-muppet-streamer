@@ -157,12 +157,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     if data.followPlayer and entityTypeDetails.GetPlayersMaxBotFollowers ~= nil then
         followsLeft = entityTypeDetails.GetPlayersMaxBotFollowers(targetPlayer)
     end
-    local force
-    if data.forceString == nil then
-        force = targetPlayer.force
-    else
-        force = game.forces[data.forceString]
-    end ---@cast force LuaForce
+    local force = data.forceString and game.forces[data.forceString] or (targetPlayer.force) --[[@as LuaForce @ Sumneko R/W workaround.]]
 
     if data.quantity ~= nil then
         local placed, targetPlaced, attempts, maxAttempts = 0, data.quantity, 0, data.quantity * 5

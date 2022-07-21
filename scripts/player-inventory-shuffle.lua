@@ -29,11 +29,11 @@ local DebugStatusMessages = false
 local SinglePlayerTesting = false -- Set to TRUE to force the mod to work for one player with false copies of the one player.
 local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force the mod to work for one player with false copies of the one player. It will duplicate the input items as if each fake player had a complete set. Has to discard excess items as otherwise profile is distorted. Intended for profiling more than bug fixing.
 
----@alias PlayerInventoryShuffle_playersItemCounts table<uint, PlayerInventoryShuffle_orderedItemCounts>
+---@alias PlayerInventoryShuffle_PlayersItemCounts table<uint, PlayerInventoryShuffle_OrderedItemCounts>
 
----@alias PlayerInventoryShuffle_orderedItemCounts table<uint, PlayerInventoryShuffle_itemCounts>
+---@alias PlayerInventoryShuffle_OrderedItemCounts table<uint, PlayerInventoryShuffle_ItemCounts>
 
----@class PlayerInventoryShuffle_itemCounts
+---@class PlayerInventoryShuffle_ItemCounts
 ---@field name string
 ---@field count uint
 
@@ -434,12 +434,13 @@ end
 ---@param itemSources table<string, uint>
 ---@param requestData PlayerInventoryShuffle_RequestData
 ---@param playersCount uint
----@return PlayerInventoryShuffle_playersItemCounts playersItemCounts
+---@return PlayerInventoryShuffle_PlayersItemCounts playersItemCounts
 PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, itemSources, requestData, playersCount)
     -- Set up the main player variable arrays, these are references to the players variable index and not the actual LuaPlayer index value.
     local itemsToDistribute = storageInventory.get_contents()
-    local playersItemCounts = {} ---@type PlayerInventoryShuffle_playersItemCounts
+    local playersItemCounts = {} ---@type PlayerInventoryShuffle_PlayersItemCounts
     for i = 1, playersCount do
+        ---@cast i uint @ Work around for Sumneko missing fully working typing on FOR variables: https://github.com/sumneko/lua-language-server/issues/1367.
         playersItemCounts[i] = {}
     end
 
@@ -465,8 +466,8 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
         -- Work out how many items each destination will get and assign them to a specific players list index.
         itemsLeftToAssign = itemCount
         playersAvailableToRecieveThisItem = {} ---@type table<uint, uint> @ A list of the players list indexes that is trimmed once assigned this item.
-        ---@type uint
         for i = 1, playersCount do
+            ---@cast i uint
             playersAvailableToRecieveThisItem[i] = i
         end
 
@@ -495,7 +496,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
     end
 
     -- Randomly order the items we will be distributing as otherwise the same type of things are those forced in to inventories out of ratio or dropped on the ground. WIthout this also the worst armor was always assigned as well (lowest order).
-    ---@type uint, PlayerInventoryShuffle_orderedItemCounts
+    ---@type uint, PlayerInventoryShuffle_OrderedItemCounts
     local randomOrderPosition, randomItemCountsList
     for itemCountsPlayerIndex, itemCountsList in pairs(playersItemCounts) do
         randomItemCountsList = {}
@@ -512,7 +513,7 @@ end
 --- Try to distribute the items to the players they were planned for. Anything that won't fit in their inventories will remain in the storage inventory.
 ---@param storageInventory LuaInventory
 ---@param players LuaPlayer[]
----@param playersItemCounts PlayerInventoryShuffle_playersItemCounts
+---@param playersItemCounts PlayerInventoryShuffle_PlayersItemCounts
 ---@return table<uint, LuaPlayer> playerIndexsWithFreeInventorySpace_table
 PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInventory, players, playersItemCounts)
     -- Distribute any armors and guns first to the players as these will affect players inventory sizes and usage of ammo slots for the rest of the items.
@@ -531,6 +532,7 @@ PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInvento
     -- Distribute the items to the actual players.
     local playerIndexsWithFreeInventorySpace_table = {} ---@type table<uint, LuaPlayer> -- Becomes a table as we remove keys without re-ordering.
     for i, player in pairs(players) do
+        ---@cast i uint
         playerIndexsWithFreeInventorySpace_table[i] = player
     end
 
@@ -614,6 +616,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
             storageInventory.sort_and_merge()
             ---@type LuaItemStack, LuaPlayer
             local storageItemStack, randomPlayer
+            ---@type uint
             for i = 1, #storageInventory do
                 storageItemStack = storageInventory[i]
                 if storageItemStack.valid_for_read then

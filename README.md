@@ -240,7 +240,7 @@ Sets the ground on fire behind a player forcing them to run.
     - duration: DECIMAL - Mandatory: how many seconds the effect lasts on the player.
     - fireGap: INTEGER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
     - fireHeadStart: INTEGER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continuous running.
-    - flameCount: INTEGER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire.
+    - flameCount: INTEGER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire. Max is 255.
 - Example command continuous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
 - Example command sporadic fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireHeadStart": 12}`
 

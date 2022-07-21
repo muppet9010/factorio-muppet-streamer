@@ -89,7 +89,7 @@ end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
 LeakyFlamethrower.ApplyToPlayer = function(eventData)
-    local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command "
+    local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command " --TODO: replace me
     local data = eventData.data ---@type LeakyFlamethrower_ScheduledEventDetails
 
     local targetPlayer = game.get_player(data.target)

@@ -14,7 +14,7 @@ local PlayerInventoryShuffle = require("scripts.player-inventory-shuffle")
 local BuildingGhosts = require("scripts.building-ghosts")
 
 local function CreateGlobals()
-    global.origionalPlayersPermissionGroup = global.origionalPlayersPermissionGroup or {} -- Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
+    global.origionalPlayersPermissionGroup = global.origionalPlayersPermissionGroup or {} ---@type table<uint, LuaPermissionGroup> @ Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
 
     TeamMember.CreateGlobals()
     BuildingGhosts.CreateGlobals()

@@ -179,11 +179,12 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     ---@type MapPosition, LuaSurface
     local targetPos, surface
     -- Check if we need to obtain a target position from the salvo wave rather than calculate it now.
-    if data.salvoWaveId ~= nil and global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] ~= nil then
-        targetPos = global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId].targetPosition
-        surface = global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId].targetSurface
+    local salvoWaveId = data.salvoWaveId -- Variables existance is a work around for Sumneko's missing object field nil detection.
+    if salvoWaveId ~= nil and global.explosiveDelivery.salvoWaveDetails[salvoWaveId] ~= nil then
+        targetPos = global.explosiveDelivery.salvoWaveDetails[salvoWaveId].targetPosition
+        surface = global.explosiveDelivery.salvoWaveDetails[salvoWaveId].targetSurface
         if data.finalSalvo then
-            global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] = nil
+            global.explosiveDelivery.salvoWaveDetails[salvoWaveId] = nil
         end
     else
         -- Calculate the target position now.
@@ -193,9 +194,9 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
             targetPos.y = targetPos.y + data.targetOffset.y
         end
         surface = targetPlayer.surface
-        if data.salvoWaveId ~= nil then
+        if salvoWaveId ~= nil then
             -- Cache the salvo wave target position for the rest of the salvo wave.
-            global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] = {
+            global.explosiveDelivery.salvoWaveDetails[salvoWaveId] = {
                 targetPosition = targetPos,
                 targetSurface = surface
             }

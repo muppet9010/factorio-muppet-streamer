@@ -37,6 +37,10 @@ local EffectEndStatus = {
 ---@field ridingDirection defines.riding.direction @ For if in a car or train vehicle.
 ---@field spiderDirection defines.direction @ Just for if in a spider vehicle.
 
+---@class AggressiveDriver_SortedVehicleEntry
+---@field distance double
+---@field vehicle LuaEntity
+
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type uint
@@ -121,7 +125,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     local inVehicle = targetPlayer.vehicle ~= nil
     if not inVehicle and data.teleportDistance > 0 then
         local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "locomotive", "spider-vehicle"}}
-        local distanceSortedVehicles = {}
+        local distanceSortedVehicles = {} ---@type AggressiveDriver_SortedVehicleEntry[]
         for _, vehicle in pairs(vehicles) do
             -- If the vehicle has an empty drivers seat and isn't lacking fuel then include it in the suitable vehicles list.
             if vehicle.get_driver() == nil then
@@ -135,6 +139,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         if #distanceSortedVehicles > 0 then
             table.sort(
                 distanceSortedVehicles,
+                ---@type fun(a: AggressiveDriver_SortedVehicleEntry, b: AggressiveDriver_SortedVehicleEntry): boolean
                 function(a, b)
                     return a.distance < b.distance
                 end

@@ -33,11 +33,14 @@ local QuantityType = {
 ---@field dynamicPercentageItemCount uint|nil
 ---@field currentoccurrences uint
 
-local ErrorMessageStart = "ERROR: muppet_streamer_player_drop_inventory command "
+---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|'cursorStack', uint> @ Dictionary of each inventory to a cached total count across all items (count of each item all added togeather) were in that inventory.
+---@alias PlayerDropInventory_InventoryContents table<defines.inventory|'cursorStack', table<string, uint>> @ Dictionary of each inventory to a cached list of item name and counts in that inventory.
+
+local ErrorMessageStart = "ERROR: muppet_streamer_player_drop_inventory command " --TODO: replace me
 
 PlayerDropInventory.CreateGlobals = function()
     global.playerDropInventory = global.playerDropInventory or {}
-    global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {}
+    global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {} ---@type table<uint, true> @ A dictionary of player indexs that have the effect active on them currently.
     global.playerDropInventory.nextId = global.playerDropInventory.nextId or 0 ---@type uint
 end
 
@@ -125,13 +128,15 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     local data = event.data ---@type PlayerDropInventory_ApplyDropItemsData
 
     local targetPlayer = game.get_player(data.target)
+    local targetPlayer_index = targetPlayer.index
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         -- Player not alive or in non playing mode.
         game.print({"message.muppet_streamer_player_drop_inventory_not_character_controller", data.target})
         return
     end
 
-    if global.playerDropInventory.affectedPlayers[targetPlayer.index] ~= nil then
+    -- If the effect is always set on this player don't start a new one.
+    if global.playerDropInventory.affectedPlayers[targetPlayer_index] ~= nil then
         return
     end
 
@@ -147,11 +152,14 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         dynamicPercentageItemCount = data.quantityValue
     end
 
+    -- Record the player as having this effect running on them so it can't be started a second time.
+    global.playerDropInventory.affectedPlayers[targetPlayer_index] = true
+
     -- Do the first effect now.
     game.print({"message.muppet_streamer_player_drop_inventory_start", targetPlayer.name})
     ---@type PlayerDropInventory_ScheduledDropItemsData
     local scheduledDropItemsData = {
-        player_index = targetPlayer.index,
+        player_index = targetPlayer_index,
         player = targetPlayer,
         gap = data.gap,
         totaloccurrences = data.occurrences,
@@ -174,6 +182,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         return
     end
 
+    --TODO: I don't understand what itemsCountsInInventories does. Work out and either remove or comment. The type def is based off code and may be wrong intentions.
     local totalItemCount, itemsCountsInInventories, inventoriesContents = PlayerDropInventory.GetPlayersInventoryItemDetails(player, data.dropEquipment)
 
     -- Get the number of items to drop this event.
@@ -319,12 +328,12 @@ end
 ---@param player LuaPlayer
 ---@param includeEquipment boolean
 ---@return uint totalItemsCount
----@return table<defines.inventory, uint> inventoryItemCounts
----@return table<defines.inventory, table<string, uint>> inventoryContents
+---@return PlayerDropInventory_InventoryItemCounts inventoryItemCounts
+---@return PlayerDropInventory_InventoryContents inventoryContents
 PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEquipment)
     local totalItemsCount = 0 ---@type uint
-    local inventoryItemCounts = {}
-    local inventoryContents = {}
+    local inventoryItemCounts = {} ---@type PlayerDropInventory_InventoryItemCounts
+    local inventoryContents = {} ---@type PlayerDropInventory_InventoryContents
     for _, inventoryName in pairs({defines.inventory.character_main, defines.inventory.character_trash}) do
         local contents = player.get_inventory(inventoryName).get_contents()
         inventoryContents[inventoryName] = contents

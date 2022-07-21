@@ -12,7 +12,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field finishTick uint
 ---@field fireHeadStart uint
 ---@field fireGap uint @ Must be > 0.
----@field flameCount uint @ Must be > 0.
+---@field flameCount uint8 @ Must be > 0.
 
 ---@class PantsOnFire_EffectDetails
 ---@field player_index uint
@@ -20,11 +20,17 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field finishTick uint
 ---@field fireHeadStart uint
 ---@field fireGap uint @ Must be > 0.
----@field flameCount uint @ Must be > 0.
+---@field flameCount uint8 @ Must be > 0.
 ---@field startFire boolean
 ---@field stepPos uint
 ---@field force LuaForce
 ---@field ticksInVehicle uint
+
+---@alias PantsOnFire_PlayersSteps table<uint, PantsOnFire_PlayerSteps> @ A dictionary of player_index to the player's step buffer.
+---@alias PantsOnFire_PlayerSteps table<uint, PantsOnFire_PlayerStep> @ Steps is a circular buffer of a player's step that cycles on the fireHeadStart setting of the effect.
+---@class PantsOnFire_PlayerStep -- Details of a unique step of the player for that tick.
+---@field surface LuaSurface
+---@field position MapPosition
 
 ---@enum PantsOnFire_EffectEndStatus
 local EffectEndStatus = {
@@ -35,8 +41,8 @@ local EffectEndStatus = {
 
 PantsOnFire.CreateGlobals = function()
     global.PantsOnFire = global.PantsOnFire or {}
-    global.PantsOnFire.nextId = global.PantsOnFire.nextId or 0
-    global.PantsOnFire.playerSteps = global.PantsOnFire.playerSteps or {} ---@type uint
+    global.PantsOnFire.nextId = global.PantsOnFire.nextId or 0 ---@type uint
+    global.PantsOnFire.playersSteps = global.PantsOnFire.playersSteps or {} ---@type PantsOnFire_PlayersSteps
 end
 
 PantsOnFire.OnLoad = function()
@@ -95,9 +101,9 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end
 
     local flameCount = commandData.flameCount
-    if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, MathUtils.uint8Max, command.parameter) then
         return
-    end ---@cast flameCount uint|nil
+    end ---@cast flameCount uint8|nil
     if flameCount == nil then
         flameCount = 20
     end
@@ -120,12 +126,12 @@ PantsOnFire.ApplyToPlayer = function(eventData)
     local targetPlayer_index = targetPlayer.index
 
     -- Effect is already applied to player so don't start a new one.
-    if global.PantsOnFire.playerSteps[targetPlayer_index] ~= nil then
+    if global.PantsOnFire.playersSteps[targetPlayer_index] ~= nil then
         return
     end
 
     -- Start the process on the player.
-    global.PantsOnFire.playerSteps[targetPlayer_index] = {}
+    global.PantsOnFire.playersSteps[targetPlayer_index] = {}
     game.print({"message.muppet_streamer_pants_on_fire_start", targetPlayer.name})
 
     -- stepPos starts at 0 so the first step happens at offset 1
@@ -146,7 +152,7 @@ PantsOnFire.WalkCheck = function(eventData)
     end
 
     -- steps is a circular buffer
-    local steps = global.PantsOnFire.playerSteps[playerIndex]
+    local steps = global.PantsOnFire.playersSteps[playerIndex]
     if steps == nil then
         -- player has died? stop the effect
         return
@@ -207,13 +213,13 @@ end
 ---@param player? LuaPlayer|nil
 ---@param status PantsOnFire_EffectEndStatus
 PantsOnFire.StopEffectOnPlayer = function(playerIndex, player, status)
-    local steps = global.PantsOnFire.playerSteps[playerIndex]
+    local steps = global.PantsOnFire.playersSteps[playerIndex]
     if steps == nil then
         return
     end
 
     player = player or game.get_player(playerIndex)
-    global.PantsOnFire.playerSteps[playerIndex] = nil
+    global.PantsOnFire.playersSteps[playerIndex] = nil
 
     if status == EffectEndStatus.completed then
         game.print({"message.muppet_streamer_pants_on_fire_stop", player.name})

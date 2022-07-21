@@ -203,12 +203,20 @@ MathUtils.GetRandomFloatInRange = function(lower, upper)
     return lower + math_random() * (upper - lower)
 end
 
-MathUtils.intMin = -2147483648 ---@type int -- -2,147,483,648
-MathUtils.intMax = 2147483647 ---@type int -- 2,147,483,647
-MathUtils.uintMax = 4294967295 ---@type uint -- 4,294,967,295
+MathUtils.intMin = -2147483648 ---@type int @ 32bit -2,147,483,648
+MathUtils.intMax = 2147483647 ---@type int @ 32bit 2,147,483,647
+MathUtils.uintMax = 4294967295 ---@type uint @ 32bit 4,294,967,295
 MathUtils.floatMin = 1.17549e-038 ---@type float
 MathUtils.floatMax = 3.40282e+038 ---@type float
 MathUtils.doubleMin = 2.22507e-308 ---@type double
 MathUtils.doubleMax = 1.79769e+308 ---@type double
+MathUtils.int8Min = -128 ---@type int
+MathUtils.int8Max = 127 ---@type int
+MathUtils.int32Min = -2147483648 ---@type int @ -2,147,483,648
+MathUtils.int32Max = 2147483647 ---@type int @ 2,147,483,647
+MathUtils.uint64Max = 18446744073709551615 ---@type uint64 @ 18,446,744,073,709,551,615
+MathUtils.uint32Max = 4294967295 ---@type uint @ 4,294,967,295
+MathUtils.uint16Max = 65535 ---@type uint16 @ 65,535
+MathUtils.uint8Max = 255 ---@type uint8
 
 return MathUtils

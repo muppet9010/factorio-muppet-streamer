@@ -300,17 +300,18 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
     local teleportResponse = PlayerTeleport.RequestTeleportToNearPosition(helpPlayer, targetPlayerSurface, targetPlayerPosition, arrivalRadius, MaxRandomPositionsAroundTargetToTry, MaxDistancePositionAroundTarget, helpPlayer.surface == targetPlayerSurface and targetPlayerPosition or nil)
 
     -- Handle the teleport response.
+    local pathRequestId = teleportResponse.pathRequestId -- Variabels existance is a workaround for Sumneko missing object field nil detection.
     if teleportResponse.teleportSucceeded == true then
         -- All completed.
         return
-    elseif teleportResponse.pathRequestId ~= nil then
+    elseif pathRequestId ~= nil then
         -- A pathing request has been made, monitor it and react when it completes.
 
         -- Record the path request to globals.
         ---@type CallForHelp_PathRequestObject
         local pathRequestObject = {
             callForHelpId = callForHelpId,
-            pathRequestId = teleportResponse.pathRequestId,
+            pathRequestId = pathRequestId,
             helpPlayer = helpPlayer,
             helpPlayerPlacementEntity = teleportResponse.targetPlayerTeleportEntity,
             helpPlayerForce = helpPlayer.force --[[@as LuaForce @ read/write work around]],
@@ -325,8 +326,8 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
             sameSurfaceOnly = sameSurfaceOnly,
             sameTeamOnly = sameTeamOnly
         }
-        global.callForHelp.pathingRequests[teleportResponse.pathRequestId] = pathRequestObject
-        global.callForHelp.callForHelpIds[callForHelpId].pendingPathRequests[teleportResponse.pathRequestId] = pathRequestObject
+        global.callForHelp.pathingRequests[pathRequestId] = pathRequestObject
+        global.callForHelp.callForHelpIds[callForHelpId].pendingPathRequests[pathRequestId] = pathRequestObject
 
         return
     elseif teleportResponse.errorNoValidPositionFound then
