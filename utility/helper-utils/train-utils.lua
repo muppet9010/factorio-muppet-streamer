@@ -82,14 +82,15 @@ TrainUtils.GetTrainSpeedCalculationData = function(train, train_speed, trainCarr
 
     -- If trainCarriagesDataArray is nil we'll build it up as we go from the train_carriages array. This means that the functions logic only has 1 data structure to worry about. The trainCarriagesDataArray isn't passed out as a return and so while we build up the cache object it is dropped at the end of the function.
     if trainCarriagesDataArray == nil then
-        trainCarriagesDataArray = {}
+        trainCarriagesDataArray = {} ---@type TrainUtils_TrainCarriageData[]
         for i, entity in pairs(train_carriages) do
             trainCarriagesDataArray[i] = {entity = entity}
         end
     end
 
     local trainWeight = train.weight
-    local trainFrictionForce, forwardFacingLocoCount, trainRawBrakingForce, trainAirResistanceReductionMultiplier = 0, 0, 0, nil
+    local trainFrictionForce, forwardFacingLocoCount, trainRawBrakingForce = 0, 0, 0
+    local trainAirResistanceReductionMultiplier
     local trainMovingForwards = train_speed > 0
 
     -- Work out which way to iterate down the train's carriage array. Starting with the lead carriage.
@@ -174,7 +175,7 @@ end
 ---@return boolean noFuelFound @ TRUE if no fuel was found in any forward moving locomotive. Generally FALSE is returned when all is normal.
 TrainUtils.UpdateTrainSpeedCalculationDataForCurrentFuel = function(trainSpeedCalculationData, trainCarriagesDataArray, trainMovingForwardsToCacheData, train)
     -- Get a current fuel for the forwards movement of the train.
-    local fuelPrototype
+    local fuelPrototype  ---@type LuaItemPrototype|nil
     local noFuelFound = true
     for _, carriageCachedData in pairs(trainCarriagesDataArray) do
         -- Only process locomotives that are powering the trains movement.

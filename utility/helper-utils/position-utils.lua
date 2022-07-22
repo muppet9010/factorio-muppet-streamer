@@ -53,7 +53,7 @@ PositionUtils.TableToProperPosition = function(thing)
         return nil
     end
     if type(thing[1]) == "number" and type(thing[2]) == "number" then
-        return {x = thing[1], y = thing[2]}
+        return {x = thing[1] --[[@as double]], y = thing[2] --[[@as double]]}
     else
         return nil
     end
@@ -229,7 +229,7 @@ end
 ---@param point2 MapPosition
 ---@return BoundingBox
 PositionUtils.CalculateBoundingBoxFrom2Points = function(point1, point2)
-    local minX, maxX, minY, maxY = nil, nil, nil, nil
+    local minX, maxX, minY, maxY
     if minX == nil or point1.x < minX then
         minX = point1.x
     end
@@ -260,7 +260,7 @@ end
 ---@param listOfBoundingBoxs BoundingBox[]
 ---@return BoundingBox
 PositionUtils.CalculateBoundingBoxToIncludeAllBoundingBoxs = function(listOfBoundingBoxs)
-    local minX, maxX, minY, maxY = nil, nil, nil, nil
+    local minX, maxX, minY, maxY
     for _, boundingBox in pairs(listOfBoundingBoxs) do
         for _, point in pairs({boundingBox.left_top, boundingBox.right_bottom}) do
             if minX == nil or point.x < minX then

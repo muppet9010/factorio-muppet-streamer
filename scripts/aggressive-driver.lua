@@ -139,7 +139,6 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         if #distanceSortedVehicles > 0 then
             table.sort(
                 distanceSortedVehicles,
-                ---@type fun(a: AggressiveDriver_SortedVehicleEntry, b: AggressiveDriver_SortedVehicleEntry): boolean
                 function(a, b)
                     return a.distance < b.distance
                 end

@@ -7,6 +7,10 @@ local StringUtils = require("utility.helper-utils.string-utils")
 local TableUtils = require("utility.helper-utils.table-utils")
 local Colors = require("utility.lists.colors")
 
+----------------------------------------------------------------------------------
+--                          PUBLIC FUNCTIONS
+----------------------------------------------------------------------------------
+
 ---@param position MapPosition
 ---@return string
 LoggingUtils.PositionToString = function(position)
@@ -111,27 +115,24 @@ LoggingUtils._RecordToModsLog = function(text)
 end
 
 -- Runs the function in a wrapper that will log detailed infromation should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.
----@param functionRef function
+---@param functionRef function,
+---@vararg any
 LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
     -- Doesn't support returning values to caller as can't do this for unknown argument count.
     -- Uses a random number in file name to try and avoid overlapping errors in real game. If save is reloaded and nothing different done by player will be the same result however.
 
-    -- If the debug adapter with instrument mode (control hook) is active just run the fucntion and end as no need to log to file anything. As the logging write out is slow in debugger. Just runs the function normally and return any results.
+    -- If the debug adapter with instrument mode (control hook) is active just run the function and end as no need to log to file anything. As the logging write out is slow in debugger. Just runs the function normally and return any results.
     if __DebugAdapter ~= nil and __DebugAdapter.instrument then
         functionRef(...)
         return
     end
 
-    local errorHandlerFunc = function(errorMessage)
-        local errorObject = {message = errorMessage, stacktrace = debug.traceback()}
-        return errorObject
-    end
-
-    local args = {...}
+    local args = {...} ---@type any[]
 
     -- Is in debug mode so catch any errors and log state data.
     -- Only produces correct stack traces in regular Factorio, not in debugger as this adds extra lines to the stacktrace.
-    local success, errorObject = xpcall(functionRef, errorHandlerFunc, ...)
+    ---@type boolean, UtilityLogging_RunFunctionAndCatchErrors_ErrorObject
+    local success, errorObject = xpcall(functionRef, LoggingUtils._RunFunctionAndCatchErrors_ErrorHandlerFunction, ...)
     if success then
         return
     else
@@ -143,7 +144,8 @@ LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
         AddLineToContents("Error: " .. errorObject.message)
 
         -- Tidy the stacktrace up by removing the indented (\9) lines that relate to this xpcall function. Makes the stack trace read more naturally ignoring this function.
-        local newStackTrace, lineCount, rawxpcallLine = "stacktrace:\n", 1, nil
+        local newStackTrace, lineCount = "stacktrace:\n", 1
+        local rawxpcallLine
         for line in string.gmatch(errorObject.stacktrace, "(\9[^\n]+)\n") do
             local skipLine = false
             if lineCount == 1 then
@@ -166,7 +168,7 @@ LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
         AddLineToContents("")
         AddLineToContents("Function call arguments:")
         for index, arg in pairs(args) do
-            AddLineToContents(TableUtils.TableContentsToJSON(LoggingUtils.PrintThingsDetails(arg), index))
+            AddLineToContents(TableUtils.TableContentsToJSON(LoggingUtils.PrintThingsDetails(arg), "argument number: " .. tostring(index)))
         end
 
         game.write_file(logFileName, contents, false) -- Wipe file if it exists from before.
@@ -176,7 +178,7 @@ end
 
 -- Used to make a text object of something's attributes that can be stringified. Supports LuaObjects with handling for specific ones.
 ---@param thing any @ can be a simple data type, table, or LuaObject.
----@param _tablesLogged? table @ don't pass in, only used internally when self referencing the function for looping.
+---@param _tablesLogged? table<any, string>|nil @ don't pass in, only used internally when self referencing the function for looping.
 ---@return table
 LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
     _tablesLogged = _tablesLogged or {} -- Internal variable passed when self referencing to avoid loops.
@@ -184,11 +186,12 @@ LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
     -- Simple values just get returned.
     if type(thing) ~= "table" then
         return {LITERAL_VALUE = thing}
-    end
+    end ---@cast thing table
 
     -- Handle specific Factorio Lua objects
-    local thing_objectName = thing.object_name
+    local thing_objectName = thing.object_name --[[@as string|nil]]
     if thing_objectName ~= nil then
+        ---@cast thing LuaObject
         -- Invalid things are returned in safe way.
         if not thing.valid then
             return {
@@ -198,6 +201,7 @@ LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
         end
 
         if thing_objectName == "LuaEntity" then
+            ---@cast thing LuaEntity
             local thing_type = thing.type
             local entityDetails = {
                 object_name = thing_objectName,
@@ -219,8 +223,10 @@ LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
 
             return entityDetails
         elseif thing_objectName == "LuaTrain" then
-            local carriages = {}
+            ---@cast thing LuaTrain
+            local carriages = {} ---@type table<uint, table>
             for i, carriage in pairs(thing.carriages) do
+                ---@cast i uint
                 carriages[i] = LoggingUtils.PrintThingsDetails(carriage, _tablesLogged)
             end
             return {
@@ -246,8 +252,9 @@ LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
     end
 
     -- Is just a general table so return all its keys.
-    local returnedSafeTable = {}
+    local returnedSafeTable = {} ---@type table<any, any>
     _tablesLogged[thing] = "logged"
+    ---@cast thing table<any, any>
     for key, value in pairs(thing) do
         if _tablesLogged[key] ~= nil or _tablesLogged[value] ~= nil then
             local valueIdText
@@ -268,9 +275,9 @@ end
 ---@param targetSurfaceIdentification SurfaceIdentification
 ---@param targetPosition LuaEntity|MapPosition
 LoggingUtils.WriteOutNumberedMarker = function(targetSurfaceIdentification, targetPosition)
-    global.numberedCount = global.numberedCount or 1
+    global.UtilityLogging_NumberedCount = global.UtilityLogging_NumberedCount or 1 ---@type uint
     rendering.draw_text {
-        text = global.numberedCount,
+        text = global.UtilityLogging_NumberedCount,
         surface = targetSurfaceIdentification,
         target = targetPosition,
         color = {r = 1.0, g = 0.0, b = 0.0, a = 1.0},
@@ -278,7 +285,7 @@ LoggingUtils.WriteOutNumberedMarker = function(targetSurfaceIdentification, targ
         alignment = "center",
         vertical_alignment = "bottom"
     }
-    global.numberedCount = global.numberedCount + 1
+    global.UtilityLogging_NumberedCount = global.UtilityLogging_NumberedCount + 1
 end
 
 --- Writes out sequential numbers at the SurfacePositionString. Used as a visial debugging tool.
@@ -286,6 +293,20 @@ end
 LoggingUtils.WriteOutNumberedMarkerForSurfacePositionString = function(targetSurfacePositionString)
     local tempSurfaceId, tempPos = StringUtils.SurfacePositionStringToSurfaceAndPosition(targetSurfacePositionString)
     LoggingUtils.WriteOutNumberedMarker(tempSurfaceId, tempPos)
+end
+
+----------------------------------------------------------------------------------
+--                          PRIVATE FUNCTIONS
+----------------------------------------------------------------------------------
+
+---@class UtilityLogging_RunFunctionAndCatchErrors_ErrorObject
+---@field message string
+---@field stacktrace string
+
+---@param errorMessage string
+LoggingUtils._RunFunctionAndCatchErrors_ErrorHandlerFunction = function(errorMessage)
+    local errorObject = {message = errorMessage, stacktrace = debug.traceback()}
+    return errorObject
 end
 
 return LoggingUtils

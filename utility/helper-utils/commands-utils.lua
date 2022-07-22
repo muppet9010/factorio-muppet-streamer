@@ -341,11 +341,18 @@ CommandsUtils.CheckTableArgument = function(value, mandatory, commandName, argum
     -- If value is nil and it passed the generic requirements which handles mandatory then end this parse successfully.
     if value == nil then
         return true
-    end ---@cast value table
+    end ---@cast value table<any, any>
 
     -- Check the value's keys are in the allowed key requirement if provided.
     if allowedKeys ~= nil then
         for key in pairs(value) do
+            if type(key) ~= "string" then
+                LoggingUtils.LogPrintError("Invalid keys data type, expects string keys but got a '" .. type(key) .. "' with the value of: " .. tostring(key))
+                if commandString ~= nil then
+                    LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
+                end
+                return false
+            end
             if allowedKeys[key] == nil then
                 LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument '" .. argumentName .. "' includes a non supported key: " .. tostring(key))
                 if TableUtils.GetTableNonNilLength(allowedKeys) < 20 then

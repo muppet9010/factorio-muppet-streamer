@@ -41,15 +41,16 @@ RandomChance.NormaliseChanceList = function(dataSet, chancePropertyName, skipFil
         multiplier = 1 / totalChance
     end
     for _, v in pairs(dataSet) do
+        ---@cast v table<string, number> @ This isn't strictly true, but must be for the chancePropertyName field.
         v[chancePropertyName] = v[chancePropertyName] * multiplier
     end
     return dataSet
 end
 
 --- Looks over a table of chanced events and selects one randomly based on a named chance key's value. Requires the table to be normalised to a total chance of no greater than 1. A total of less than 1 chance can result in no event being selected.
----@param dataSet table
+---@param dataSet table[]
 ---@param chancePropertyName string
----@return any
+---@return any|nil
 RandomChance.GetRandomEntryFromNormalisedDataSet = function(dataSet, chancePropertyName)
     local random = math_random()
     local chanceRangeLow = 0

@@ -50,7 +50,7 @@ PrototypeAttributes.GetAttribute = function(prototypeType, prototypeName, attrib
         elseif prototypeType == PrototypeAttributes.PrototypeTypes.technology then
             resultPrototype = game.technology_prototypes[prototypeName]
         end
-        local resultValue = resultPrototype[attributeName]
+        local resultValue = resultPrototype[attributeName] ---@type any
         prototypeCache[attributeName] = {value = resultValue}
         return resultValue
     end

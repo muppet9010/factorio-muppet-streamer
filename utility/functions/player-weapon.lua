@@ -203,8 +203,8 @@ end
 
 --- Sets the players weapon filter back to what was removed. Assumes that anything put in the wepaon slot in the mean time is to be overridden.
 --- If the player's character is currently alive then it also equips the weapon and ammo from their inventory (assuming they still have them).
----@param player any
----@param removedWeaponDetails any
+---@param player LuaPlayer
+---@param removedWeaponDetails UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
 PlayerWeapon.ReturnRemovedWeapon = function(player, removedWeaponDetails)
     ---@type LuaInventory, LuaInventory, LuaInventory
     local playerGunInventory, playerAmmoInventory, playerCharacterInventory = nil, nil, nil

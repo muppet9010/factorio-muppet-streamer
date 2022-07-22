@@ -99,8 +99,8 @@ BiomeTrees.OnStartup = function()
     global.UTILITYBIOMETREES.tileData = global.UTILITYBIOMETREES.environmentData.tileData ---@type UtilityBiomeTrees_TilesDetails
     global.UTILITYBIOMETREES.treeData = BiomeTrees._GetTreeData() ---@type UtilityBiomeTrees_TreeDetails[]
     if LogData then
-        LoggingUtils.ModLog(TableUtils.TableContentsToJSON(global.UTILITYBIOMETREES.treeData), false)
-        LoggingUtils.ModLog(TableUtils.TableContentsToJSON(global.UTILITYBIOMETREES.tileData), false)
+        LoggingUtils.ModLog(serpent.block(global.UTILITYBIOMETREES.treeData), false)
+        LoggingUtils.ModLog(serpent.block(global.UTILITYBIOMETREES.tileData), false)
     end
 end
 

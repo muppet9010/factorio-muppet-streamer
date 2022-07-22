@@ -87,7 +87,6 @@ end
 ---@return boolean|nil everythingMoved? @ If all items were moved successfully or not. Nil if no items to move.
 InventoryUtils.TryTakeGridsItems = function(sourceGrid, targetInventory, dropUnmovedOnGround)
     -- Set default values.
-    local sourceOwner, itemAllMoved = nil, true
     if dropUnmovedOnGround == nil then
         dropUnmovedOnGround = false
     end
@@ -96,6 +95,9 @@ InventoryUtils.TryTakeGridsItems = function(sourceGrid, targetInventory, dropUnm
     if sourceGrid == nil then
         return nil
     end
+
+    local sourceOwner
+    local itemAllMoved = true
 
     --Do the actual item moving.
     for _, equipment in pairs(sourceGrid.equipment) do
@@ -123,7 +125,6 @@ end
 ---@return boolean|nil everythingMoved? @ If all items were moved successfully or not. Nil if no items to move.
 InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, dropUnmovedOnGround, ratioToMove)
     -- Set default values.
-    local sourceOwner, itemAllMoved = nil, true
     if dropUnmovedOnGround == nil then
         dropUnmovedOnGround = false
     end
@@ -141,6 +142,9 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
     if ratioToMove == 0 then
         return false
     end
+
+    local sourceOwner
+    local itemAllMoved = true
 
     --Do the actual item moving.
     for name, count in pairs(contents) do
@@ -170,7 +174,6 @@ end
 ---@return boolean|nil everythingMoved? @ If all items were moved successfully or not. Nil if no items to move.
 InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory, dropUnmovedOnGround, ratioToMove)
     -- Set default values.
-    local sourceOwner, itemAllMoved = nil, true
     if dropUnmovedOnGround == nil then
         dropUnmovedOnGround = false
     end
@@ -188,6 +191,9 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
     if ratioToMove == 0 then
         return false
     end
+
+    local sourceOwner
+    local itemAllMoved = true
 
     --Do the actual item moving.
     for index, simpleItemStack in pairs(simpleItemStacks) do
