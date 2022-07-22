@@ -167,7 +167,7 @@ PantsOnFire.WalkCheck = function(eventData)
         data.startFire = true
     end
 
-    -- Create the fire entity if approperiate.
+    -- Create the fire entity if appropriate.
     local fireEntity
     if data.startFire then
         local step = steps[data.stepPos]

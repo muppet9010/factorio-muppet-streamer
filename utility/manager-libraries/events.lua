@@ -146,7 +146,7 @@ end
 --                                    Internal Functions
 --------------------------------------------------------------------------------------------
 
---- Runs when an event is triggered and calls all of the approperiate registered functions.
+--- Runs when an event is triggered and calls all of the appropriate registered functions.
 ---@param eventData UtilityEvents_EventData
 Events._HandleEvent = function(eventData)
     -- input_name only populated by custom_input, with eventId used by all other events

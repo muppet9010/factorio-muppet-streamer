@@ -189,12 +189,13 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
             end
         end
     elseif data.density ~= nil then
-        local followsLeftTable = {followsLeft} -- Do as table so it can be passed by reference in to functions
+        ---@class SpawnAroundPlayer_GroupPlacementDetails
+        local groupPlacementDetails = {followsLeft = followsLeft} -- Do as table so it can be passed by reference in to functions and updated inline by each.
 
         -- Do outer perimiter first. Does a grid across the circle circumference.
         for yOffset = -data.radiusMax, data.radiusMax, entityTypeDetails.gridPlacementSize do
-            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, 1, yOffset, followsLeftTable, force)
-            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, -1, yOffset, followsLeftTable, force)
+            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, 1, yOffset, groupPlacementDetails, force)
+            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, -1, yOffset, groupPlacementDetails, force)
         end
 
         -- Fill inwards from the perimiter up to the required depth (max radius to min radius).
@@ -204,7 +205,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
                 for xOffset = -data.radiusMax, data.radiusMax, entityTypeDetails.gridPlacementSize do
                     local placementPos = PositionUtils.ApplyOffsetToPosition({x = xOffset, y = yOffset}, targetPos)
                     if PositionUtils.IsPositionWithinCircled(targetPos, data.radiusMax, placementPos) and not PositionUtils.IsPositionWithinCircled(targetPos, data.radiusMin, placementPos) then
-                        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, placementPos, surface, targetPlayer, data, followsLeftTable, force)
+                        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, placementPos, surface, targetPlayer, data, groupPlacementDetails, force)
                     end
                 end
             end
@@ -213,7 +214,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
 end
 
 --- Place an entity where a stright line crosses the circumference of a circle. When done in a grid of lines across the circumference then the perimeter of the circle will have been filled in.
----@param entityTypeDetails any
+---@param entityTypeDetails SpawnAroundPlayer_EntityTypeDetails
 ---@param data SpawnAroundPlayer_ScheduledDetails
 ---@param targetPos MapPosition
 ---@param surface LuaSurface
@@ -221,27 +222,27 @@ end
 ---@param radius uint
 ---@param lineSlope uint
 ---@param lineYOffset int
----@param followsLeftTable any
+---@param groupPlacementDetails SpawnAroundPlayer_GroupPlacementDetails
 ---@param force LuaForce
-SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine = function(entityTypeDetails, data, targetPos, surface, targetPlayer, radius, lineSlope, lineYOffset, followsLeftTable, force)
+SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine = function(entityTypeDetails, data, targetPos, surface, targetPlayer, radius, lineSlope, lineYOffset, groupPlacementDetails, force)
     local crossPos1, crossPos2 = PositionUtils.FindWhereLineCrossesCircle(radius, lineSlope, lineYOffset)
     if crossPos1 ~= nil then
-        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, PositionUtils.ApplyOffsetToPosition(crossPos1, targetPos), surface, targetPlayer, data, followsLeftTable, force)
+        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, PositionUtils.ApplyOffsetToPosition(crossPos1, targetPos), surface, targetPlayer, data, groupPlacementDetails, force)
     end
     if crossPos2 ~= nil then
-        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, PositionUtils.ApplyOffsetToPosition(crossPos2, targetPos), surface, targetPlayer, data, followsLeftTable, force)
+        SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, PositionUtils.ApplyOffsetToPosition(crossPos2, targetPos), surface, targetPlayer, data, groupPlacementDetails, force)
     end
 end
 
 --- Place an entity near the targetted position.
----@param entityTypeDetails any
+---@param entityTypeDetails SpawnAroundPlayer_EntityTypeDetails
 ---@param position MapPosition
 ---@param surface LuaSurface
 ---@param targetPlayer LuaPlayer
 ---@param data SpawnAroundPlayer_ScheduledDetails
----@param followsLeftTable any
+---@param groupPlacementDetails SpawnAroundPlayer_GroupPlacementDetails
 ---@param force LuaForce
-SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position, surface, targetPlayer, data, followsLeftTable, force)
+SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position, surface, targetPlayer, data, groupPlacementDetails, force)
     if math.random() > data.density then
         return
     end
@@ -250,14 +251,14 @@ SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position
         --no tree name is suitable for this tile, likely non land tile
         return
     end
-    local entityAlignedPosition = entityTypeDetails.GetEntityAlignedPosition(position)
+    local entityAlignedPosition = entityTypeDetails.GetEntityAlignedPosition(position) ---@type MapPosition|nil
     if data.existingEntities == "avoid" then
-        entityAlignedPosition = entityTypeDetails.FindValidPlacementPosition(surface, entityName, entityAlignedPosition, SpawnAroundPlayer.densitySearchRadius)
+        entityAlignedPosition = entityTypeDetails.FindValidPlacementPosition(surface, entityName, entityAlignedPosition --[[@as MapPosition]], SpawnAroundPlayer.densitySearchRadius)
     end
     local thisOneFollows = false
-    if followsLeftTable[1] > 0 then
+    if groupPlacementDetails.followsLeft > 0 then
         thisOneFollows = true
-        followsLeftTable[1] = followsLeftTable[1] - 1
+        groupPlacementDetails.followsLeft = groupPlacementDetails.followsLeft - 1
     end
     if entityAlignedPosition ~= nil then
         ---@type SpawnAroundPlayer_PlaceEntityDetails
@@ -285,6 +286,7 @@ SpawnAroundPlayer.CombatBotEntityTypeDetails = function(setEntityName, canFollow
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
             local target
             if canFollow and data.followPlayer then
@@ -317,6 +319,7 @@ SpawnAroundPlayer.AmmoGunTurretEntityTypeDetails = function(ammoName)
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 1)
         end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
             local turret = data.surface.create_entity {name = data.entityName, position = data.position, force = data.force}
             if turret ~= nil then
@@ -327,7 +330,7 @@ SpawnAroundPlayer.AmmoGunTurretEntityTypeDetails = function(ammoName)
     return entityTypeDetails
 end
 
--- CODE NOTE: the inner functions don't know their data types (same in the sub generator functions). Raised as enhancement request with Sumneko: https://github.com/sumneko/lua-language-server/issues/1332
+-- CODE NOTE: the inner functions don't know their data types (same in the sub generator functions). Raised as enhancement request with Sumneko: https://github.com/sumneko/lua-language-server/issues/1332. At present just copying params from the class for the functions that complain.
 ---@type SpawnAroundPlayer_EntityTypes
 SpawnAroundPlayer.EntityTypeDetails = {
     tree = {
@@ -341,6 +344,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
             data.surface.create_entity {name = data.entityName, position = data.position, force = "neutral"}
         end
@@ -363,6 +367,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
             data.surface.create_entity {name = data.entityName, position = data.position, force = "neutral"}
         end
@@ -378,6 +383,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 1)
         end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
             data.surface.create_entity {name = data.entityName, position = data.position, force = data.force}
         end
@@ -396,6 +402,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 1, true)
         end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
             data.surface.create_entity {name = data.entityName, position = data.position, force = data.force}
         end
@@ -411,6 +418,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 1, true)
         end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
             data.surface.create_entity {name = data.entityName, position = data.position, force = data.force}
         end
@@ -426,11 +434,13 @@ SpawnAroundPlayer.EntityTypeDetails = {
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
             return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
         end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
+            local flameCount  ---@type uint8|nil
             if data.ammoCount ~= nil then
-                data.ammoCount = math.min(data.ammoCount, 250)
+                flameCount = MathUtils.ClampToUInt8(data.ammoCount)
             end
-            data.surface.create_entity {name = data.entityName, position = data.position, force = "neutral", initial_ground_flame_count = data.ammoCount}
+            data.surface.create_entity {name = data.entityName, position = data.position, force = "neutral", initial_ground_flame_count = flameCount}
         end
     },
     defenderBot = SpawnAroundPlayer.CombatBotEntityTypeDetails("defender", true),

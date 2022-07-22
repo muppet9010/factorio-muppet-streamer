@@ -19,7 +19,7 @@ local PlayerTeleport = {}
 ---@param inaccuracyToTargetPosition double @ How inaccurate the desired random placement of the player to the target position should be up too. Used to give intentional inaccuracy to the placement attempt position.
 ---@param placementAttempts uint @ How many times we should try random placement attempts within the inaccuracy of the target.
 ---@param placementAccuracy double @ Max range from the placement attempt position to look for a valid position for the player within. Code will try and place as close to the placement attempt position as possible.
----@param reachablePosition? MapPosition|nil @ If the player needs to be able to walk from where they are teleported too, to this position. Commonly used to check they can walk from their teleport target back to where they were, to avoid teleports on to islands. If provided then the path request Id will be returned in the responseDetails for monitoring by the calling mod. As the state of the player and target should be re-verified by the mod based on its exact usage scenario upon this pathing request completing; As the game world will likely have changed in between and so it may not be approperiate for the teleport to be completed.
+---@param reachablePosition? MapPosition|nil @ If the player needs to be able to walk from where they are teleported too, to this position. Commonly used to check they can walk from their teleport target back to where they were, to avoid teleports on to islands. If provided then the path request Id will be returned in the responseDetails for monitoring by the calling mod. As the state of the player and target should be re-verified by the mod based on its exact usage scenario upon this pathing request completing; As the game world will likely have changed in between and so it may not be appropriate for the teleport to be completed.
 ---@return UtilityPlayerTeleport_TeleportRequestResponseDetails responseDetails? @ A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occured.
 PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurface, destinationTargetPosition, inaccuracyToTargetPosition, placementAttempts, placementAccuracy, reachablePosition)
     -- The response object with the result in it.
@@ -112,7 +112,7 @@ PlayerTeleport.TeleportToSpecificPosition = function(targetPlayer, targetSurface
     local teleportSucceeded, wasDriving, wasPassengerIn
     local targetPlayer_vehicle = targetPlayer.vehicle
 
-    -- Teleport the approperiate entity to the specified position.
+    -- Teleport the appropriate entity to the specified position.
     if PlayerTeleport.IsTeleportableVehicle(targetPlayer_vehicle) then
         teleportSucceeded = targetPlayer_vehicle.teleport(targetPosition, targetSurface)
     else
@@ -177,7 +177,7 @@ end
 ---@field targetPlayerTeleportEntity LuaEntity @ The entity we did the teleport request for.
 ---@field targetPosition? MapPosition|nil @ The exact position the teleport was attempted to, if one was found.
 ---@field teleportSucceeded boolean @ If the teleport was completed. Will be false if a pathing request was made as part of a reachablePosition option.
----@field pathRequestId? uint|nil @ If a reachablePosition was given then the path request Id to monitor for is returned. The state of the player and target should be re-verified upon this pathing request result as the game worls will likely have changed in between and so it may not be approperiate for the teleport to be completed.
+---@field pathRequestId? uint|nil @ If a reachablePosition was given then the path request Id to monitor for is returned. The state of the player and target should be re-verified upon this pathing request result as the game worls will likely have changed in between and so it may not be appropriate for the teleport to be completed.
 ---@field errorNoValidPositionFound boolean @ If the teleport failed as there was no valid position found near the target position (prior to any walkability check if enabled).
 ---@field errorTeleportFailed boolean @ If the actual teleport command to the player/vehicle failed.
 

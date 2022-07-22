@@ -391,13 +391,14 @@ Teleport.PlanTeleportTarget = function(eventData)
     local teleportResponse = PlayerTeleport.RequestTeleportToNearPosition(targetPlayer, targetPlayer_surface, data.destinationTargetPosition, data.arrivalRadius, MaxRandomPositionsAroundTargetToTry, MaxDistancePositionAroundTarget, data.reachableOnly and targetPlayer_position or nil)
 
     -- Handle the teleport response.
+    local pathRequestId = teleportResponse.pathRequestId -- Variables existance is a workaround for Sumneko missing object field nil detection.
     if teleportResponse.teleportSucceeded == true then
         -- All completed.
         return
-    elseif teleportResponse.pathRequestId ~= nil then
+    elseif pathRequestId ~= nil then
         -- A pathing request has been made, monitor it and react when it completes.
         data.targetPlayerPlacementEntity, data.thisAttemptPosition = teleportResponse.targetPlayerTeleportEntity, teleportResponse.targetPosition
-        global.teleport.pathingRequests[teleportResponse.pathRequestId] = data
+        global.teleport.pathingRequests[pathRequestId] = data
         return
     elseif teleportResponse.errorNoValidPositionFound then
         -- No valid position was found to try and teleport too.

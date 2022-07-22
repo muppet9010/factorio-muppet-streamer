@@ -106,7 +106,7 @@ end
 
 --- Returns the passed in number clamped to within the range of an int, with optional additional min and max's applied.
 --- Use Int over Integer as this is the Factorio data type and Lua 5.2 doesn't have real `integer` types. Although Sumneko does have some numeric values of the Integer type to aid usage limitations detection.
----@param value number
+---@param value int
 ---@param min? int|nil
 ---@param max? int|nil
 ---@return int
@@ -123,7 +123,7 @@ MathUtils.ClampToInt = function(value, min, max)
 end
 
 --- Returns the passed in number clamped to within the range of an uint (min 0), with optional additional min and max's applied.
----@param value double
+---@param value int
 ---@param min? uint|nil
 ---@param max? uint|nil
 ---@return uint clampedValue
@@ -132,6 +132,40 @@ MathUtils.ClampToUInt = function(value, min, max)
     min = min or 0
     max = max or MathUtils.uintMax
     local newValue = math_min(math_max(value, min), max) --[[@as uint]]
+    if newValue ~= value then
+        return newValue, true
+    else
+        return newValue, false
+    end
+end
+
+--- Returns the passed in number clamped to within the range of an uint 16 (min 0), with optional additional min and max's applied.
+---@param value int
+---@param min? uint|nil
+---@param max? uint|nil
+---@return uint16 clampedValue
+---@return boolean valueWasOutsideRange
+MathUtils.ClampToUInt16 = function(value, min, max)
+    min = min or 0
+    max = max or MathUtils.uintMax16
+    local newValue = math_min(math_max(value, min), max) --[[@as uint16]]
+    if newValue ~= value then
+        return newValue, true
+    else
+        return newValue, false
+    end
+end
+
+--- Returns the passed in number clamped to within the range of an uint 8 (min 0), with optional additional min and max's applied.
+---@param value int
+---@param min? uint|nil
+---@param max? uint|nil
+---@return uint8 clampedValue
+---@return boolean valueWasOutsideRange
+MathUtils.ClampToUInt8 = function(value, min, max)
+    min = min or 0
+    max = max or MathUtils.uintMax8
+    local newValue = math_min(math_max(value, min), max) --[[@as uint8]]
     if newValue ~= value then
         return newValue, true
     else
@@ -199,7 +233,11 @@ MathUtils.FuzzyCompareDoubles = function(num1, logic, num2)
     end
 end
 
-MathUtils.GetRandomFloatInRange = function(lower, upper)
+--- Gets a random double (decimal) number between the provided upper and lower double numbers.
+---@param lower double
+---@param upper double
+---@return double
+MathUtils.GetRandomDoubleInRange = function(lower, upper)
     return lower + math_random() * (upper - lower)
 end
 

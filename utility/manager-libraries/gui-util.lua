@@ -184,7 +184,7 @@ GuiUtil.GetElementFromPlayersReferenceStorage = function(playerIndex, storeName,
     return global.GUIUtilPlayerElementReferenceStorage[playerIndex][storeName][GuiUtil.GenerateGuiElementName(elementName, elementType)]
 end
 
---- Apply updated attributes to an existing GuiElement found in the player's reference storage. Supports changing approperiate ElementDetail attributes and some Factorio attributes as per UtilityGuiUtil_ElementDetails_Update.
+--- Apply updated attributes to an existing GuiElement found in the player's reference storage. Supports changing appropriate ElementDetail attributes and some Factorio attributes as per UtilityGuiUtil_ElementDetails_Update.
 ---@param playerIndex uint
 ---@param storeName UtilityGuiUtil_StoreName
 ---@param elementName string
