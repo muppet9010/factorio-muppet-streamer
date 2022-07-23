@@ -42,9 +42,9 @@ end
 ---@param enabled boolean
 ---@param ingredientLists UtilityPrototypeUtils_IngredientLists @ Often generatered by PrototypeUtils.GetRecipeIngredientsAddedTogeather().
 ---@param energyLists UtilityPrototypeUtils_EnergyLists
----@return table<string, any> recipePrototype
+---@return Prototype.Recipe
 PrototypeUtils.MakeRecipePrototype = function(recipeName, resultItemName, enabled, ingredientLists, energyLists)
-    ---@type table<string, any>
+    ---@type Prototype.Recipe
     local recipePrototype = {
         type = "recipe",
         name = recipeName
@@ -147,7 +147,7 @@ PrototypeUtils.GetRecipeIngredientsAddedTogeather = function(recipeIngredientHan
 end
 
 --- Returns the value of the requested attributeName from the recipe for the recipeCodeType "cost" if available, otherwise the inline/ingredients value is returned.
----@param recipe table
+---@param recipe Prototype.Recipe
 ---@param attributeName string
 ---@param recipeCostType? 'ingredients'|'normal'|'expensive'|nil @ Defaults to the 'ingredients' if not provided. The 'ingredients' option will return any inline value first, then the value from the ingredients field.
 ---@param defaultValue? any @ The default value to return if nothing is found in the hierarchy of "costs" checked.

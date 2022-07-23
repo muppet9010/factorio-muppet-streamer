@@ -115,6 +115,7 @@ LoggingUtils._RecordToModsLog = function(text)
 end
 
 -- Runs the function in a wrapper that will log detailed infromation should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.
+-- CODE NOTE: JustARandomGeek doesn't believe that the ".instrument" check is needed for the control hook and the presence of the __DebugAdapter variable is enough. Check if this function is used ever again.
 ---@param functionRef function,
 ---@vararg any
 LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)

@@ -4,59 +4,46 @@
 --
 ---@meta
 ---@diagnostic disable
-
+---
 ---@alias Axis "'x'"|"'y'"
-
+---
 ---@class CustomInputEvent
 ---@field player_index uint
 ---@field input_name string
 ---@field cursor_position Position
 ---@field selected_prototype SelectedPrototypeData
-
+---
 ---@class Sprite
 ---@field direction_count uint
 ---@field filename string
 ---@field width uint
 ---@field height uint
 ---@field repeat_count uint
-
+---
 ---@alias EntityActioner LuaPlayer|LuaEntity @ The placer of a built entity, either player or construction robot. A script will have a nil value.
-
+---
 ---@class LuaBaseClass @ Used as a fake base class, only supports checking defined attributes.
 ---@field valid boolean
-
+---
 ---@alias StringOrNumber string|number
-
+---
 ---@diagnostic disable-line Alias for nil value. Workaround for EmmyLua not handling nil in multi type lists correctly.
 ---@class nil
-
+---
 ---@class SurfacePositionString : string @ A surface and position as a string: "surfaceId_x,y"
-
+---
 ---@class SurfacePositionObject @ A surface and position data object.
 ---@field surfaceId uint
 ---@field position MapPosition
 ---@field surfacePositionString SurfacePositionString
-
----------------------------------------------------------------------------------------------------------------------------
--- Missing definitions on Factorio globals. This file isn't ever called by Factorio and so we don't overwrite these globals.
--- Hopefully in the future these will all be included and can then be removed from here.
----------------------------------------------------------------------------------------------------------------------------
-
---- Factorio built in log() function.
----@param text string
-log = function(text)
-end
-
---- Factorio built in serpent library.
----@class serpent
----@field block fun(text: any):string
-serpent = {}
-
---- Debug Adapter object.
----@class __DebugAdapter
----@field instrument boolean @ Guess at data type.
-__DebugAdapter = {}
-
+--
+--
+--
+--
+--
+--
+--
+--
 --[[
 
 
