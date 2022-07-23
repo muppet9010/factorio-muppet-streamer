@@ -5,7 +5,7 @@
 local GuiActionsClick = {}
 local Constants = require("constants")
 MOD = MOD or {}
-MOD.guiClickActions = MOD.guiClickActions or {}
+MOD.guiClickActions = MOD.guiClickActions or {} ---@type table<string, function>
 
 ---@class UtilityGuiActionsClick_ActionData @ The response object passed to the callback function when the GUI element is clicked. Registered with GuiActionsClick.RegisterGuiForClick().
 ---@field actionName string @ The action name registered to this GUI element being clicked.
@@ -21,10 +21,8 @@ GuiActionsClick.MonitorGuiClickActions = function()
 end
 
 --- Called from OnLoad() from each script file.
----
---- When actionFunction is triggered a single argument is passed to the actionFunction of type UtilityGuiActionsClick_ActionData.
 ---@param actionName string @ A unique name for this function to be registered with.
----@param actionFunction function @ The callback function for when the actionName linked GUI element is clicked.
+---@param actionFunction fun(callbackData: UtilityGuiActionsClick_ActionData) @ The callback function for when the actionName linked GUI element is clicked.
 GuiActionsClick.LinkGuiClickActionNameToFunction = function(actionName, actionFunction)
     if actionName == nil or actionFunction == nil then
         error("GuiActions.LinkGuiClickActionNameToFunction called with missing arguments")
@@ -51,7 +49,7 @@ GuiActionsClick.RegisterGuiForClick = function(elementName, elementType, actionN
     end
 
     local name = GuiActionsClick._GenerateGuiElementName(elementName, elementType)
-    global.UTILITYGUIACTIONSGUICLICK = global.UTILITYGUIACTIONSGUICLICK or {}
+    global.UTILITYGUIACTIONSGUICLICK = global.UTILITYGUIACTIONSGUICLICK or {} ---@type table<string, UtilityGuiActionsClick_GuiClickDetails>
     if not disabled then
         global.UTILITYGUIACTIONSGUICLICK[name] = {actionName = actionName, data = data}
     else
@@ -116,5 +114,9 @@ GuiActionsClick._GenerateGuiElementName = function(elementName, elementType)
 end
 
 ---@alias UtilityGuiActionsClick_GuiElementName string @ A single unique string made by combining an elements name and type with mod name.
+
+---@class UtilityGuiActionsClick_GuiClickDetails
+---@field actionName string
+---@field data table
 
 return GuiActionsClick

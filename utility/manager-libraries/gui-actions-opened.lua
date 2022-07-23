@@ -4,15 +4,23 @@
 
 local GuiActionsOpened = {}
 MOD = MOD or {}
-MOD.guiOpenedActions = MOD.guiOpenedActions or {}
+MOD.guiOpenedActions = MOD.guiOpenedActions or {} ---@type table<string, function>
+
+---@class UtilityGuiActionsOpened_ActionData @ The response object passed to the callback function when the GUI element is opened. Registered with GuiActionsOpened.LinkGuiOpenedActionNameToFunction().
+---@field actionName string @ The action name registered to this GUI element being opened.
+---@field playerIndex uint @ The player_index of the player who opened the GUI.
+---@field entity LuaEntity|nil @ The entity that was clicked to open the GUI, if one was.
+---@field data any @ The data argument passed in when registering this function action name.
+---@field eventData on_gui_opened @ The raw Factorio event data for the on_gui_opened event.
 
 -- Called from the root of Control.lua
 GuiActionsOpened.MonitorGuiOpenedActions = function()
     script.on_event(defines.events.on_gui_opened, GuiActionsOpened._HandleGuiOpenedAction)
 end
 
--- Called from OnLoad() from each script file.
--- When actionFunction is triggered actionData argument passed: {actionName = actionName, playerIndex = playerIndex, entity = entity, data = data_passed_on_event_register, eventData = raw_factorio_event_data}
+--- Called from OnLoad() from each script file.
+---@param actionName string @ A unique name for this function to be registered with.
+---@param actionFunction fun(callbackData: UtilityGuiActionsOpened_ActionData) @ The callback function for when the actionName linked GUI element is opened.
 GuiActionsOpened.LinkGuiOpenedActionNameToFunction = function(actionName, actionFunction)
     if actionName == nil or actionFunction == nil then
         error("GuiActions.LinkGuiOpenedActionNameToFunction called with missing arguments")
@@ -21,17 +29,24 @@ GuiActionsOpened.LinkGuiOpenedActionNameToFunction = function(actionName, action
 end
 
 -- Called to register a specific entitie's GUI being opened to a named action.
+---@param entity LuaEntity @ The entity to react to having a GUI opened on it.
+---@param actionName string @ The actionName of the registered function to be called when the GUI element is opened.
+---@param data? table|nil @ Any provided data will be passed through to the actionName's registered function upon the GUI element being opened.
 GuiActionsOpened.RegisterEntityForGuiOpenedAction = function(entity, actionName, data)
     if entity == nil or actionName == nil then
         error("GuiActions.RegisterEntityForGuiOpenedAction called with missing arguments")
     end
     data = data or {}
-    global.UTILITYGUIACTIONSENTITYGUIOPENED = global.UTILITYGUIACTIONSENTITYGUIOPENED or {}
+    global.UTILITYGUIACTIONSENTITYGUIOPENED = global.UTILITYGUIACTIONSENTITYGUIOPENED or {} ---@type table<uint, table<string, table|nil>>
     global.UTILITYGUIACTIONSENTITYGUIOPENED[entity.unit_number] = global.UTILITYGUIACTIONSENTITYGUIOPENED[entity.unit_number] or {}
     global.UTILITYGUIACTIONSENTITYGUIOPENED[entity.unit_number][actionName] = data
 end
 
--- Called when desired to remove a specific entitie's GUI being opened from triggering its action.
+--- Called when desired to remove a specific entitie's GUI being opened from triggering its action.
+---
+--- Should be called to remove links for buttons when their elements are removed to stop global data lingering. But newly registered functions will overwrite them so not critical to remove.
+---@param entity LuaEntity  @ Corrisponds to the same argument name on GuiActionsOpened.RegisterEntityForGuiOpenedAction().
+---@param actionName string @ Corrisponds to the same argument name on GuiActionsOpened.RegisterEntityForGuiOpenedAction().
 GuiActionsOpened.RemoveEntityForGuiOpenedAction = function(entity, actionName)
     if entity == nil or actionName == nil then
         error("GuiActions.RemoveEntityForGuiOpenedAction called with missing arguments")
@@ -42,18 +57,25 @@ GuiActionsOpened.RemoveEntityForGuiOpenedAction = function(entity, actionName)
     global.UTILITYGUIACTIONSENTITYGUIOPENED[entity.unit_number][actionName] = nil
 end
 
--- Called to register a specific GUI type being opened to a named action. For GuiType it accepts defines.gui_type and "all".
+-- Called to register a specific GUI type being opened to a named action.
+---@param guiType defines.gui_type|'all' @ the gui type to react to or `all` types.
+---@param actionName string @ The actionName of the registered function to be called when the GUI element is opened.
+---@param data? table|nil @ Any provided data will be passed through to the actionName's registered function upon the GUI element being opened.
 GuiActionsOpened.RegisterActionNameForGuiTypeOpened = function(guiType, actionName, data)
     if guiType == nil or actionName == nil then
         error("GuiActions.RegisterActionNameForGuiTypeOpened called with missing arguments")
     end
     data = data or {}
-    global.UTILITYGUIACTIONSGUITYPEOPENED = global.UTILITYGUIACTIONSGUITYPEOPENED or {}
+    global.UTILITYGUIACTIONSGUITYPEOPENED = global.UTILITYGUIACTIONSGUITYPEOPENED or {} ---@type table<defines.gui_type|'all', table<string, table|nil>>
     global.UTILITYGUIACTIONSGUITYPEOPENED[guiType] = global.UTILITYGUIACTIONSGUITYPEOPENED[guiType] or {}
     global.UTILITYGUIACTIONSGUITYPEOPENED[guiType][actionName] = data
 end
 
 -- Called when desired to remove a specific GUI type opening from triggering its action.
+---
+--- Should be called to remove links for buttons when their elements are removed to stop global data lingering. But newly registered functions will overwrite them so not critical to remove.
+---@param guiType defines.gui_type|'all' @ Corrisponds to the same argument name on GuiActionsOpened.RegisterActionNameForGuiTypeOpened().
+---@param actionName string @ Corrisponds to the same argument name on GuiActionsOpened.RegisterActionNameForGuiTypeOpened().
 GuiActionsOpened.RemoveActionNameForGuiTypeOpened = function(guiType, actionName)
     if guiType == nil or actionName == nil then
         error("GuiActions.RemoveActionNameForGuiTypeOpened called with missing arguments")
@@ -64,15 +86,21 @@ GuiActionsOpened.RemoveActionNameForGuiTypeOpened = function(guiType, actionName
     global.UTILITYGUIACTIONSGUITYPEOPENED[guiType][actionName] = nil
 end
 
-GuiActionsOpened._HandleGuiOpenedAction = function(event)
-    local guiType, entityOpened = event.gui_type, event.entity
+--------------------------------------------------------------------------------------------
+--                                    Internal Functions
+--------------------------------------------------------------------------------------------
+
+--- Called when each on_gui_opened event orrurs and identifies any registered actionName functions to trigger.
+---@param rawFactorioEventData on_gui_opened
+GuiActionsOpened._HandleGuiOpenedAction = function(rawFactorioEventData)
+    local guiType, entityOpened = rawFactorioEventData.gui_type, rawFactorioEventData.entity
 
     if global.UTILITYGUIACTIONSGUITYPEOPENED ~= nil and guiType ~= nil then
         for _, guiTypeHandled in pairs({guiType, "all"}) do
             if global.UTILITYGUIACTIONSGUITYPEOPENED[guiTypeHandled] ~= nil then
                 for actionName, data in pairs(global.UTILITYGUIACTIONSGUITYPEOPENED[guiTypeHandled]) do
                     local actionFunction = MOD.guiOpenedActions[actionName]
-                    local actionData = {actionName = actionName, playerIndex = event.player_index, guiType = guiTypeHandled, data = data, eventData = event}
+                    local actionData = {actionName = actionName, playerIndex = rawFactorioEventData.player_index, guiType = guiTypeHandled, data = data, eventData = rawFactorioEventData}
                     if actionFunction == nil then
                         error("ERROR: Entity GUI Opened Handler - no registered action for name: '" .. tostring(actionName) .. "'")
                         return
@@ -86,7 +114,7 @@ GuiActionsOpened._HandleGuiOpenedAction = function(event)
     if global.UTILITYGUIACTIONSENTITYGUIOPENED ~= nil and entityOpened ~= nil and global.UTILITYGUIACTIONSENTITYGUIOPENED[entityOpened.unit_number] ~= nil then
         for actionName, data in pairs(global.UTILITYGUIACTIONSENTITYGUIOPENED[entityOpened.unit_number]) do
             local actionFunction = MOD.guiOpenedActions[actionName]
-            local actionData = {actionName = actionName, playerIndex = event.player_index, entity = entityOpened, data = data, eventData = event}
+            local actionData = {actionName = actionName, playerIndex = rawFactorioEventData.player_index, entity = entityOpened, data = data, eventData = rawFactorioEventData}
             if actionFunction == nil then
                 error("ERROR: Entity GUI Opened Handler - no registered action for name: '" .. tostring(actionName) .. "'")
                 return

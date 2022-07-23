@@ -5,7 +5,7 @@
 local GuiActionsChecked = {}
 local Constants = require("constants")
 MOD = MOD or {}
-MOD.guiCheckedActions = MOD.guiCheckedActions or {}
+MOD.guiCheckedActions = MOD.guiCheckedActions or {} ---@type table<string, function>
 
 ---@class UtilityGuiActionsChecked_ActionData @ The response object passed to the callback function when the GUI element is checked/unchecked. Registered with GuiActionsChecked.RegisterGuiForCheckedStateChange().
 ---@field actionName string @ The action name registered to this GUI element being checked.
@@ -21,10 +21,8 @@ GuiActionsChecked.MonitorGuiCheckedActions = function()
 end
 
 --- Called from OnLoad() from each script file.
----
---- When actionFunction is triggered a single argument is passed to the actionFunction of type UtilityGuiActionsChecked_ActionData.
 ---@param actionName string @ A unique name for this function to be registered with.
----@param actionFunction function @ The callback function for when the actionName linked GUI element is checked.
+---@param actionFunction fun(callbackData: UtilityGuiActionsChecked_ActionData) @ The callback function for when the actionName linked GUI element is checked.
 GuiActionsChecked.LinkGuiCheckedActionNameToFunction = function(actionName, actionFunction)
     if actionName == nil or actionFunction == nil then
         error("GuiActions.LinkGuiCheckedActionNameToFunction called with missing arguments")
@@ -45,7 +43,7 @@ GuiActionsChecked.RegisterGuiForCheckedStateChange = function(elementName, eleme
         error("GuiActions.RegisterGuiForCheckedStateChange called with missing arguments")
     end
     local name = GuiActionsChecked._GenerateGuiElementName(elementName, elementType)
-    global.UTILITYGUIACTIONSGUICHECKED = global.UTILITYGUIACTIONSGUICHECKED or {}
+    global.UTILITYGUIACTIONSGUICHECKED = global.UTILITYGUIACTIONSGUICHECKED or {} ---@type table<string, UtilityGuiActionsChecked_GuiCheckedDetails>
     if not disabled then
         global.UTILITYGUIACTIONSGUICHECKED[name] = {actionName = actionName, data = data}
     else
@@ -110,5 +108,9 @@ GuiActionsChecked._GenerateGuiElementName = function(elementName, elementType)
 end
 
 ---@alias UtilityGuiActionsChecked_GuiElementName string @ A single unique string made by combining an elements name and type with mod name.
+
+---@class UtilityGuiActionsChecked_GuiCheckedDetails
+---@field actionName string
+---@field data table
 
 return GuiActionsChecked

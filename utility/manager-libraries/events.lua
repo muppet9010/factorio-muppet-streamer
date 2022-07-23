@@ -2,6 +2,8 @@
     Events is used to register one or more functions to be run when a script.event occurs.
     It supports defines.events and custom events. Also offers a raise event method.
     Intended for use with a modular script design to avoid having to link to each modulars functions in a centralised event handler.
+
+    CODE NOTE: this has been typed, but the greyness between defines.events being a number, custom event uints and custom names as strings has caused some confusion in it. if refactoring the internal code try and clear this all up after proper review and testing.
 ]]
 --
 
@@ -9,15 +11,16 @@ local TableUtils = require("utility.helper-utils.table-utils")
 
 local Events = {}
 MOD = MOD or {}
-MOD.eventsById = MOD.eventsById or {} ---@type UtilityEvents_EventHandlerObject[]
-MOD.eventIdHandlerNameToEventIdsListIndex = MOD.eventIdHandlerNameToEventIdsListIndex or {} ---@type table<string, int> A way to get the id key from MOD.eventsById for a specific event id and handler name.
-MOD.eventsByActionName = MOD.eventsByActionName or {} ---@type UtilityEvents_EventHandlerObject[]
-MOD.eventActionNameHandlerNameToEventActionNamesListIndex = MOD.eventActionNameHandlerNameToEventActionNamesListIndex or {} ---@type table<string, int> @ A way to get the id key from MOD.eventsByActionName for a specific action name and handler name.
-MOD.customEventNameToId = MOD.customEventNameToId or {} ---@type table<string, uint>
-MOD.eventFilters = MOD.eventFilters or {} ---@type table<int, table<string, table>>
+MOD.eventsById = MOD.eventsById or {} ---@type table<defines.events|uint, UtilityEvents_EventHandlerObject[]>
+MOD.eventIdHandlerNameToEventIdsListIndex = MOD.eventIdHandlerNameToEventIdsListIndex or {} ---@type table<uint, table<string, int>> A way to get the id key from MOD.eventsById for a specific event id and handler name.
+MOD.eventsByActionName = MOD.eventsByActionName or {} ---@type table<string, UtilityEvents_EventHandlerObject[]>
+MOD.eventActionNameHandlerNameToEventActionNamesListIndex = MOD.eventActionNameHandlerNameToEventActionNamesListIndex or {} ---@type table<string, table<string, int>> @ A way to get the id key from MOD.eventsByActionName for a specific action name and handler name.
+MOD.customEventNameToId = MOD.customEventNameToId or {} ---@type table<string|defines.events, uint>
+MOD.eventFilters = MOD.eventFilters or {} ---@type table<int, table<string, EventFilter[]>>
 
 ---@class UtilityEvents_EventData : EventData @ The class is the minimum being passed through to the recieveing event handler function. It will include any Factorio event specific fields in it.
 ---@field input_name? string|nil @ Used by custom input event handlers registered with Events.RegisterHandlerCustomInput() as the actionName.
+---@field name defines.events|uint|string @ Can be a random uint for custom events. Not entirely sure that string is right here, but fixes a numebr of type mismatchs.
 
 --- Called from OnLoad() from each script file. Registers the event in Factorio and the handler function for all event types and custom events.
 ---@param eventName defines.events|string @ Either Factorio event or a custom modded event name.
@@ -92,6 +95,7 @@ Events.RemoveHandler = function(eventName, handlerName)
         error("Events.RemoveHandler called with missing arguments")
     end
     if MOD.eventsById[eventName] ~= nil then
+        ---@cast eventName defines.events
         for i, handler in pairs(MOD.eventsById[eventName]) do
             if handler.handlerName == handlerName then
                 table.remove(MOD.eventsById[eventName], i)
@@ -99,6 +103,7 @@ Events.RemoveHandler = function(eventName, handlerName)
             end
         end
     elseif MOD.eventsByActionName[eventName] ~= nil then
+        ---@cast eventName string
         for i, handler in pairs(MOD.eventsByActionName[eventName]) do
             if handler.handlerName == handlerName then
                 table.remove(MOD.eventsByActionName[eventName], i)
@@ -118,6 +123,7 @@ Events.RaiseEvent = function(eventData)
     if type(eventName) == "number" then
         script.raise_event(eventName --[[@as uint]], eventData)
     elseif MOD.customEventNameToId[eventName] ~= nil then
+        ---@cast eventName string
         local eventId = MOD.customEventNameToId[eventName]
         script.raise_event(eventId, eventData)
     else
@@ -153,13 +159,13 @@ Events._HandleEvent = function(eventData)
     -- Numeric for loop is faster than pairs and this logic is black boxed from code developer using library.
     if eventData.input_name == nil then
         -- All non custom input events (majority).
-        local eventsById = MOD.eventsById[eventData.name]
+        local eventsById = MOD.eventsById[eventData.name --[[@as defines.events|uint @ In a non custom input event code block, but can't cast object field.]]]
         for i = 1, #eventsById do
             eventsById[i].handlerFunction(eventData)
         end
     else
         -- Custom Input type event.
-        local eventsByInputName = MOD.eventsByActionName[eventData.input_name]
+        local eventsByInputName = MOD.eventsByActionName[eventData.input_name --[[@as string @ In a non custom input event code block, but can't cast object field.]]]
         for i = 1, #eventsByInputName do
             eventsByInputName[i].handlerFunction(eventData)
         end
@@ -194,8 +200,8 @@ Events._RegisterEvent = function(eventName, thisFilterName, thisFilterData)
                 return eventId
             else
                 -- add new filter to any existing old filter and let it be re-applied.
-                filterData = {}
-                for _, filterTable in pairs(MOD.eventFilters[eventId]) do
+                filterData = {} ---@type EventFilter[]
+                for _, filterTable in pairs(MOD.eventFilters[eventId] --[[@as table<any, any>[][] @ Not entirely sure on this, but it makes it happy and there isn;t any Type Def for event filters from Debugger.]]) do
                     filterTable[1].mode = "or"
                     for _, filterEntry in pairs(filterTable) do
                         table.insert(filterData, filterEntry)

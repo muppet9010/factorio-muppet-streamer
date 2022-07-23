@@ -358,9 +358,7 @@ end
 ---@param pos2 MapPosition
 ---@return double @ is inheriently a positive number.
 PositionUtils.GetDistance = function(pos1, pos2)
-    local dx = pos1.x - pos2.x
-    local dy = pos1.y - pos2.y
-    return math_sqrt(dx * dx + dy * dy)
+    return (((pos1.x - pos2.x) ^ 2) + ((pos1.y - pos2.y) ^ 2)) ^ 0.5
 end
 
 -- Gets the distance between a single axis of 2 positions.
