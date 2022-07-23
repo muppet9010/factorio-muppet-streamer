@@ -25,8 +25,6 @@
 ---@class LuaBaseClass @ Used as a fake base class, only supports checking defined attributes.
 ---@field valid boolean
 ---
----@alias StringOrNumber string|number
----
 ---@diagnostic disable-line Alias for nil value. Workaround for EmmyLua not handling nil in multi type lists correctly.
 ---@class nil
 ---

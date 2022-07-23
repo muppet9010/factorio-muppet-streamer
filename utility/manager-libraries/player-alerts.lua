@@ -53,7 +53,8 @@ PlayerAlerts.AddCustomAlertToForce = function(force, alertId, alertEntity, alert
 
     -- Get an alertId if one not provided
     if alertId == nil then
-        alertId = "auto_" .. global.UTILITYPLAYERALERTS.forceAlertsNextAutoId
+        local currentId = global.UTILITYPLAYERALERTS.forceAlertsNextAutoId -- Work around bug in Jan's plugin: https://github.com/JanSharp/FactorioSumnekoLuaPlugin/issues/4#issuecomment-1193183158
+        alertId = "auto_" .. currentId
         global.UTILITYPLAYERALERTS.forceAlertsNextAutoId = global.UTILITYPLAYERALERTS.forceAlertsNextAutoId + 1
     end
 
@@ -150,14 +151,14 @@ end
 
 --- Creates (if needed) and returns a force's alerts Factorio global table.
 ---@param forceIndex uint @ the index of the LuaForce.
----@return table<uint, UtilityPlayerAlerts_ForceAlertObject> forceAlerts
+---@return table<UtilityPlayerAlerts_AlertId, UtilityPlayerAlerts_ForceAlertObject> forceAlerts
 PlayerAlerts._GetCreateForceAlertsGlobalObject = function(forceIndex)
     if global.UTILITYPLAYERALERTS == nil then
         global.UTILITYPLAYERALERTS = {}
     end
 
     if global.UTILITYPLAYERALERTS.forceAlertsByForce == nil then
-        global.UTILITYPLAYERALERTS.forceAlertsByForce = {}
+        global.UTILITYPLAYERALERTS.forceAlertsByForce = {} ---@type table<uint, table<UtilityPlayerAlerts_AlertId, UtilityPlayerAlerts_ForceAlertObject>>
     end
     local forceAlerts = global.UTILITYPLAYERALERTS.forceAlertsByForce[forceIndex]
     if forceAlerts == nil then
@@ -170,7 +171,7 @@ PlayerAlerts._GetCreateForceAlertsGlobalObject = function(forceIndex)
     end
 
     if global.UTILITYPLAYERALERTS.forceAlertsByAlert == nil then
-        global.UTILITYPLAYERALERTS.forceAlertsByAlert = {}
+        global.UTILITYPLAYERALERTS.forceAlertsByAlert = {} ---@type table<UtilityPlayerAlerts_AlertId, UtilityPlayerAlerts_ForceAlertObject>
     end
 
     return forceAlerts

@@ -77,7 +77,7 @@ end
 
 --- Generally this can be done inline, still included here as a reference to how to do this.
 ---@param aTable table
----@return StringOrNumber
+---@return string|number
 TableUtils.GetFirstTableKey = function(aTable)
     return next(aTable)
 end
@@ -120,7 +120,7 @@ end
 
 --- Makes a list of the input table's keys in their current order.
 ---@param aTable table
----@return StringOrNumber[]
+---@return string|number[]
 TableUtils.TableKeyToArray = function(aTable)
     ---@cast aTable table<any,any>
     local newArray = {}
@@ -226,9 +226,9 @@ end
 
 --- Searches a table of values for a specific value and returns the key(s) of that entry.
 ---@param theTable table
----@param value StringOrNumber|StringOrNumber[] @ Either a single value or an array of possible values.
+---@param value string|number|string|number[] @ Either a single value or an array of possible values.
 ---@param returnMultipleResults? boolean|nil @ Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
----@return StringOrNumber[] @ table of keys.
+---@return string|number[] @ table of keys.
 TableUtils.GetTableKeyWithValue = function(theTable, value, returnMultipleResults)
     ---@cast theTable table<any, any>
     local keysFound = {}
@@ -256,10 +256,10 @@ end
 
 --- Searches a table of tables and looks inside the inner table at a specific key for a specific value and returns the key(s) of the outer table entry.
 ---@param theTable table
----@param innerKey StringOrNumber
----@param innerValue StringOrNumber|StringOrNumber[] @ Either a single value or an array of possible values.
+---@param innerKey string|number
+---@param innerValue string|number|string|number[] @ Either a single value or an array of possible values.
 ---@param returnMultipleResults? boolean|nil @ Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
----@return StringOrNumber[] @ table of keys.
+---@return string|number[] @ table of keys.
 TableUtils.GetTableKeyWithInnerKeyValue = function(theTable, innerKey, innerValue, returnMultipleResults)
     ---@cast theTable table<any, any>
     local keysFound = {}
@@ -287,8 +287,8 @@ end
 
 --- Searches a table of tables and looks inside the inner table at a specific key for a specific value(s) and returns the value(s) of the outer table entry.
 ---@param theTable table
----@param innerKey StringOrNumber
----@param innerValue StringOrNumber|StringOrNumber[] @ Either a single value or an array of possible values.
+---@param innerKey string|number
+---@param innerValue string|number|string|number[] @ Either a single value or an array of possible values.
 ---@param returnMultipleResults? boolean|nil @ Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
 ---@return table[] @ table of values, which must be a table to have an inner key/value.
 TableUtils.GetTableValueWithInnerKeyValue = function(theTable, innerKey, innerValue, returnMultipleResults)

@@ -103,7 +103,7 @@ GuiUtil.AddElement = function(elementDetails)
 
     local element = elementDetails.parent.add(elementDetails --[[@as LuaGuiElement.add_param]])
 
-    local returnElements = {}
+    local returnElements = {} ---@type table<string, LuaGuiElement>
     if returnElement then
         if elementDetailsNoClass.descriptiveName == nil then
             error("GuiUtil.AddElement returnElement attribute requires element descriptiveName to be supplied.")
@@ -138,7 +138,7 @@ GuiUtil.AddElement = function(elementDetails)
     if attributes ~= nil then
         for k, v in pairs(attributes) do
             if type(v) == "function" then
-                v = v()
+                v = v() --[[@as any @ A function will return something, even if nil.]]
             end
             element[k] = v
         end
@@ -238,15 +238,14 @@ GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeNa
     if changes.attributes ~= nil then
         for k, v in pairs(changes.attributes) do
             if type(v) == "function" then
-                v = v()
+                v = v() --[[@as any @ A function will return something, even if nil.]]
             end
             element[k] = v
         end
         changes.attributes = nil
     end
 
-    for argName, argValue in pairs(changes) do
-        ---@cast argName string
+    for argName, argValue in pairs(changes --[[@as table<string, any>]]) do
         if argName == "caption" or argName == "tooltip" then
             argValue = GuiUtil._ReplaceLocaleNameSelfWithGeneratedName({name = generatedName, [argName] = argValue}, argName)
         end
@@ -328,7 +327,7 @@ end
 
 --- Applies an array of styling options to an existing Gui element.
 ---@param element LuaGuiElement
----@param stylingArgs table<LuaStyle, any> @ A table of LuaStyle options to be applied. Table key is the style name, with the table value as the styles value to set.
+---@param stylingArgs UtilityGuiUtil_ElementDetails_styling @ A table of LuaStyle options to be applied. Table key is the style name, with the table value as the styles value to set.
 GuiUtil._ApplyStylingArgumentsToElement = function(element, stylingArgs)
     if element == nil or (not element.valid) then
         return
@@ -339,8 +338,9 @@ GuiUtil._ApplyStylingArgumentsToElement = function(element, stylingArgs)
         end
         stylingArgs.column_alignments = nil
     end
+    local elementStyle = element.style --[[@as table<string, any> @ As we are just blindly writing key values to it.]]
     for k, v in pairs(stylingArgs) do
-        element.style[k] = v
+        elementStyle[k] = v
     end
 end
 
@@ -352,7 +352,7 @@ end
 ---@return string|table|nil updatedAttributeNameObject
 GuiUtil._ReplaceLocaleNameSelfWithGeneratedName = function(elementDetails, attributeName)
     -- Reference the "name" key by this indirect way to avoid EmmyLua picking it up. Can use array reference as just reading it.
-    local attributeNamesValue = elementDetails[attributeName] ---@type string|nil|table
+    local attributeNamesValue = elementDetails[attributeName] ---@type string|nil|string[]
     if attributeNamesValue == nil then
         -- The given attributeName doesn't exist for this elementDetails.
         attributeNamesValue = nil
@@ -379,7 +379,7 @@ end
 --- A table of LuaStyle attribute names and values (key/value) to be applied post element creation (after style). Saves having to capture the added element and then set style attributes one at a time in calling code.
 ---
 --- [Styling documentation](https://lua-api.factorio.com/latest/LuaStyle.html)
----@alias UtilityGuiUtil_ElementDetails_styling table<string, StringOrNumber|boolean|nil>
+---@alias UtilityGuiUtil_ElementDetails_styling table<string, string|number|boolean|table<any, any>|nil>
 
 --- Text displayed on the child element. For frames, this is their title. For other elements, like buttons or labels, this is the content. Whilst this attribute may be used on all elements, it doesn't make sense for tables and flows as they won't display it.
 ---

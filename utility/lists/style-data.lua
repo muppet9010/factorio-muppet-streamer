@@ -24,7 +24,7 @@ local StyleData = {}
 local Colors = require("utility.lists.colors")
 
 StyleData.styleVersion = "_1_1_0"
-local styleNamesGenerated = {}
+local styleNamesGenerated = {} ---@type table<string, table>
 
 -- Enable to write the styles out to a text file to use for updating EmmyLua class. This is for when updating the styles library only during development.
 -- Doesn't include Style version as we don't want to hardcode that in to usage code.
@@ -40,7 +40,7 @@ end
 
 --- Call in data.lua to actually generate the styles in to the game's prototypes.
 StyleData.GeneratePrototypes = function()
-    local defaultStyle = data.raw["gui-style"]["default"]
+    local defaultStyle = data.raw["gui-style"]["default"] ---@type table<string, table<string|uint, any>>
 
     local frameShadowRisenColor = {0, 0, 0, 0.35}
     local frameShadowSunkenColor = {0, 0, 0, 1}
@@ -64,7 +64,7 @@ StyleData.GeneratePrototypes = function()
     end
 
     -- FLOW
-    styleNamesGenerated.flow = {}
+    styleNamesGenerated.flow = {} ---@type table<string, table<string, string>>
     for _, direction in pairs({{"_horizontal", "horizontal"}, {"_vertical", "vertical"}}) do
         styleNamesGenerated.flow[direction[2]] = {}
         for _, margin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
@@ -91,7 +91,7 @@ StyleData.GeneratePrototypes = function()
     end
 
     -- FRAME - the shadow types include padding/margins to handle the graphics. take this in to account if overwriting the values.
-    styleNamesGenerated.frame = {}
+    styleNamesGenerated.frame = {} ---@type table<string, table<string, string>>
     for _, graphic in pairs(
         {
             {"_main", {base = {position = {0, 0}, corner_size = 8}}, 0, 0},
@@ -132,7 +132,7 @@ StyleData.GeneratePrototypes = function()
     end
 
     -- SCROLL
-    styleNamesGenerated.scroll = {}
+    styleNamesGenerated.scroll = {} ---@type table<string, string>
     for _, margin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
         for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
             local detailsName = margin[1] .. padding[1]
@@ -157,7 +157,7 @@ StyleData.GeneratePrototypes = function()
     end
 
     -- TABLE
-    styleNamesGenerated.table = {}
+    styleNamesGenerated.table = {} ---@type table<string, string>
     for _, tableMargin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
         for _, tablePadding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
             for _, cellPadding in pairs({{"", 0, 0, 0, 0}, {"_cellPadded", 4, 4, 4, 4}}) do
@@ -190,7 +190,7 @@ StyleData.GeneratePrototypes = function()
     end
 
     -- SPRITE
-    styleNamesGenerated.sprite = {}
+    styleNamesGenerated.sprite = {} ---@type table<string, string>
     for _, size in pairs({{"_32", 32}, {"_48", 48}, {"_64", 64}}) do
         local detailsName = size[1]
         local styleName = "muppet_sprite" .. detailsName
@@ -206,7 +206,7 @@ StyleData.GeneratePrototypes = function()
     end
 
     -- SPRITE BUTTON
-    styleNamesGenerated.spriteButton = {}
+    styleNamesGenerated.spriteButton = {} ---@type table<string, string>
     for _, attributes in pairs(
         {
             {"", {}},
@@ -221,13 +221,14 @@ StyleData.GeneratePrototypes = function()
             local styleNameVersion = styleName .. StyleData.styleVersion
             defaultStyle[styleNameVersion] = {
                 type = "button_style",
-                width = size[2],
-                height = size[2],
+                width = size[2] --[[@as uint|nil]],
+                height = size[2] --[[@as uint|nil]],
                 margin = 0,
                 padding = 0
             }
-            for k, v in pairs(attributes[2]) do
+            for k, v in pairs(attributes[2] --[[@as table<string, table>]]) do
                 if type(k) == "number" then
+                    ---@cast k uint @ Its really a uint vlaue if its a number type.
                     defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                 else
                     defaultStyle[styleNameVersion][k] = v
@@ -238,7 +239,7 @@ StyleData.GeneratePrototypes = function()
     end
 
     -- BUTTON
-    styleNamesGenerated.button = {}
+    styleNamesGenerated.button = {} ---@type table<string, table<string, string>>
     for _, textSize in pairs({{"_small", "_small"}, {"_medium", "_medium"}, {"_large", "_large"}}) do
         local textSizeEmmyLuaName = string.sub(textSize[1], 2)
         styleNamesGenerated.button[textSizeEmmyLuaName] = {}
@@ -265,8 +266,9 @@ StyleData.GeneratePrototypes = function()
                         minimal_width = 0,
                         minimal_height = 0
                     }
-                    for k, v in pairs(attributes[2]) do
+                    for k, v in pairs(attributes[2] --[[@as table<string, table>]]) do
                         if type(k) == "number" then
+                            ---@cast k uint @ Its really a uint vlaue if its a number type.
                             defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                         else
                             defaultStyle[styleNameVersion][k] = v
@@ -279,7 +281,7 @@ StyleData.GeneratePrototypes = function()
     end
 
     -- LABEL
-    styleNamesGenerated.label = {}
+    styleNamesGenerated.label = {} ---@type table<string, table<string, table<string, string>>>
     for _, purpose in pairs({{"_text", Colors.white}, {"_heading", Colors.guiheadingcolor}}) do
         local purposeEmmyLuaName = string.sub(purpose[1], 2)
         styleNamesGenerated.label[purposeEmmyLuaName] = {}
@@ -313,7 +315,7 @@ StyleData.GeneratePrototypes = function()
     end
 
     -- TEXT BOX - set width & height setting when using as base game has values that can't be nil'd
-    styleNamesGenerated.textbox = {}
+    styleNamesGenerated.textbox = {} ---@type table<string, string>
     for _, margin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
         for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
             local detailsName = margin[1] .. padding[1]
@@ -414,7 +416,7 @@ StyleData.GeneratePrototypes = function()
 end
 
 --- Traverse the variable nesting layers of the muppet styles and make a Lua object string for them.
----@param styleChildren table @ A dictionary of the current style children.
+---@param styleChildren table<string, string|table> @ A dictionary of the current style children.
 StyleData._TraverseStyleChildrenToString = function(styleChildren)
     local text = ""
     for styleDetailsName, styleFullName in pairs(styleChildren) do
