@@ -1,5 +1,5 @@
 DOING NOW:
-    resolve any TODO's added previously.
+
 
 BUGS:
 

@@ -1,6 +1,5 @@
 local PlayerDropInventory = {}
 local CommandsUtils = require("utility.helper-utils.commands-utils")
-local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
@@ -36,7 +35,7 @@ local QuantityType = {
 ---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|'cursorStack', uint> @ Dictionary of each inventory to a cached total count across all items (count of each item all added togeather) were in that inventory.
 ---@alias PlayerDropInventory_InventoryContents table<defines.inventory|'cursorStack', table<string, uint>> @ Dictionary of each inventory to a cached list of item name and counts in that inventory.
 
-local ErrorMessageStart = "ERROR: muppet_streamer_player_drop_inventory command " --TODO: replace me
+local commandName = "muppet_streamer_player_drop_inventory"
 
 PlayerDropInventory.CreateGlobals = function()
     global.playerDropInventory = global.playerDropInventory or {}
@@ -54,8 +53,6 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandName = "muppet_streamer_player_drop_inventory"
-
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment"})
     if commandData == nil then
         return
@@ -92,7 +89,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local gapSeconds = commandData.gap
-    if not CommandsUtils.CheckNumberArgument(gapSeconds, "double", true, commandName, "gap", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(gapSeconds, "double", true, commandName, "gap", 1 / 60, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast gapSeconds double
     local gap = math.floor(gapSeconds * 60) --[[@as uint @ gapSeconds was validated as not exceeding a uint during input validation.]]
@@ -183,7 +180,12 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         return
     end
 
-    --TODO: I don't understand what itemsCountsInInventories does. Work out and either remove or comment. The type def is based off code and may be wrong intentions.
+    -- Get the details about the items in the inventory. This allows us to do most of the processing off this cached data.
+    -- Updates these item stats as it loops over them and drops one item at a time.
+    -- Includes:
+    --      - total items in all inventories - used to work out the range of our random item selection (by index).
+    --      - total items in each inventory - used to work out which inventory has the item we want as can just use these totals, rather than having to repeatedly count the cached contents counts.
+    --      - item name and count in each inventory - used to define what item to drop for a given index in an inventory.
     local totalItemCount, itemsCountsInInventories, inventoriesContents = PlayerDropInventory.GetPlayersInventoryItemDetails(player, data.dropEquipment)
 
     -- Get the number of items to drop this event.
@@ -196,15 +198,16 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
 
     -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurence count has completed.
     if totalItemCount > 0 then
-        -- Drop the number of items from across the range of inventories based on their proportional sizes.
-        -- Updates the item stats as it loops.
         local itemCountDropped = 0
         local surface, position = player.surface, player.position
+
+        -- Drop a single random item from across the range of inventories at a time until the required number of items have been dropped.
+        -- CODE NOTE: This is quite Lua code inefficient, but does ensure truely random items are dropped.
         while itemCountDropped < itemCountToDrop do
-            -- Select the random item number to be dropped from all items.
+            -- Select the single random item number to be dropped from across the total item count.
             local itemNumberToDrop = math.random(1, totalItemCount)
 
-            -- Find the inventory with this item number in it.
+            -- Find the inventory with this item number in it. Update the per inventory total item counts.
             local inventoryNameOfItemNumberToDrop, itemNumberInSpecificInventory
             local itemCountedUpTo = 0
             for inventoryName, countInInventory in pairs(itemsCountsInInventories) do
@@ -217,11 +220,11 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 end
             end
             if inventoryNameOfItemNumberToDrop == nil then
-                LoggingUtils.LogPrintError(ErrorMessageStart .. "didn't find item number " .. itemNumberToDrop .. " when looking over " .. player.name .. "'s inventories.")
+                CommandsUtils.LogPrintError(commandName, nil, "didn't find item number " .. itemNumberToDrop .. " when looking over " .. player.name .. "'s inventories.", nil)
                 return
             end
 
-            -- Find the name of the numbered item in the specific inventory
+            -- Find the name of the numbered item in the specific inventory. Update the cached lists to remove 1 from this item's count.
             local itemNameToDrop
             local inventoryItemsCounted = 0
             for itemName, itemCount in pairs(inventoriesContents[inventoryNameOfItemNumberToDrop]) do
@@ -233,11 +236,11 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 end
             end
             if itemNameToDrop == nil then
-                LoggingUtils.LogPrintError(ErrorMessageStart .. "didn't find item name for number " .. itemNumberToDrop .. " in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop)
+                CommandsUtils.LogPrintError(commandName, nil, "didn't find item name for number " .. itemNumberToDrop .. " in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop, nil)
                 return
             end
 
-            -- Drop the specific item
+            -- Drop the specific item.
             local itemStackToDropFrom  ---@type LuaItemStack
             if inventoryNameOfItemNumberToDrop == "cursorStack" then
                 -- Special case as not a real inventory.
@@ -248,11 +251,14 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             end
             local itemStackToDropFrom_count = itemStackToDropFrom.count
             if itemStackToDropFrom_count == 1 then
-                -- Single item in the stack so drop it and all done. This handles any extra attributes the stack may have naturally.
+                -- Single item in the itemStack so drop it and all done. This handles any extra attributes the itemStack may have naturally.
                 surface.spill_item_stack(position, itemStackToDropFrom, false, nil, data.dropOnBelts)
                 itemStackToDropFrom.count = 0
             else
-                -- Multiple items in the stack so can just drop 1 copy of the stack details and remove 1 from count.
+                -- Multiple items in the itemStack so can just drop 1 copy of the itemStack details and remove 1 from count.
+                -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
+                -- CODE NOTE: ItemStacks have a single durability and ammo stat which effectively is for the first item in the itemStack, with the other items in the itemStack all being full.
+                -- CODE NOTE: when the itemStack's count is reduced by 1 the itemStacks durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
                 local itemToDrop = {name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability}
                 if itemStackToDropFrom.type == "ammo" then
                     itemToDrop.ammo = itemStackToDropFrom.ammo
@@ -264,7 +270,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 itemStackToDropFrom.count = itemStackToDropFrom_count - 1
             end
 
-            -- Count that the item was dropped.
+            -- Count that the item was dropped and update the total items in all inventory count.
             itemCountDropped = itemCountDropped + 1
             totalItemCount = totalItemCount - 1
 
@@ -297,7 +303,7 @@ PlayerDropInventory.StopEffectOnPlayer = function(playerIndex)
     end
 
     global.playerDropInventory.affectedPlayers[playerIndex] = nil
-    EventScheduler.RemoveScheduledEvents("PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex)
+    EventScheduler.RemoveScheduledOnceEvents("PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex)
 end
 
 ---@param player LuaPlayer

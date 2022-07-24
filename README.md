@@ -261,7 +261,7 @@ Schedules the targeted player to drop their inventory on the ground over time.
     - quantityType: STRING - Mandatory: the way quantity value is interpreted to calculate the number of items to drop per drop event, either `constant`, `startingPercentage` or `realtimePercentage`. Constant uses quantityValue as a static number of items. StartingPercentage means a percentage of the item count at the start of the effect is dropped from the player every drop event. RealtimePercentage means that every time a drop event occurs the player's current inventory item count is used to calculate how many items to drop this event.
     - quantityValue: INTEGER - Mandatory: the number of items to drop. When quantityType is `startingPercentage`, or `realtimePercentage` this number is used as the percentage (0-100).
     - dropOnBelts: BOOLEAN - Optional: if the dropped items should be placed on belts or not. Defaults to False.
-    - gap: DECIMAL - Mandatory: how many seconds between each drop event. Must be 1 second or more.
+    - gap: DECIMAL - Mandatory: how many seconds between each drop event. Must convert to a minimum of 1 tick, so a valud of 1/60th (0.167) or more of a second.
     - occurrences: INTEGER - Mandatory: how many times the drop events are done.
     - dropEquipment: BOOLEAN - Optional: if the player's armour and weapons are dropped or not. Defaults to True.
 - Example command for dropping 10% of starting inventory items 5 times: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":1, "occurrences":5}`

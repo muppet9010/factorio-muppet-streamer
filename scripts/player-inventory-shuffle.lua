@@ -1,6 +1,5 @@
 local PlayerInventoryShuffle = {}
 local CommandsUtils = require("utility.helper-utils.commands-utils")
-local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Colors = require("utility.lists.colors")
 local StringUtils = require("utility.helper-utils.string-utils")
@@ -47,6 +46,8 @@ local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force th
 ---@field destinationPlayersVarianceFactor double
 ---@field recipientItemMinToMaxRatio uint
 
+local commandName = "muppet_streamer_player_inventory_shuffle"
+
 PlayerInventoryShuffle.CreateGlobals = function()
     global.playerInventoryShuffle = global.playerInventoryShuffle or {}
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId or 0 ---@type uint
@@ -60,8 +61,6 @@ end
 
 ---@param command CustomCommandData
 PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
-    local commandName = "muppet_streamer_player_inventory_shuffle"
-
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "includedPlayers", "includedForces", "includeEquipment", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio"})
     if commandData == nil then
         return
@@ -548,7 +547,7 @@ PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInvento
                 -- Player's inventory is full so stop trying to add more things to do. Will catch the left over items in the storage inventory later.
                 playerIndexsWithFreeInventorySpace_table[playerIndex] = nil -- This will make it a gappy array, but we will squash it down later.
                 if DebugStatusMessages then
-                    LoggingUtils.LogPrintWarning("Player list index " .. playerIndex .. "'s inventory is full during initial item distribution")
+                    CommandsUtils.LogPrintWarning(commandName, nil, "Player list index " .. playerIndex .. "'s inventory is full during initial item distribution")
                 end
                 break
             end
@@ -567,7 +566,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
     local itemsLeftInStorage = storageInventory.get_contents()
     if next(itemsLeftInStorage) ~= nil then
         if DebugStatusMessages then
-            LoggingUtils.LogPrintWarning("storage inventory not all distributed to players initially")
+            CommandsUtils.LogPrintWarning(commandName, nil, "storage inventory not all distributed to players initially")
         end
         -- playerIndexsWithFreeInventorySpace_table is a gappy array so have to make it consistent to allow easier usage in this phase.
         local playerIndexsWithFreeInventorySpace_array = {} ---@type LuaPlayer[]
@@ -592,7 +591,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
                     -- Player's inventory is full so prevent trying to add anything else to this player in the future.
                     table.remove(playerIndexsWithFreeInventorySpace_array, playerListIndex)
                     if DebugStatusMessages then
-                        LoggingUtils.LogPrintWarning("A player's inventory is full during secondary item dump to players") -- This doesn't know the origional position of the player in the list as the list is being trimmed and squashed as it goes.
+                        CommandsUtils.LogPrintWarning(commandName, nil, "A player's inventory is full during secondary item dump to players") -- This doesn't know the origional position of the player in the list as the list is being trimmed and squashed as it goes.
                     end
                 end
             end

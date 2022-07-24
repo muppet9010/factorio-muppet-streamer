@@ -172,6 +172,7 @@ end
 ---@param dropUnmovedOnGround? boolean|nil @ If TRUE then ALL items not moved are dropped on the ground. If FALSE then unmoved items are left in the source inventory. If not provided then defaults to FALSE.
 ---@param ratioToMove? double|nil @ Ratio of the item count to try and move. Float number from 0 to 1. If not provided it defaults to 1. Number of items moved is rounded up.
 ---@return boolean|nil everythingMoved? @ If all items were moved successfully or not. Nil if no items to move.
+---@deprecated This doesn't handle durability or tags. Also the health needs to be dropped on floor and ammo may need to be dropped on floor if non are inserted.
 InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory, dropUnmovedOnGround, ratioToMove)
     -- Set default values.
     if dropUnmovedOnGround == nil then
@@ -197,6 +198,9 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
 
     --Do the actual item moving.
     for index, simpleItemStack in pairs(simpleItemStacks) do
+        -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
+        -- CODE NOTE: ItemStacks have a single durability and ammo stat which effectively is for the first item in the itemStack, with the other items in the itemStack all being full.
+        -- CODE NOTE: when the itemStack's count is reduced the itemStacks durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
         local toMove = math_ceil(simpleItemStack.count * ratioToMove) --[[@as uint]] -- This can't have a multiplier above 1.
         local moved = targetInventory.insert({name = simpleItemStack.name, count = toMove, health = simpleItemStack.health, ammo = simpleItemStack.ammo})
         local remaining = simpleItemStack.count - moved

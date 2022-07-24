@@ -73,6 +73,8 @@ local MaxDistancePositionAroundTarget = 10
 
 ---@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then bacth ignoring of non-enemy spawners.
 
+local commandName = "muppet_streamer_teleport"
+
 Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
     global.teleport.nextId = global.teleport.nextId or 0 ---@type uint
@@ -97,15 +99,12 @@ end
 --- Triggered when the RCON command is run.
 ---@param command CustomCommandData
 Teleport.TeleportCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_teleport command " --TODO: replace me
-    local commandName = "muppet_streamer_teleport"
-
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings"})
     if commandData == nil then
         return
     end
 
-    local commandValues = Teleport.GetCommandData(commandData, errorMessageStart, 0, command.parameter)
+    local commandValues = Teleport.GetCommandData(commandData, 0, command.parameter)
     if commandValues == nil then
         return
     end
@@ -115,12 +114,10 @@ end
 
 --- Validates the data from an RCON commands's arguments in to a table of details.
 ---@param commandData table<string, any> @ Table of arguments passed in to the RCON command.
----@param errorMessageStart string
 ---@param depth uint @ Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
 ---@param commandStringText string @ The raw command text sent via RCON.
 ---@return Teleport_CommandDetails|nil commandDetails @ Command details are returned if no errors hit, othewise nil is returned.
-Teleport.GetCommandData = function(commandData, errorMessageStart, depth, commandStringText)
-    local commandName = "muppet_streamer_teleport"
+Teleport.GetCommandData = function(commandData, depth, commandStringText)
     local depthErrorMessage = ""
     if depth > 0 then
         depthErrorMessage = "at depth " .. depth .. " - "
@@ -214,7 +211,7 @@ Teleport.GetCommandData = function(commandData, errorMessageStart, depth, comman
     local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
     if backupTeleportSettingsRaw ~= nil then
         if type(backupTeleportSettingsRaw) == "table" then
-            backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1, commandStringText)
+            backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, depth + 1, commandStringText)
             if backupTeleportSettings == nil then
                 -- The error will have been already reported to screen during the function handling the contents, so just stop the command from executing here.
                 return nil

@@ -1,6 +1,5 @@
 local LeakyFlamethrower = {}
 local CommandsUtils = require("utility.helper-utils.commands-utils")
-local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
 local PlayerWeapon = require("utility.functions.player-weapon")
@@ -36,6 +35,8 @@ local EffectEndStatus = {
 ---@field burstsLeft uint
 ---@field removedWeaponDetails UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
 
+local commandName = "muppet_streamer_leaky_flamethrower"
+
 LeakyFlamethrower.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
     global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<uint, LeakyFlamethrower_AffectedPlayersDetails> @ Key'd by player_index.
@@ -59,8 +60,6 @@ end
 
 ---@param command CustomCommandData
 LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
-    local commandName = "muppet_streamer_leaky_flamethrower"
-
     local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "ammoCount"})
     if commandData == nil then
         return
@@ -90,7 +89,6 @@ end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
 LeakyFlamethrower.ApplyToPlayer = function(eventData)
-    local errorMessageStart = "ERROR: muppet_streamer_leaky_flamethrower command " --TODO: replace me
     local data = eventData.data ---@type LeakyFlamethrower_ScheduledEventDetails
 
     local targetPlayer = game.get_player(data.target)
@@ -108,7 +106,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true, "flamethrower-ammo") ---@cast removedWeaponDetails - nil @ removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equiped (not allowing it to go in to the player's inventory).
 
     if flamethrowerGiven == nil then
-        LoggingUtils.LogPrintError(errorMessageStart .. "target player can't be given a flamethrower for some odd reason: " .. data.target)
+        CommandsUtils.LogPrintError(commandName, nil, "target player can't be given a flamethrower for some odd reason: " .. data.target, nil)
         return
     end
 
@@ -131,14 +129,14 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local selectedGunInventory = targetPlayer.get_inventory(defines.inventory.character_guns)[selectedGunIndex]
     if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= "flamethrower" then
         -- Flamethrower has been removed as active weapon by some script.
-        LoggingUtils.LogPrintError(errorMessageStart .. "target player weapon state isn't right for some odd reason: " .. data.target)
+        CommandsUtils.LogPrintError(commandName, nil, "target player weapon state isn't right for some odd reason: " .. data.target, nil)
         return
     end
     -- Check the player has the weapon's ammo equiped as expected. (same as checking logic as when it tries to fire the weapon).
     local selectedAmmoInventory = targetPlayer.get_inventory(defines.inventory.character_ammo)[selectedGunIndex]
     if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= "flamethrower-ammo" then
         -- Ammo has been removed by some script. As we wouldn't have reached this point in a managed loop as its beyond the last burst.
-        LoggingUtils.LogPrintError(errorMessageStart .. "target player ammo state isn't right for some odd reason: " .. data.target)
+        CommandsUtils.LogPrintError(commandName, nil, "target player ammo state isn't right for some odd reason: " .. data.target, nil)
         return
     end
 

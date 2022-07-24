@@ -46,8 +46,8 @@ end
 ---@param alertMessage LocalisedString
 ---@param showOnMap boolean
 ---@return UtilityPlayerAlerts_AlertId alertId @ The Id of the created alert.
+---@deprecated An alert only lasts for 5-10 (?) seconds and then auto finishes. We need to have an option for a continous alert that auto adds a new one just before the hard coded timer runs out.
 PlayerAlerts.AddCustomAlertToForce = function(force, alertId, alertEntity, alertSignalId, alertMessage, showOnMap)
-    --TODO: an alert only lasts for 5-10 (?) seconds and then auto finishes. We need to have an option for a continous alert that auto adds a new one just before the hard coded timer runs out.
     local forceId = force.index
     local forceAlerts = PlayerAlerts._GetCreateForceAlertsGlobalObject(forceId)
 

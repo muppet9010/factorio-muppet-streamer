@@ -1,6 +1,5 @@
 local Common = {}
 local MathUtils = require("utility.helper-utils.math-utils")
-local LoggingUtils = require("utility.helper-utils.logging-utils")
 local Constants = require("constants")
 local TableUtils = require("utility.helper-utils.table-utils")
 local CommandsUtils = require("utility.helper-utils.commands-utils")
@@ -17,7 +16,7 @@ Common.DelaySecondsSettingToScheduledEventTickValue = function(delaySeconds, cur
         local valueWasOutsideRange  ---@type boolean
         scheduleTick, valueWasOutsideRange = MathUtils.ClampToUInt(currentTick + math.floor(delaySeconds * 60))
         if valueWasOutsideRange then
-            LoggingUtils.LogPrintWarning(Constants.ModFriendlyName .. " - command " .. commandName .. " - " .. settingName .. " capped at max ticks, as excessively large number of delay seconds provided: " .. tostring(delaySeconds))
+            CommandsUtils.LogPrintWarning(commandName, settingName, "capped at max ticks, as excessively large number of delay seconds provided: " .. tostring(delaySeconds), nil)
         end
     else
         scheduleTick = -1 ---@type UtilityScheduledEvent_UintNegative1
@@ -36,10 +35,7 @@ Common.CheckPlayerNameSettingValue = function(playerName, commandName, settingNa
     if not CommandsUtils.CheckStringArgument(playerName, true, commandName, settingName, nil, commandString) then
         return false
     elseif game.get_player(playerName) == nil then
-        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - " .. settingName .. " is invalid player name")
-        if commandString ~= nil then
-            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " recieved text: " .. commandString)
-        end
+        CommandsUtils.LogPrintWarning(commandName, settingName, "is invalid player name", commandString)
         return false
     end
     return true
