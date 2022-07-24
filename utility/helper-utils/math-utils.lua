@@ -122,6 +122,24 @@ MathUtils.ClampToInt = function(value, min, max)
     end
 end
 
+--- Returns the passed in number clamped to within the range of an int8, with optional additional min and max's applied.
+--- Use Int over Integer as this is the Factorio data type and Lua 5.2 doesn't have real `integer` types. Although Sumneko does have some numeric values of the Integer type to aid usage limitations detection.
+---@param value int
+---@param min? int|nil
+---@param max? int|nil
+---@return int8
+---@return boolean valueWasOutsideRange
+MathUtils.ClampToInt8 = function(value, min, max)
+    min = min or MathUtils.int8Min
+    max = max or MathUtils.int8Max
+    local newValue = math_min(math_max(value, min), max) --[[@as int8]]
+    if newValue ~= value then
+        return newValue, true
+    else
+        return newValue, false
+    end
+end
+
 --- Returns the passed in number clamped to within the range of an uint (min 0), with optional additional min and max's applied.
 ---@param value int
 ---@param min? uint|nil
@@ -139,6 +157,23 @@ MathUtils.ClampToUInt = function(value, min, max)
     end
 end
 
+--- Returns the passed in number clamped to within the range of an uint 64 (min 0), with optional additional min and max's applied.
+---@param value int
+---@param min? uint|nil
+---@param max? uint|nil
+---@return uint64 clampedValue
+---@return boolean valueWasOutsideRange
+MathUtils.ClampToUInt64 = function(value, min, max)
+    min = min or 0
+    max = max or MathUtils.uint64Max
+    local newValue = math_min(math_max(value, min), max) --[[@as uint64]]
+    if newValue ~= value then
+        return newValue, true
+    else
+        return newValue, false
+    end
+end
+
 --- Returns the passed in number clamped to within the range of an uint 16 (min 0), with optional additional min and max's applied.
 ---@param value int
 ---@param min? uint|nil
@@ -147,7 +182,7 @@ end
 ---@return boolean valueWasOutsideRange
 MathUtils.ClampToUInt16 = function(value, min, max)
     min = min or 0
-    max = max or MathUtils.uintMax16
+    max = max or MathUtils.uint16Max
     local newValue = math_min(math_max(value, min), max) --[[@as uint16]]
     if newValue ~= value then
         return newValue, true
@@ -164,7 +199,7 @@ end
 ---@return boolean valueWasOutsideRange
 MathUtils.ClampToUInt8 = function(value, min, max)
     min = min or 0
-    max = max or MathUtils.uintMax8
+    max = max or MathUtils.uint8Max
     local newValue = math_min(math_max(value, min), max) --[[@as uint8]]
     if newValue ~= value then
         return newValue, true

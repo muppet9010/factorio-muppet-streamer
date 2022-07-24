@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.24
-Date: 2022-XX-XX
+Date: 2022-07-24
   Features:
     - Any unsupported option/setting provided when a command is run will raise a warning on screen. This is to aid user recognition of any mistakes in their command's options/settings.
     - Added remote interface for features in addition to their commands. This is documented at the end of the mod description/readme. This should provide full flexibility for all viewer integration methods. Also allows for multiple features to be triggered simultaneously as separate RCON commands will always have a tiny delay between them.
@@ -17,7 +17,8 @@ Date: 2022-XX-XX
     - Many feature's settings now have better max/min input protection to restrict excessive values. This should avoid crashes in these unknown situations.
     - Many feature's settings now have better data type input protection to restrict bad values, i.e. passing in 5.5 to a setting expecting only whole numbers that didn't correct this before. This should avoid crashes in these unknown situations.
     - Player Inventory Shuffle - won't double include players when they are included by force and named.
-    - Aggressive Driver - wouldn't recognise a vehicle with currently burning fuel, but none in the fuel inventory as being suitable for a player to teleport too, but now does.
+    - Aggressive Driver - previously it would disregard a vehicle that's currently burning fuel, but has none in the fuel inventory, as being unsuitable for a player to teleport too. Now these valid vehicles will be utilised.
+    - Teleport & Call For Help - The previous fix to align vehicles to a cardinal (4) direction actually did it it to the 8 main directions and so sometimes vehicles still overlapped things. Now it is actually the 4 cardinal directions that the mod can find a clear space for.
   Info:
     - The tightening of setting types means options either now explicitly enforce the value type listed in the readme; or when the code allows a wider range of values than the README indicated, the README now matches the wider allowed value type range. Any intentionally tightened restrictions on a command's expected value type from this review of code and the readme will be listed as a change separately. If an old commands setting is now rejected please check that it wasn't an unintentional change as the way setting values are handled was fully re-done.
     - The tightening on value types and removal of type conversions when they were present is due to its past erratic inclusion and issues with documenting and users utilising these conversations when they differed between each usage case, i.e. some rounded up, some down, some not at all (errored). So the new setup is explicit and removes the greyness, plus makes the code easier to maintain and document.

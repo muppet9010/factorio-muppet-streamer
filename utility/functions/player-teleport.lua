@@ -41,7 +41,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
     -- CODE NOTE: This isn't perfect, but is better than nothing until this Interface Request is done: https://forums.factorio.com/viewtopic.php?f=28&t=102792
     local playersVehicle_directionToCheck  ---@type defines.direction|nil
     if targetPlayerPlacementEntity_isVehicle then
-        playersVehicle_directionToCheck = DirectionUtils.OrientationToDirection(targetPlayerPlacementEntity.orientation)
+        playersVehicle_directionToCheck = DirectionUtils.OrientationToNearestCardinalDirection(targetPlayerPlacementEntity.orientation)
     end
 
     -- Record the current placement entity for checking post path request.
