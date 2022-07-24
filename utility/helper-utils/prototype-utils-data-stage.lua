@@ -13,9 +13,17 @@ local PrototypeUtils = {}
 local TableUtils = require("utility.helper-utils.table-utils")
 local math_ceil = math.ceil
 
+--- This is a temporary class until factorio-api gets updated to include a full RotatedSprite class.
+---@class EmptyRotatedSprite
+---@field direction_count uint
+---@field filename string
+---@field width uint
+---@field height uint
+---@field repeat_count uint
+
 --- Returns an empty rotated sprite prototype object. For use in data stage.
 ---@param repeat_count? int|nil @ Defaults to 1 if not provided
----@return Sprite
+---@return EmptyRotatedSprite
 PrototypeUtils.MakeEmptyRotatedSpritePrototype_DataStage = function(repeat_count)
     return {
         direction_count = 1,

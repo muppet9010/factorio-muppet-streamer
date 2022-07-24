@@ -62,6 +62,10 @@ local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 ---@field registerCheckedStateChange? UtilityGuiUtil_ElementDetails_registerCheckedStateChange|nil
 ---@field attributes? UtilityGuiUtil_ElementDetails_attributes|nil
 
+--------------------------------------------------------------------------------------------
+--                                    Public Functions
+--------------------------------------------------------------------------------------------
+
 --- Add Gui Elements in a manner supporting short-hand features, nested GUI structures and templating features. See the param type for detailed information on its features and usage.
 ---@param elementDetails UtilityGuiUtil_ElementDetails_Add
 ---@return table<string, LuaGuiElement>|nil returnElements? @ Provided if returnElement option is TRUE. Table of UtilityGuiUtil_GuiElementName keys to LuaGuiElement values.
@@ -249,7 +253,7 @@ GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeNa
         if argName == "caption" or argName == "tooltip" then
             argValue = GuiUtil._ReplaceLocaleNameSelfWithGeneratedName({name = generatedName, [argName] = argValue}, argName)
         end
-        element[argName] = argValue --[[@as LuaGuiElement TODO: short term fix for bug in debugger]]
+        element[argName] = argValue --[[@as LuaGuiElement @ Short term fix for bug in debugger]]
     end
 
     return element

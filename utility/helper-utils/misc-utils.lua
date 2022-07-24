@@ -5,6 +5,9 @@
 
 local MiscUtils = {}
 
+---@class LuaBaseClass @ Used as a fake base class, only supports checking defined attributes.
+---@field valid boolean
+
 --- Returns a luaObject if its valid, else nil. Convientent for inline usage when rarely called.
 ---
 --- Should be done locally if called frequently.

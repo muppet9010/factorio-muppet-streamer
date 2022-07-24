@@ -1,6 +1,6 @@
 ---@meta
 
--- TODO: experiemental. not used at present.
+-- Experiemental. not used at present.
 -- Allows for better (not perfect) math_generic.random() input to output typing via generics.
 -- Also allows for @as typed to work, but these don't do it natively as the defines objects have no actual values in VSCode in the current API emyLua files: math_generic.random((0) --[[@as defines.riding.direction]], (2) --[[@as defines.riding.direction]])
 

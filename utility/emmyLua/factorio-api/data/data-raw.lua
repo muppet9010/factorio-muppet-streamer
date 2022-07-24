@@ -1,8 +1,9 @@
 ---@meta
-
+---
 ---@alias Prototype.name string
+---
 ---@alias PrototypeType {[Prototype.name]: Prototype?}
-
+---
 ---@class PrototypeTypes: SettingTypes
 ---@field ["font"] {[string]: Prototype.Font?}
 ---@field ["noise-layer"] {[string]: Prototype.NoiseLayer?}
@@ -197,14 +198,15 @@
 ---@field ["smoke"] {[string]: Prototype.Smoke?}
 ---@field ["particle"] {[string]: Prototype.Particle?}
 ---@field ["leaf-particle"] {[string]: Prototype.LeafParticle?}
-
+---
 ---@class SettingTypes
 ---@field ["bool-setting"] {[string]: SettingType.BoolSetting?}
 ---@field ["int-setting"] {[string]: SettingType.IntSetting?}
 ---@field ["double-setting"] {[string]: SettingType.DoubleSetting?}
 ---@field ["string-setting"] {[string]: SettingType.StringSetting?}
-
+---
 ---@alias SettingTypes.type "bool-setting" | "int-setting" | "double-setting" | "string-setting"
+---
 ---@alias PrototypeTypes.type
 ---| "font"
 ---| "noise-layer"

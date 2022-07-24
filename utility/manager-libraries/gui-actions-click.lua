@@ -13,6 +13,10 @@ MOD.guiClickActions = MOD.guiClickActions or {} ---@type table<string, function>
 ---@field data any @ The data argument passed in when registering this function action name.
 ---@field eventData on_gui_click @ The raw Factorio event data for the on_gui_click event.
 
+--------------------------------------------------------------------------------------------
+--                                    Public Functions
+--------------------------------------------------------------------------------------------
+
 --- Must be called once within the mod to activate the library for reacting to gui clicks. On other direct registering to the "on_gui_click" event is allowed within the mod.
 ---
 --- Called from the root of Control.lua or from OnLoad.

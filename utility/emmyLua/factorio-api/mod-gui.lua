@@ -20,16 +20,18 @@ Any other questions please feel free to ask on the modding help forum.
 ]]
 ---@class mod-gui
 local mod_gui = {
-  button_style = 'mod_gui_button',
-  frame_style = 'non_draggable_frame'
+    button_style = "mod_gui_button",
+    frame_style = "non_draggable_frame"
 }
 
 ---@param player LuaPlayer
 ---@return LuaGuiElement #The mod_gui button flow
-function mod_gui.get_button_flow(player) end
+function mod_gui.get_button_flow(player)
+end
 
 ---@param player LuaPlayer
 ---@return LuaGuiElement #The mod_gui frame flow
-function mod_gui.get_frame_flow(player) end
+function mod_gui.get_frame_flow(player)
+end
 
 return mod_gui

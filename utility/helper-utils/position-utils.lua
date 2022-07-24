@@ -361,6 +361,8 @@ PositionUtils.GetDistance = function(pos1, pos2)
     return (((pos1.x - pos2.x) ^ 2) + ((pos1.y - pos2.y) ^ 2)) ^ 0.5
 end
 
+---@alias Axis "'x'"|"'y'"
+
 -- Gets the distance between a single axis of 2 positions.
 ---@param pos1 MapPosition
 ---@param pos2 MapPosition

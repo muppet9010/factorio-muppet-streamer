@@ -59,6 +59,8 @@ StringUtils.FormatPositionToString = function(position)
     return position.x .. "," .. position.y
 end
 
+---@class SurfacePositionString : string @ A surface and position as a string: "surfaceId_x,y"
+
 --- Makes a string of the surface Id and position to allow easy table lookup.
 ---@param surfaceId uint
 ---@param positionTable MapPosition

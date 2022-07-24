@@ -3,7 +3,7 @@
     It supports defines.events and custom events. Also offers a raise event method.
     Intended for use with a modular script design to avoid having to link to each modulars functions in a centralised event handler.
 
-    CODE NOTE: this has been typed, but the greyness between defines.events being a number, custom event uints and custom names as strings has caused some confusion in it. if refactoring the internal code try and clear this all up after proper review and testing.
+    CODE NOTE: this has been typed, but the greyness between defines.events being a number, custom event uints and custom names as strings has caused some confusion in it. If refactoring the internal code try and clear this all up after proper review and testing.
 ]]
 --
 
@@ -18,14 +18,14 @@ MOD.eventActionNameHandlerNameToEventActionNamesListIndex = MOD.eventActionNameH
 MOD.customEventNameToId = MOD.customEventNameToId or {} ---@type table<string|defines.events, uint>
 MOD.eventFilters = MOD.eventFilters or {} ---@type table<int, table<string, EventFilter[]>>
 
----@class UtilityEvents_EventData : EventData @ The class is the minimum being passed through to the recieveing event handler function. It will include any Factorio event specific fields in it.
----@field input_name? string|nil @ Used by custom input event handlers registered with Events.RegisterHandlerCustomInput() as the actionName.
----@field name defines.events|uint|string @ Can be a random uint for custom events. Not entirely sure that string is right here, but fixes a numebr of type mismatchs.
+--------------------------------------------------------------------------------------------
+--                                    Public Functions
+--------------------------------------------------------------------------------------------
 
 --- Called from OnLoad() from each script file. Registers the event in Factorio and the handler function for all event types and custom events.
 ---@param eventName defines.events|string @ Either Factorio event or a custom modded event name.
 ---@param handlerName string @ Unique name of this event handler instance. Used to avoid duplicate handler registration and if removal is required.
----@param handlerFunction function @ The function that is called when the event triggers. When the function is called it will recieve the standard single Factorio event specific data table argument.
+---@param handlerFunction fun(eventData: EventData) @ The function that is called when the event triggers. When the function is called it will recieve the standard single Factorio event specific data table argument, which is at a minimum the EventData class.
 ---@param thisFilterData? EventFilter[]|nil @ List of Factorio EventFilters the mod should recieve this eventName occurances for or nil for all occurances. If an empty table (not nil) is passed in then nothing is registered for this handler (silently rejected). Filtered events have to expect to recieve results outside of their own filters. As a Factorio event type can only be subscribed to one time with a combined Filter list of all desires across the mod.
 ---@return uint|nil registeredEventId? @ The eventId raised for this handler (if one was). Useful for custom event names when you need to store the eventId to return via a remote interface call.
 Events.RegisterHandlerEvent = function(eventName, handlerName, handlerFunction, thisFilterData)
@@ -52,7 +52,7 @@ end
 --- Called from OnLoad() from each script file. Registers the custom inputs (key bindings) as their names in Factorio and the handler function for all just custom inputs. These are handled specially in Factorio.
 ---@param actionName string @ custom input name (key binding).
 ---@param handlerName string @ Unique handler name.
----@param handlerFunction function @ Function to be triggered on action.
+---@param handlerFunction fun(eventData: CustomInputEvent) @ Function to be triggered on action.
 Events.RegisterHandlerCustomInput = function(actionName, handlerName, handlerFunction)
     if actionName == nil then
         error("Events.RegisterHandlerCustomInput called with missing arguments")
@@ -116,15 +116,14 @@ end
 --- Called when needed, but not before tick 0 as they are ignored. Can either raise a custom registered event registered by Events.RegisterCustomEventName(), or one of the limited events defined in the API: https://lua-api.factorio.com/latest/LuaBootstrap.html#LuaBootstrap.raise_event.
 ---
 --- Older Factorio versions allowed for raising any base Factorio event yourself, so review on upgrade.
----@param eventData UtilityEvents_EventData
+---@param eventData EventData
 Events.RaiseEvent = function(eventData)
     eventData.tick = game.tick
     local eventName = eventData.name
     if type(eventName) == "number" then
         script.raise_event(eventName --[[@as uint]], eventData)
     elseif MOD.customEventNameToId[eventName] ~= nil then
-        ---@cast eventName string
-        local eventId = MOD.customEventNameToId[eventName]
+        local eventId = MOD.customEventNameToId[eventName --[[@as string]]]
         script.raise_event(eventId, eventData)
     else
         error("WARNING: raise event called that doesn't exist: " .. eventName)
@@ -134,14 +133,14 @@ end
 --- Called from anywhere, including OnStartup in tick 0. This won't be passed out to other mods however, only run within this mod.
 ---
 --- This calls this mod's event handler bypassing the Factorio event system.
----@param eventData UtilityEvents_EventData
+---@param eventData EventData
 Events.RaiseInternalEvent = function(eventData)
     eventData.tick = game.tick
     local eventName = eventData.name
     if type(eventName) == "number" then
         Events._HandleEvent(eventData)
     elseif MOD.customEventNameToId[eventName] ~= nil then
-        eventData.name = MOD.customEventNameToId[eventName]
+        eventData.name = MOD.customEventNameToId[eventName] --[[@as defines.events @ Is just a higher number than the defines.]]
         Events._HandleEvent(eventData)
     else
         error("WARNING: raise event called that doesn't exist: " .. eventName)
@@ -153,11 +152,11 @@ end
 --------------------------------------------------------------------------------------------
 
 --- Runs when an event is triggered and calls all of the appropriate registered functions.
----@param eventData UtilityEvents_EventData
+---@param eventData EventData
 Events._HandleEvent = function(eventData)
     -- input_name only populated by custom_input, with eventId used by all other events
     -- Numeric for loop is faster than pairs and this logic is black boxed from code developer using library.
-    if eventData.input_name == nil then
+    if eventData["input_name"] == nil then
         -- All non custom input events (majority).
         local eventsById = MOD.eventsById[eventData.name --[[@as defines.events|uint @ In a non custom input event code block, but can't cast object field.]]]
         for i = 1, #eventsById do

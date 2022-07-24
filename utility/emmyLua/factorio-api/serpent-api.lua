@@ -41,26 +41,30 @@ serpent = {}
 ---@param T any
 ---@param options? serpent.options
 ---@return string
-function serpent.block(T, options) end
+function serpent.block(T, options)
+end
 
 ---Single line pretty printing, no self-ref section; sets sortkeys and comment options;
 ---@param T any
 ---@param options? serpent.options
 ---@return string
-function serpent.line(T, options) end
+function serpent.line(T, options)
+end
 
 ---Full serialization; sets name, compact and sparse options
 ---@param T any
 ---@param options? serpent.options
 ---@return string
-function serpent.dump(T, options) end
+function serpent.dump(T, options)
+end
 
 ---loads serialized fragment; you need to pass {safe = false} as the second value if you want to turn safety checks off.\
 ---Similar to pcall and loadstring calls, load returns status as the first value and the result or the error message as the second value.
 ---@param str string
 ---@param options? serpent.load_options
 ---@return boolean, any
-function serpent.load(str, options) end
+function serpent.load(str, options)
+end
 
 ---@class serpent.load_options
 ---@field safe boolean default: true

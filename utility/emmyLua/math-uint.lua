@@ -1,6 +1,6 @@
 ---@meta
 
--- TODO: experiemental. not used at present and is an extra to the standard mathlib.
+-- Experiemental. not used at present and is an extra to the standard mathlib.
 
 -- Taken from Sumneko 3.5.0 - tree/master/meta/template/math_generic.lua
 

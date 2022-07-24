@@ -7,4 +7,5 @@
 data = {}
 
 ---@param otherdata Prototype[]
-function data.extend(self, otherdata) end
+function data.extend(self, otherdata)
+end

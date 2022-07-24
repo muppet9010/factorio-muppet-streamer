@@ -11,6 +11,10 @@ MOD.guiClosedActions = MOD.guiClosedActions or {} ---@type table<string, functio
 ---@field data any @ The data argument passed in when registering this function action name.
 ---@field eventData on_gui_closed @ The raw Factorio event data for the on_gui_closed event.
 
+--------------------------------------------------------------------------------------------
+--                                    Public Functions
+--------------------------------------------------------------------------------------------
+
 --- Called from the root of Control.lua
 GuiActionsClosed.MonitorGuiClosedActions = function()
     script.on_event(defines.events.on_gui_closed, GuiActionsClosed._HandleGuiClosedAction)

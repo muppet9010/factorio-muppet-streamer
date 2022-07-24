@@ -1,12 +1,13 @@
 ---@meta
-
----@todo Add Settings
+---
+---
 ---@class Prototype
 ---@field name Prototype.name
 ---@field type PrototypeTypes.type
 ---@field localised_description? LocalisedString
 ---@field localised_name? LocalisedString
 ---@field order? string
+---
 ---@class Prototype.Accumulator: Prototype.EntityWithOwner
 ---@field charge_cooldown uint16
 ---@field discharge_cooldown uint16
@@ -22,6 +23,7 @@
 ---@field discharge_light? LightDefinition[]
 ---@field draw_circuit_wires? boolean
 ---@field draw_copper_wires? boolean
+---
 ---@class Prototype.Achievement: Prototype
 ---@field icons IconsSpecification
 ---@field icon IconsSpecification
@@ -29,25 +31,31 @@
 ---@field allowed_without_fight? boolean
 ---@field hidden? boolean
 ---@field steam_stats_name? string
+---
 ---@class Prototype.ActiveDefenseEquipment: Prototype.Equipment
 ---@field attack_parameters AttackParameters
 ---@field automatic boolean
+---
 ---@class Prototype.AmbientSound ambient-sound
 ---@field name string
 ---@field sound Sound
 ---@field track_type string
 ---@field type string
 ---@field weight? double
+---
 ---@class Prototype.AmmoCategory: Prototype
 ---@field bonus_gui_order? Order
+---
 ---@class Prototype.AmmoItem: Prototype.Item
 ---@field ammo_type AmmoType|AmmoType[]
 ---@field magazine_size? float
 ---@field reload_time? float
+---
 ---@class Prototype.AmmoTurret: Prototype.Turret
 ---@field automated_ammo_count ItemCountType
 ---@field inventory_size ItemStackIndex
 ---@field entity_info_icon_shift? Vector.1
+---
 ---@class Prototype.Animation animation
 ---@field name string
 ---@field type string
@@ -85,6 +93,7 @@
 ---@field width? SpriteSizeType
 ---@field x? SpriteSizeType
 ---@field y? SpriteSizeType
+---
 ---@class Prototype.ArithmeticCombinator: Prototype.Combinator
 ---@field and_symbol_sprites Sprite4Way
 ---@field divide_symbol_sprites Sprite4Way
@@ -97,14 +106,17 @@
 ---@field power_symbol_sprites Sprite4Way
 ---@field right_shift_symbol_sprites Sprite4Way
 ---@field xor_symbol_sprites Sprite4Way
+---
 ---@class Prototype.Armor: Prototype.Tool
 ---@field equipment_grid? string
 ---@field inventory_size_bonus? ItemStackIndex
 ---@field resistances? Resistances
+---
 ---@class Prototype.Arrow: Prototype.Entity
 ---@field arrow_picture Sprite
 ---@field blinking? boolean
 ---@field circle_picture? Sprite
+---
 ---@class Prototype.ArtilleryFlare: Prototype.Entity
 ---@field life_time uint16
 ---@field pictures AnimationVariations
@@ -124,6 +136,7 @@
 ---@field shadows? AnimationVariations
 ---@field shot_category? string
 ---@field shots_per_flare? uint32
+---
 ---@class Prototype.ArtilleryProjectile: Prototype.Entity
 ---@field reveal_map boolean
 ---@field action? Trigger
@@ -133,6 +146,7 @@
 ---@field picture? Sprite
 ---@field rotatable? boolean
 ---@field shadow? Sprite
+---
 ---@class Prototype.ArtilleryTurret: Prototype.EntityWithOwner
 ---@field ammo_stack_limit ItemCountType
 ---@field automated_ammo_count ItemCountType
@@ -156,6 +170,7 @@
 ---@field rotating_sound? InterruptibleSound
 ---@field rotating_stopped_sound? Sound
 ---@field turn_after_shooting_cooldown? uint16
+---
 ---@class Prototype.ArtilleryWagon: Prototype.RollingStock
 ---@field ammo_stack_limit ItemCountType
 ---@field gun string
@@ -174,14 +189,18 @@
 ---@field rotating_sound? InterruptibleSound
 ---@field rotating_stopped_sound? Sound
 ---@field turn_after_shooting_cooldown? uint16
+---
 ---@class Prototype.AssemblingMachine: Prototype.CraftingMachine
 ---@field fixed_recipe? string
 ---@field gui_title_key? string
 ---@field ingredient_count? uint8
+---
 ---@class Prototype.AutoplaceControl: Prototype
 ---@field category string
 ---@field richness? boolean
+---
 ---@class Prototype.BatteryEquipment: Prototype.Equipment
+---
 ---@class Prototype.Beacon: Prototype.EntityWithOwner
 ---@field distribution_effectivity double
 ---@field energy_source EnergySource
@@ -193,6 +212,7 @@
 ---@field base_picture? Sprite
 ---@field graphics_set? BeaconGraphicsSet
 ---@field radius_visualisation_picture? Sprite
+---
 ---@class Prototype.Beam: Prototype.Entity
 ---@field body AnimationVariations
 ---@field damage_interval uint32
@@ -214,10 +234,14 @@
 ---@field tail_light? Animation
 ---@field target_offset? Vector.1
 ---@field transparent_start_end_animations? boolean
+---
 ---@class Prototype.BeltImmunityEquipment: Prototype.Equipment
 ---@field energy_consumption Energy
+---
 ---@class Prototype.BlueprintBook: Prototype.ItemWithInventory
+---
 ---@class Prototype.BlueprintItem: Prototype.SelectionTool
+---
 ---@class Prototype.Boiler: Prototype.EntityWithOwner
 ---@field burning_cooldown uint32
 ---@field energy_consumption Energy
@@ -232,11 +256,13 @@
 ---@field fire_glow_flicker_enabled? boolean
 ---@field mode? string
 ---@field patch? table
+---
 ---@class Prototype.BuildEntityAchievement: Prototype.Achievement
 ---@field to_build string
 ---@field amount? uint32
 ---@field limited_to_one_game? boolean
 ---@field until_second? uint32
+---
 ---@class Prototype.BurnerGenerator: Prototype.EntityWithOwner
 ---@field animation Animation4Way
 ---@field burner EnergySource
@@ -246,9 +272,11 @@
 ---@field idle_animation? Animation4Way
 ---@field min_perceived_performance? double
 ---@field performance_to_sound_speedup? double
+---
 ---@class Prototype.Capsule: Prototype.Item
 ---@field capsule_action CapsuleAction
 ---@field radius_color? Color
+---
 ---@class Prototype.Car: Prototype.Vehicle
 ---@field animation RotatedAnimation
 ---@field burner? EnergySource Needs either burner or energy_source
@@ -271,8 +299,10 @@
 ---@field turret_animation? RotatedAnimation
 ---@field turret_return_timeout? uint32
 ---@field turret_rotation_speed? double
+---
 ---@class Prototype.CargoWagon: Prototype.RollingStock
 ---@field inventory_size ItemStackIndex
+---
 ---@class Prototype.Character: Prototype.EntityWithOwner
 ---@field animations CharacterArmorAnimation[]
 ---@field build_distance uint32
@@ -310,18 +340,21 @@
 ---@field synced_footstep_particle_triggers? FootstepTriggerEffectList
 ---@field tool_attack_distance? double
 ---@field tool_attack_result? Trigger
+---
 ---@class Prototype.CharacterCorpse: Prototype.Entity
 ---@field time_to_live uint32
 ---@field armor_picture_mapping? table
 ---@field picture? Animation
 ---@field pictures? AnimationVariations
 ---@field render_layer? RenderLayer
+---
 ---@class Prototype.Cliff: Prototype.Entity
 ---@field grid_offset Vector.1
 ---@field grid_size Vector.1
 ---@field orientations OrientedCliffPrototype[]
 ---@field cliff_explosive? string
 ---@field cliff_height? float
+---
 ---@class Prototype.CombatRobot: Prototype.FlyingRobot
 ---@field attack_parameters AttackParameters
 ---@field idle RotatedAnimation
@@ -334,8 +367,10 @@
 ---@field friction? double
 ---@field light? LightDefinition[]
 ---@field range_from_player? double
+---
 ---@class Prototype.CombatRobotCountAchievement: Prototype.Achievement
 ---@field count? uint32
+---
 ---@class Prototype.Combinator: Prototype.EntityWithOwner
 ---@field active_energy_usage Energy
 ---@field activity_led_light_offsets Vector.1[]
@@ -353,6 +388,7 @@
 ---@field draw_circuit_wires? boolean
 ---@field draw_copper_wires? boolean
 ---@field screen_light? LightDefinition[]
+---
 ---@class Prototype.ConstantCombinator: Prototype.EntityWithOwner
 ---@field activity_led_light_offsets Vector.1[]
 ---@field activity_led_sprites Sprite4Way
@@ -363,10 +399,12 @@
 ---@field circuit_wire_max_distance? double
 ---@field draw_circuit_wires? boolean
 ---@field draw_copper_wires? boolean
+---
 ---@class Prototype.ConstructWithRobotsAchievement: Prototype.Achievement
 ---@field limited_to_one_game boolean
 ---@field amount? uint32
 ---@field more_than_manually? boolean
+---
 ---@class Prototype.ConstructionRobot: Prototype.RobotWithLogisticInterface
 ---@field construction_vector Vector.1
 ---@field repairing_sound? Sound
@@ -375,6 +413,7 @@
 ---@field sparks? AnimationVariations
 ---@field working? RotatedAnimation
 ---@field working_light? LightDefinition[]
+---
 ---@class Prototype.Container: Prototype.EntityWithOwner
 ---@field inventory_size uint16
 ---@field picture Sprite
@@ -385,8 +424,10 @@
 ---@field draw_copper_wires? boolean
 ---@field enable_inventory_bar? boolean
 ---@field scale_info_icons? boolean
+---
 ---@class Prototype.CopyPasteTool: Prototype.SelectionTool
 ---@field cuts? boolean
+---
 ---@class Prototype.Corpse: Prototype.Entity
 ---@field animation? RotatedAnimationVariations
 ---@field animation_overlay? RotatedAnimationVariations
@@ -412,6 +453,7 @@
 ---@field time_before_removed? int32
 ---@field time_before_shading_off? int32
 ---@field use_tile_color_for_ground_patch_tint? boolean
+---
 ---@class Prototype.CraftingMachine: Prototype.EntityWithOwner
 ---@field crafting_categories string[]s
 ---@field crafting_speed double
@@ -437,8 +479,10 @@
 ---@field show_recipe_icon_on_map? boolean
 ---@field status_colors? Color[]
 ---@field working_visualisations? WorkingVisualisation[]
+---
 ---@class Prototype.CurvedRail: Prototype.Rail
 ---@field bending_type? string
+---
 ---@class Prototype.CustomInput: Prototype
 ---@field key_sequence string
 ---@field action? string
@@ -450,8 +494,10 @@
 ---@field include_selected_prototype? boolean
 ---@field item_to_spawn? string
 ---@field linked_game_control? string
+---
 ---@class Prototype.DamageType: Prototype
 ---@field hidden? boolean
+---
 ---@class Prototype.DeciderCombinator: Prototype.Combinator
 ---@field equal_symbol_sprites Sprite4Way
 ---@field greater_or_equal_symbol_sprites Sprite4Way
@@ -459,12 +505,16 @@
 ---@field less_or_equal_symbol_sprites Sprite4Way
 ---@field less_symbol_sprites Sprite4Way
 ---@field not_equal_symbol_sprites Sprite4Way
+---
 ---@class Prototype.DeconstructWithRobotsAchievement: Prototype.Achievement
 ---@field amount uint32
+---
 ---@class Prototype.DeconstructibleTileProxy: Prototype.Entity
+---
 ---@class Prototype.DeconstructionItem: Prototype.SelectionTool
 ---@field entity_filter_count? ItemStackIndex
 ---@field tile_filter_count? ItemStackIndex
+---
 ---@class Prototype.Decorative: Prototype
 ---@field pictures SpriteVariations
 ---@field autoplace? AutoplaceSpecification
@@ -476,18 +526,23 @@
 ---@field tile_layer? int16
 ---@field trigger_effect? TriggerEffect
 ---@field walking_sound? Sound
+---
 ---@class Prototype.DeliverByRobotsAchievement: Prototype.Achievement
 ---@field amount MaterialAmountType
+---
 ---@class Prototype.DontBuildEntityAchievement: Prototype.Achievement
 ---@field dont_build string|string[]
 ---@field amount? uint32
+---
 ---@class Prototype.DontCraftManuallyAchievement: Prototype.Achievement
 ---@field amount MaterialAmountType
+---
 ---@class Prototype.DontUseEntityInEnergyProductionAchievement: Prototype.Achievement
 ---@field excluded string|string[]
 ---@field included string|string[]
 ---@field last_hour_only? boolean
 ---@field minimum_energy_produced? Energy
+---
 ---@class Prototype.EditorController editor-controller
 ---@field adjust_speed_based_off_zoom boolean
 ---@field enable_flash_light boolean
@@ -514,6 +569,7 @@
 ---@field show_infinity_filters_in_controller_gui boolean
 ---@field show_status_icons boolean
 ---@field type string
+---
 ---@class Prototype.ElectricEnergyInterface: Prototype.EntityWithOwner
 ---@field energy_source EnergySource
 ---@field animation? Animation
@@ -526,6 +582,7 @@
 ---@field picture? Sprite
 ---@field pictures? Sprite4Way
 ---@field render_layer? RenderLayer
+---
 ---@class Prototype.ElectricPole: Prototype.EntityWithOwner
 ---@field connection_points WireConnectionPoint[]
 ---@field pictures RotatedSprite
@@ -537,8 +594,10 @@
 ---@field maximum_wire_distance? double
 ---@field radius_visualisation_picture? Sprite
 ---@field track_coverage_during_build_by_moving? boolean
+---
 ---@class Prototype.ElectricTurret: Prototype.Turret
 ---@field energy_source EnergySource
+---
 ---@class Prototype.EnemySpawner: Prototype.EntityWithOwner
 ---@field animations AnimationVariations
 ---@field call_for_help_radius double
@@ -559,9 +618,11 @@
 ---@field random_animation_offset? boolean
 ---@field spawn_decoration? CreateDecorativesTriggerEffectItem|CreateDecorativesTriggerEffectItem[]
 ---@field spawn_decorations_on_expansion? boolean
+---
 ---@class Prototype.EnergyShieldEquipment: Prototype.Equipment
 ---@field energy_per_shield Energy
 ---@field max_shield_value float
+---
 ---@class Prototype.Entity: Prototype
 ---@field icons IconsSpecification
 ---@field icon IconsSpecification
@@ -610,10 +671,13 @@
 ---@field vehicle_impact_sound? Sound
 ---@field water_reflection? WaterReflectionDefinition
 ---@field working_sound? WorkingSound
+---
 ---@class Prototype.EntityGhost: Prototype.Entity
 ---@field large_build_sound? Sound
 ---@field medium_build_sound? Sound
+---
 ---@class Prototype.EntityParticle: Prototype.Entity
+---
 ---@class Prototype.EntityWithHealth: Prototype.Entity
 ---@field alert_when_damaged? boolean
 ---@field attack_reaction? AttackReaction
@@ -632,9 +696,11 @@
 ---@field repair_sound? Sound
 ---@field repair_speed_modifier? float
 ---@field resistances? Resistances
+---
 ---@class Prototype.EntityWithOwner: Prototype.EntityWithHealth
 ---@field allow_run_time_change_of_is_military_target? boolean
 ---@field is_military_target? boolean
+---
 ---@class Prototype.Equipment: Prototype
 ---@field categories string[]
 ---@field energy_source EnergySource
@@ -644,12 +710,15 @@
 ---@field background_color? Color
 ---@field grabbed_background_color? Color
 ---@field take_result? string
+---
 ---@class Prototype.EquipmentCategory: Prototype
+---
 ---@class Prototype.EquipmentGrid: Prototype
 ---@field equipment_categories string[]
 ---@field height uint32
 ---@field width uint32
 ---@field locked? boolean
+---
 ---@class Prototype.Explosion: Prototype.Entity
 ---@field animations AnimationVariations
 ---@field beam? boolean
@@ -681,8 +750,10 @@
 ---@field smoke_count? uint16
 ---@field smoke_slow_down_factor? float
 ---@field sound? Sound
+---
 ---@class Prototype.FinishTheGameAchievement: Prototype.Achievement
 ---@field until_second? uint32
+---
 ---@class Prototype.FireFlame: Prototype.Entity
 ---@field damage_per_tick DamagePrototype
 ---@field spread_delay uint32
@@ -728,11 +799,14 @@
 ---@field spawn_entity? string
 ---@field tree_dying_factor? float
 ---@field uses_alternative_behavior? boolean
+---
 ---@class Prototype.Fish: Prototype.EntityWithHealth
 ---@field pictures SpriteVariations
+---
 ---@class Prototype.FlameThrowerExplosion: Prototype.Explosion
 ---@field damage DamagePrototype
 ---@field slow_down_factor double
+---
 ---@class Prototype.Fluid: Prototype
 ---@field base_color Color
 ---@field default_temperature double
@@ -747,6 +821,7 @@
 ---@field hidden? boolean
 ---@field max_temperature? double
 ---@field subgroup? string
+---
 ---@class Prototype.FluidStream: Prototype.Entity
 ---@field particle_horizontal_speed double
 ---@field particle_horizontal_speed_deviation double
@@ -777,6 +852,7 @@
 ---@field stream_light? LightDefinition[]
 ---@field target_position_deviation? double
 ---@field width? float
+---
 ---@class Prototype.FluidTurret: Prototype.Turret
 ---@field activation_buffer_ratio float
 ---@field fluid_box FluidBox
@@ -796,9 +872,11 @@
 ---@field prepared_muzzle_animation_shift? AnimatedVector
 ---@field preparing_muzzle_animation_shift? AnimatedVector
 ---@field starting_attack_muzzle_animation_shift? AnimatedVector
+---
 ---@class Prototype.FluidWagon: Prototype.RollingStock
 ---@field capacity double
 ---@field tank_count? uint8
+---
 ---@class Prototype.FlyingRobot: Prototype.EntityWithOwner
 ---@field speed double
 ---@field energy_per_move? Energy
@@ -808,10 +886,12 @@
 ---@field max_to_charge? float
 ---@field min_to_charge? float
 ---@field speed_multiplier_when_out_of_energy? float
+---
 ---@class Prototype.FlyingText: Prototype.Entity
 ---@field speed float
 ---@field time_to_live uint32
 ---@field text_alignment? string
+---
 ---@class Prototype.Font font
 ---@field from string
 ---@field name string
@@ -821,10 +901,13 @@
 ---@field border_color? Color
 ---@field filtered? boolean
 ---@field spacing? float
+---
 ---@class Prototype.FuelCategory: Prototype
+---
 ---@class Prototype.Furnace: Prototype.CraftingMachine
 ---@field result_inventory_size ItemStackIndex
 ---@field source_inventory_size ItemStackIndex
+---
 ---@class Prototype.Gate: Prototype.EntityWithOwner
 ---@field activation_distance double
 ---@field close_sound Sound
@@ -842,6 +925,7 @@
 ---@field wall_patch Animation
 ---@field fadeout_interval? uint32
 ---@field opened_collision_mask? CollisionMask
+---
 ---@class Prototype.Generator: Prototype.EntityWithOwner
 ---@field effectivity double
 ---@field energy_source EnergySource
@@ -857,9 +941,11 @@
 ---@field performance_to_sound_speedup? double
 ---@field scale_fluid_usage? boolean
 ---@field smoke? SmokeSource[]
+---
 ---@class Prototype.GeneratorEquipment: Prototype.Equipment
 ---@field power Energy
 ---@field burner? EnergySource
+---
 ---@class Prototype.GodController god-controller
 ---@field inventory_size ItemStackIndex
 ---@field item_pickup_distance double
@@ -870,28 +956,37 @@
 ---@field type string
 ---@field crafting_categories? string[]
 ---@field mining_categories? string[]
+---
 ---@class Prototype.GroupAttackAchievement: Prototype.Achievement
 ---@field amount? uint32
+---
 ---@class Prototype.GuiStyle: Prototype
 ---@field default_sprite_priority SpritePriority
 ---@field default_sprite_scale double
 ---@field default_tileset FileName
+---
 ---@class Prototype.Gun: Prototype.Item
 ---@field attack_parameters AttackParameters
+---
 ---@class Prototype.HeatInterface: Prototype.EntityWithOwner
 ---@field heat_buffer HeatBuffer
 ---@field gui_mode? string
 ---@field picture? Sprite
+---
 ---@class Prototype.HeatPipe: Prototype.EntityWithOwner
 ---@field connection_sprites ConnectableEntityGraphics
 ---@field heat_buffer HeatBuffer
 ---@field heat_glow_sprites ConnectableEntityGraphics
+---
 ---@class Prototype.HighlightBoxEntity: Prototype.Entity
+---
 ---@class Prototype.InfinityContainer: Prototype.LogisticContainer
 ---@field erase_contents_when_mined boolean
 ---@field gui_mode? string
+---
 ---@class Prototype.InfinityPipe: Prototype.Pipe
 ---@field gui_mode? string
+---
 ---@class Prototype.Inserter: Prototype.EntityWithOwner
 ---@field energy_source EnergySource
 ---@field extension_speed double
@@ -923,6 +1018,7 @@
 ---@field stack? boolean
 ---@field stack_size_bonus? ItemCountType
 ---@field use_easter_egg? boolean
+---
 ---@class Prototype.Item: Prototype
 ---@field icons IconsSpecification
 ---@field icon IconsSpecification
@@ -949,22 +1045,28 @@
 ---@field rocket_launch_products? table (array) of ItemProductPrototype
 ---@field subgroup? string
 ---@field wire_count? ItemCountType
+---
 ---@class Prototype.ItemEntity: Prototype.Entity
+---
 ---@class Prototype.ItemGroup: Prototype
 ---@field icons IconsSpecification
 ---@field icon IconsSpecification
 ---@field icon_size IconsSpecification
 ---@field order_in_recipe? Order
+---
 ---@class Prototype.ItemRequestProxy: Prototype.Entity
 ---@field picture Sprite
 ---@field use_target_entity_alert_icon_shift? boolean
+---
 ---@class Prototype.ItemSubGroup: Prototype
 ---@field group string
+---
 ---@class Prototype.ItemWithEntityData: Prototype.Item
 ---@field icon_tintable_masks? IconSpecification
 ---@field icon_tintable_mask? IconSpecification
 ---@field icon_tintables? IconSpecification
 ---@field icon_tintable? IconSpecification
+---
 ---@class Prototype.ItemWithInventory: Prototype.ItemWithLabel
 ---@field inventory_size ItemStackIndex
 ---@field extends_inventory_by_default? boolean
@@ -974,10 +1076,13 @@
 ---@field item_filters? string[]
 ---@field item_group_filters? string[]
 ---@field item_subgroup_filters? string[]
+---
 ---@class Prototype.ItemWithLabel: Prototype.Item
 ---@field default_label_color? Color
 ---@field draw_label_for_cursor_render? boolean
+---
 ---@class Prototype.ItemWithTags: Prototype.ItemWithLabel
+---
 ---@class Prototype.KillAchievement: Prototype.Achievement
 ---@field amount? uint32
 ---@field damage_type? string
@@ -985,6 +1090,7 @@
 ---@field personally? boolean
 ---@field to_kill? string
 ---@field type_to_kill? string
+---
 ---@class Prototype.Lab: Prototype.EntityWithOwner
 ---@field energy_source EnergySource
 ---@field energy_usage Energy
@@ -997,6 +1103,7 @@
 ---@field light? LightDefinition[]
 ---@field module_specification? ModuleSpecification
 ---@field researching_speed? double
+---
 ---@class Prototype.Lamp: Prototype.EntityWithOwner
 ---@field energy_source EnergySource
 ---@field energy_usage_per_tick Energy
@@ -1016,6 +1123,7 @@
 ---@field light? LightDefinition[]
 ---@field light_when_colored? LightDefinition[]
 ---@field signal_to_color_mapping? SignalColorMapping[]
+---
 ---@class Prototype.LandMine: Prototype.EntityWithOwner
 ---@field picture_safe Sprite
 ---@field picture_set Sprite
@@ -1027,30 +1135,36 @@
 ---@field timeout? uint32
 ---@field trigger_collision_mask? CollisionMask
 ---@field trigger_force? ForceCondition
+---
 ---@class Prototype.LeafParticle: Prototype.EntityParticle
+---
 ---@class Prototype.LinkedBelt: Prototype.TransportBeltConnectable
 ---@field structure table
 ---@field allow_blueprint_connection? boolean
 ---@field allow_clone_connection? boolean
 ---@field allow_side_loading? boolean
 ---@field structure_render_layer? RenderLayer
+---
 ---@class Prototype.LinkedContainer: Prototype.EntityWithOwner
 ---@field inventory_size ItemStackIndex
 ---@field gui_mode? string
 ---@field picture? Sprite
 ---@field scale_info_icons? boolean
+---
 ---@class Prototype.Loader1x1: Prototype.TransportBeltConnectable
 ---@field filter_count uint8
 ---@field structure table
 ---@field belt_length? double
 ---@field container_distance? double
 ---@field structure_render_layer? RenderLayer
+---
 ---@class Prototype.Loader1x2: Prototype.TransportBeltConnectable
 ---@field filter_count uint8
 ---@field structure table
 ---@field belt_length? double
 ---@field container_distance? double
 ---@field structure_render_layer? RenderLayer
+---
 ---@class Prototype.Locomotive: Prototype.RollingStock
 ---@field burner? EnergySource
 ---@field energy_source? EnergySource
@@ -1059,6 +1173,7 @@
 ---@field darkness_to_render_light_animation? float
 ---@field front_light? LightDefinition[]
 ---@field front_light_pictures? RotatedSprite
+---
 ---@class Prototype.LogisticContainer: Prototype.Container
 ---@field logistic_mode string
 ---@field animation? Animation
@@ -1067,14 +1182,17 @@
 ---@field max_logistic_slots? uint16
 ---@field opened_duration? uint8
 ---@field render_not_in_network_icon? boolean
+---
 ---@class Prototype.LogisticRobot: Prototype.RobotWithLogisticInterface
 ---@field idle_with_cargo? RotatedAnimation
 ---@field in_motion_with_cargo? RotatedAnimation
 ---@field shadow_idle_with_cargo? RotatedAnimation
 ---@field shadow_in_motion_with_cargo? RotatedAnimation
+---
 ---@class Prototype.MapGenPresets map-gen-presets
 ---@field name string
 ---@field type string
+---
 ---@class Prototype.MapSettings map-settings
 ---@field difficulty_settings table
 ---@field enemy_evolution table
@@ -1086,9 +1204,11 @@
 ---@field steering table
 ---@field type string
 ---@field unit_group table
+---
 ---@class Prototype.Market: Prototype.EntityWithOwner
 ---@field picture Sprite
 ---@field allow_access_to_all_forces? boolean
+---
 ---@class Prototype.MiningDrill: Prototype.EntityWithOwner
 ---@field energy_source EnergySource
 ---@field energy_usage Energy
@@ -1113,7 +1233,9 @@
 ---@field output_fluid_box? FluidBox
 ---@field radius_visualisation_picture? Sprite
 ---@field wet_mining_graphics_set? MiningDrillGraphicsSet
+---
 ---@class Prototype.MiningTool: Prototype.Tool
+---
 ---@class Prototype.Module: Prototype.Item
 ---@field category string
 ---@field effect Effect
@@ -1124,7 +1246,9 @@
 ---@field limitation_blacklist? string[]
 ---@field limitation_message_key? string
 ---@field requires_beacon_alt_mode? boolean
+---
 ---@class Prototype.ModuleCategory: Prototype
+---
 ---@class Prototype.MouseCursor mouse-cursor
 ---@field name string
 ---@field type string
@@ -1132,19 +1256,24 @@
 ---@field hot_pixel_x? int16
 ---@field hot_pixel_y? int16
 ---@field system_cursor? string
+---
 ---@class Prototype.MovementBonusEquipment: Prototype.Equipment
 ---@field energy_consumption Energy
 ---@field movement_bonus double
+---
 ---@class Prototype.NamedNoiseExpression: Prototype
 ---@field expression NoiseExpression
 ---@field intended_property? string
+---
 ---@class Prototype.NightVisionEquipment: Prototype.Equipment
 ---@field color_lookup DaytimeColorLookupTable
 ---@field energy_input Energy
 ---@field activate_sound? Sound
 ---@field darkness_to_turn_on? float
 ---@field deactivate_sound? Sound
+---
 ---@class Prototype.NoiseLayer: Prototype
+---
 ---@class Prototype.OffshorePump: Prototype.EntityWithOwner
 ---@field fluid string
 ---@field fluid_box FluidBox
@@ -1166,6 +1295,7 @@
 ---@field picture? Sprite4Way
 ---@field placeable_position_visualization? Sprite
 ---@field remove_on_tile_collision? boolean
+---
 ---@class Prototype.Particle: Prototype
 ---@field life_time uint16
 ---@field pictures AnimationVariations
@@ -1182,6 +1312,7 @@
 ---@field regular_trigger_effect_frequency? uint32
 ---@field shadows? AnimationVariations
 ---@field vertical_acceleration? float
+---
 ---@class Prototype.ParticleSource: Prototype.Entity
 ---@field height float
 ---@field horizontal_speed float
@@ -1195,21 +1326,26 @@
 ---@field time_before_start_deviation? float
 ---@field time_to_live_deviation? float
 ---@field vertical_speed_deviation? float
+---
 ---@class Prototype.Pipe: Prototype.EntityWithOwner
 ---@field fluid_box FluidBox
 ---@field horizontal_window_bounding_box BoundingBox
 ---@field pictures table
 ---@field vertical_window_bounding_box BoundingBox
+---
 ---@class Prototype.PipeToGround: Prototype.EntityWithOwner
 ---@field fluid_box FluidBox
 ---@field pictures Sprite[]
 ---@field draw_fluid_icon_override? boolean
+---
 ---@class Prototype.PlayerDamagedAchievement: Prototype.Achievement
 ---@field minimum_damage float
 ---@field should_survive boolean
 ---@field type_of_dealer? string
+---
 ---@class Prototype.PlayerPort: Prototype.EntityWithOwner
 ---@field animation Animation
+---
 ---@class Prototype.PowerSwitch: Prototype.EntityWithOwner
 ---@field circuit_wire_connection_point WireConnectionPoint
 ---@field led_off Sprite
@@ -1223,15 +1359,18 @@
 ---@field draw_circuit_wires? boolean
 ---@field draw_copper_wires? boolean
 ---@field wire_max_distance? double
+---
 ---@class Prototype.ProduceAchievement: Prototype.Achievement
 ---@field amount MaterialAmountType
 ---@field limited_to_one_game boolean
 ---@field fluid_product? string
 ---@field item_product? string
+---
 ---@class Prototype.ProducePerHourAchievement: Prototype.Achievement
 ---@field amount MaterialAmountType
 ---@field fluid_product? string
 ---@field item_product? string
+---
 ---@class Prototype.ProgrammableSpeaker: Prototype.EntityWithOwner
 ---@field energy_source EnergySource
 ---@field energy_usage_per_tick Energy
@@ -1244,6 +1383,7 @@
 ---@field circuit_wire_max_distance? double
 ---@field draw_circuit_wires? boolean
 ---@field draw_copper_wires? boolean
+---
 ---@class Prototype.Projectile: Prototype.Entity
 ---@field acceleration double
 ---@field action? Trigger
@@ -1264,6 +1404,7 @@
 ---@field speed_modifier? float
 ---@field turn_speed? Vector.1
 ---@field turning_speed_increases_exponentially_with_projectile_speed? boolean
+---
 ---@class Prototype.Pump: Prototype.EntityWithOwner
 ---@field animations Animation4Way
 ---@field energy_source EnergySource
@@ -1281,6 +1422,7 @@
 ---@field fluid_wagon_connector_graphics? PumpConnectorGraphics[]
 ---@field fluid_wagon_connector_speed? double
 ---@field glass_pictures? Sprite4Way
+---
 ---@class Prototype.Radar: Prototype.EntityWithOwner
 ---@field energy_per_nearby_scan Energy
 ---@field energy_per_sector Energy
@@ -1291,20 +1433,26 @@
 ---@field pictures RotatedSprite
 ---@field radius_minimap_visualisation_color? Color
 ---@field rotation_speed? double
+---
 ---@class Prototype.Rail: Prototype.EntityWithOwner
 ---@field pictures table
 ---@field walking_sound? Sound
+---
 ---@class Prototype.RailChainSignal: Prototype.RailSignalBase
 ---@field selection_box_offsets Vector.1[]
 ---@field blue_light? LightDefinition[]
 ---@field default_blue_output_signal? SignalIDConnector
+---
 ---@class Prototype.RailPlanner: Prototype.Item
 ---@field curved_rail string
 ---@field straight_rail string
+---
 ---@class Prototype.RailRemnants: Prototype.Corpse
 ---@field bending_type string
 ---@field pictures table
+---
 ---@class Prototype.RailSignal: Prototype.RailSignalBase
+---
 ---@class Prototype.RailSignalBase: Prototype.EntityWithOwner
 ---@field animation RotatedAnimation
 ---@field circuit_connector_sprites? CircuitConnectorSprites[]
@@ -1319,6 +1467,7 @@
 ---@field orange_light? LightDefinition[]
 ---@field rail_piece? Animation
 ---@field red_light? LightDefinition[]
+---
 ---@class Prototype.Reactor: Prototype.EntityWithOwner
 ---@field consumption Energy
 ---@field energy_source EnergySource
@@ -1337,6 +1486,7 @@
 ---@field picture? Sprite
 ---@field scale_energy_usage? boolean
 ---@field use_fuel_glow_color? boolean
+---
 ---@class Prototype.Recipe: Prototype
 ---@field ingredients IngredientPrototype[]
 ---@field allow_as_intermediate? boolean
@@ -1367,14 +1517,19 @@
 ---@field show_amount_in_title? boolean
 ---@field subgroup? string
 ---@field unlock_results? boolean
+---
 ---@class Prototype.RecipeCategory: Prototype
+---
 ---@class Prototype.RepairTool: Prototype.Tool
 ---@field speed float
 ---@field repair_result? Trigger
+---
 ---@class Prototype.ResearchAchievement: Prototype.Achievement
 ---@field research_all? boolean
 ---@field technology? string
+---
 ---@class Prototype.ResourceCategory: Prototype
+---
 ---@class Prototype.ResourceEntity: Prototype.Entity
 ---@field stage_counts uint32[]
 ---@field stages AnimationVariations
@@ -1397,6 +1552,7 @@
 ---@field tree_removal_max_distance? double
 ---@field tree_removal_probability? double
 ---@field walking_sound? Sound
+---
 ---@class Prototype.Roboport: Prototype.EntityWithOwner
 ---@field base Sprite
 ---@field base_animation Animation
@@ -1440,6 +1596,7 @@
 ---@field robots_shrink_when_entering_and_exiting? boolean
 ---@field spawn_and_station_shadow_height_offset? float
 ---@field stationing_offset? Vector.1
+---
 ---@class Prototype.RoboportEquipment: Prototype.Equipment
 ---@field charge_approach_distance float
 ---@field charging_energy Energy
@@ -1462,6 +1619,7 @@
 ---@field spawn_and_station_shadow_height_offset? float
 ---@field spawn_minimum? Energy
 ---@field stationing_offset? Vector.1
+---
 ---@class Prototype.RobotWithLogisticInterface: Prototype.FlyingRobot
 ---@field cargo_centered Vector.1
 ---@field max_payload_size ItemCountType
@@ -1471,6 +1629,7 @@
 ---@field in_motion? RotatedAnimation
 ---@field shadow_idle? RotatedAnimation
 ---@field shadow_in_motion? RotatedAnimation
+---
 ---@class Prototype.RocketSilo: Prototype.AssemblingMachine
 ---@field active_energy_usage Energy
 ---@field arm_01_back_animation Animation
@@ -1517,6 +1676,7 @@
 ---@field raise_rocket_sound? Sound
 ---@field raise_rocket_trigger? TriggerEffect
 ---@field rocket_result_inventory_size? ItemStackIndex
+---
 ---@class Prototype.RocketSiloRocket: Prototype.Entity
 ---@field effects_fade_in_end_distance double
 ---@field effects_fade_in_start_distance double
@@ -1552,7 +1712,9 @@
 ---@field rocket_above_wires_slice_offset_from_center? double
 ---@field rocket_air_object_slice_offset_from_center? double
 ---@field rocket_initial_offset? Vector.1
+---
 ---@class Prototype.RocketSiloRocketShadow: Prototype.Entity
+---
 ---@class Prototype.RollingStock: Prototype.Vehicle
 ---@field air_resistance double
 ---@field connection_distance double
@@ -1570,6 +1732,7 @@
 ---@field tie_distance? double
 ---@field vertical_doors? Animation
 ---@field wheels? RotatedSprite
+---
 ---@class Prototype.SelectionTool: Prototype.ItemWithLabel
 ---@field alt_selection_color Color
 ---@field alt_selection_cursor_box_type CursorBoxType
@@ -1598,6 +1761,7 @@
 ---@field selection_count_button_color? Color
 ---@field tile_filter_mode? string
 ---@field tile_filters? string[]
+---
 ---@class Prototype.Shortcut: Prototype
 ---@field action string
 ---@field icon Sprite
@@ -1609,6 +1773,7 @@
 ---@field style? string
 ---@field technology_to_unlock? string
 ---@field toggleable? boolean
+---
 ---@class Prototype.SimpleEntity: Prototype.EntityWithHealth
 ---@field animations? AnimationVariations
 ---@field count_as_rock_for_filtered_deconstruction? boolean
@@ -1618,7 +1783,9 @@
 ---@field random_variation_on_create? boolean
 ---@field render_layer? RenderLayer
 ---@field secondary_draw_order? int8
+---
 ---@class Prototype.SimpleEntityWithForce: Prototype.SimpleEntityWithOwner
+---
 ---@class Prototype.SimpleEntityWithOwner: Prototype.EntityWithOwner
 ---@field animations? AnimationVariations
 ---@field force_visibility? ForceCondition
@@ -1628,7 +1795,9 @@
 ---@field random_variation_on_create? boolean
 ---@field render_layer? RenderLayer
 ---@field secondary_draw_order? int8
+---
 ---@class Prototype.SimpleSmoke: Prototype.Smoke
+---
 ---@class Prototype.Smoke: Prototype.Entity
 ---@field animation Animation
 ---@field affected_by_wind? boolean
@@ -1645,6 +1814,7 @@
 ---@field show_when_smoke_off? boolean
 ---@field spread_duration? uint32
 ---@field start_scale? double
+---
 ---@class Prototype.SmokeWithTrigger: Prototype.Smoke
 ---@field action? Trigger
 ---@field action_cooldown? uint32
@@ -1656,13 +1826,16 @@
 ---@field spread_duration_variation? uint32
 ---@field wave_distance? Vector.1
 ---@field wave_speed? Vector.1
+---
 ---@class Prototype.SolarPanel: Prototype.EntityWithOwner
 ---@field energy_source EnergySource
 ---@field picture SpriteVariations
 ---@field production Energy
 ---@field overlay? SpriteVariations
+---
 ---@class Prototype.SolarPanelEquipment: Prototype.Equipment
 ---@field power Energy
+---
 ---@class Prototype.Sound sound
 ---@field name string
 ---@field type string
@@ -1677,15 +1850,18 @@
 ---@field speed? float
 ---@field variations? table (array) of tables
 ---@field volume? float
+---
 ---@class Prototype.SpectatorController spectator-controller
 ---@field movement_speed double
 ---@field name string
 ---@field type string
+---
 ---@class Prototype.SpeechBubble: Prototype.Entity
 ---@field style string
 ---@field fade_in_out_ticks? uint32
 ---@field wrapper_flow_style? string
 ---@field y_offset? double
+---
 ---@class Prototype.SpiderLeg: Prototype.EntityWithHealth
 ---@field graphics_set SpiderLegGraphicsSet
 ---@field initial_movement_speed double
@@ -1695,6 +1871,7 @@
 ---@field part_length double
 ---@field target_position_randomisation_distance double
 ---@field walking_sound_volume_modifier? double
+---
 ---@class Prototype.SpiderVehicle: Prototype.Vehicle
 ---@field automatic_weapon_cycling boolean
 ---@field burner? EnergySource
@@ -1709,15 +1886,18 @@
 ---@field guns? string[]s of prototype names
 ---@field torso_rotation_speed? float
 ---@field trash_inventory_size? ItemStackIndex
+---
 ---@class Prototype.SpidertronRemote: Prototype.Item
 ---@field icon_color_indicator_masks? IconSpecification
 ---@field icon_color_indicator_mask? IconSpecification
 ---@field icon_size? IconSpecification
+---
 ---@class Prototype.Splitter: Prototype.TransportBeltConnectable
 ---@field structure Animation4Way
 ---@field structure_animation_movement_cooldown? uint32
 ---@field structure_animation_speed_coefficient? double
 ---@field structure_patch? Animation4Way
+---
 ---@class Prototype.Sprite sprite
 ---@field filename FileName
 ---@field name string
@@ -1750,6 +1930,7 @@
 ---@field width? SpriteSizeType
 ---@field x? SpriteSizeType
 ---@field y? SpriteSizeType
+---
 ---@class Prototype.Sticker: Prototype.Entity
 ---@field duration_in_ticks uint32
 ---@field animation? Animation
@@ -1771,6 +1952,7 @@
 ---@field vehicle_speed_modifier? float
 ---@field vehicle_speed_modifier_from? float
 ---@field vehicle_speed_modifier_to? float
+---
 ---@class Prototype.StorageTank: Prototype.EntityWithOwner
 ---@field flow_length_in_ticks uint32
 ---@field fluid_box FluidBox
@@ -1783,8 +1965,10 @@
 ---@field draw_copper_wires? boolean
 ---@field scale_info_icons? boolean
 ---@field two_direction_only? boolean
+---
 ---@class Prototype.StraightRail: Prototype.Rail
 ---@field bending_type? string
+---
 ---@class Prototype.Technology: Prototype
 ---@field icons IconsSpecification
 ---@field icon IconsSpecification
@@ -1800,6 +1984,7 @@
 ---@field prerequisites? string[]
 ---@field upgrade? boolean
 ---@field visible_when_disabled? boolean
+---
 ---@class Prototype.Tile: Prototype
 ---@field collision_mask CollisionMask
 ---@field layer uint8
@@ -1836,6 +2021,7 @@
 ---@field vehicle_friction_modifier? double
 ---@field walking_sound? Sound
 ---@field walking_speed_modifier? double
+---
 ---@class Prototype.TileEffect tile-effect
 ---@field animation_scale {[1]: float, [2]: float?}
 ---@field animation_speed float
@@ -1851,7 +2037,9 @@
 ---@field type string
 ---@field far_zoom? float
 ---@field near_zoom? float
+---
 ---@class Prototype.TileGhost: Prototype.Entity
+---
 ---@class Prototype.TipsAndTricksItem: Prototype
 ---@field category? string
 ---@field dependencies? string[]
@@ -1864,17 +2052,21 @@
 ---@field tag? string
 ---@field trigger? TipTrigger
 ---@field tutorial? string
+---
 ---@class Prototype.TipsAndTricksItemCategory tips-and-tricks-item-category
 ---@field name string
 ---@field order Order
 ---@field type string
+---
 ---@class Prototype.Tool: Prototype.Item
 ---@field durability? double
 ---@field durability_description_key? string
 ---@field durability_description_value? string
 ---@field infinite? boolean
+---
 ---@class Prototype.TrainPathAchievement: Prototype.Achievement
 ---@field minimum_distance double
+---
 ---@class Prototype.TrainStop: Prototype.EntityWithOwner
 ---@field animation_ticks_per_frame uint32
 ---@field animations? Animation4Way
@@ -1893,6 +2085,7 @@
 ---@field light2? table
 ---@field rail_overlay_animations? Animation4Way
 ---@field top_animations? Animation4Way
+---
 ---@class Prototype.TransportBelt: Prototype.TransportBeltConnectable
 ---@field connector_frame_sprites TransportBeltConnectorFrame
 ---@field animations? RotatedAnimation
@@ -1903,6 +2096,7 @@
 ---@field draw_circuit_wires? boolean
 ---@field draw_copper_wires? boolean
 ---@field related_underground_belt? string
+---
 ---@class Prototype.TransportBeltConnectable: Prototype.EntityWithOwner
 ---@field speed double
 ---@field animation_speed_coefficient? double
@@ -1917,15 +2111,18 @@
 ---@field starting_bottom? Animation
 ---@field starting_side? Animation
 ---@field starting_top? Animation
+---
 ---@class Prototype.Tree: Prototype.EntityWithHealth
 ---@field colors? Color[]
 ---@field darkness_of_burnt_tree? float
 ---@field pictures? SpriteVariations
 ---@field variation_weights? double[]
 ---@field variations? TreePrototypeVariation[]
+---
 ---@class Prototype.TriggerTargetType trigger-target-type
 ---@field name string
 ---@field type string
+---
 ---@class Prototype.TrivialSmoke: Prototype
 ---@field animation Animation
 ---@field duration uint32
@@ -1942,6 +2139,7 @@
 ---@field show_when_smoke_off? boolean
 ---@field spread_duration? uint32
 ---@field start_scale? double
+---
 ---@class Prototype.Turret: Prototype.EntityWithOwner
 ---@field attack_parameters AttackParameters
 ---@field call_for_help_radius double
@@ -1994,13 +2192,16 @@
 ---@field starting_attack_sound? Sound
 ---@field starting_attack_speed? float
 ---@field turret_base_has_direction? boolean
+---
 ---@class Prototype.Tutorial: Prototype
 ---@field scenario string
+---
 ---@class Prototype.UndergroundBelt: Prototype.TransportBeltConnectable
 ---@field max_distance uint8
 ---@field structure table
 ---@field underground_sprite Sprite
 ---@field underground_remove_belts_sprite? Sprite
+---
 ---@class Prototype.Unit: Prototype.EntityWithOwner
 ---@field attack_parameters AttackParameters
 ---@field distance_per_frame float
@@ -2025,8 +2226,10 @@
 ---@field running_sound_animation_positions? table (array) of float
 ---@field spawning_time_modifier? double
 ---@field walking_sound? Sound
+---
 ---@class Prototype.UpgradeItem: Prototype.SelectionTool
 ---@field mapper_count? ItemStackIndex
+---
 ---@class Prototype.UtilityConstants: Prototype
 ---@field artillery_range_visualization_color Color
 ---@field bonus_gui_ordering table
@@ -2124,6 +2327,7 @@
 ---@field default_alert_icon_scale_by_type? string[] to float
 ---@field default_alert_icon_shift_by_type? string[] to Vector.1
 ---@field default_trigger_target_mask_by_type? string[] to TriggerTargetMask
+---
 ---@class Prototype.UtilitySounds: Prototype
 ---@field achievement_unlocked Sound
 ---@field alert_destroyed Sound
@@ -2186,6 +2390,7 @@
 ---@field wire_connect_pole Sound
 ---@field wire_disconnect Sound
 ---@field wire_pickup Sound
+---
 ---@class Prototype.UtilitySprites: Prototype
 ---@field achievement_label_failed Sprite
 ---@field achievement_label_locked Sprite
@@ -2559,6 +2764,7 @@
 ---@field zoom_to_world_ghost_building_enabled_modifier_constant? Sprite
 ---@field zoom_to_world_selection_tool_enabled_modifier_constant? Sprite
 ---@field zoom_to_world_upgrade_planner_enabled_modifier_constant? Sprite
+---
 ---@class Prototype.Vehicle: Prototype.EntityWithOwner
 ---@field braking_power? Energy|double
 ---@field braking_force? Energy|double
@@ -2576,11 +2782,13 @@
 ---@field stop_trigger? TriggerEffect
 ---@field stop_trigger_speed? double
 ---@field terrain_friction_modifier? float
+---
 ---@class Prototype.VirtualSignal: Prototype
 ---@field icons IconsSpecification
 ---@field icon IconsSpecification
 ---@field icon_size IconsSpecification
 ---@field subgroup? string
+---
 ---@class Prototype.Wall: Prototype.EntityWithOwner
 ---@field pictures table
 ---@field circuit_connector_sprites? CircuitConnectorSprites
@@ -2601,6 +2809,7 @@
 ---@field wall_diode_red_light_left? LightDefinition[]
 ---@field wall_diode_red_light_right? LightDefinition[]
 ---@field wall_diode_red_light_top? LightDefinition[]
+---
 ---@class Prototype.WindSound wind-sound
 ---@field name string
 ---@field sound Sound
