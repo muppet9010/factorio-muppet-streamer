@@ -110,7 +110,7 @@ end
 ---@return string|nil treeName
 BiomeTrees.GetBiomeTreeName = function(surface, position)
     -- Returns the tree name or nil if tile isn't land type
-    local tile = surface.get_tile(math.floor(position.x), math.floor(position.y))
+    local tile = surface.get_tile(position --[[@as TilePosition @ handled equally by Factorio in this API function.]])
     local tileData = global.UTILITYBIOMETREES.tileData[tile.name]
     if tileData == nil then
         local tileName = tile.hidden_tile

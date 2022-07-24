@@ -2,7 +2,6 @@
 Version: 20.1.24
 Date: 2022-XX-XX
   Features:
-    - Potentially Breaking Changes - This version includes changes in how you call the features from your RCON integration tool. See the various details listed in this change and the mods description/readme for details.
     - Any unsupported option/setting provided when a command is run will raise a warning on screen. This is to aid user recognition of any mistakes in their command's options/settings.
     - Added remote interface for features in addition to their commands. This is documented at the end of the mod description/readme. This should provide full flexibility for all viewer integration methods. Also allows for multiple features to be triggered simultaneously as separate RCON commands will always have a tiny delay between them.
   Changes:
