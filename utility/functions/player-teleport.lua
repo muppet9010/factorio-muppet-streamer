@@ -3,7 +3,8 @@
 
     Usage: Call any public functions (not starting with "_") as required to request a teleport for a player. Other public functions can also be utilised as required.
 ]]
-local Utils = require("utility/utils")
+local PositionUtils = require("utility.helper-utils.position-utils")
+local DirectionUtils = require("utility.helper-utils.direction-utils")
 
 local PlayerTeleport = {}
 
@@ -16,15 +17,15 @@ local PlayerTeleport = {}
 ---@param targetSurface LuaSurface @ The surface to teleport them too.
 ---@param destinationTargetPosition MapPosition @ The position on the map to teleport them near.
 ---@param inaccuracyToTargetPosition double @ How inaccurate the desired random placement of the player to the target position should be up too. Used to give intentional inaccuracy to the placement attempt position.
----@param placementAttempts integer @ How many times we should try random placement attempts within the inaccuracy of the target.
+---@param placementAttempts uint @ How many times we should try random placement attempts within the inaccuracy of the target.
 ---@param placementAccuracy double @ Max range from the placement attempt position to look for a valid position for the player within. Code will try and place as close to the placement attempt position as possible.
----@param reachablePosition? MapPosition|nil @ If the player needs to be able to walk from where they are teleported too, to this position. Commonly used to check they can walk from their teleport target back to where they were, to avoid teleports on to islands. If provided then the path request Id will be returned in the responseDetails for monitoring by the calling mod. As the state of the player and target should be re-verified by the mod based on its exact usage scenario upon this pathing request completing; As the game world will likely have changed in between and so it may not be approperiate for the teleport to be completed.
----@return PlayerTeleport_TeleportRequestResponseDetails responseDetails? @ A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occured.
+---@param reachablePosition? MapPosition|nil @ If the player needs to be able to walk from where they are teleported too, to this position. Commonly used to check they can walk from their teleport target back to where they were, to avoid teleports on to islands. If provided then the path request Id will be returned in the responseDetails for monitoring by the calling mod. As the state of the player and target should be re-verified by the mod based on its exact usage scenario upon this pathing request completing; As the game world will likely have changed in between and so it may not be appropriate for the teleport to be completed.
+---@return UtilityPlayerTeleport_TeleportRequestResponseDetails responseDetails? @ A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occured.
 PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurface, destinationTargetPosition, inaccuracyToTargetPosition, placementAttempts, placementAccuracy, reachablePosition)
     -- The response object with the result in it.
-    ---@type PlayerTeleport_TeleportRequestResponseDetails
+    ---@type UtilityPlayerTeleport_TeleportRequestResponseDetails
     local responseDetails = {
-        targetPlayerTeleportEntity = nil,
+        --targetPlayerTeleportEntity = nil @ Always populated later in function.
         targetPosition = nil,
         teleportSucceeded = false,
         pathRequestId = nil,
@@ -40,7 +41,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
     -- CODE NOTE: This isn't perfect, but is better than nothing until this Interface Request is done: https://forums.factorio.com/viewtopic.php?f=28&t=102792
     local playersVehicle_directionToCheck  ---@type defines.direction|nil
     if targetPlayerPlacementEntity_isVehicle then
-        playersVehicle_directionToCheck = Utils.RoundNumberToDecimalPlaces(targetPlayerPlacementEntity.orientation * 4, 0) * 2
+        playersVehicle_directionToCheck = DirectionUtils.OrientationToNearestCardinalDirection(targetPlayerPlacementEntity.orientation)
     end
 
     -- Record the current placement entity for checking post path request.
@@ -50,9 +51,9 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
     local randomPositionsToTry = math.max(1, math.min(placementAttempts, inaccuracyToTargetPosition ^ inaccuracyToTargetPosition)) -- Avoid looking around lots of positions all within very small arrival radiuses of the target. The arrival radius can be as low as 0.
     for _ = 1, randomPositionsToTry do
         -- Select a random position near the target and look for a valid placement near it.
-        local randomPos = Utils.RandomLocationInRadius(destinationTargetPosition, inaccuracyToTargetPosition, 1)
-        randomPos = Utils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
-        arrivalPos = targetSurface.find_non_colliding_position(targetPlayerPlacementEntity.name, randomPos, placementAccuracy, 1, false)
+        local randomPos = PositionUtils.RandomLocationInRadius(destinationTargetPosition, inaccuracyToTargetPosition, 1)
+        randomPos = PositionUtils.RoundPosition(randomPos, 0) -- Make it tile border aligned as most likely place to get valid placements from when in a base. We search in whole tile increments from this tile border.
+        arrivalPos = targetSurface.find_non_colliding_position(targetPlayerPlacementEntity.name, randomPos, placementAccuracy, 1.0, false)
 
         if playersVehicle_directionToCheck ~= nil then
             -- Check the entity can be placed with its current nearest cardinal direction to orientation, as the searching API doesn't check for this.
@@ -84,7 +85,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
             start = arrivalPos,
             goal = reachablePosition,
             force = targetPlayer_force,
-            radius = 1,
+            radius = 1.0,
             can_open_gates = true,
             entity_to_ignore = targetPlayerPlacementEntity,
             pathfind_flags = {allow_paths_through_own_entities = true, cache = false}
@@ -111,7 +112,7 @@ PlayerTeleport.TeleportToSpecificPosition = function(targetPlayer, targetSurface
     local teleportSucceeded, wasDriving, wasPassengerIn
     local targetPlayer_vehicle = targetPlayer.vehicle
 
-    -- Teleport the approperiate entity to the specified position.
+    -- Teleport the appropriate entity to the specified position.
     if PlayerTeleport.IsTeleportableVehicle(targetPlayer_vehicle) then
         teleportSucceeded = targetPlayer_vehicle.teleport(targetPosition, targetSurface)
     else
@@ -172,11 +173,11 @@ end
 --                          PRIVATE FUNCTIONS
 ----------------------------------------------------------------------------------
 
----@class PlayerTeleport_TeleportRequestResponseDetails @ A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occured.
+---@class UtilityPlayerTeleport_TeleportRequestResponseDetails @ A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occured.
 ---@field targetPlayerTeleportEntity LuaEntity @ The entity we did the teleport request for.
 ---@field targetPosition? MapPosition|nil @ The exact position the teleport was attempted to, if one was found.
 ---@field teleportSucceeded boolean @ If the teleport was completed. Will be false if a pathing request was made as part of a reachablePosition option.
----@field pathRequestId? Id|nil @ If a reachablePosition was given then the path request Id to monitor for is returned. The state of the player and target should be re-verified upon this pathing request result as the game worls will likely have changed in between and so it may not be approperiate for the teleport to be completed.
+---@field pathRequestId? uint|nil @ If a reachablePosition was given then the path request Id to monitor for is returned. The state of the player and target should be re-verified upon this pathing request result as the game worls will likely have changed in between and so it may not be appropriate for the teleport to be completed.
 ---@field errorNoValidPositionFound boolean @ If the teleport failed as there was no valid position found near the target position (prior to any walkability check if enabled).
 ---@field errorTeleportFailed boolean @ If the actual teleport command to the player/vehicle failed.
 

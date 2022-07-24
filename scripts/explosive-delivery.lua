@@ -1,18 +1,19 @@
 local ExplosiveDelivery = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local EventScheduler = require("utility/event-scheduler")
-local Utils = require("utility/utils")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local PositionUtils = require("utility.helper-utils.position-utils")
+local Common = require("scripts.common")
+local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class ExplosiveDelivery_DelayedCommandDetails
----@field explosiveCount int
+---@field explosiveCount uint
 ---@field explosiveType ExplosiveDelivery_ExplosiveType
----@field accuracyRadiusMin float
----@field accuracyRadiusMax float
----@field target LuaPlayer|nil
+---@field accuracyRadiusMin double
+---@field accuracyRadiusMax double
+---@field target string
 ---@field targetPosition MapPosition|nil
 ---@field targetOffset MapPosition|nil
----@field salvoWaveId int|nil
+---@field salvoWaveId uint|nil
 ---@field finalSalvo boolean
 
 ---@class ExplosiveDelivery_SalvoWaveDetails
@@ -21,193 +22,182 @@ local Utils = require("utility/utils")
 
 ExplosiveDelivery.CreateGlobals = function()
     global.explosiveDelivery = global.explosiveDelivery or {}
-    global.explosiveDelivery.nextId = global.explosiveDelivery.nextId or 0 ---@type int
-    global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId or 0 ---@type int
+    global.explosiveDelivery.nextId = global.explosiveDelivery.nextId or 0 ---@type uint
+    global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId or 0 ---@type uint
     global.explosiveDelivery.salvoWaveDetails = global.explosiveDelivery.salvoWaveDetails or {} ---@type table<int,ExplosiveDelivery_SalvoWaveDetails>
 end
 
 ExplosiveDelivery.OnLoad = function()
-    Commands.Register("muppet_streamer_schedule_explosive_delivery", {"api-description.muppet_streamer_schedule_explosive_delivery"}, ExplosiveDelivery.ScheduleExplosiveDeliveryCommand, true)
+    CommandsUtils.Register("muppet_streamer_schedule_explosive_delivery", {"api-description.muppet_streamer_schedule_explosive_delivery"}, ExplosiveDelivery.ScheduleExplosiveDeliveryCommand, true)
     EventScheduler.RegisterScheduledEventType("ExplosiveDelivery.DeliverExplosives", ExplosiveDelivery.DeliverExplosives)
+    MOD.Interfaces.Commands.ExplosiveDelivery = ExplosiveDelivery.ScheduleExplosiveDeliveryCommand
 end
 
+---@param command CustomCommandData
 ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_schedule_explosive_delivery command "
-    local commandData
-    if command.parameter ~= nil then
-        commandData = game.json_to_table(command.parameter)
-    end
-    if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+    local commandName = "muppet_streamer_schedule_explosive_delivery"
+
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "explosiveCount", "explosiveType", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay"})
+    if commandData == nil then
         return
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        delay = math.max(delay * 60, 0)
-    end
+    local delaySeconds = commandData.delay
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+        return
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
-    local explosiveCount = tonumber(commandData.explosiveCount)
-    if explosiveCount == nil then
-        Logging.LogPrint(errorMessageStart .. "explosiveCount is mandatory as a number")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+    local explosiveCount = commandData.explosiveCount
+    if not CommandsUtils.CheckNumberArgument(explosiveCount, "int", true, commandName, "explosiveCount", 1, MathUtils.uintMax, command.parameter) then
         return
-    elseif explosiveCount <= 0 then
-        return
-    end
+    end ---@cast explosiveCount uint
 
-    local explosiveType = ExplosiveDelivery.ExplosiveTypes[commandData.explosiveType] ---@type ExplosiveDelivery_ExplosiveType
-    if explosiveType == nil then
-        Logging.LogPrint(errorMessageStart .. "explosiveType is mandatory and must be a supported type")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+    local explosiveType_string = commandData.explosiveType
+    if not CommandsUtils.CheckStringArgument(explosiveType_string, true, commandName, "explosiveType", ExplosiveDelivery.ExplosiveTypes, command.parameter) then
         return
-    end
+    end ---@cast explosiveType_string string
+    local explosiveType = ExplosiveDelivery.ExplosiveTypes[explosiveType_string] ---@type ExplosiveDelivery_ExplosiveType
 
     local target = commandData.target
-    if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
         return
-    elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-        return
-    end
+    end ---@cast target string
 
-    local targetPosition = commandData.targetPosition ---@type MapPosition|nil
+    local targetPosition = commandData.targetPosition
+    if not CommandsUtils.CheckTableArgument(targetPosition, false, commandName, "targetPosition", PositionUtils.MapPositionConvertableTableValidKeysList, command.parameter) then
+        return
+    end ---@cast targetPosition MapPosition|nil
     if targetPosition ~= nil then
-        targetPosition = Utils.TableToProperPosition(targetPosition)
+        targetPosition = PositionUtils.TableToProperPosition(targetPosition)
         if targetPosition == nil then
-            Logging.LogPrint(errorMessageStart .. "targetPosition is Optional, but if provided must be a valid position table string")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            CommandsUtils.LogPrintError(commandName, "targetPosition", "must be a valid position table string", command.parameter)
             return
         end
     end
 
     local targetOffset = commandData.targetOffset ---@type MapPosition|nil
+    if not CommandsUtils.CheckTableArgument(targetOffset, false, commandName, "targetOffset", PositionUtils.MapPositionConvertableTableValidKeysList, command.parameter) then
+        return
+    end ---@cast targetOffset MapPosition|nil
     if targetOffset ~= nil then
-        targetOffset = Utils.TableToProperPosition(targetOffset)
+        targetOffset = PositionUtils.TableToProperPosition(targetOffset)
         if targetOffset == nil then
-            Logging.LogPrint(errorMessageStart .. "targetOffset is Optional, but if provided must be a valid position table string")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+            CommandsUtils.LogPrintError(commandName, "targetOffset", "must be a valid position table string", command.parameter)
             return
         end
     end
 
-    local accuracyRadiusMin = 0
-    if commandData.accuracyRadiusMin ~= nil then
-        accuracyRadiusMin = tonumber(commandData.accuracyRadiusMin)
-        if accuracyRadiusMin == nil or accuracyRadiusMin < 0 then
-            Logging.LogPrint(errorMessageStart .. "accuracyRadiusMin is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
+    local accuracyRadiusMin = commandData.accuracyRadiusMin
+    if not CommandsUtils.CheckNumberArgument(accuracyRadiusMin, "double", false, commandName, "accuracyRadiusMin", 0, nil, command.parameter) then
+        return
+    end ---@cast accuracyRadiusMin double|nil
+    if accuracyRadiusMin == nil then
+        accuracyRadiusMin = 0.0
     end
 
-    local accuracyRadiusMax = 0
-    if commandData.accuracyRadiusMax ~= nil then
-        accuracyRadiusMax = tonumber(commandData.accuracyRadiusMax)
-        if accuracyRadiusMax == nil or accuracyRadiusMax < 0 then
-            Logging.LogPrint(errorMessageStart .. "accuracyRadiusMax is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
+    local accuracyRadiusMax = commandData.accuracyRadiusMax
+    if not CommandsUtils.CheckNumberArgument(accuracyRadiusMax, "double", false, commandName, "accuracyRadiusMax", 0, nil, command.parameter) then
+        return
+    end ---@cast accuracyRadiusMax double|nil
+    if accuracyRadiusMax == nil then
+        accuracyRadiusMax = 0.0
     end
 
-    local salvoSize = explosiveCount
-    if commandData.salvoSize ~= nil then
-        salvoSize = tonumber(commandData.salvoSize)
-        if salvoSize == nil or salvoSize < 0 then
-            Logging.LogPrint(errorMessageStart .. "salvoSize is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    local salvoSize = commandData.salvoSize
+    if not CommandsUtils.CheckNumberArgument(salvoSize, "int", false, commandName, "salvoSize", 1, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast salvoSize uint|nil
+    salvoSize = salvoSize or explosiveCount
 
-    local salvoDelay = 0
-    if commandData.salvoDelay ~= nil then
-        salvoDelay = tonumber(commandData.salvoDelay)
-        if salvoDelay == nil or salvoDelay < 0 then
-            Logging.LogPrint(errorMessageStart .. "salvoDelay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    local salvoDelayTicks = commandData.salvoDelay
+    if not CommandsUtils.CheckNumberArgument(salvoDelayTicks, "int", false, commandName, "salvoDelay", 0, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast salvoDelayTicks uint|nil
+    salvoDelayTicks = salvoDelayTicks or 0
 
     -- If this is a multi salvo wave we need to cache the target position from the first delivery for the subsequent deliveryies of that wave. So setup the salvoWaveId for later population.
-    local maxBatchNumber = 0 -- Batch 0 is the first batch.
-    local salvoWaveId
+    local maxBatchNumber = 0 ---@type uint @ Batch 0 is the first batch.
+    local salvoWaveId  ---@type uint|nil
     if explosiveCount > salvoSize then
         global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1
         salvoWaveId = global.explosiveDelivery.nextSalvoWaveId
-        maxBatchNumber = math.ceil(explosiveCount / salvoSize) - 1
+        maxBatchNumber = math.floor(explosiveCount / salvoSize) --[[@as uint @ Both inputs are verified uints and with the math.floor() it can't go below 0]] -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
     end
 
     local explosiveCountRemaining = explosiveCount
+    ---@type uint
     for batchNumber = 0, maxBatchNumber do
         explosiveCount = math.min(salvoSize, explosiveCountRemaining)
         explosiveCountRemaining = explosiveCountRemaining - explosiveCount
 
         global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
-        EventScheduler.ScheduleEvent(
-            command.tick + delay + (batchNumber * salvoDelay),
-            "ExplosiveDelivery.DeliverExplosives",
-            global.explosiveDelivery.nextId,
-            {
-                explosiveCount = explosiveCount,
-                explosiveType = explosiveType,
-                accuracyRadiusMin = accuracyRadiusMin,
-                accuracyRadiusMax = accuracyRadiusMax,
-                target = target,
-                targetPosition = targetPosition,
-                targetOffset = targetOffset,
-                salvoWaveId = salvoWaveId,
-                finalSalvo = batchNumber == maxBatchNumber
-            }
-        )
+        ---@type ExplosiveDelivery_DelayedCommandDetails
+        local delayedCommandDetails = {
+            explosiveCount = explosiveCount,
+            explosiveType = explosiveType,
+            accuracyRadiusMin = accuracyRadiusMin,
+            accuracyRadiusMax = accuracyRadiusMax,
+            target = target,
+            targetPosition = targetPosition,
+            targetOffset = targetOffset,
+            salvoWaveId = salvoWaveId,
+            finalSalvo = (batchNumber == maxBatchNumber)
+        }
+
+        local batchScheduleTick  ---@type UtilityScheduledEvent_UintNegative1
+        local batchSalvoDelay = batchNumber * salvoDelayTicks
+        if batchSalvoDelay > 0 then
+            -- There's a salvo delay.
+            if scheduleTick == -1 then
+                -- Is the special do it now value.
+                batchScheduleTick = command.tick + batchSalvoDelay
+            else
+                -- Is greater than 0.
+                batchScheduleTick = scheduleTick + batchSalvoDelay
+            end
+        else
+            -- No salvo delay so do at main delayed time.
+            if scheduleTick == -1 then
+                -- Is the special do it now value.
+                batchScheduleTick = -1
+            else
+                -- Is greater than 0.
+                batchScheduleTick = scheduleTick + batchSalvoDelay
+            end
+        end
+        EventScheduler.ScheduleEventOnce(batchScheduleTick, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
     end
 end
 
+---@param eventData UtilityScheduledEvent_CallbackObject
 ExplosiveDelivery.DeliverExplosives = function(eventData)
     local data = eventData.data ---@type ExplosiveDelivery_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil then
-        Logging.LogPrint("ERROR: muppet_streamer_schedule_explosive_delivery command target player not found at delivery time: " .. data.target)
-        return
-    end
+    -- Don't need to check if the target is alive or anything. We will happily bomb their corpse.
 
-    ---@typelist MapPosition, LuaSurface
+    ---@type MapPosition, LuaSurface
     local targetPos, surface
     -- Check if we need to obtain a target position from the salvo wave rather than calculate it now.
-    if data.salvoWaveId ~= nil and global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] ~= nil then
-        targetPos = global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId].targetPosition
-        surface = global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId].targetSurface
+    local salvoWaveId = data.salvoWaveId -- Variables existance is a work around for Sumneko's missing object field nil detection.
+    if salvoWaveId ~= nil and global.explosiveDelivery.salvoWaveDetails[salvoWaveId] ~= nil then
+        targetPos = global.explosiveDelivery.salvoWaveDetails[salvoWaveId].targetPosition
+        surface = global.explosiveDelivery.salvoWaveDetails[salvoWaveId].targetSurface
         if data.finalSalvo then
-            global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] = nil
+            global.explosiveDelivery.salvoWaveDetails[salvoWaveId] = nil
         end
     else
         -- Calculate the target position now.
-        if data.targetPosition ~= nil then
-            targetPos = data.targetPosition
-        else
-            targetPos = targetPlayer.position
-        end
+        targetPos = data.targetPosition or targetPlayer.position
         if data.targetOffset ~= nil then
             targetPos.x = targetPos.x + data.targetOffset.x
             targetPos.y = targetPos.y + data.targetOffset.y
         end
         surface = targetPlayer.surface
-        if data.salvoWaveId ~= nil then
+        if salvoWaveId ~= nil then
             -- Cache the salvo wave target position for the rest of the salvo wave.
-            global.explosiveDelivery.salvoWaveDetails[data.salvoWaveId] = {
+            global.explosiveDelivery.salvoWaveDetails[salvoWaveId] = {
                 targetPosition = targetPos,
                 targetSurface = surface
             }
@@ -221,14 +211,14 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     end
 
     local explosiveType = data.explosiveType
-    for i = 1, data.explosiveCount do
+    for _ = 1, data.explosiveCount do
         -- The explosives have to be fired at something, so we make a temporary dummy target entity at the desired explosion position.
-        local targetEntityPos = Utils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
+        local targetEntityPos = PositionUtils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
         local targetEntity = surface.create_entity {name = "muppet_streamer-explosive-delivery-target", position = targetEntityPos}
 
         -- Spawn the explosives off the players screen (non map view). Have to allow enough distance for explosives crossing players screen, i.e. the targetPos being NW of the player and the explosives spawn SE of the player, they need to be far away enough away to spawn off the player's screen before flying over their head.
         local explosiveCreateDistance = math.max(100, data.accuracyRadiusMax * 2)
-        local explosiveCreatePos = Utils.RandomLocationInRadius(targetPos, explosiveCreateDistance, explosiveCreateDistance)
+        local explosiveCreatePos = PositionUtils.RandomLocationInRadius(targetPos, explosiveCreateDistance, explosiveCreateDistance)
 
         if explosiveType.projectileName ~= nil then
             surface.create_entity {name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed}
@@ -243,7 +233,7 @@ end
 
 ---@class ExplosiveDelivery_ExplosiveType
 ---@field projectileName string
----@field speed float
+---@field speed double
 
 ---@class ExplosiveDelivery_ExplosiveTypes
 ExplosiveDelivery.ExplosiveTypes = {
@@ -270,7 +260,7 @@ ExplosiveDelivery.ExplosiveTypes = {
     ---@class ExplosiveDelivery_ExplosiveType
     artilleryShell = {
         projectileName = "artillery-projectile",
-        speed = 1
+        speed = 1.0
     },
     ---@class ExplosiveDelivery_ExplosiveType
     explosiveRocket = {

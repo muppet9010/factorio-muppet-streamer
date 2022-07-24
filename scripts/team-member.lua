@@ -1,18 +1,20 @@
+-- This is a legacy feature and while it should still work, it isn't being kept up to date in terms of code style. Was made for Colonel Will many years ago and hasn;t been used for years (2022).
+
 local TeamMember = {}
-local Events = require("utility/events")
-local GuiUtil = require("utility/gui-util")
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
+local Events = require("utility.manager-libraries.events")
+local GuiUtil = require("utility.manager-libraries.gui-util")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
 
 TeamMember.CreateGlobals = function()
     global.teamMember = global.teamMember or {}
-    global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount or 0
-    global.teamMember.playerGuiOpened = global.teamMember.playerGuiOpened or {}
-    global.teamMember.recruitTeamMemberTitle = global.teamMember.recruitTeamMemberTitle or ""
+    global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount or 0 ---@type uint
+    global.teamMember.playerGuiOpened = global.teamMember.playerGuiOpened or {} ---@type table<uint, boolean> @ Key'd by player_index.
+    global.teamMember.recruitTeamMemberTitle = global.teamMember.recruitTeamMemberTitle or "" ---@type string
 end
 
 TeamMember.OnLoad = function()
-    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) < 0 then
+    if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] < 0 then
         return
     end
 
@@ -20,28 +22,29 @@ TeamMember.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_lua_shortcut, "TeamMember", TeamMember.OnLuaShortcut)
     Events.RegisterHandlerEvent(defines.events.on_player_joined_game, "TeamMember", TeamMember.OnPlayerJoinedGame)
     Events.RegisterHandlerEvent(defines.events.on_player_left_game, "TeamMember", TeamMember.OnPlayerLeftGame)
-    remote.add_interface("muppet_streamer", {increase_team_member_level = TeamMember.RemoteIncreaseTeamMemberLevel})
-    Commands.Register("muppet_streamer_change_team_member_max", {"api-description.muppet_streamer_change_team_member_max"}, TeamMember.CommandChangeTeamMemberLevel, true)
+    CommandsUtils.Register("muppet_streamer_change_team_member_max", {"api-description.muppet_streamer_change_team_member_max"}, TeamMember.CommandChangeTeamMemberLevel, true)
 end
 
 TeamMember.OnStartup = function()
-    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) < 0 then
+    if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] < 0 then
         return
     end
 
     TeamMember.GuiRecreateForAll()
 end
 
+---@param event on_runtime_mod_setting_changed
 TeamMember.OnSettingChanged = function(event)
     local settingName
     if event ~= nil then
         settingName = event.setting
     end
     if (settingName == nil or settingName == "muppet_streamer-recruited_team_member_gui_title") then
-        global.teamMember.recruitTeamMemberTitle = settings.global["muppet_streamer-recruited_team_member_gui_title"].value
+        global.teamMember.recruitTeamMemberTitle = settings.global["muppet_streamer-recruited_team_member_gui_title"].value --[[@as string]]
     end
 end
 
+---@param event on_research_finished
 TeamMember.OnResearchFinished = function(event)
     local technology = event.research
     if string.find(technology.name, "muppet_streamer-recruit_team_member", 0, true) then
@@ -50,6 +53,7 @@ TeamMember.OnResearchFinished = function(event)
     end
 end
 
+---@param event on_lua_shortcut
 TeamMember.OnLuaShortcut = function(event)
     local shortcutName = event.prototype_name
     if shortcutName == "muppet_streamer-team_member_gui_button" then
@@ -62,6 +66,7 @@ TeamMember.OnLuaShortcut = function(event)
     end
 end
 
+---@param event on_player_joined_game
 TeamMember.OnPlayerJoinedGame = function(event)
     local playerIndex = event.player_index
     global.teamMember.playerGuiOpened[playerIndex] = global.teamMember.playerGuiOpened[playerIndex] or true
@@ -80,6 +85,7 @@ TeamMember.GuiRecreateForAll = function()
     end
 end
 
+---@param player LuaPlayer
 TeamMember.GuiRecreateForPlayer = function(player)
     GuiUtil.DestroyPlayersReferenceStorage(player.index, "TeamMember")
     if not global.teamMember.playerGuiOpened[player.index] then
@@ -88,18 +94,21 @@ TeamMember.GuiRecreateForPlayer = function(player)
     TeamMember.GuiOpenForPlayer(player)
 end
 
+---@param player LuaPlayer
 TeamMember.GuiOpenForPlayer = function(player)
     global.teamMember.playerGuiOpened[player.index] = true
     player.set_shortcut_toggled("muppet_streamer-team_member_gui_button", true)
     TeamMember.GuiCreateForPlayer(player)
 end
 
+---@param player LuaPlayer
 TeamMember.GuiCloseForPlayer = function(player)
     global.teamMember.playerGuiOpened[player.index] = false
     player.set_shortcut_toggled("muppet_streamer-team_member_gui_button", false)
     GuiUtil.DestroyPlayersReferenceStorage(player.index, "TeamMember")
 end
 
+---@param player LuaPlayer
 TeamMember.GuiCreateForPlayer = function(player)
     GuiUtil.AddElement(
         {
@@ -136,41 +145,47 @@ TeamMember.GuiUpdateForAll = function()
     end
 end
 
+---@param player LuaPlayer
 TeamMember.GuiUpdateForPlayer = function(player)
     if not global.teamMember.playerGuiOpened[player.index] then
         return
     end
-    GuiUtil.UpdateElementFromPlayersReferenceStorage(player.index, "TeamMember", "team_members_recruited", "label", {caption = {"self", global.teamMember.recruitTeamMemberTitle, #game.connected_players - 1, global.teamMember.recruitedMaxCount}})
+    GuiUtil.UpdateElementFromPlayersReferenceStorage(player.index, "TeamMember", "team_members_recruited", "label", {caption = {"self", global.teamMember.recruitTeamMemberTitle, #game.connected_players - 1, global.teamMember.recruitedMaxCount}}, false)
 end
 
+---@param changeQuantity int
 TeamMember.RemoteIncreaseTeamMemberLevel = function(changeQuantity)
     local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max remote interface "
-    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) ~= 0 then
-        Logging.LogPrint(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
+    if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] ~= 0 then
+        LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
         return
     end
     global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount + changeQuantity
     TeamMember.GuiUpdateForAll()
 end
 
+---@param command CustomCommandData
 TeamMember.CommandChangeTeamMemberLevel = function(command)
-    local args = Commands.GetArgumentsFromCommand(command.parameter)
+    local args = CommandsUtils.GetArgumentsFromCommand(command.parameter)
     local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max command "
     if #args ~= 1 then
-        Logging.LogPrint(errorMessageStartText .. "requires a value to be provided to change the level by.")
-        Logging.LogPrint(errorMessageStartText .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStartText .. "requires a value to be provided to change the level by.")
+        LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
         return
     end
     local changeValueString = args[1]
     local changeValue = tonumber(changeValueString)
     if changeValue == nil then
-        Logging.LogPrint(errorMessageStartText .. "requires a number value to be provided to change the level by, provided: " .. changeValueString)
-        Logging.LogPrint(errorMessageStartText .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStartText .. "requires a number value to be provided to change the level by, provided: " .. changeValueString)
+        LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
         return
+    else
+        changeValue = math.floor(changeValue) ---@type int
     end
-    if tonumber(settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value) ~= 0 then
-        Logging.LogPrint(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
-        Logging.LogPrint(errorMessageStartText .. "recieved text: " .. command.parameter)
+
+    if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] ~= 0 then
+        LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
+        LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
         return
     end
 

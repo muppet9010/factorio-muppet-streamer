@@ -1,7 +1,7 @@
 {
     "factorio.versions": [
         {
-            "name": "1.1.61",
+            "name": "Modding Current",
             "factorioPath": "c:\\FactorioModding\\bin\\x64\\factorio.exe",
             "active": true
         }
@@ -30,5 +30,11 @@
         "__Profiler",
         "ourConnectionPoint"
     ],
-    "Lua.runtime.version": "Lua 5.2"
+    "Lua.runtime.version": "Lua 5.2",
+    "Lua.workspace.library": [
+        "c:\\FactorioModding\\data",
+        "c:\\FactorioModding\\data\\core\\lualib",
+        "c:\\FactorioModding\\runtime-api",
+        "c:\\FactorioModding\\factorio-api"
+    ]
 }

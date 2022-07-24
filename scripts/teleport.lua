@@ -1,23 +1,37 @@
 local Teleport = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local EventScheduler = require("utility/event-scheduler")
-local Utils = require("utility/utils")
-local Events = require("utility/events")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local Events = require("utility.manager-libraries.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
+local DirectionUtils = require("utility.helper-utils.direction-utils")
+local PositionUtils = require("utility.helper-utils.position-utils")
+local Common = require("scripts.common")
 
----@class Teleport_DestinationTypeSelection
-local DestinationTypeSelection = {random = "random", biterNest = "biterNest", enemyUnit = "enemyUnit", spawn = "spawn", position = "position"}
+---@enum Teleport_DestinationTypeSelection
+local DestinationTypeSelection = {
+    random = "random",
+    biterNest = "biterNest",
+    enemyUnit = "enemyUnit",
+    spawn = "spawn",
+    position = "position"
+}
 
----@class Teleport_DestinationTypeSelectionDescription
-local DestinationTypeSelectionDescription = {random = "Random Location", biterNest = "Nearest Biter Nest", enemyUnit = "Enemy Unit", spawn = "spawn", position = "Set Position"}
+---@enum Teleport_DestinationTypeSelectionDescription
+local DestinationTypeSelectionDescription = {
+    random = "Random Location",
+    biterNest = "Nearest Biter Nest",
+    enemyUnit = "Enemy Unit",
+    spawn = "spawn",
+    position = "Set Position"
+}
 
 local MaxTargetAttempts = 5
 local MaxRandomPositionsAroundTargetToTry = 50 -- Was 10, but upped to reduce odd vehicle rotation issues.
 local MaxDistancePositionAroundTarget = 10
 
 ---@class Teleport_CommandDetails @ The details for a specific teleport event in an an RCON command.
----@field delay uint
+---@field delay UtilityScheduledEvent_UintNegative1
 ---@field target string @ Target player's name.
 ---@field arrivalRadius double
 ---@field minDistance double
@@ -52,48 +66,45 @@ local MaxDistancePositionAroundTarget = 10
 ---@field spawnerDetails Teleport_SpawnerDetails
 
 ---@class Teleport_SpawnerDetails
----@field unitNumber UnitNumber
+---@field unitNumber uint
 ---@field entity LuaEntity
 ---@field position MapPosition
 ---@field forceName string
 
----@alias surfaceForceBiterNests table<Id, table<string, table<UnitNumber, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then bacth ignoring of non-enemy spawners.
+---@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then bacth ignoring of non-enemy spawners.
+
+local commandName = "muppet_streamer_teleport"
 
 Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
     global.teleport.nextId = global.teleport.nextId or 0 ---@type uint
-    global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<Id, Teleport_TeleportDetails> @ The path request Id to its teleport details for whne the path request completes.
+    global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<uint, Teleport_TeleportDetails> @ The path request Id to its teleport details for when the path request completes.
     global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSpawnersOnAllSurfaces() ---@type surfaceForceBiterNests
     global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId or 0 ---@type uint
 end
 
 Teleport.OnLoad = function()
-    Commands.Register("muppet_streamer_teleport", {"api-description.muppet_streamer_teleport"}, Teleport.TeleportCommand, true)
+    CommandsUtils.Register("muppet_streamer_teleport", {"api-description.muppet_streamer_teleport"}, Teleport.TeleportCommand, true)
     EventScheduler.RegisterScheduledEventType("Teleport.PlanTeleportTarget", Teleport.PlanTeleportTarget)
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "Teleport.OnScriptPathRequestFinished", Teleport.OnScriptPathRequestFinished)
     Events.RegisterHandlerEvent(defines.events.on_biter_base_built, "Teleport.OnBiterBaseBuilt", Teleport.OnBiterBaseBuilt)
-    Events.RegisterHandlerEvent(defines.events.script_raised_built, "Teleport.ScriptRaisedBuilt", Teleport.ScriptRaisedBuilt, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
+    Events.RegisterHandlerEvent(defines.events.script_raised_built, "Teleport.ScriptRaisedBuilt", Teleport.ScriptRaisedBuilt, {{filter = "type", type = "unit-spawner"}})
     Events.RegisterHandlerEvent(defines.events.on_chunk_generated, "Teleport.OnChunkGenerated", Teleport.OnChunkGenerated)
-    Events.RegisterHandlerEvent(defines.events.on_entity_died, "Teleport.OnEntityDied", Teleport.OnEntityDied, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
-    Events.RegisterHandlerEvent(defines.events.script_raised_destroy, "Teleport.ScriptRaisedDestroy", Teleport.ScriptRaisedDestroy, "Type-UnitSpawner", {{filter = "type", type = "unit-spawner"}})
+    Events.RegisterHandlerEvent(defines.events.on_entity_died, "Teleport.OnEntityDied", Teleport.OnEntityDied, {{filter = "type", type = "unit-spawner"}})
+    Events.RegisterHandlerEvent(defines.events.script_raised_destroy, "Teleport.ScriptRaisedDestroy", Teleport.ScriptRaisedDestroy, {{filter = "type", type = "unit-spawner"}})
     EventScheduler.RegisterScheduledEventType("Teleport.OnChunkGenerated_Scheduled", Teleport.OnChunkGenerated_Scheduled)
+    MOD.Interfaces.Commands.Teleport = Teleport.TeleportCommand
 end
 
 --- Triggered when the RCON command is run.
 ---@param command CustomCommandData
 Teleport.TeleportCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_teleport command "
-    local commandData
-    if command.parameter ~= nil then
-        commandData = game.json_to_table(command.parameter)
-    end
-    if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings"})
+    if commandData == nil then
         return
     end
 
-    local commandValues = Teleport.GetCommandData(commandData, errorMessageStart, 0, command.parameter)
+    local commandValues = Teleport.GetCommandData(commandData, 0, command.parameter)
     if commandValues == nil then
         return
     end
@@ -102,144 +113,152 @@ Teleport.TeleportCommand = function(command)
 end
 
 --- Validates the data from an RCON commands's arguments in to a table of details.
----@param commandData table @ Table of arguments passed in to the RCON command.
----@param errorMessageStart string
+---@param commandData table<string, any> @ Table of arguments passed in to the RCON command.
 ---@param depth uint @ Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
 ---@param commandStringText string @ The raw command text sent via RCON.
----@return Teleport_CommandDetails commandDetails
-Teleport.GetCommandData = function(commandData, errorMessageStart, depth, commandStringText)
+---@return Teleport_CommandDetails|nil commandDetails @ Command details are returned if no errors hit, othewise nil is returned.
+Teleport.GetCommandData = function(commandData, depth, commandStringText)
     local depthErrorMessage = ""
     if depth > 0 then
         depthErrorMessage = "at depth " .. depth .. " - "
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
-        end
-        delay = math.max(delay * 60, 0)
-    end
+    -- Any errors raised need to include the depth message so we know how many backups it has got in to when it errored. So we add it to the end of the passed command name as this gets it to the right place in the produced error messages.
+    local delaySeconds = commandData.delay
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay" .. depthErrorMessage, 0, nil, commandStringText) then
+        return nil
+    end ---@cast delaySeconds double|nil
+    -- Don't pass the current tick value as we will add it later.
+    local delayTicks = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, 0, commandName, "delay " .. depthErrorMessage)
 
     local target = commandData.target
-    if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-        return
-    elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-        return
-    end
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target" .. depthErrorMessage, commandStringText) then
+        return nil
+    end ---@cast target string
 
+    -- Can't check type in standard way as might be a string or table.
     local destinationTypeRaw = commandData.destinationType
-    local destinationType, destinationTargetPosition = DestinationTypeSelection[destinationTypeRaw], nil
-    if destinationType == nil then
-        destinationTargetPosition = Utils.TableToProperPosition(destinationTypeRaw)
+    if destinationTypeRaw == nil then
+        CommandsUtils.LogPrintError(commandName, "destinationType" .. depthErrorMessage, "is Mandatory and must be populated", commandData.parameter)
+        return nil
+    end
+    ---@type Teleport_DestinationTypeSelection, MapPosition|nil
+    local destinationType, destinationTargetPosition
+    if type(destinationTypeRaw) == "string" then
+        if not CommandsUtils.CheckStringArgument(destinationTypeRaw, true, commandName, "destinationType" .. depthErrorMessage, DestinationTypeSelection, commandData.parameter) then
+            return nil
+        end
+        destinationType = DestinationTypeSelection[destinationTypeRaw]
+    elseif type(destinationTypeRaw) == "table" then
+        destinationTargetPosition = PositionUtils.TableToProperPosition(destinationTypeRaw)
         if destinationTargetPosition == nil then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "destinationType is Mandatory and must be a valid type or a table for position")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
+            CommandsUtils.LogPrintError(commandName, "destinationType" .. depthErrorMessage, "must be a valid map position object", commandData.parameter)
+            return nil
         else
             destinationType = DestinationTypeSelection.position
         end
+    else
+        CommandsUtils.LogPrintError(commandName, "destinationType", "must be a string or a map position object, but was a: " .. type(destinationTypeRaw), commandData.parameter)
+        return nil
     end
 
-    local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType]
+    local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType] ---@type Teleport_DestinationTypeSelectionDescription
 
-    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10
-    if arrivalRadiusRaw ~= nil then
-        arrivalRadius = tonumber(arrivalRadiusRaw)
-        if arrivalRadius == nil or arrivalRadius < 0 then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
-        end
+    local arrivalRadius = commandData.arrivalRadius
+    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius" .. depthErrorMessage, 0, nil, commandData.parameter) then
+        return nil
+    end ---@cast arrivalRadius double|nil
+    if arrivalRadius == nil then
+        arrivalRadius = 10.0
     end
 
-    local minDistanceRaw, minDistance = commandData.minDistance, 0
-    if minDistanceRaw ~= nil then
-        minDistance = tonumber(minDistanceRaw)
-        if minDistance == nil or minDistance < 0 then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "minDistance is Optional, but if supplied must be 0 or greater")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
-        end
+    local minDistance = commandData.minDistance
+    if not CommandsUtils.CheckNumberArgument(minDistance, "double", false, commandName, "minDistance" .. depthErrorMessage, 0, nil, commandData.parameter) then
+        return nil
+    end ---@cast minDistance double|nil
+    if minDistance == nil then
+        minDistance = 0.0
     end
 
-    local maxDistance = tonumber(commandData.maxDistance)
+    local maxDistance = commandData.maxDistance
     if destinationType == DestinationTypeSelection.position or destinationType == DestinationTypeSelection.spawn then
+        if maxDistance ~= nil then
+            CommandsUtils.LogPrintWarning(commandName, "maxDistance" .. depthErrorMessage, "maxDistance setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)
+        end
         maxDistance = 0
-    elseif maxDistance == nil or maxDistance < 0 then
-        Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "maxDistance is Mandatory, must be 0 or greater")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-        return
+    else
+        if not CommandsUtils.CheckNumberArgument(maxDistance, "double", true, commandName, "maxDistance" .. depthErrorMessage, 0, nil, commandData.parameter) then
+            return nil
+        end ---@cast maxDistance double
     end
 
-    local reachableOnly = false
-    if commandData.reachableOnly ~= nil then
-        reachableOnly = Utils.ToBoolean(commandData.reachableOnly)
+    local reachableOnly = commandData.reachableOnly
+    if (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
+        if not CommandsUtils.CheckBooleanArgument(reachableOnly, false, commandName, "reachableOnly" .. depthErrorMessage, commandData.parameter) then
+            return
+        end ---@cast reachableOnly boolean|nil
         if reachableOnly == nil then
-            Logging.LogPrint(errorMessageStart .. "reachableOnly is Optional, but if provided must be a boolean")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
-        elseif reachableOnly == true and not (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
-            Logging.LogPrint(errorMessageStart .. depthErrorMessage .. "reachableOnly is enabled set for unsupported destinationType")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. commandStringText)
-            return
+            reachableOnly = false
+        end
+    else
+        if reachableOnly ~= nil then
+            CommandsUtils.LogPrintWarning(commandName, "reachableOnly" .. depthErrorMessage, "reachableOnly setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)
+        end
+        reachableOnly = false
+    end
+
+    ---@type any, Teleport_CommandDetails|nil
+    local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
+    if backupTeleportSettingsRaw ~= nil then
+        if type(backupTeleportSettingsRaw) == "table" then
+            backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, depth + 1, commandStringText)
+            if backupTeleportSettings == nil then
+                -- The error will have been already reported to screen during the function handling the contents, so just stop the command from executing here.
+                return nil
+            end
+        else
+            CommandsUtils.LogPrintError(commandName, "backupTeleportSettings" .. depthErrorMessage, "backupTeleportSettings setting is populated but isn't a table of extra teleport settings, its type is: " .. type(backupTeleportSettings), commandData.parameter)
+            return nil
         end
     end
 
-    local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
-    if backupTeleportSettingsRaw ~= nil and type(backupTeleportSettingsRaw) == "table" then
-        backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, errorMessageStart, depth + 1, commandStringText)
-    end
-
-    return {delay = delay, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
+    ---@type Teleport_CommandDetails
+    local commandDetails = {delay = delayTicks, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription}
+    return commandDetails
 end
 
 --- Schedule a commands details to occur after the set delay.
 ---@param commandValues Teleport_CommandDetails
 Teleport.ScheduleTeleportCommand = function(commandValues)
     global.teleport.nextId = global.teleport.nextId + 1
-    EventScheduler.ScheduleEvent(
-        game.tick + commandValues.delay,
-        "Teleport.PlanTeleportTarget",
-        global.teleport.nextId,
-        {
-            teleportId = global.teleport.nextId,
-            target = commandValues.target,
-            arrivalRadius = commandValues.arrivalRadius,
-            minDistance = commandValues.minDistance,
-            maxDistance = commandValues.maxDistance,
-            destinationType = commandValues.destinationType,
-            destinationTargetPosition = commandValues.destinationTargetPosition,
-            reachableOnly = commandValues.reachableOnly,
-            targetAttempt = 0,
-            backupTeleportSettings = commandValues.backupTeleportSettings,
-            destinationTypeDescription = commandValues.destinationTypeDescription,
-            thisAttemptPosition = nil,
-            spawnerDistances = {}
-        }
-    )
+    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or (-1) --[[@as UtilityScheduledEvent_UintNegative1]] ---@type UtilityScheduledEvent_UintNegative1
+    ---@type Teleport_TeleportDetails
+    local teleportDetails = {
+        teleportId = global.teleport.nextId,
+        target = commandValues.target,
+        arrivalRadius = commandValues.arrivalRadius,
+        minDistance = commandValues.minDistance,
+        maxDistance = commandValues.maxDistance,
+        destinationType = commandValues.destinationType,
+        destinationTargetPosition = commandValues.destinationTargetPosition,
+        reachableOnly = commandValues.reachableOnly,
+        targetAttempt = 0,
+        backupTeleportSettings = commandValues.backupTeleportSettings,
+        destinationTypeDescription = commandValues.destinationTypeDescription,
+        thisAttemptPosition = nil,
+        spawnerDistances = {}
+    }
+    EventScheduler.ScheduleEventOnce(scheduleTick, "Teleport.PlanTeleportTarget", global.teleport.nextId, teleportDetails)
 end
 
 --- When the actual teleport action needs to be planned and done (post scheduled delay).
 --- Refereshs all player data on each load as waiting for pathfinder requests can make subsequent executions have different player stata data.
----@param eventData any
+---@param eventData UtilityScheduledEvent_CallbackObject
 Teleport.PlanTeleportTarget = function(eventData)
-    local errorMessageStart = "ERROR: muppet_streamer_teleport command "
     local data = eventData.data ---@type Teleport_TeleportDetails
 
     -- Get the Player object and confirm its valid.
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil or not targetPlayer.valid then
-        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
-        return
-    end
 
     -- Check the player is alive (not dead) and not in editor mode. If they are just end the attempt.
     if targetPlayer.controller_type ~= defines.controllers.character then
@@ -249,7 +268,7 @@ Teleport.PlanTeleportTarget = function(eventData)
 
     -- Get the key data about the players current situation.
     local targetPlayer_surface = targetPlayer.surface
-    local targetPlayer_force = targetPlayer.force
+    local targetPlayer_force = targetPlayer.force --[[@as LuaForce]] -- Sumneko limitation workaround on R/W types.
     local targetPlayer_position = targetPlayer.position
 
     -- Increment the attempt counter for trying to find a target to teleport too.
@@ -261,7 +280,7 @@ Teleport.PlanTeleportTarget = function(eventData)
     elseif data.destinationType == DestinationTypeSelection.position then
         data.destinationTargetPosition = data.destinationTargetPosition
     elseif data.destinationType == DestinationTypeSelection.random then
-        data.destinationTargetPosition = Utils.RandomLocationInRadius(targetPlayer_position, data.maxDistance, data.minDistance)
+        data.destinationTargetPosition = PositionUtils.RandomLocationInRadius(targetPlayer_position, data.maxDistance, data.minDistance)
     elseif data.destinationType == DestinationTypeSelection.biterNest then
         local targetPlayer_surface_index = targetPlayer_surface.index
         local targetPlayer_force_name = targetPlayer_force.name
@@ -269,14 +288,14 @@ Teleport.PlanTeleportTarget = function(eventData)
         -- Populate data.spawnerDistance with valid enemy spawners on the player's current surface if needed, otherwise handle last bad result.
         if data.targetAttempt > 1 then
             -- This target position has been found to be bad so remove any spawners too close to this bad location for this player.
-            ---@typelist double, double, double
+            ---@type double, double, double
             local distanceXDiff, distanceYDiff, spawnerDistance
             for index, spawnerDistanceDetails in pairs(data.spawnerDistances) do
                 -- CODE NOTE: Do locally rather than via function call as we call this a lot and its so simple logic.
                 distanceXDiff = targetPlayer_position.x - spawnerDistanceDetails.spawnerDetails.position.x
                 distanceYDiff = targetPlayer_position.y - spawnerDistanceDetails.spawnerDetails.position.y
                 spawnerDistance = math.sqrt(distanceXDiff * distanceXDiff + distanceYDiff * distanceYDiff)
-                --if Utils.GetDistance(data.destinationTargetPosition, spawnerDistanceDetails.spawnerDetails.position) < 30 then
+                --if PositionUtils.GetDistance(data.destinationTargetPosition, spawnerDistanceDetails.spawnerDetails.position) < 30 then
                 if spawnerDistance < 30 then
                     -- Potential spawner is too close to a bad previous target attempt, so remove it from our list.
                     data.spawnerDistances[index] = nil
@@ -284,7 +303,7 @@ Teleport.PlanTeleportTarget = function(eventData)
             end
         else
             -- Is a first loop for this target player so build up the spawner list.
-            ---@typelist double, double, double
+            ---@type double, double, double
             local spawnerDistance, distanceXDiff, distanceYDiff
             for spawnersForceName, forcesSpawnerDetails in pairs(global.teleport.surfaceBiterNests[targetPlayer_surface_index]) do
                 -- Check the force is an enemy. So we ignore all non-enemy spawners in bulk.
@@ -296,10 +315,10 @@ Teleport.PlanTeleportTarget = function(eventData)
                         distanceXDiff = targetPlayer_position.x - spawnerDetails.position.x
                         distanceYDiff = targetPlayer_position.y - spawnerDetails.position.y
                         spawnerDistance = math.sqrt(distanceXDiff * distanceXDiff + distanceYDiff * distanceYDiff)
-                        --spawnerDistance = Utils.GetDistance(targetPlayer_position, spawnerDetails.position)
+                        --spawnerDistance = PositionUtils.GetDistance(targetPlayer_position, spawnerDetails.position)
 
                         if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
-                            table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails}) -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
+                            table.insert(data.spawnerDistances, {distance = spawnerDistance, spawnerDetails = spawnerDetails} --[[@as Teleport_TargetPlayerSpawnerDistanceDetails @ While this is inserted as consistent key ID's it can be manipulated later to be gappy.]])
                         end
                     end
                 end
@@ -324,8 +343,8 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
 
         -- Check the nearest one is still valid. Do this way as unless its the spawner we are aiming for it doesn't matter if its invalid.
-        ---@typelist uint, Teleport_TargetPlayerSpawnerDistanceDetails
-        local firstSpawnerDistancesIndex, nearestSpawnerDistanceDetails
+        local firstSpawnerDistancesIndex  ---@type uint|nil
+        local nearestSpawnerDistanceDetails  ---@type Teleport_TargetPlayerSpawnerDistanceDetails|nil
         while nearestSpawnerDistanceDetails == nil do
             firstSpawnerDistancesIndex = next(data.spawnerDistances)
             nearestSpawnerDistanceDetails = data.spawnerDistances[firstSpawnerDistancesIndex]
@@ -335,7 +354,6 @@ Teleport.PlanTeleportTarget = function(eventData)
                 Teleport.DoBackupTeleport(data)
                 return
             end
-            ---@cast nearestSpawnerDistanceDetails Teleport_TargetPlayerSpawnerDistanceDetails
 
             -- Check if the nearest spawner is still valid. Its possible to remove spawners without us knowing about it, i.e. via Editor or via script and not raising an event for it. So we have to check.
             if not nearestSpawnerDistanceDetails.spawnerDetails.entity.valid then
@@ -353,12 +371,13 @@ Teleport.PlanTeleportTarget = function(eventData)
         -- Set the target position to the valid spawner.
         data.destinationTargetPosition = nearestSpawnerDistanceDetails.spawnerDetails.position
     elseif data.destinationType == DestinationTypeSelection.enemyUnit then
-        data.destinationTargetPosition = targetPlayer_surface.find_nearest_enemy {position = targetPlayer_position, max_distance = data.maxDistance, force = targetPlayer_force}
-        if data.destinationTargetPosition == nil then
+        local nearestEnemy = targetPlayer_surface.find_nearest_enemy {position = targetPlayer_position, max_distance = data.maxDistance, force = targetPlayer_force}
+        if nearestEnemy == nil then
             game.print({"message.muppet_streamer_teleport_no_enemy_unit_found", targetPlayer.name})
             Teleport.DoBackupTeleport(data)
             return
         end
+        data.destinationTargetPosition = nearestEnemy.position
     end
 
     -- Store the key data for checking/using later. We update on every loop so that any change of key data that triggers a re-loop starts fresh.
@@ -370,13 +389,14 @@ Teleport.PlanTeleportTarget = function(eventData)
     local teleportResponse = PlayerTeleport.RequestTeleportToNearPosition(targetPlayer, targetPlayer_surface, data.destinationTargetPosition, data.arrivalRadius, MaxRandomPositionsAroundTargetToTry, MaxDistancePositionAroundTarget, data.reachableOnly and targetPlayer_position or nil)
 
     -- Handle the teleport response.
+    local pathRequestId = teleportResponse.pathRequestId -- Variables existance is a workaround for Sumneko missing object field nil detection.
     if teleportResponse.teleportSucceeded == true then
         -- All completed.
         return
-    elseif teleportResponse.pathRequestId ~= nil then
+    elseif pathRequestId ~= nil then
         -- A pathing request has been made, monitor it and react when it completes.
         data.targetPlayerPlacementEntity, data.thisAttemptPosition = teleportResponse.targetPlayerTeleportEntity, teleportResponse.targetPosition
-        global.teleport.pathingRequests[teleportResponse.pathRequestId] = data
+        global.teleport.pathingRequests[pathRequestId] = data
         return
     elseif teleportResponse.errorNoValidPositionFound then
         -- No valid position was found to try and teleport too.
@@ -390,7 +410,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
     elseif teleportResponse.errorTeleportFailed then
         -- Failed to teleport the entity to the specific position.
-        game.print("Muppet Streamer Error - teleport failed")
+        game.print({"message.muppet_streamer_teleport_teleport_action_failed", targetPlayer.name, LoggingUtils.PositionToString(teleportResponse.targetPosition)})
         Teleport.DoBackupTeleport(data)
         return
     end
@@ -455,7 +475,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
-            currentPlayerPlacementEntity_vehicleDirectionFacing = Utils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
+            currentPlayerPlacementEntity_vehicleDirectionFacing = DirectionUtils.OrientationToNearestCardinalDirection(currentPlayerPlacementEntity.orientation)
         end
 
         -- Check the player's character/vehicle is still as expected.
@@ -481,7 +501,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- If the teleport of the player's entity/vehicle to the specific position failed then do next action if there is one.
         if not teleportSucceeded then
-            game.print("Muppet Streamer Error - teleport failed")
+            game.print({"message.muppet_streamer_teleport_teleport_action_failed", data.targetPlayer.name, LoggingUtils.PositionToString(data.thisAttemptPosition)})
             Teleport.DoBackupTeleport(data)
         end
     end
@@ -518,7 +538,7 @@ end
 Teleport.OnChunkGenerated = function(event)
     global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId + 1
     -- Check the chunk in 1 ticks time to let any other mod or scenario complete its actions first.
-    EventScheduler.ScheduleEvent(event.tick + 1, "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
+    EventScheduler.ScheduleEventOnce(event.tick + 1, "Teleport.OnChunkGenerated_Scheduled", global.teleport.chunkGeneratedId, event)
 end
 
 --- When a chunk is generated we wait for 1 tick and then this function is called. Lets any other mod/scenario mess with the spawner prior to use caching its details.

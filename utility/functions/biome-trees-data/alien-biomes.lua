@@ -2314,7 +2314,7 @@ end
         end
         log(serpent.block(mikeData))
 ]]
-Data.GetTreeMetaData = function()
+Data.GetTreesMetaData = function()
     return {
         ["tree-desert-a"] = {
             {

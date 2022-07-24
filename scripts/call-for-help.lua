@@ -1,39 +1,46 @@
 local CallForHelp = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local EventScheduler = require("utility/event-scheduler")
-local Utils = require("utility/utils")
-local Events = require("utility/events")
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local PositionUtils = require("utility.helper-utils.position-utils")
+local Events = require("utility.manager-libraries.events")
 local PlayerTeleport = require("utility.functions.player-teleport")
+local StringUtils = require("utility.helper-utils.string-utils")
+local MathUtils = require("utility.helper-utils.math-utils")
+local Common = require("scripts.common")
+local DirectionUtils = require("utility.helper-utils.direction-utils")
 
----@class CallForHelp_CallSelection
-local CallSelection = {random = "random", nearest = "nearest"}
+---@enum CallForHelp_CallSelection
+local CallSelection = {
+    random = "random",
+    nearest = "nearest"
+}
 
 local SPTesting = false -- Set to true to let yourself go to your own support.
 local MaxRandomPositionsAroundTargetToTry = 50 -- Was 10, but upped to reduce odd vehicle rotation issues.
-local MaxDistancePositionAroundTarget = 10
+local MaxDistancePositionAroundTarget = 10.0 ---@type double
 local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries per player once it finds a valid placement position that then has a pathing request return false.
 
 ---@class CallForHelp_DelayedCommandDetails
----@field callForHelpId Id
+---@field callForHelpId uint
 ---@field target string @ Player's name.
 ---@field arrivalRadius double
----@field callRadius double|null
+---@field callRadius? double|nil
 ---@field sameTeamOnly boolean
 ---@field sameSurfaceOnly boolean
----@field blacklistedPlayerNames table<string, True> @ Table of player names as the key.
----@field whitelistedPlayerNames table<string, True> @ Table of player names as the key.
+---@field blacklistedPlayerNames table<string, true>|nil @ Table of player names as the key.
+---@field whitelistedPlayerNames table<string, true>|nil @ Table of player names as the key.
 ---@field callSelection CallForHelp_CallSelection
 ---@field number uint
 ---@field activePercentage double
 
 ---@class CallForHelp_CallForHelpObject
----@field callForHelpId Id
----@field pendingPathRequests table<Id, CallForHelp_PathRequestObject>
+---@field callForHelpId uint
+---@field pendingPathRequests table<uint, CallForHelp_PathRequestObject> @ Key'd to the path request Id.
 
 ---@class CallForHelp_PathRequestObject @ Details on a path request so that when it completes its results can be handled and back traced to the Call For Help it relates too.
----@field callForHelpId Id
----@field pathRequestId Id
+---@field callForHelpId uint
+---@field pathRequestId uint
 ---@field helpPlayer LuaPlayer
 ---@field helpPlayerPlacementEntity LuaEntity @ The helping player's character or teleportable vehicle.
 ---@field helpPlayerForce LuaForce
@@ -54,82 +61,56 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
-    global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type Id
-    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<Id, CallForHelp_PathRequestObject>
-    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<Id, CallForHelp_CallForHelpObject>
+    global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type uint
+    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<uint, CallForHelp_PathRequestObject> @ Key'd to the pathing request Ids,
+    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<uint, CallForHelp_CallForHelpObject> @ Key'd to the callForHelp Ids.
 end
 
 CallForHelp.OnLoad = function()
-    Commands.Register("muppet_streamer_call_for_help", {"api-description.muppet_streamer_call_for_help"}, CallForHelp.CallForHelpCommand, true)
+    CommandsUtils.Register("muppet_streamer_call_for_help", {"api-description.muppet_streamer_call_for_help"}, CallForHelp.CallForHelpCommand, true)
     EventScheduler.RegisterScheduledEventType("CallForHelp.CallForHelp", CallForHelp.CallForHelp)
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "CallForHelp.OnScriptPathRequestFinished", CallForHelp.OnScriptPathRequestFinished)
+    MOD.Interfaces.Commands.CallForHelp = CallForHelp.CallForHelpCommand
 end
 
 ---@param command CustomCommandData
 CallForHelp.CallForHelpCommand = function(command)
-    local errorMessageStart = "ERROR: muppet_streamer_call_for_help command "
-    local commandData
-    if command.parameter ~= nil then
-        commandData = game.json_to_table(command.parameter)
-    end
-    if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(errorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+    local commandName = "muppet_streamer_call_for_help"
+
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "arrivalRadius", "callRadius", "sameSurfaceOnly", "sameTeamOnly", "blacklistedPlayerNames", "whitelistedPlayerNames", "callSelection", "number", "activePercentage"})
+    if commandData == nil then
         return
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(errorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        delay = math.max(delay * 60, 0)
-    end
+    local delaySeconds = commandData.delay
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+        return
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     local target = commandData.target
-    if target == nil then
-        Logging.LogPrint(errorMessageStart .. "target is mandatory")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
         return
-    elseif game.get_player(target) == nil then
-        Logging.LogPrint(errorMessageStart .. "target is invalid player name")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+    end ---@cast target string
+
+    local arrivalRadius = commandData.arrivalRadius
+    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius", 1, nil, command.parameter) then
         return
+    end ---@cast arrivalRadius double|nil
+    if arrivalRadius == nil then
+        arrivalRadius = 10.0
     end
 
-    local arrivalRadiusRaw, arrivalRadius = commandData.arrivalRadius, 10
-    if arrivalRadiusRaw ~= nil then
-        arrivalRadius = tonumber(arrivalRadiusRaw)
-        if arrivalRadius == nil or arrivalRadius < 0 then
-            Logging.LogPrint(errorMessageStart .. "arrivalRadius is Optional, but if supplied must be 0 or greater")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
-
-    -- Nil is a valid final value if the argument isn't provided.
-    local callRadius = tonumber(commandData.callRadius)
-    if callRadius ~= nil then
-        callRadius = tonumber(callRadius)
-        if callRadius == nil or callRadius <= 0 then
-            Logging.LogPrint(errorMessageStart .. "callRadius is Optional, but if provided must be greater than 0")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    end
+    local callRadius = commandData.callRadius
+    if not CommandsUtils.CheckNumberArgument(callRadius, "double", false, commandName, "callRadius", 1, nil, command.parameter) then
+        return
+    end ---@cast callRadius double|nil
 
     local sameSurfaceOnly = commandData.sameSurfaceOnly
-    if sameSurfaceOnly ~= nil then
-        sameSurfaceOnly = Utils.ToBoolean(sameSurfaceOnly)
-        if sameSurfaceOnly == nil then
-            Logging.LogPrint(errorMessageStart .. "sameSurfaceOnly is Optional, but must be a valid boolean if provided")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    else
+    if not CommandsUtils.CheckBooleanArgument(sameSurfaceOnly, false, commandName, "sameSurfaceOnly", command.parameter) then
+        return
+    end ---@cast sameSurfaceOnly boolean|nil
+    if sameSurfaceOnly == nil then
         sameSurfaceOnly = true
     end
     -- If not same surface then there's no callRadius result to be processed.
@@ -138,81 +119,72 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local sameTeamOnly = commandData.sameTeamOnly
-    if sameTeamOnly ~= nil then
-        sameTeamOnly = Utils.ToBoolean(sameTeamOnly)
-        if sameTeamOnly == nil then
-            Logging.LogPrint(errorMessageStart .. "sameTeamOnly is Optional, but must be a valid boolean if provided")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-    else
+    if not CommandsUtils.CheckBooleanArgument(sameTeamOnly, false, commandName, "sameTeamOnly", command.parameter) then
+        return
+    end ---@cast sameTeamOnly boolean|nil
+    if sameTeamOnly == nil then
         sameTeamOnly = true
     end
 
     local blacklistedPlayerNames_string = commandData.blacklistedPlayerNames
-    local blacklistedPlayerNames  ---@type table<string, True>|null
+    if not CommandsUtils.CheckStringArgument(blacklistedPlayerNames_string, false, commandName, "blacklistedPlayerNames", nil, command.parameter) then
+        return
+    end ---@cast blacklistedPlayerNames_string string|nil
+    local blacklistedPlayerNames  ---@type table<string, true>|nil
     if blacklistedPlayerNames_string ~= nil and blacklistedPlayerNames_string ~= "" then
-        blacklistedPlayerNames = Utils.SplitStringOnCharacters(blacklistedPlayerNames_string, ",", true)
+        blacklistedPlayerNames = StringUtils.SplitStringOnCharactersToDictionary(blacklistedPlayerNames_string, ",")
     end
 
     local whitelistedPlayerNames_string = commandData.whitelistedPlayerNames
-    local whitelistedPlayerNames  ---@type table<string, True>|null
+    if not CommandsUtils.CheckStringArgument(whitelistedPlayerNames_string, false, commandName, "whitelistedPlayerNames", nil, command.parameter) then
+        return
+    end ---@cast whitelistedPlayerNames_string string|nil
+    local whitelistedPlayerNames  ---@type table<string, true>|nil
     if whitelistedPlayerNames_string ~= nil and whitelistedPlayerNames_string ~= "" then
-        whitelistedPlayerNames = Utils.SplitStringOnCharacters(whitelistedPlayerNames_string, ",", true)
+        whitelistedPlayerNames = StringUtils.SplitStringOnCharactersToDictionary(whitelistedPlayerNames_string, ",")
     end
 
-    local callSelection = CallSelection[commandData.callSelection]
-    if callSelection == nil then
-        Logging.LogPrint(errorMessageStart .. "callSelection is Mandatory and must be a valid type")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+    local callSelection_string = commandData.callSelection
+    if not CommandsUtils.CheckStringArgument(callSelection_string, true, commandName, "callSelection", CallSelection, command.parameter) then
         return
-    end
+    end ---@cast callSelection_string string
+    local callSelection = CallSelection[callSelection_string] ---@type CallForHelp_CallSelection
 
     local number = commandData.number
-    if number ~= nil then
-        number = tonumber(number)
-        if number == nil then
-            Logging.LogPrint(errorMessageStart .. "number is Optional, but must be a valid number if provided")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        number = math.floor(number)
-    else
+    if not CommandsUtils.CheckNumberArgument(number, "int", false, commandName, "number", 0, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast number uint|nil
+    if number == nil then
         number = 0
     end
 
     local activePercentage = commandData.activePercentage
+    if not CommandsUtils.CheckNumberArgument(activePercentage, "double", false, commandName, "activePercentage", 0, nil, command.parameter) then
+        return
+    end ---@cast activePercentage double|nil
     if activePercentage ~= nil then
-        activePercentage = tonumber(activePercentage)
-        if activePercentage == nil then
-            Logging.LogPrint(errorMessageStart .. "activePercentage is Optional, but must be a valid number if provided")
-            Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
         activePercentage = activePercentage / 100
     else
         activePercentage = 0
     end
 
+    -- Atleast one of number or activePercentage must have been set above 0.
     if number == 0 and activePercentage == 0 then
-        Logging.LogPrint(errorMessageStart .. "either number or activePercentage must be provided")
-        Logging.LogPrint(errorMessageStart .. "recieved text: " .. command.parameter)
+        CommandsUtils.LogPrintError(commandName, nil, "either number or activePercentage must be provided", command.parameter)
         return
     end
 
     global.callForHelp.nextId = global.callForHelp.nextId + 1
-    EventScheduler.ScheduleEvent(command.tick + delay, "CallForHelp.CallForHelp", global.callForHelp.nextId, {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameTeamOnly = sameTeamOnly, sameSurfaceOnly = sameSurfaceOnly, blacklistedPlayerNames = blacklistedPlayerNames, whitelistedPlayerNames = whitelistedPlayerNames, callSelection = callSelection, number = number, activePercentage = activePercentage})
+    ---@type CallForHelp_DelayedCommandDetails
+    local delayedCommandDetails = {callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameTeamOnly = sameTeamOnly, sameSurfaceOnly = sameSurfaceOnly, blacklistedPlayerNames = blacklistedPlayerNames, whitelistedPlayerNames = whitelistedPlayerNames, callSelection = callSelection, number = number, activePercentage = activePercentage}
+    EventScheduler.ScheduleEventOnce(scheduleTick, "CallForHelp.CallForHelp", global.callForHelp.nextId, delayedCommandDetails)
 end
 
+---@param eventData UtilityScheduledEvent_CallbackObject
 CallForHelp.CallForHelp = function(eventData)
-    local errorMessageStart = "ERROR: muppet_streamer_call_for_help command "
     local data = eventData.data ---@type CallForHelp_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
-    if targetPlayer == nil or not targetPlayer.valid then
-        Logging.LogPrint(errorMessageStart .. "target player not found at creation time: " .. data.target)
-        return
-    end
     if targetPlayer.controller_type ~= defines.controllers.character then
         game.print({"message.muppet_streamer_call_for_help_not_character_controller", data.target})
         return
@@ -264,7 +236,7 @@ CallForHelp.CallForHelp = function(eventData)
                 if helpPlayer_surface ~= targetPlayerSurface then
                     distance = 4294967295 -- Maximum distance away to de-prioritise these players vs ones on the same surface.
                 else
-                    distance = Utils.GetDistance(targetPlayerPosition, helpPlayer.position)
+                    distance = PositionUtils.GetDistance(targetPlayerPosition, helpPlayer.position)
                 end
 
                 if data.callRadius == nil or distance <= data.callRadius then
@@ -320,7 +292,7 @@ end
 ---@param targetPlayerPosition MapPosition
 ---@param targetPlayerSurface LuaSurface
 ---@param targetPlayerEntity LuaEntity
----@param callForHelpId Id
+---@param callForHelpId uint
 ---@param attempt uint
 ---@param sameSurfaceOnly boolean
 ---@param sameTeamOnly boolean
@@ -329,20 +301,21 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
     local teleportResponse = PlayerTeleport.RequestTeleportToNearPosition(helpPlayer, targetPlayerSurface, targetPlayerPosition, arrivalRadius, MaxRandomPositionsAroundTargetToTry, MaxDistancePositionAroundTarget, helpPlayer.surface == targetPlayerSurface and targetPlayerPosition or nil)
 
     -- Handle the teleport response.
+    local pathRequestId = teleportResponse.pathRequestId -- Variables existance is a workaround for Sumneko missing object field nil detection.
     if teleportResponse.teleportSucceeded == true then
         -- All completed.
         return
-    elseif teleportResponse.pathRequestId ~= nil then
+    elseif pathRequestId ~= nil then
         -- A pathing request has been made, monitor it and react when it completes.
 
         -- Record the path request to globals.
         ---@type CallForHelp_PathRequestObject
         local pathRequestObject = {
             callForHelpId = callForHelpId,
-            pathRequestId = teleportResponse.pathRequestId,
+            pathRequestId = pathRequestId,
             helpPlayer = helpPlayer,
             helpPlayerPlacementEntity = teleportResponse.targetPlayerTeleportEntity,
-            helpPlayerForce = helpPlayer.force,
+            helpPlayerForce = helpPlayer.force --[[@as LuaForce @ read/write work around]],
             helpPlayerSurface = helpPlayer.surface,
             targetPlayer = targetPlayer,
             targetPlayerPosition = targetPlayerPosition,
@@ -354,8 +327,8 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
             sameSurfaceOnly = sameSurfaceOnly,
             sameTeamOnly = sameTeamOnly
         }
-        global.callForHelp.pathingRequests[teleportResponse.pathRequestId] = pathRequestObject
-        global.callForHelp.callForHelpIds[callForHelpId].pendingPathRequests[teleportResponse.pathRequestId] = pathRequestObject
+        global.callForHelp.pathingRequests[pathRequestId] = pathRequestObject
+        global.callForHelp.callForHelpIds[callForHelpId].pendingPathRequests[pathRequestId] = pathRequestObject
 
         return
     elseif teleportResponse.errorNoValidPositionFound then
@@ -364,7 +337,7 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         return
     elseif teleportResponse.errorTeleportFailed then
         -- Failed to teleport the entity to the specific position.
-        game.print("Muppet Streamer Error - teleport failed")
+        game.print({"message.muppet_streamer_call_for_help_teleport_action_failed", helpPlayer.name, LoggingUtils.PositionToString(teleportResponse.targetPosition)})
         return
     end
 end
@@ -435,7 +408,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing  ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
-            currentPlayerPlacementEntity_vehicleDirectionFacing = Utils.RoundNumberToDecimalPlaces(currentPlayerPlacementEntity.orientation * 4, 0) * 2
+            currentPlayerPlacementEntity_vehicleDirectionFacing = DirectionUtils.OrientationToNearestCardinalDirection(currentPlayerPlacementEntity.orientation)
         end
 
         -- Check the helping player's character/vehicle is still as expected.
@@ -461,7 +434,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
 
         -- If the teleport of the player's entity/vehicle to the specific position failed then do next action if there is one.
         if not teleportSucceeded then
-            game.print("Muppet Streamer Error - teleport failed")
+            game.print({"message.muppet_streamer_call_for_help_teleport_action_failed", helpPlayer.name, LoggingUtils.PositionToString(pathRequest.position)})
         end
     end
 

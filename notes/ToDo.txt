@@ -5,18 +5,14 @@ BUGS:
 
 
 DO NEAR FUTURE:
-    - Update to new Utils library. Will get some fixes & UPS improvements, but also will get al the EmmyLua improvements and move to new structure of library. Get from latest Railway Tunnel mod version after checkin to main Utility repo.
-    - Update to Sumneko 3.4 and fix all of the warnings.
-    - Look at using single line variable setting when we always set a value, rather than if/else. i.e. delay = delay and math.max(math.floor(delay * 60), 0) or 0
-    - Remove all uses of "null" and move to "nil" and "?", as the latest version of Sumneko handles it properly.
-    - Add an interface to Explosive Delivery. Initally for calling by the JD Plays mod- Spider hunt feature, for the battleships idea that we want to contain within JD's map lane. IDEA ON HOLD.
-	- Change all game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
+    - Aggressive Driver - Add option to place a vehicle if none is found. Would take the name of a vehicle, the name and quantity of fuel to put in the placed vehicle, and the radius to try and place it within of the player. Direction would be as random as we can currently do with the placement searching. Option to remove the vehicle at the end of the effect. Actually do this as a seperate feature to give player a vehcile. Support cars, spiders and locomotive vehicle types being placed in valid spots within a random distance from the player. Have this feature support checking if a nearby vehicle is drivable first. As then these can be chained togeather via use of remotes or sequential commands.
+	- Change all effect notification game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
+    - Support modded entities across commands.
+    - With Sumneko 3.5 is there any good way to refine either the generics or type specific (uint) math library to remove a lot of the casting requirements?
 
 
 Future Confirmed (bigger things):
-    - Support modded entities across commands.
     - Time duration events should add to existing ones if active.
-    - The INTEGER type arguments will accept a double, but this will fail/error when trying to be used. They should really check for a type Integer. New Utility library version has functions to validate types of numbers.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room. Should never be "lost".
 
 

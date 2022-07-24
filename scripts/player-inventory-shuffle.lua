@@ -1,14 +1,15 @@
 local PlayerInventoryShuffle = {}
-local Commands = require("utility/commands")
-local Logging = require("utility/logging")
-local Utils = require("utility/utils")
-local EventScheduler = require("utility/event-scheduler")
-local Colors = require("utility.colors")
-local math_random, math_min, math_max, math_floor, math_ceil = math.random, math.min, math.max, math.floor, math.ceil
+local CommandsUtils = require("utility.helper-utils.commands-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
+local Colors = require("utility.lists.colors")
+local StringUtils = require("utility.helper-utils.string-utils")
+local Common = require("scripts.common")
+local MathUtils = require("utility.helper-utils.math-utils")
 
-local ErrorMessageStart = "ERROR: muppet_streamer_player_inventory_shuffle command "
-local StorageInventorySizeIncrements = 1000 -- The starting size of the shared storage inventory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
-local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements -- Max size when the inventory can still grow by another increment.
+local math_random, math_min, math_max, math_floor = math.random, math.min, math.max, math.floor
+
+local StorageInventorySizeIncrements = 1000 ---@type uint16 @ The starting size of the shared storage inventory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
+local StorageInventoryMaxGrowthSize = (65535) --[[@as uint16]] - StorageInventorySizeIncrements ---@type uint16 @ Max size when the inventory can still grow by another increment.
 
 --[[----------------------------------------------------------------------------------------
                                         CODE DEV NOTES
@@ -23,15 +24,15 @@ local StorageInventoryMaxGrowthSize = 65535 - StorageInventorySizeIncrements -- 
 ------------------------------------------------------------------------------------------
 
 ------------------------        DEBUG OPTIONS - MAKE SURE ARE FALE ON RELEASE       ------------------------
-local debugStatusMessages = false
-local singlePlayerTesting = false -- Set to TRUE to force the mod to work for one player with false copies of the one player.
-local singlePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force the mod to work for one player with false copies of the one player. It will duplicate the input items as if each fake player had a complete set. Has to discard excess items as otherwise profile is distorted. Intended for profiling more than bug fixing.
+local DebugStatusMessages = false
+local SinglePlayerTesting = false -- Set to TRUE to force the mod to work for one player with false copies of the one player.
+local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force the mod to work for one player with false copies of the one player. It will duplicate the input items as if each fake player had a complete set. Has to discard excess items as otherwise profile is distorted. Intended for profiling more than bug fixing.
 
----@alias PlayerInventoryShuffle_playersItemCounts table<uint, PlayerInventoryShuffle_orderedItemCounts>
+---@alias PlayerInventoryShuffle_PlayersItemCounts table<uint, PlayerInventoryShuffle_OrderedItemCounts>
 
----@alias PlayerInventoryShuffle_orderedItemCounts table<uint, PlayerInventoryShuffle_itemCounts>
+---@alias PlayerInventoryShuffle_OrderedItemCounts table<uint, PlayerInventoryShuffle_ItemCounts>
 
----@class PlayerInventoryShuffle_itemCounts
+---@class PlayerInventoryShuffle_ItemCounts
 ---@field name string
 ---@field count uint
 
@@ -45,67 +46,69 @@ local singlePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force th
 ---@field destinationPlayersVarianceFactor double
 ---@field recipientItemMinToMaxRatio uint
 
+local commandName = "muppet_streamer_player_inventory_shuffle"
+
 PlayerInventoryShuffle.CreateGlobals = function()
     global.playerInventoryShuffle = global.playerInventoryShuffle or {}
-    global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId or 0
+    global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId or 0 ---@type uint
 end
 
 PlayerInventoryShuffle.OnLoad = function()
-    Commands.Register("muppet_streamer_player_inventory_shuffle", {"api-description.muppet_streamer_player_inventory_shuffle"}, PlayerInventoryShuffle.PlayerInventoryShuffleCommand, true)
+    CommandsUtils.Register("muppet_streamer_player_inventory_shuffle", {"api-description.muppet_streamer_player_inventory_shuffle"}, PlayerInventoryShuffle.PlayerInventoryShuffleCommand, true)
     EventScheduler.RegisterScheduledEventType("PlayerInventoryShuffle.MixupPlayerInventories", PlayerInventoryShuffle.MixupPlayerInventories)
+    MOD.Interfaces.Commands.PlayerInventoryShuffle = PlayerInventoryShuffle.PlayerInventoryShuffleCommand
 end
 
 ---@param command CustomCommandData
 PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
-    local commandData
-    if command.parameter ~= nil then
-        commandData = game.json_to_table(command.parameter)
-    end
-    if commandData == nil or type(commandData) ~= "table" then
-        Logging.LogPrint(ErrorMessageStart .. "requires details in JSON format.")
-        Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "includedPlayers", "includedForces", "includeEquipment", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio"})
+    if commandData == nil then
         return
     end
 
-    local delay = 0
-    if commandData.delay ~= nil then
-        delay = tonumber(commandData.delay)
-        if delay == nil then
-            Logging.LogPrint(ErrorMessageStart .. "delay is Optional, but must be a non-negative number if supplied")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        delay = math_max(delay * 60, 0)
-    end
+    local delaySeconds = commandData.delay
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+        return
+    end ---@cast delaySeconds double|nil
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
 
     -- Just get the Included Players with minimal checking as we do the checks once all the include settings are obtained.
-    local includedPlayersString = commandData.includedPlayers ---@type string
+    local includedPlayersString = commandData.includedPlayers
+    if not CommandsUtils.CheckStringArgument(includedPlayersString, false, commandName, "includedPlayers", nil, command.parameter) then
+        return
+    end ---@cast includedPlayersString string|nil
     local includedPlayerNames = {} ---@type string[]
-    local includeAllPlayersOnServer = false
+    local includeAllPlayersOnServer = false ---@type boolean
     if includedPlayersString ~= nil and includedPlayersString ~= "" then
         -- Can't check if the names are valid players right now, as they may just not have joined the server yet, but may in the future.
-        includedPlayerNames = Utils.SplitStringOnCharacters(includedPlayersString, ",", false)
+        includedPlayerNames = StringUtils.SplitStringOnCharactersToList(includedPlayersString, ",")
         if #includedPlayerNames == 1 then
             -- If it's only one name then check if its the special ALL value.
             if includedPlayerNames[1] == "[ALL]" then
-                includedPlayerNames = nil
+                includedPlayerNames = {}
                 includeAllPlayersOnServer = true
             end
         end
     end
 
     -- Get the Included Forces and just check anything provided is valid.
-    local includedForcesString = commandData.includedForces ---@type string
-    local includedForces = {} ---@type string[]
+    local includedForcesString = commandData.includedForces
+    if not CommandsUtils.CheckStringArgument(includedForcesString, false, commandName, "includedForces", nil, command.parameter) then
+        return
+    end ---@cast includedForcesString string|nil
+    local includedForces = {} ---@type LuaForce[]
     if includedForcesString ~= nil and includedForcesString ~= "" then
-        local includedForceNames = Utils.SplitStringOnCharacters(includedForcesString, ",", false)
+        if includeAllPlayersOnServer then
+            CommandsUtils.LogPrintError(commandName, "includedForces", "is invalid option as all players on the server are already being included", command.parameter)
+            return
+        end
+        local includedForceNames = StringUtils.SplitStringOnCharactersToList(includedForcesString, ",")
         for _, includedForceName in pairs(includedForceNames) do
             local force = game.forces[includedForceName]
             if force ~= nil then
                 table.insert(includedForces, force)
             else
-                Logging.LogPrint(ErrorMessageStart .. "includedForces has an invalid force name: " .. tostring(includedForceName))
-                Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+                CommandsUtils.LogPrintError(commandName, "includedForces", "has an invalid force name: " .. tostring(includedForceName), command.parameter)
                 return
             end
         end
@@ -115,117 +118,74 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if not includeAllPlayersOnServer and #includedForces == 0 then
         -- As not all players and no forces fully included, we actually have to check the player list.
         if includedPlayerNames == nil or #includedPlayerNames < 2 then
-            Logging.LogPrint(ErrorMessageStart .. "atleast 2 players must be listed if no force is included.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
+            CommandsUtils.LogPrintError(commandName, nil, "atleast 2 player's names must be included in the `includedPlayers` option if no force is included in the 'includedForces' option.", command.parameter)
             return
         end
     end
 
-    local includeEquipmentString = commandData.includeEquipment
-    local includeEquipment  ---@type boolean
-    if includeEquipmentString == nil then
+    local includeEquipment = commandData.includeEquipment
+    if not CommandsUtils.CheckBooleanArgument(includeEquipment, false, commandName, "includeEquipment", command.parameter) then
+        return
+    end ---@cast includeEquipment boolean|nil
+    if includeEquipment == nil then
         includeEquipment = true
-    else
-        includeEquipment = Utils.ToBoolean(includeEquipmentString)
-        if includeEquipment == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if includeEquipment is supplied it must be a boolean.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
     end
 
-    local includeHandCraftingString = commandData.includeHandCrafting
-    local includeHandCrafting  ---@type boolean
-    if includeHandCraftingString == nil then
+    local includeHandCrafting = commandData.includeHandCrafting
+    if not CommandsUtils.CheckBooleanArgument(includeHandCrafting, false, commandName, "includeHandCrafting", command.parameter) then
+        return
+    end ---@cast includeHandCrafting boolean|nil
+    if includeHandCrafting == nil then
         includeHandCrafting = true
-    else
-        includeHandCrafting = Utils.ToBoolean(includeHandCraftingString)
-        if includeHandCrafting == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if includeHandCrafting is supplied it must be a boolean.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
     end
 
-    local destinationPlayersMinimumVarianceString = commandData.destinationPlayersMinimumVariance
-    local destinationPlayersMinimumVariance  ---@type uint
-    if destinationPlayersMinimumVarianceString == nil then
+    local destinationPlayersMinimumVariance = commandData.destinationPlayersMinimumVariance
+    if not CommandsUtils.CheckNumberArgument(destinationPlayersMinimumVariance, "int", false, commandName, "destinationPlayersMinimumVariance", 0, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast destinationPlayersMinimumVariance uint|nil
+    if destinationPlayersMinimumVariance == nil then
         destinationPlayersMinimumVariance = 1
-    else
-        destinationPlayersMinimumVariance = Utils.ToNumber(destinationPlayersMinimumVarianceString)
-        if destinationPlayersMinimumVariance == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersMinimumVariance is supplied it must be a number.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        destinationPlayersMinimumVariance = math_floor(destinationPlayersMinimumVariance)
-        if destinationPlayersMinimumVariance < 0 then
-            Logging.LogPrint(ErrorMessageStart .. "destinationPlayersMinimumVariance must be a number >= 0.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
     end
 
-    local destinationPlayersVarianceFactorString = commandData.destinationPlayersVarianceFactor
-    local destinationPlayersVarianceFactor  ---@type uint
-    if destinationPlayersVarianceFactorString == nil then
+    local destinationPlayersVarianceFactor = commandData.destinationPlayersVarianceFactor
+    if not CommandsUtils.CheckNumberArgument(destinationPlayersVarianceFactor, "double", false, commandName, "destinationPlayersVarianceFactor", 0, nil, command.parameter) then
+        return
+    end ---@cast destinationPlayersVarianceFactor double|nil
+    if destinationPlayersVarianceFactor == nil then
         destinationPlayersVarianceFactor = 0.25
-    else
-        destinationPlayersVarianceFactor = Utils.ToNumber(destinationPlayersVarianceFactorString)
-        if destinationPlayersVarianceFactor == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if destinationPlayersVarianceFactor is supplied it must be a number.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        if destinationPlayersVarianceFactor < 0 then
-            Logging.LogPrint(ErrorMessageStart .. "destinationPlayersVarianceFactor must be a number >= 0.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
     end
 
-    local recipientItemMinToMaxRatioString = commandData.recipientItemMinToMaxRatio
-    local recipientItemMinToMaxRatio  ---@type uint
-    if recipientItemMinToMaxRatioString == nil then
-        recipientItemMinToMaxRatio = 4
-    else
-        recipientItemMinToMaxRatio = Utils.ToNumber(recipientItemMinToMaxRatioString)
-        if recipientItemMinToMaxRatio == nil then
-            Logging.LogPrint(ErrorMessageStart .. "if recipientItemMinToMaxRatio is supplied it must be a number.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
-        recipientItemMinToMaxRatio = math_floor(recipientItemMinToMaxRatio)
-        if recipientItemMinToMaxRatio < 1 then
-            Logging.LogPrint(ErrorMessageStart .. "recipientItemMinToMaxRatio must be a number >= 1.")
-            Logging.LogPrint(ErrorMessageStart .. "recieved text: " .. command.parameter)
-            return
-        end
+    local recipientItemMinToMaxRatio = commandData.recipientItemMinToMaxRatio
+    if not CommandsUtils.CheckNumberArgument(recipientItemMinToMaxRatio, "int", false, commandName, "recipientItemMinToMaxRatio", 1, MathUtils.uintMax, command.parameter) then
+        return
+    end ---@cast recipientItemMinToMaxRatio uint|nil
+    if recipientItemMinToMaxRatio == nil then
+        recipientItemMinToMaxRatio = 5
     end
 
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
-    EventScheduler.ScheduleEvent(
-        command.tick + delay,
-        "PlayerInventoryShuffle.MixupPlayerInventories",
-        global.playerInventoryShuffle.nextId,
-        {
-            includedPlayerNames = includedPlayerNames,
-            includedForces = includedForces,
-            includeAllPlayersOnServer = includeAllPlayersOnServer,
-            includeEquipment = includeEquipment,
-            includeHandCrafting = includeHandCrafting,
-            destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
-            destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
-            recipientItemMinToMaxRatio = recipientItemMinToMaxRatio
-        }
-    )
+    ---@type PlayerInventoryShuffle_RequestData
+    local requestData = {
+        includedPlayerNames = includedPlayerNames,
+        includedForces = includedForces,
+        includeAllPlayersOnServer = includeAllPlayersOnServer,
+        includeEquipment = includeEquipment,
+        includeHandCrafting = includeHandCrafting,
+        destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
+        destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
+        recipientItemMinToMaxRatio = recipientItemMinToMaxRatio
+    }
+    EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerInventoryShuffle.MixupPlayerInventories", global.playerInventoryShuffle.nextId, requestData)
 end
 
+---@param event UtilityScheduledEvent_CallbackObject
 PlayerInventoryShuffle.MixupPlayerInventories = function(event)
     local requestData = event.data ---@type PlayerInventoryShuffle_RequestData
 
     -- Get the active players to shuffle.
     local players = {} ---@type LuaPlayer[]
+    local playerNamesAddedByForce = {} ---@type table<string, string> @ Key and value both player name.
+    local playerNamesAddedByName = {} ---@type table<string, string> @ Key and value both player name.
     if requestData.includeAllPlayersOnServer == true then
         -- Just include everyone.
         for _, player in pairs(game.connected_players) do
@@ -234,25 +194,32 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
             end
         end
     else
-        -- Include the named players and force's players.
-        for _, playerName in pairs(requestData.includedPlayerNames) do
-            local player = game.get_player(playerName)
-            if player ~= nil and player.connected and player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
-                table.insert(players, player)
-            end
-        end
+        -- Include the named players and force's players. Does forces first and then any non included listed players.
         for _, force in pairs(requestData.includedForces) do
             if force.valid then
                 for _, player in pairs(force.connected_players) do
                     if player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
                         table.insert(players, player)
+                        local player_name = player.name
+                        playerNamesAddedByForce[player_name] = player_name
                     end
+                end
+            end
+        end
+        for _, playerName in pairs(requestData.includedPlayerNames) do
+            local player = game.get_player(playerName)
+            if player ~= nil and player.connected and player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
+                local player_name = player.name
+                -- Only include the player if they aren't already included by their force.
+                if playerNamesAddedByForce[player_name] == nil then
+                    table.insert(players, player)
+                    playerNamesAddedByName[player_name] = player_name
                 end
             end
         end
     end
 
-    if singlePlayerTesting or singlePlayerTesting_DuplicateInputItems then
+    if SinglePlayerTesting or SinglePlayerTesting_DuplicateInputItems then
         -- Fakes the only player as multiple players so that the 1 players inventory is spread across these multiple fake players, but still all ends up inside the single real player's inventory.
         players = {game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1]}
     end
@@ -270,8 +237,11 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
         playerNamePrettyList = {"message.muppet_streamer_player_inventory_shuffle_all_players"}
     else
         playerNamePrettyList = ""
-        for _, player in pairs(players) do
-            playerNamePrettyList = playerNamePrettyList .. ", " .. player.name
+        for _, force in pairs(requestData.includedForces) do
+            playerNamePrettyList = playerNamePrettyList .. ", force '" .. force.name .. "'"
+        end
+        for _, playerName in pairs(playerNamesAddedByName) do
+            playerNamePrettyList = playerNamePrettyList .. ", " .. playerName
         end
         -- Remove leading comma and space
         playerNamePrettyList = string.sub(playerNamePrettyList, 3)
@@ -280,7 +250,7 @@ PlayerInventoryShuffle.MixupPlayerInventories = function(event)
 
     -- Do the collection and distribution.
     local storageInventory, itemSources = PlayerInventoryShuffle.CollectPlayerItems(players, requestData)
-    local playersItemCounts = PlayerInventoryShuffle.CalculateItemDistribution(storageInventory, itemSources, requestData, #players)
+    local playersItemCounts = PlayerInventoryShuffle.CalculateItemDistribution(storageInventory, itemSources, requestData, #players --[[@as uint]])
     local playerIndexsWithFreeInventorySpace_table = PlayerInventoryShuffle.DistributePlannedItemsToPlayers(storageInventory, players, playersItemCounts)
     PlayerInventoryShuffle.DistributeRemainingItemsAnywhere(storageInventory, players, playerIndexsWithFreeInventorySpace_table)
 
@@ -307,19 +277,19 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     local itemSources = {} ---@type table<string, uint> @ Item name to count of players who had the item.
 
     -- Create a single storage invnetory (limited size). Track the maximum number of stacks that have gone in to it in a very simple way i.e. it doesn't account for stacks that merge togeather. It's used just to give a warning at present if the shared storageInventory may have filled up.
-    local storageInventorySize = StorageInventorySizeIncrements -- Starting storage inventory size is 1 increment.
+    local storageInventorySize = StorageInventorySizeIncrements ---@type uint16 -- Starting storage inventory size is 1 increment.
     local storageInventory = game.create_inventory(storageInventorySize)
     local storageInventoryStackCount, storageInventoryFull = 0, false
 
     -- Loop over each player and handle their inventories.
-    ---@typelist LuaItemStack, LuaInventory, string, int, table<string, True>
+    ---@type LuaItemStack, LuaInventory, string, uint, table<string, true>
     local playerInventoryStack, playersInventory, stackItemName, playersInitialInventorySlotBonus, playersItemSources
     for _, player in pairs(players) do
         -- Return the players cursor stack to their inventory before handling.
         player.clear_cursor()
 
         -- A list of the item names (key) this player has already been found to have. To avoid double counting the same player for an item across different inventories.
-        playersItemSources = {} ---@type table<string, True> @ Item name this player has already been found to have.
+        playersItemSources = {} ---@type table<string, true> @ Item name this player has already been found to have.
 
         -- Move each inventory for this player.
         for _, inventoryName in pairs(inventoryNamesToCheck) do
@@ -350,7 +320,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                         if storageInventoryStackCount == storageInventorySize then
                             if storageInventorySize <= StorageInventoryMaxGrowthSize then
                                 -- Can just grow it.
-                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements
+                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements -- This is safe to blindly do as we already avoid exceeding the smaller size of uint 16 in the previous logic.
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
@@ -366,7 +336,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                     break
                 end
 
-                if not singlePlayerTesting_DuplicateInputItems then
+                if not SinglePlayerTesting_DuplicateInputItems then
                     -- If testing with one real player don't remove all the items as we want to add them for the next "fake" player referecing this same real character.
                     playersInventory.clear()
                 end
@@ -383,7 +353,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
 
             -- Grow the player's inventory to maximum size so that all cancelled craft ingredients are bound to fit in it.
             playersInitialInventorySlotBonus = player.character_inventory_slots_bonus
-            player.character_inventory_slots_bonus = playersInitialInventorySlotBonus * 4 -- This is an arbitary limit to try and balance between a player having many full inventories of items being crafted, vs the UPS cost that setting to a larger inventory causes. 1000 slots increase is twice the UPS of no increase to the cancel_crafting commands, but orders of magnitude larger take progressively longer.
+            player.character_inventory_slots_bonus = MathUtils.ClampToUInt(playersInitialInventorySlotBonus * 4, nil, 1000) -- This is an arbitary limit to try and balance between a player having many full inventories of items being crafted, vs the UPS cost that setting to a larger inventory causes. 1000 slots increase is twice the UPS of no increase to the cancel_crafting commands, but orders of magnitude larger take progressively longer.
 
             -- Have to cancel each item one at a time while there still are some. As if you cancel a pre-requisite or final item then the other related items are auto cancelled and any attempt to iterate a cached list errors.
             while player.crafting_queue_size > 0 do
@@ -415,7 +385,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                         if storageInventoryStackCount == storageInventorySize then
                             if storageInventorySize < StorageInventoryMaxGrowthSize then
                                 -- Can just grow it.
-                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements
+                                storageInventorySize = storageInventorySize + StorageInventorySizeIncrements -- This is safe to blindly do as we already avoid exceeding the smaller size of uint 16 in the previous logic.
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid lossing items, it will actually duplicate some of the last players items.
@@ -449,7 +419,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     end
 
     -- If testing with one real player now empty the players inventories. In real code this was done during the loop.
-    if singlePlayerTesting_DuplicateInputItems then
+    if SinglePlayerTesting_DuplicateInputItems then
         for _, inventoryName in pairs(inventoryNamesToCheck) do
             playersInventory = players[1].get_inventory(inventoryName)
             playersInventory.clear()
@@ -464,45 +434,46 @@ end
 ---@param itemSources table<string, uint>
 ---@param requestData PlayerInventoryShuffle_RequestData
 ---@param playersCount uint
----@return PlayerInventoryShuffle_playersItemCounts playersItemCounts
+---@return PlayerInventoryShuffle_PlayersItemCounts playersItemCounts
 PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, itemSources, requestData, playersCount)
     -- Set up the main player variable arrays, these are references to the players variable index and not the actual LuaPlayer index value.
     local itemsToDistribute = storageInventory.get_contents()
-    local playersItemCounts = {} ---@type PlayerInventoryShuffle_playersItemCounts
+    local playersItemCounts = {} ---@type PlayerInventoryShuffle_PlayersItemCounts
     for i = 1, playersCount do
+        ---@cast i uint @ Work around for Sumneko missing fully working typing on FOR variables: https://github.com/sumneko/lua-language-server/issues/1367.
         playersItemCounts[i] = {}
     end
 
     -- Work out the distribution of items to players.
-    ---@typelist uint, uint, double, double[], double, uint, double, uint[], uint, uint, uint, uint, uint
-    local sourcesCount, destinationCount, totalAssignedPercentage, destinationPercentages, standardisedPercentageModifier, itemsLeftToAssign, destinationPercentage, playersAvailableToRecieveThisItem, playerIndex, playerIndexListIndex, itemCountForPlayerIndex, destinationCountMin, destinationCountMax
+    ---@type uint, uint, double, uint[], double, uint, uint, uint[], uint, uint, uint, uint, uint
+    local sourcesCount, destinationCount, totalAssignedRatio, destinationRatios, standardisedPercentageModifier, itemsLeftToAssign, destinationRatio, playersAvailableToRecieveThisItem, playerIndex, playerIndexListIndex, itemCountForPlayerIndex, destinationCountVariance
     for itemName, itemCount in pairs(itemsToDistribute) do
         sourcesCount = itemSources[itemName]
 
         -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random +/- of the greatest between the ItemDestinationPlayerCountRange and destinationPlayersMinimumVariance.
-        destinationCountMin = math_min(-requestData.destinationPlayersMinimumVariance, -math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor)))
-        destinationCountMax = math_max(requestData.destinationPlayersMinimumVariance, math_ceil((sourcesCount * requestData.destinationPlayersVarianceFactor)))
-        destinationCount = math_min(math_max(sourcesCount + math_random(destinationCountMin, destinationCountMax), 1), playersCount)
+        destinationCountVariance = math_max(requestData.destinationPlayersMinimumVariance, math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor)))
+        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance --[[@as integer @ needed due to expected type in math.random().]], destinationCountVariance), 1), playersCount) --[[@as uint @ The min and max values are uints.]]
 
-        -- Work out the raw percentage of items each destination will get.
-        totalAssignedPercentage, destinationPercentages = 0, {}
+        -- Work out the raw ratios of items each destination will get.
+        totalAssignedRatio, destinationRatios = 0, {}
         for i = 1, destinationCount do
-            destinationPercentage = math_random(1, requestData.recipientItemMinToMaxRatio)
-            destinationPercentages[i] = destinationPercentage
-            totalAssignedPercentage = totalAssignedPercentage + destinationPercentage
+            destinationRatio = math_random(1, requestData.recipientItemMinToMaxRatio) --[[@as uint]]
+            destinationRatios[i] = destinationRatio
+            totalAssignedRatio = totalAssignedRatio + destinationRatio
         end
-        standardisedPercentageModifier = 1 / totalAssignedPercentage
+        standardisedPercentageModifier = 1 / totalAssignedRatio
 
         -- Work out how many items each destination will get and assign them to a specific players list index.
         itemsLeftToAssign = itemCount
-        playersAvailableToRecieveThisItem = {} ---@type uint[] @ A list of the players list indexs that is trimmed once assigned this item.
+        playersAvailableToRecieveThisItem = {} ---@type table<uint, uint> @ A list of the players list indexes that is trimmed once assigned this item.
         for i = 1, playersCount do
+            ---@cast i uint
             playersAvailableToRecieveThisItem[i] = i
         end
 
         for i = 1, destinationCount do
             -- Select a random players list index from those not yet assigned this item and then remove it from the avialable list.
-            playerIndexListIndex = math_random(1, #playersAvailableToRecieveThisItem)
+            playerIndexListIndex = math_random(1, #playersAvailableToRecieveThisItem) --[[@as uint]]
             playerIndex = playersAvailableToRecieveThisItem[playerIndexListIndex]
             table.remove(playersAvailableToRecieveThisItem, playerIndexListIndex)
 
@@ -512,7 +483,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
                 itemCountForPlayerIndex = itemsLeftToAssign
             else
                 -- Round down the initial number and then keep it below the number of items left. Never try to use more than are left to assign.
-                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationPercentages[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign)
+                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint @ The min and max values are uints.]]
             end
             itemsLeftToAssign = itemsLeftToAssign - itemCountForPlayerIndex
             table.insert(playersItemCounts[playerIndex], {name = itemName, count = itemCountForPlayerIndex})
@@ -525,12 +496,12 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
     end
 
     -- Randomly order the items we will be distributing as otherwise the same type of things are those forced in to inventories out of ratio or dropped on the ground. WIthout this also the worst armor was always assigned as well (lowest order).
-    ---@typelist uint, PlayerInventoryShuffle_orderedItemCounts
+    ---@type uint, PlayerInventoryShuffle_OrderedItemCounts
     local randomOrderPosition, randomItemCountsList
     for itemCountsPlayerIndex, itemCountsList in pairs(playersItemCounts) do
         randomItemCountsList = {}
         for _, itemCounts in ipairs(itemCountsList) do
-            randomOrderPosition = math.random(1, #randomItemCountsList + 1)
+            randomOrderPosition = math.random(1, #randomItemCountsList + 1) --[[@as uint]]
             table.insert(randomItemCountsList, randomOrderPosition, itemCounts)
         end
         playersItemCounts[itemCountsPlayerIndex] = randomItemCountsList
@@ -542,7 +513,7 @@ end
 --- Try to distribute the items to the players they were planned for. Anything that won't fit in their inventories will remain in the storage inventory.
 ---@param storageInventory LuaInventory
 ---@param players LuaPlayer[]
----@param playersItemCounts PlayerInventoryShuffle_playersItemCounts
+---@param playersItemCounts PlayerInventoryShuffle_PlayersItemCounts
 ---@return table<uint, LuaPlayer> playerIndexsWithFreeInventorySpace_table
 PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInventory, players, playersItemCounts)
     -- Distribute any armors and guns first to the players as these will affect players inventory sizes and usage of ammo slots for the rest of the items.
@@ -561,10 +532,11 @@ PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInvento
     -- Distribute the items to the actual players.
     local playerIndexsWithFreeInventorySpace_table = {} ---@type table<uint, LuaPlayer> -- Becomes a table as we remove keys without re-ordering.
     for i, player in pairs(players) do
+        ---@cast i uint
         playerIndexsWithFreeInventorySpace_table[i] = player
     end
 
-    ---@typelist boolean, LuaPlayer
+    ---@type boolean, LuaPlayer
     local playersInventoryIsFull, player
     for playerIndex, orderedPlayerItemCountList in pairs(playersItemCounts) do
         player = players[playerIndex]
@@ -574,7 +546,9 @@ PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInvento
             if playersInventoryIsFull then
                 -- Player's inventory is full so stop trying to add more things to do. Will catch the left over items in the storage inventory later.
                 playerIndexsWithFreeInventorySpace_table[playerIndex] = nil -- This will make it a gappy array, but we will squash it down later.
-                Logging.LogPrint("Player list index " .. playerIndex .. "'s inventory is full during initial item distribution", debugStatusMessages)
+                if DebugStatusMessages then
+                    CommandsUtils.LogPrintWarning(commandName, nil, "Player list index " .. playerIndex .. "'s inventory is full during initial item distribution")
+                end
                 break
             end
         end
@@ -591,7 +565,9 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
     -- Check the storage inventory is empty, distribute anything left or just dump it on the ground.
     local itemsLeftInStorage = storageInventory.get_contents()
     if next(itemsLeftInStorage) ~= nil then
-        Logging.LogPrint("storage inventory not all distributed to players initially", debugStatusMessages)
+        if DebugStatusMessages then
+            CommandsUtils.LogPrintWarning(commandName, nil, "storage inventory not all distributed to players initially")
+        end
         -- playerIndexsWithFreeInventorySpace_table is a gappy array so have to make it consistent to allow easier usage in this phase.
         local playerIndexsWithFreeInventorySpace_array = {} ---@type LuaPlayer[]
         for _, player in pairs(playerIndexsWithFreeInventorySpace_table) do
@@ -599,7 +575,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
         end
 
         -- Try and shove the items in players inventories that aren't full first
-        ---@typelist uint, LuaPlayer, boolean
+        ---@type uint, LuaPlayer, boolean
         local playerListIndex, player, playersInventoryIsFull
         for itemName, itemCount in pairs(itemsLeftInStorage) do
             -- Keep on trying to insert these items across all available players until its all inserted or no players have any room left.
@@ -608,13 +584,15 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
                     -- No more players with free inventory space so stop this item.
                     break
                 end
-                playerListIndex = math_random(1, #playerIndexsWithFreeInventorySpace_array)
+                playerListIndex = math_random(1, #playerIndexsWithFreeInventorySpace_array) --[[@as uint]]
                 player = playerIndexsWithFreeInventorySpace_array[playerListIndex]
                 playersInventoryIsFull, itemCount = PlayerInventoryShuffle.InsertItemsInToPlayer(storageInventory, itemName, itemCount, player)
                 if playersInventoryIsFull then
                     -- Player's inventory is full so prevent trying to add anything else to this player in the future.
                     table.remove(playerIndexsWithFreeInventorySpace_array, playerListIndex)
-                    Logging.LogPrint("A player's inventory is full during secondary item dump to players", debugStatusMessages) -- This doesn't know the origional position of the player in the list as the list is being trimmed and squashed as it goes.
+                    if DebugStatusMessages then
+                        CommandsUtils.LogPrintWarning(commandName, nil, "A player's inventory is full during secondary item dump to players") -- This doesn't know the origional position of the player in the list as the list is being trimmed and squashed as it goes.
+                    end
                 end
             end
 
@@ -625,7 +603,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
         end
 
         -- If testing with one real player just leave the excess duplicated stuff in the storage as otherwise we will polute the profile with a massive item drop on floor.
-        if singlePlayerTesting_DuplicateInputItems then
+        if SinglePlayerTesting_DuplicateInputItems then
             return
         end
 
@@ -636,8 +614,9 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
             -- CODE NOTE: the spilling on the ground is very UPS costly, espically the further away from each player. So Distributing semi equally across all players should help reduce this impact. Ideally this state won't be reached.
             game.print({"message.muppet_streamer_player_inventory_shuffle_not_enough_room_for_items"})
             storageInventory.sort_and_merge()
-            ---@typelist LuaItemStack, LuaPlayer
+            ---@type LuaItemStack, LuaPlayer
             local storageItemStack, randomPlayer
+            ---@type uint
             for i = 1, #storageInventory do
                 storageItemStack = storageInventory[i]
                 if storageItemStack.valid_for_read then
@@ -660,7 +639,7 @@ end
 ---@return boolean playersInventoryIsFull
 ---@return uint itemCountNotInserted
 PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemName, itemCount, player)
-    ---@typelist LuaItemStack, uint, boolean, ItemStackDefinition, uint
+    ---@type LuaItemStack, uint, ItemStackDefinition, uint, uint
     local itemStackToTakeFrom, itemsInserted, itemToInsert, itemStackToTakeFrom_count, itemCountToTakeFromThisStack
     local playersInventoryIsFull = false
 
