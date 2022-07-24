@@ -47,6 +47,7 @@ LeakyFlamethrower.OnLoad = function()
     EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ShootFlamethrower", LeakyFlamethrower.ShootFlamethrower)
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "LeakyFlamethrower.OnPrePlayerDied", LeakyFlamethrower.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ApplyToPlayer", LeakyFlamethrower.ApplyToPlayer)
+    MOD.Interfaces.Commands.LeakyFlamethrower = LeakyFlamethrower.LeakyFlamethrowerCommand
 end
 
 LeakyFlamethrower.OnStartup = function()

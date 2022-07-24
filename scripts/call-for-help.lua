@@ -70,6 +70,7 @@ CallForHelp.OnLoad = function()
     CommandsUtils.Register("muppet_streamer_call_for_help", {"api-description.muppet_streamer_call_for_help"}, CallForHelp.CallForHelpCommand, true)
     EventScheduler.RegisterScheduledEventType("CallForHelp.CallForHelp", CallForHelp.CallForHelp)
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "CallForHelp.OnScriptPathRequestFinished", CallForHelp.OnScriptPathRequestFinished)
+    MOD.Interfaces.Commands.CallForHelp = CallForHelp.CallForHelpCommand
 end
 
 ---@param command CustomCommandData

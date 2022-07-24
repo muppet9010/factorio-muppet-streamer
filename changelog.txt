@@ -4,11 +4,12 @@ Date: 2022-XX-XX
   Features:
     - Potentially Breaking Changes - This version includes changes in how you call the features from your RCON integration tool. See the various details listed in this change and the mods description/readme for details.
     - Any unsupported option/setting provided when a command is run will raise a warning on screen. This is to aid user recognition of any mistakes in their command's options/settings.
+    - Added remote interface for features in addition to their commands. This is documented at the end of the mod description/readme. This should provide full flexibility for all viewer integration methods. Also allows for multiple features to be triggered simultaneously as separate RCON commands will always have a tiny delay between them.
   Changes:
     - All feature's commands are now tighter on enforcing option's value types to what the readme says, so incorrect typed values will be rejected, i.e. passing in a decimal point number to an Integer (whole number) setting, or entering a number as a string (number in double quotes). If you previously passed in the correct value types this will have no impact on you. In the past "some" commands would convert "some" incorrect setting values to "some" degree, i.e. a decimal number might be rounded either up/down to an integer number.
     - No command will silently be ignored if provided a nonsensical low value to some mandatory settings any more. Previously some commands had this feature on some settings. Now all commands will raise an onscreen error for excessively low values, i.e. trying to create 0 explosives.
     - Player Drop Inventory - gap setting must be above 0 now.
-    - Give Weapon & Ammo - if an ammo type is given for the gun it will be forced to be equipped now, before it was only equiped if the player didn't have any ammo in that existing weapon.
+    - Give Weapon & Ammo - if an ammo type is given for the gun it will be forced to be equipped now, before it was only equipped if the player didn't have any ammo in that existing weapon.
     - Player Inventory Shuffle - when all players on a force are included the force is listed and not the players of it. Any additional individual players on other non-included forces will still be named individually.
     - Pants on Fire - FlameCount setting is now limited to 255 (Factorio limit). Previously values above this would have caused an error if tried.
   Bugfixes:

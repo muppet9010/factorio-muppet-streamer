@@ -4,7 +4,7 @@
 
 local GuiActionsClick = {}
 local Constants = require("constants")
-MOD = MOD or {}
+MOD = MOD or {} ---@type table<string, any>
 MOD.guiClickActions = MOD.guiClickActions or {} ---@type table<string, function>
 
 ---@class UtilityGuiActionsClick_ActionData @ The response object passed to the callback function when the GUI element is clicked. Registered with GuiActionsClick.RegisterGuiForClick().

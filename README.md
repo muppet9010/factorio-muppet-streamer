@@ -20,7 +20,7 @@ Features
 - Drop a player's inventory on the ground over time.
 - Mix up players' inventories between them.
 
-All are done via highly configurable RCON commands.
+All are done via highly configurable RCON commands as detailed below for each feature. Each can also be triggered via a remote interface call from a Lua script, details on this are at the end of this document.
 
 #### Multiplayer Features
 
@@ -51,7 +51,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
     - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "slowdownCapsule", "poisonCapsule", "artilleryShell", "explosiveRocket", "atomicRocket", "smallSpit", "mediumSpit", "largeSpit". Is case sensitive.
     - target: STRING - Mandatory: a player name to target the position and surface of (case sensitive).
     - targetPosition: OBJECT - Optional: a position to target instead of the player's position. Will still come on to the target players map (surface). See notes for syntax examples.
-    - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offse set. See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
+    - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offset set. See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
     - accuracyRadiusMin: DECIMAL - Optional: the minimum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
     - accuracyRadiusMax: DECIMAL - Optional: the maximum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
     - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
@@ -105,7 +105,7 @@ Ensures the target player has a specific weapon and can give ammo and force thei
     - weaponType: STRING - Optional: the name of a weapon to ensure the player has 1 of. Can be either in their weapon inventory or in their character inventory. If not provided no weapon is given or selected. The weapon name is Factorio's internal name of the gun type and is case sensitive.
     - forceWeaponToSlot: BOOLEAN - Optional: if True the weaponType will be placed/moved to the players weapon inventory. If there's no room a current weapon will be placed in the character inventory to make room. If False then the weapon will be placed in a free slot, otherwise the character inventory. Defaults to False
     - selectWeapon: BOOLEAN - Optional: if True the player will have this weaponType selected as active if it's equipped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
-    - ammoType: STRING - Optional: the name of the ammo type to be given to the player. The ammo name is Factorio's internal name of the ammo type and is case sensitive. If an ammo ammount is also set greater than 0 then this ammo type and ammount will be forced in to the weapon if equiped.
+    - ammoType: STRING - Optional: the name of the ammo type to be given to the player. The ammo name is Factorio's internal name of the ammo type and is case sensitive. If an ammo amount is also set greater than 0 then this ammo type and amount will be forced in to the weapon if equipped.
     - ammoCount: INTEGER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
 - Example command: `/muppet_streamer_give_player_weapon_ammo {"target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
 
@@ -183,8 +183,8 @@ Teleports other players on the server to near your position.
     - sameSurfaceOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same surface as the target player or not. If `false` then the `callRadius` argument is ignored as it can't logically be applied. Defaults to `true`.
     - sameTeamOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same team (force) as the target player or not. Defaults to `true`.
     - callSelection - STRING - Mandatory: the logic to select which available players in the callRadius are teleported, either: `random`, `nearest`.
-    - number - INTEGER - Mandatory Special: how many players to call. Atleast one of `number` or `activePercentage` must be supplied.
-    - activePercentage - DECIMAL - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting the number of available players. Atleast one of `number` or `activePercentage` must be supplied.
+    - number - INTEGER - Mandatory Special: how many players to call. At least one of `number` or `activePercentage` must be supplied.
+    - activePercentage - DECIMAL - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting the number of available players. At least one of `number` or `activePercentage` must be supplied.
 - Example command to call in the greater of either 3 or 50% of valid players : `/muppet_streamer_call_for_help {"target":"muppet9010", "callSelection": "random", "number": 3, "activePercentage": 50}`
 - Example command to call in all the players nearby : `/muppet_streamer_call_for_help {"target":"muppet9010", "callRadius": 200, "callSelection": "random", "activePercentage": 100}`
 
@@ -287,8 +287,8 @@ Takes all the inventory items from the target players, shuffles them and then di
     - includedForces: STRING_LIST/STRING -  Mandatory Special: a comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's ingame name. At least one of includedPlayers or includedForces settings must be provided.
     - includeEquipment: BOOLEAN - Optional: if the player's armour and weapons are included for shuffling or not. Defaults to True.
     - includeHandCrafting: BOOLEAN - Optional: if the player's hand crafting should be cancelled and the ingredients shuffled. Defaults to True.
-    - destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to recieve an item type compared to the number of source inventories. A value of 0 will allow the for the same number of players to recieve an item as lost it, greater than 1 ensures a wider distribution away from the source number of inventories. Defaults to 1 to ensure some uneven spreading of items. See notes for logic on item distribution and how this setting interacts with other settings.
-    - destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to recieve the item. Used to allow scaling of item recipients for large player counts. A value of 0 will mean have no scaling of source to desitination inventories. Defaults to 0.25. See notes for logic on item distribution and how this setting interacts with other settings.
+    - destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to receive an item type compared to the number of source inventories. A value of 0 will allow the for the same number of players to receive an item as lost it, greater than 1 ensures a wider distribution away from the source number of inventories. Defaults to 1 to ensure some uneven spreading of items. See notes for logic on item distribution and how this setting interacts with other settings.
+    - destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to receive the item. Used to allow scaling of item recipients for large player counts. A value of 0 will mean have no scaling of source to destination inventories. Defaults to 0.25. See notes for logic on item distribution and how this setting interacts with other settings.
     - recipientItemMinToMaxRatio: INTEGER - Optional: The approximate min/max ratio range of the number of items a destination player will receive compared to others. Defaults to 4. See notes for logic on item distribution.
 - Example command for 3 named players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"muppet9010,Test_1,Test_2"}`
 - Example command for all active players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"[ALL]"}`
@@ -299,7 +299,7 @@ Notes:
 - There must be 2 or more included players online otherwise the command will do nothing (silently fail). The players from both include settings will be pooled for this.
 - The distribution logic is a bit convoluted, but works as per:
     - All targets online have all their inventories taken. Each item type has the number of source players recorded.
-    - A random number of new players to receive each item type is worked out. This is based on the number of source players for that item type, with a +/- random value applied based on the greatest between; the destinationPlayersMinimumVariance setting, and the destinationPlayersVarianceFactor setting multiplied by the number of source inventories. This allows a minimum variation of recieveing players comapred to soruce inventories to be enforced even when very small player targets are online. The final value of new players for the items to be split across will never be less than 1 or greater than all of the online target players.
+    - A random number of new players to receive each item type is worked out. This is based on the number of source players for that item type, with a +/- random value applied based on the greatest between; the destinationPlayersMinimumVariance setting, and the destinationPlayersVarianceFactor setting multiplied by the number of source inventories. This allows a minimum variation of receiving players compared to source inventories to be enforced even when very small player targets are online. The final value of new players for the items to be split across will never be less than 1 or greater than all of the online target players.
     - The number of each item each selected player will receive is a random proportion of the total. This is controlled by the recipientItemMinToMaxRatio setting. This setting defines the minimum to maximum ratio between 2 players, i.e. setting of 4 means a player receiving the maximum number can receive up to 4 times as many as a player receiving the minimum. This setting's implementation isn't quite exact and should be viewed as a rough guide.
     - Any items that can't be fitted into the intended destination player will be given to another online targeted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targeted player then they will be dropped on the floor at the targeted players’ feet. This situation can occur as items are taken from the player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
 - Players are given items using Factorios default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
@@ -355,7 +355,32 @@ Argument Requirements:
 
 Number ranges:
 
-- Many settings will have non-documented common sense minimum number requirements. i.e. you can't have leaky flamethrower activate for 0 or less bursts. These will raise a warning on screen and the command won't run.
+- Many settings will have non-documented common sense minimum number requirements. i.e. you can't have leaky flamethrower activated for 0 or less bursts. These will raise a warning on screen and the command won't run.
 - Many settings will have non-documented maximum values at extremes. The known ones will be capped to the maximum allowed, i.e. number of seconds to delay an event for. However, so will be unknown about and are generally Factorio internal limits, so will not be prevented and may cause crashes. For this reason experimenting with ridiculously large numbers isn't advised.
 
 When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
+
+
+
+Remote Interface - Calling from Lua script
+-------------------
+
+You can trigger all of the features via a remote interface call as well as the standard commands detailed above. This is useful for triggering the features from other mods or from viewer integrations when you need to use a Lua script for some maths.
+
+All features are called with the `muppet_streamer` interface and the `run_command` function name. They each then take 2 arguments:
+
+- CommandName - This is the feature's command name you want to trigger. It's identical to the command name detailed in each feature.
+- Options - This is the options you want to pass to the feature. These are identical to the command for the feature. It accepts either a JSON string or a Lua table of the settings.
+
+Calling the Aggressive Driver feature with options as a JSON string:
+```/c remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', '{"target":"muppet9010", "duration":30, "control": "random", "teleportDistance": 100}')```
+Note these option strings are identical to the command's, with the string defined by single quotes to avoid needing to escape the double quotes.
+
+Calling the Aggressive Driver feature with options as a Lua object:
+```/c remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=30, control="random", teleportDistance=100})```
+
+This allows for any required value manipulation from whichever viewer integration you are using, for example the below is assuming your integration tool is replacing VALUE with a scalable number from your viewer integration and want to limit the result between 10 and 30.
+```
+/c local drivingTime = math.max(math.min(VALUE, 30), 10)
+remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=drivingTime, control="random", teleportDistance=100})
+```

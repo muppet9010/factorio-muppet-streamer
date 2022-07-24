@@ -4,7 +4,7 @@
 
 local GuiActionsChecked = {}
 local Constants = require("constants")
-MOD = MOD or {}
+MOD = MOD or {} ---@type table<string, any>
 MOD.guiCheckedActions = MOD.guiCheckedActions or {} ---@type table<string, function>
 
 ---@class UtilityGuiActionsChecked_ActionData @ The response object passed to the callback function when the GUI element is checked/unchecked. Registered with GuiActionsChecked.RegisterGuiForCheckedStateChange().

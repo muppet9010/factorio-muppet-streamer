@@ -1,12 +1,11 @@
 DOING NOW:
-    - Add remote interfaces to all the commands. As otherwise some rcon interface tools can't handle the type changes, given they rely on using Factorio for data value manipulation (/c) and this can't call commands. Simple code option would be to require the end user pass in settings as JSON so I can use the same recieving function as commands. They can use game.table_to_json from in their code and then pass this JSON in to my remote interface. Although a proper interface with types could just do this for the user and then call the command recievers to validate the data. This remote would also allow others to do multiple streamer commands in simplier integration tools (i.e. mukkie could make a fortress).
+    resolve any TODO's added previously.
 
 BUGS:
 
 
 DO NEAR FUTURE:
     - Aggressive Driver - Add option to place a vehicle if none is found. Would take the name of a vehicle, the name and quantity of fuel to put in the placed vehicle, and the radius to try and place it within of the player. Direction would be as random as we can currently do with the placement searching. Option to remove the vehicle at the end of the effect.
-    - Add a remote interface to Explosive Delivery. Initally for calling by the JD Plays mod- Spider hunt feature, for the battleships idea that we want to contain within JD's map lane. IDEA ON HOLD.
 	- Change all effect notification game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
     - Support modded entities across commands.
     - With Sumneko 3.5 is there any good way to refine either the generics or type specific (uint) math library to remove a lot of the casting requirements?

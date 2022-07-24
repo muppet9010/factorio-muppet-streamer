@@ -55,6 +55,7 @@ end
 PlayerInventoryShuffle.OnLoad = function()
     CommandsUtils.Register("muppet_streamer_player_inventory_shuffle", {"api-description.muppet_streamer_player_inventory_shuffle"}, PlayerInventoryShuffle.PlayerInventoryShuffleCommand, true)
     EventScheduler.RegisterScheduledEventType("PlayerInventoryShuffle.MixupPlayerInventories", PlayerInventoryShuffle.MixupPlayerInventories)
+    MOD.Interfaces.Commands.PlayerInventoryShuffle = PlayerInventoryShuffle.PlayerInventoryShuffleCommand
 end
 
 ---@param command CustomCommandData

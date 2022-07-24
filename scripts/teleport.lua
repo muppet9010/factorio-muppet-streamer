@@ -91,6 +91,7 @@ Teleport.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_entity_died, "Teleport.OnEntityDied", Teleport.OnEntityDied, {{filter = "type", type = "unit-spawner"}})
     Events.RegisterHandlerEvent(defines.events.script_raised_destroy, "Teleport.ScriptRaisedDestroy", Teleport.ScriptRaisedDestroy, {{filter = "type", type = "unit-spawner"}})
     EventScheduler.RegisterScheduledEventType("Teleport.OnChunkGenerated_Scheduled", Teleport.OnChunkGenerated_Scheduled)
+    MOD.Interfaces.Commands.Teleport = Teleport.TeleportCommand
 end
 
 --- Triggered when the RCON command is run.

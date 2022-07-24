@@ -1,7 +1,7 @@
 -- Returns and caches prototype attributes as requested to save future API calls. Values stored in Lua global varaible and populated as requested, as doesn't need persisting. Gets auto refreshed on game load and thus accounts for any change of attributes from mods.
 local PrototypeAttributes = {}
 
-MOD = MOD or {}
+MOD = MOD or {} ---@type table<string, any>
 MOD.UTILITYPrototypeAttributes = MOD.UTILITYPrototypeAttributes or {} ---@type UtilityPrototypeAttributes_CachedTypes
 
 --- Returns the request attribute of a prototype.

@@ -12,6 +12,7 @@ local PantsOnFire = require("scripts.pants-on-fire")
 local PlayerDropInventory = require("scripts.player-drop-inventory")
 local PlayerInventoryShuffle = require("scripts.player-inventory-shuffle")
 local BuildingGhosts = require("scripts.building-ghosts")
+local Common = require("scripts.common")
 
 local function CreateGlobals()
     global.origionalPlayersPermissionGroup = global.origionalPlayersPermissionGroup or {} ---@type table<uint, LuaPermissionGroup> @ Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
@@ -34,6 +35,14 @@ end
 local function OnLoad()
     --Any Remote Interface registration calls can go in here or in root of control.lua
     remote.remove_interface("muppet_streamer")
+    remote.add_interface(
+        "muppet_streamer",
+        {
+            run_command = Common.CallCommandFromRemote,
+            increase_team_member_level = TeamMember.RemoteIncreaseTeamMemberLevel
+        }
+    )
+
     BuildingGhosts.OnLoad()
     TeamMember.OnLoad()
     ExplosiveDelivery.OnLoad()
@@ -75,6 +84,7 @@ EventScheduler.RegisterScheduler()
 -- Mod wide function interface table creation. Means EmmyLua can support it and saves on UPS cost of old Interface function middelayer.
 ---@class InternalInterfaces
 MOD.Interfaces = MOD.Interfaces or {} ---@type table<string, function>
+MOD.Interfaces.Commands = MOD.Interfaces.Commands or {}
 --[[
     Populate and use from within module's OnLoad() functions with simple table reference structures, i.e:
         MOD.Interfaces.Tunnel = MOD.Interfaces.Tunnel or {}

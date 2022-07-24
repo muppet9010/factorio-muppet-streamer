@@ -21,6 +21,7 @@ end
 GiveItems.OnLoad = function()
     CommandsUtils.Register("muppet_streamer_give_player_weapon_ammo", {"api-description.muppet_streamer_give_player_weapon_ammo"}, GiveItems.GivePlayerWeaponAmmoCommand, true)
     EventScheduler.RegisterScheduledEventType("GiveItems.GiveWeaponAmmoScheduled", GiveItems.GiveWeaponAmmoScheduled)
+    MOD.Interfaces.Commands.GiveItems = GiveItems.GivePlayerWeaponAmmoCommand
 end
 
 ---@param command CustomCommandData

@@ -52,6 +52,7 @@ AggressiveDriver.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "AggressiveDriver.OnPrePlayerDied", AggressiveDriver.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.Drive", AggressiveDriver.Drive)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.ApplyToPlayer", AggressiveDriver.ApplyToPlayer)
+    MOD.Interfaces.Commands.AggressiveDriver = AggressiveDriver.AggressiveDriverCommand
 end
 
 AggressiveDriver.OnStartup = function()

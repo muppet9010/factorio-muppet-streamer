@@ -209,7 +209,7 @@ end
 ---@param requiredType "'double'"|"'int'" @ The specific number type we want.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
----@param argumentName string @ The argument name in its hierachy. Used in error messages.
+---@param argumentName? string|nil @ The argument name in its hierachy. Used in error messages.
 ---@param numberMinLimit? double|nil @ An optional minimum allowed value can be specified.
 ---@param numberMaxLimit? double|nil @ An optional maximum allowed value can be specified.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
@@ -253,7 +253,7 @@ CommandsUtils.CheckNumberArgument = function(value, requiredType, mandatory, com
         numberOutsideLimits = true
     end
     if numberOutsideLimits then
-        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument '" .. argumentName .. "' must be between " .. numberMinLimit .. " and " .. numberMaxLimit .. ". Received value of '" .. value .. "' instead.")
+        LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. (argumentName and " - argument '" .. argumentName .. "'" or "") .. "' must be between " .. numberMinLimit .. " and " .. numberMaxLimit .. ". Received value of '" .. value .. "' instead.")
         return false
     end
 
@@ -264,7 +264,7 @@ end
 ---@param value any @ Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
----@param argumentName string @ The argument name in its hierachy. Used in error messages.
+---@param argumentName? string|nil @ The argument name in its hierachy. Used in error messages.
 ---@param allowedStrings? table<string, any>|nil @ A limited array of allowed strings can be specified as a table of string keys with non nil values. Designed to recieve an enum type object.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
@@ -287,7 +287,7 @@ CommandsUtils.CheckStringArgument = function(value, mandatory, commandName, argu
     -- Check the value is in the allowed strings requirement if provided.
     if allowedStrings ~= nil then
         if allowedStrings[value] == nil then
-            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument '" .. argumentName .. "' must be one of the allowed text strings.")
+            LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. (argumentName and " - argument '" .. argumentName .. "'" or "") .. "' must be one of the allowed text strings.")
             if TableUtils.GetTableNonNilLength(allowedStrings) < 20 then
                 LoggingUtils.LogPrintError("Allowed text strings are: " .. TableUtils.TableKeyToCommaString(allowedStrings))
             else
@@ -307,7 +307,7 @@ end
 ---@param value any @ Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
----@param argumentName string @ The argument name in its hierachy. Used in error messages.
+---@param argumentName? string|nil @ The argument name in its hierachy. Used in error messages.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
 CommandsUtils.CheckBooleanArgument = function(value, mandatory, commandName, argumentName, commandString)
@@ -328,7 +328,7 @@ end
 ---@param value any @ Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
----@param argumentName string @ The argument name in its hierachy. Used in error messages.
+---@param argumentName? string|nil @ The argument name in its hierachy. Used in error messages.
 ---@param allowedKeys? table<string, any>|nil @ A limited array of allowed keys of the table can be specified as a table of string keys with non nil values. Designed to recieve an enum type object.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
@@ -354,7 +354,7 @@ CommandsUtils.CheckTableArgument = function(value, mandatory, commandName, argum
                 return false
             end
             if allowedKeys[key] == nil then
-                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. " - argument '" .. argumentName .. "' includes a non supported key: " .. tostring(key))
+                LoggingUtils.LogPrintError(Constants.ModFriendlyName .. " - command " .. commandName .. (argumentName and " - argument '" .. argumentName .. "'" or "") .. " includes a non supported key: " .. tostring(key))
                 if TableUtils.GetTableNonNilLength(allowedKeys) < 20 then
                     LoggingUtils.LogPrintError("Allowed keys are: " .. TableUtils.TableKeyToCommaString(allowedKeys))
                 else
@@ -376,7 +376,7 @@ end
 ---@param requiredType table|boolean|string|number @ The type of value we want.
 ---@param mandatory boolean
 ---@param commandName string @ The ingame commmand name. Used in error messages.
----@param argumentName string @ The argument name in its hierachy. Used in error messages.
+---@param argumentName? string|nil @ The argument name in its hierachy. Used in error messages.
 ---@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean argumentValid
 CommandsUtils.CheckGenericArgument = function(value, requiredType, mandatory, commandName, argumentName, commandString)
@@ -451,11 +451,7 @@ CommandsUtils._LogPrint = function(logprintFunction, commandName, argumentName, 
         errorText = " " .. errorText
     end
 
-    local text = Constants.ModFriendlyName .. " - command " .. commandName
-    if argumentName ~= nil and argumentName ~= "" then
-        text = text .. " - argument '" .. argumentName .. "'"
-    end
-    text = text .. errorText
+    local text = Constants.ModFriendlyName .. " - command " .. commandName .. (argumentName and " - argument '" .. argumentName .. "'" or "") .. errorText
     logprintFunction(text)
 
     if commandString ~= nil and commandString ~= "" then

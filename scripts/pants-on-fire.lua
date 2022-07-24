@@ -50,6 +50,7 @@ PantsOnFire.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "PantsOnFire.OnPrePlayerDied", PantsOnFire.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("PantsOnFire.WalkCheck", PantsOnFire.WalkCheck)
     EventScheduler.RegisterScheduledEventType("PantsOnFire.ApplyToPlayer", PantsOnFire.ApplyToPlayer)
+    MOD.Interfaces.Commands.PantsOnFire = PantsOnFire.PantsOnFireCommand
 end
 
 ---@param command CustomCommandData
