@@ -59,7 +59,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - Example command atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - Example command grenades: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
 - Example command offset grenade: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"grenade", "target":"muppet9010", "targetOffset":{"x":10,"y":10}}`
-- Example command large count of atomic rockets with salvo: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":50, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":300}`
+- Example command large count of atomic rockets using salvo and delay: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":50, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":300}`
 
 Notes:
 
@@ -105,7 +105,7 @@ Ensures the target player has a specific weapon and can give ammo and force thei
     - weaponType: STRING - Optional: the name of a weapon to ensure the player has 1 of. Can be either in their weapon inventory or in their character inventory. If not provided no weapon is given or selected. The weapon name is Factorio's internal name of the gun type and is case sensitive.
     - forceWeaponToSlot: BOOLEAN - Optional: if True the weaponType will be placed/moved to the players weapon inventory. If there's no room a current weapon will be placed in the character inventory to make room. If False then the weapon will be placed in a free slot, otherwise the character inventory. Defaults to False
     - selectWeapon: BOOLEAN - Optional: if True the player will have this weaponType selected as active if it's equipped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
-    - ammoType: STRING - Optional: the name of the ammo type to be given to the player. The ammo name is Factorio's internal name of the ammo type and is case sensitive. If an ammo amount is also set greater than 0 then this ammo type and amount will be forced in to the weapon if equipped.
+    - ammoType: STRING - Optional: the name of the ammo type to be given to the player. The ammo name is Factorio's internal name of the ammo type and is case sensitive. If an ammo amount is also set greater than 0 then this ammo type and amount will be forced into the weapon if equipped.
     - ammoCount: INTEGER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
 - Example command: `/muppet_streamer_give_player_weapon_ammo {"target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
 
@@ -132,9 +132,9 @@ Spawns entities in the game around the named player on their side. Includes both
 	- quantity: INTEGER - Mandatory Special: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities. Either `quantity` or `density` must be supplied.
 	- density: DECIMAL - Mandatory Special: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities. Either `quantity` or `density` must be supplied.
     - ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets it's the ammo count and ammo over the turrets max storage is ignored. For fire it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
-    - followPlayer: BOOLEAN - Optional: if true the entities that are able to follow the player will do. If false they will be unmanaged. Some entities like defender combat bots have a maximum follow number, and so those beyond this limit will just be placed in the desired area.
+    - followPlayer: BOOLEAN - Optional: if true the entities that are able to follow the player will do. If false they will be unmanaged. Some entities like defender combat bots have a maximum follower number, and so those beyond this limit will just be placed in the desired area.
 - Example command tree ring: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
-- Example command gun turrets: `/muppet_streamer_spawn_around_player {"delay":1, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount":10}`
+- Example command gun turrets with small delay: `/muppet_streamer_spawn_around_player {"delay":1, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount":10}`
 - Example command fires spread out: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density": 0.05, "ammoCount": 100}`
 - Example command combat robots: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"defenderBot", "radiusMax":10, "radiusMin":10, "existingEntities":"overlap", "quantity": 20, "followPlayer": true}`
 
@@ -163,7 +163,7 @@ Notes:
 - This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
 - If the vehicle comes to a stop during the time (due to hitting something) it will automatically start going the opposite direction.
 - This feature affects all types of cars, tanks, trains and spider vehicles.
-- The player will only be teleported in to a vehicle that has fuel, and the effect won't work if the player is already in a vehicle that currently doesn't have fuel.
+- The player will only be teleported into a vehicle that has fuel, and the effect won't work if the player is already in a vehicle that currently doesn't have fuel.
 
 
 
@@ -288,7 +288,7 @@ Takes all the inventory items from the target players, shuffles them and then di
     - includeEquipment: BOOLEAN - Optional: if the player's armour and weapons are included for shuffling or not. Defaults to True.
     - includeHandCrafting: BOOLEAN - Optional: if the player's hand crafting should be cancelled and the ingredients shuffled. Defaults to True.
     - destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to receive an item type compared to the number of source inventories. A value of 0 will allow the for the same number of players to receive an item as lost it, greater than 1 ensures a wider distribution away from the source number of inventories. Defaults to 1 to ensure some uneven spreading of items. See notes for logic on item distribution and how this setting interacts with other settings.
-    - destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to receive the item. Used to allow scaling of item recipients for large player counts. A value of 0 will mean have no scaling of source to destination inventories. Defaults to 0.25. See notes for logic on item distribution and how this setting interacts with other settings.
+    - destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to receive the item. Used to allow scaling of item recipients for large player counts. A value of 0 will mean there is no scaling of source to destination inventories. Defaults to 0.25. See notes for logic on item distribution and how this setting interacts with other settings.
     - recipientItemMinToMaxRatio: INTEGER - Optional: The approximate min/max ratio range of the number of items a destination player will receive compared to others. Defaults to 4. See notes for logic on item distribution.
 - Example command for 3 named players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"muppet9010,Test_1,Test_2"}`
 - Example command for all active players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"[ALL]"}`
@@ -355,7 +355,7 @@ Argument Requirements:
 
 Number ranges:
 
-- Many settings will have non-documented common sense minimum number requirements. i.e. you can't have leaky flamethrower activated for 0 or less bursts. These will raise a warning on screen and the command won't run.
+- Many settings will have non-documented common sense minimum number requirements. i.e. you can't have a leaky flamethrower activated for 0 or less bursts. These will raise a warning on screen and the command won't run.
 - Many settings will have non-documented maximum values at extremes. The known ones will be capped to the maximum allowed, i.e. number of seconds to delay an event for. However, so will be unknown about and are generally Factorio internal limits, so will not be prevented and may cause crashes. For this reason experimenting with ridiculously large numbers isn't advised.
 
 When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
@@ -365,7 +365,7 @@ When updating the mod make sure there aren't any effects active or queued for ac
 Remote Interface - Calling from Lua script
 -------------------
 
-You can trigger all of the features via a remote interface call as well as the standard commands detailed above. This is useful for triggering the features from other mods or from viewer integrations when you need to use a Lua script for some maths.
+You can trigger all of the features via a remote interface call as well as the standard commands detailed above. This is useful for triggering the features from other mods, from viewer integrations when you need to use a Lua script for some maths, or if you want multiple features to be applied simultaneously.
 
 All features are called with the `muppet_streamer` interface and the `run_command` function name. They each then take 2 arguments:
 
@@ -379,8 +379,16 @@ Note these option strings are identical to the command's, with the string define
 Calling the Aggressive Driver feature with options as a Lua object:
 ```/c remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=30, control="random", teleportDistance=100})```
 
-This allows for any required value manipulation from whichever viewer integration you are using, for example the below is assuming your integration tool is replacing VALUE with a scalable number from your viewer integration and want to limit the result between 10 and 30.
+Using remote interface calls instead of RCON commands also allows for any required value manipulation from whichever viewer integration you are using, for example the below is assuming your integration tool is replacing VALUE with a scalable number from your viewer integration and want to limit the result to no greater than 30.
 ```
-/c local drivingTime = math.max(math.min(VALUE, 30), 10)
+/c local drivingTime = math.min(VALUE, 30)
 remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=drivingTime, control="random", teleportDistance=100})
+```
+
+Running features via remote interface calls within a Lua script and not as a command allows you to trigger multiple features simultaneously. Whereas doing them via RCON command requires them to be done sequentially and thus have a slight delay between them. This can be particularly useful when you want multiple effects to be centered on the same position and the target player may be moving fast (i.e. a train).
+An example of this is below, with making a ring of turrets around the player, with a short barrage of grenades outside this. If done via command and the player was moving fast the grenades would likely hit the turrets, with a single Lua script calling both features via remote interface this friendly fire won't occur.
+```
+/c
+remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', '{"target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":3, "radiusMin":3, "existingEntities":"avoid", "quantity":5, "ammoCount":10}')
+remote.call('muppet_streamer', 'run_command', 'muppet_streamer_schedule_explosive_delivery', '{"explosiveCount":60, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":15, "accuracyRadiusMax":15, "salvoSize": 20, "salvoDelay": 120}')
 ```
