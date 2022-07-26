@@ -3,7 +3,7 @@
 -- Includes 2 registration methods, one for all instances of a specific GUI type (defines.gui_type) and another for when any GUI on a specific entity unit_number is opened. Both allow custom data to be stored at registration time and will include a referecne to the entity clicked in the standard Facotrio event fields (on_gui_opened).
 
 local GuiActionsOpened = {} ---@class Utility_GuiActionsOpened
-MOD = MOD or {} ---@type table<string, any>
+MOD = MOD or {} ---@class MOD
 MOD.guiOpenedActions = MOD.guiOpenedActions or {} ---@type table<string, function>
 
 ---@class UtilityGuiActionsOpened_ActionData @ The response object passed to the callback function when the GUI element is opened. Registered with GuiActionsOpened.LinkGuiOpenedActionNameToFunction().

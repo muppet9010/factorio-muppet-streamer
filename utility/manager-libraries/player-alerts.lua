@@ -53,8 +53,7 @@ PlayerAlerts.AddCustomAlertToForce = function(force, alertId, alertEntity, alert
 
     -- Get an alertId if one not provided
     if alertId == nil then
-        local currentId = global.UTILITYPLAYERALERTS.forceAlertsNextAutoId -- Work around bug in Jan's plugin: https://github.com/JanSharp/FactorioSumnekoLuaPlugin/issues/4#issuecomment-1193183158
-        alertId = "auto_" .. currentId
+        alertId = "auto_" .. global.UTILITYPLAYERALERTS.forceAlertsNextAutoId
         global.UTILITYPLAYERALERTS.forceAlertsNextAutoId = global.UTILITYPLAYERALERTS.forceAlertsNextAutoId + 1
     end
 

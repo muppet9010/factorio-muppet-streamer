@@ -19,6 +19,8 @@
 ]]
 --
 
+-- CODE NOTE: at present the data stage prototypes for GuiStyle are too incomlete to be added to this. 2022-07-26.
+
 local StyleData = {} ---@class Utility_StyleData
 
 local Colors = require("utility.lists.colors")
@@ -63,7 +65,7 @@ StyleData.GeneratePrototypes = function()
         }
     end
 
-    -- FLOW --TODO: include prototype classes
+    -- FLOW
     styleNamesGenerated.flow = {} ---@type table<string, table<string, string>>
     for _, direction in pairs({{"_horizontal", "horizontal"}, {"_vertical", "vertical"}}) do
         styleNamesGenerated.flow[direction[2]] = {}
@@ -333,6 +335,7 @@ StyleData.GeneratePrototypes = function()
         end
     end
 
+    ---@type Prototype.Font[]
     local muppetFonts = {
         {
             type = "font",

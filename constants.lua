@@ -1,4 +1,4 @@
-local Constants = {}
+local Constants = {} ---@class Constants
 
 Constants.ModName = "muppet_streamer"
 Constants.ModFriendlyName = "Muppet Streamer"
