@@ -3,7 +3,7 @@
 ]]
 --
 
-local MiscUtils = {}
+local MiscUtils = {} ---@class Utility_MiscUtils
 
 ---@class LuaBaseClass @ Used as a fake base class, only supports checking defined attributes.
 ---@field valid boolean

@@ -1,8 +1,9 @@
 -- Library to support using mod settings to accept a JSON list (array) of values for N instances of something. Rather than having to add lots of repeat mod settings entry boxes.
 -- So you can have 3 settings; 1 each for name, type and number. Then the user can provide either a single value for each or a JSON list of values and this will automatically seperate the settings and group them togeather based on submission order.
--- This is a bit of a weird feature, but implimented in Biter Hunt Group mod a long time ago. If it needs using for a new project I think it needs a review and cleansing as its just weird and likely has a lot of edge cases from trying to Sumneko type it.
 
-local SettingsManager = {}
+-- CODE NOTE: This is a bit of a weird feature, but implimented in Biter Hunt Group mod a long time ago. If it needs using for a new project I think it needs a review and cleansing as its just weird and likely has a lot of edge cases from trying to Sumneko type it. A number of the handling functions just don't seem that logical and Sumneko can struggle to handle them as such.
+
+local SettingsManager = {} ---@class Utility_SettingsManager
 local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local LoggingUtils = require("utility.helper-utils.logging-utils")
 
@@ -54,11 +55,11 @@ SettingsManager.HandleSettingWithArrayOfValues = function(factorioSettingType, f
         return
     end
 
-    ---@cast defaultSettingsContainer UtilityMultipleValuesInSettings_DefaultSettingsContainer
-    ---@cast globalGroupsContainer UtilityMultipleValuesInSettings_GlobalGroupsContainer
+    ---@cast defaultSettingsContainer UtilityMultipleValuesInSettings_DefaultSettingsContainer @ Done so that the function's type is clear when calling.
+    ---@cast globalGroupsContainer UtilityMultipleValuesInSettings_GlobalGroupsContainer @ Done so that the function's type is clear when calling.
 
     for _, group in pairs(globalGroupsContainer) do
-        ---@cast group UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurence @ Not picking up from the FOR correctly.
+        ---@cast group UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurence @ Sumneko is struggling to deal with the weird code structure.
         group[globalSettingContainerName][globalSettingName] = nil
     end
 
@@ -123,8 +124,8 @@ end
 ---@param defaultSettingsContainer table @ Just pass in a reference to an empty table (not nil) in factorio mod `global`. Same table can be used for all settings and container names.
 ---@return boolean|number|string|nil
 SettingsManager.GetSettingValueForId = function(globalGroupsContainer, id, globalSettingContainerName, globalSettingName, defaultSettingsContainer)
-    ---@cast defaultSettingsContainer UtilityMultipleValuesInSettings_DefaultSettingsContainer
-    ---@cast globalGroupsContainer UtilityMultipleValuesInSettings_GlobalGroupsContainer
+    ---@cast defaultSettingsContainer UtilityMultipleValuesInSettings_DefaultSettingsContainer @ Done so that the function's type is clear when calling.
+    ---@cast globalGroupsContainer UtilityMultipleValuesInSettings_GlobalGroupsContainer @ Done so that the function's type is clear when calling.
     local thisGroup = globalGroupsContainer[id]
     if thisGroup ~= nil and thisGroup[globalSettingContainerName] ~= nil and thisGroup[globalSettingContainerName][globalSettingName] ~= nil then
         return thisGroup[globalSettingContainerName][globalSettingName]
@@ -145,7 +146,7 @@ end
 ---@param globalSettingContainerName 'settings'|string @ A unique name for this group of settings. Not sure when you would want seperate groups of settings as it would allow repeat instances of the same setting.
 ---@return UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurenceSetting occurenceSettingGlobalGroupContainer @ The created occurence of the setting in the global container.
 SettingsManager._CreateGlobalGroupSettingsContainer = function(globalGroupsContainer, id, globalSettingContainerName)
-    ---@cast globalGroupsContainer UtilityMultipleValuesInSettings_GlobalGroupsContainer
+    ---@cast globalGroupsContainer UtilityMultipleValuesInSettings_GlobalGroupsContainer @ Done so that the function's type is clear when calling.
     globalGroupsContainer[id] = globalGroupsContainer[id] or {}
     globalGroupsContainer[id][globalSettingContainerName] = globalGroupsContainer[id][globalSettingContainerName] or {}
     return globalGroupsContainer[id][globalSettingContainerName]

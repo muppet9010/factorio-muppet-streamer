@@ -3,7 +3,7 @@
 ]]
 --
 
-local TableUtils = {}
+local TableUtils = {} ---@class Utility_TableUtils
 local string_rep = string.rep
 
 --- Copies a table and all of its children all the way down.
@@ -11,16 +11,15 @@ local string_rep = string.rep
 ---@param object table @ The object to copy.
 ---@return table
 TableUtils.DeepCopy = function(object)
-    lookup_table = {} ---@type table<any, any>
+    local lookup_table = {} ---@type table<any, any>
     return TableUtils._DeepCopy_InnerCopy(object, lookup_table)
 end
 
 --- Takes an array of tables and returns a new table with copies of their contents. Merges children when they are tables togeather, but non table data types will have the latest value as the result.
 --- Based on code from Factorio "__core__.lualib.util.lua", util.merge().
----@param tables table[]
+---@param tables table<any, any>[]
 ---@return table mergedTable
 TableUtils.TableMergeCopies = function(tables)
-    ---@cast tables table<any, any>[]
     local ret = {} ---@type table<any, any>
     for _, table in ipairs(tables) do
         for k, v in pairs(table) do
@@ -39,10 +38,9 @@ TableUtils.TableMergeCopies = function(tables)
 end
 
 --- Takes an array of tables and returns a new table with references to their top level contents. Does a shallow merge, so just the top level key/values. Last duplicate key's value processed will be the final result.
----@param sourceTables table[]
+---@param sourceTables table<any,any>[]
 ---@return table mergedTable
 TableUtils.TableMergeOrigionalsShallow = function(sourceTables)
-    ---@cast sourceTables table<any,any>[]
     local mergedTable = {} ---@type table<any, any>
     for _, sourceTable in pairs(sourceTables) do
         for k in pairs(sourceTable) do
@@ -64,10 +62,9 @@ TableUtils.IsTableEmpty = function(aTable)
 end
 
 --- Count how many entries are in a table. It naturally excludes those that have a nil value.
----@param aTable table
+---@param aTable table<any,any>
 ---@return int
 TableUtils.GetTableNonNilLength = function(aTable)
-    ---@cast aTable table<any,any>
     local count = 0
     for _ in pairs(aTable) do
         count = count + 1
@@ -90,10 +87,9 @@ TableUtils.GetFirstTableValue = function(aTable)
 end
 
 --- Get the maximum key in a table of gappy keys (not sequential where # would work).
----@param aTable table
+---@param aTable table<any,any>
 ---@return uint
 TableUtils.GetMaxKey = function(aTable)
-    ---@cast aTable table<any,any>
     local max_key = 0
     for k in pairs(aTable) do
         if k > max_key then
@@ -104,11 +100,10 @@ TableUtils.GetMaxKey = function(aTable)
 end
 
 -- Get the X (indexCount) item in the table of a gappy list.
----@param aTable table
+---@param aTable table<any,any>
 ---@param indexCount int
 ---@return any
 TableUtils.GetTableValueByIndexCount = function(aTable, indexCount)
-    ---@cast aTable table<any,any>
     local count = 0
     for _, v in pairs(aTable) do
         count = count + 1
@@ -119,10 +114,9 @@ TableUtils.GetTableValueByIndexCount = function(aTable, indexCount)
 end
 
 --- Makes a list of the input table's keys in their current order.
----@param aTable table
+---@param aTable table<any,any>
 ---@return string|number[]
 TableUtils.TableKeyToArray = function(aTable)
-    ---@cast aTable table<any,any>
     local newArray = {}
     for key in pairs(aTable) do
         table.insert(newArray, key)
@@ -131,10 +125,9 @@ TableUtils.TableKeyToArray = function(aTable)
 end
 
 --- Makes a comma seperated text string from a table's keys. Includes spaces after each comma.
----@param aTable table @ doesn't support commas in values or nested tables. Really for logging.
+---@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.
 ---@return string
 TableUtils.TableKeyToCommaString = function(aTable)
-    ---@cast aTable table<any,any>
     local newString
     if TableUtils.IsTableEmpty(aTable) then
         return ""
@@ -150,10 +143,9 @@ TableUtils.TableKeyToCommaString = function(aTable)
 end
 
 --- Makes a comma seperated text string from a table's values. Includes spaces after each comma.
----@param aTable table @ doesn't support commas in values or nested tables. Really for logging.
+---@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.
 ---@return string
 TableUtils.TableValueToCommaString = function(aTable)
-    ---@cast aTable table<any,any>
     local newString
     if TableUtils.IsTableEmpty(aTable) then
         return ""
@@ -171,10 +163,9 @@ end
 --- Makes a numbered text string from a table's keys with the keys wrapped in single quotes.
 ---
 --- i.e. 1: 'firstKey', 2: 'secondKey'
----@param aTable table @ doesn't support commas in values or nested tables. Really for logging.t
+---@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.t
 ---@return string
 TableUtils.TableKeyToNumberedListString = function(aTable)
-    ---@cast aTable table<any,any>
     local newString
     if TableUtils.IsTableEmpty(aTable) then
         return ""
@@ -194,10 +185,9 @@ end
 --- Makes a numbered text string from a table's values with the values wrapped in single quotes.
 ---
 --- i.e. 1: 'firstValue', 2: 'secondValue'
----@param aTable table @ doesn't support commas in values or nested tables. Really for logging.t
+---@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.t
 ---@return string
 TableUtils.TableValueToNumberedListString = function(aTable)
-    ---@cast aTable table<any,any>
     local newString
     if TableUtils.IsTableEmpty(aTable) then
         return ""
@@ -225,12 +215,11 @@ TableUtils.TableContentsToJSON = function(targetTable, name, singleLineOutput)
 end
 
 --- Searches a table of values for a specific value and returns the key(s) of that entry.
----@param theTable table
+---@param theTable table<any,any>
 ---@param value string|number|string|number[] @ Either a single value or an array of possible values.
 ---@param returnMultipleResults? boolean|nil @ Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
 ---@return string|number[] @ table of keys.
 TableUtils.GetTableKeyWithValue = function(theTable, value, returnMultipleResults)
-    ---@cast theTable table<any, any>
     local keysFound = {}
     for k, v in pairs(theTable) do
         if type(value) ~= "table" then
@@ -255,13 +244,12 @@ TableUtils.GetTableKeyWithValue = function(theTable, value, returnMultipleResult
 end
 
 --- Searches a table of tables and looks inside the inner table at a specific key for a specific value and returns the key(s) of the outer table entry.
----@param theTable table
+---@param theTable table<any,any>
 ---@param innerKey string|number
 ---@param innerValue string|number|string|number[] @ Either a single value or an array of possible values.
 ---@param returnMultipleResults? boolean|nil @ Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
 ---@return string|number[] @ table of keys.
 TableUtils.GetTableKeyWithInnerKeyValue = function(theTable, innerKey, innerValue, returnMultipleResults)
-    ---@cast theTable table<any, any>
     local keysFound = {}
     for k, innerTable in pairs(theTable) do
         if type(innerValue) ~= "table" then
@@ -286,13 +274,12 @@ TableUtils.GetTableKeyWithInnerKeyValue = function(theTable, innerKey, innerValu
 end
 
 --- Searches a table of tables and looks inside the inner table at a specific key for a specific value(s) and returns the value(s) of the outer table entry.
----@param theTable table
+---@param theTable table<any,any>
 ---@param innerKey string|number
 ---@param innerValue string|number|string|number[] @ Either a single value or an array of possible values.
 ---@param returnMultipleResults? boolean|nil @ Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
 ---@return table[] @ table of values, which must be a table to have an inner key/value.
 TableUtils.GetTableValueWithInnerKeyValue = function(theTable, innerKey, innerValue, returnMultipleResults)
-    ---@cast theTable table<any, any>
     local valuesFound = {}
     for _, innerTable in pairs(theTable) do
         if type(innerValue) ~= "table" then
@@ -319,12 +306,12 @@ end
 --- Returns a copy of a table's values with each value also being the key. Doesn't clone any internal data structures, so use on tables of tables with care.
 ---
 --- Useful for converting a list in to dictionary of the list items.
----@param tableWithValues table
+---@param tableWithValues table<any,any>|nil
 ---@return table|nil tableOfKeys @ Returns nil when nil is passed in.
 TableUtils.TableValuesToKey = function(tableWithValues)
     if tableWithValues == nil then
         return nil
-    end ---@cast tableWithValues table<any, any>
+    end
     local newTable = {} ---@type table<any, any>
     for _, value in pairs(tableWithValues) do
         newTable[value] = value
@@ -335,13 +322,13 @@ end
 --- Returns a copy of a table's values with each value's named inner key's (innerValueAttributeName) value also being the key. Doesn't clone any internal data structures, so use on tables of tables with care.
 ---
 --- Useful for converting a list of objects in to dictionary of the list items's with a specific inner field being the new dictionary key.
----@param refTable table
+---@param refTable table<any,any>|nil
 ---@param innerValueAttributeName any
 ---@return table|nil
 TableUtils.TableInnerValueToKey = function(refTable, innerValueAttributeName)
     if refTable == nil then
         return nil
-    end ---@cast refTable table<any, any>
+    end
     local newTable = {} ---@type table<any, any>
     for _, value in pairs(refTable) do
         newTable[value[innerValueAttributeName]] = value

@@ -3,7 +3,7 @@
 ]]
 --
 
-local DirectionUtils = {}
+local DirectionUtils = {} ---@class Utility_DirectionUtils
 local MathUtils = require("utility.helper-utils.math-utils")
 
 --- Rotates the directionToRotate by a direction difference from the referenceDirection to the appliedDirection. Useful for rotating entities direction in proportion to a parent's direction change from known direction.

@@ -3,7 +3,7 @@
 ]]
 --
 
-local TrainUtils = {}
+local TrainUtils = {} ---@class Utility_TrainUtils
 local PrototypeAttributes = require("utility.functions.prototype-attributes")
 local EntityUtils = require("utility.helper-utils.entity-utils")
 local PositionUtils = require("utility.helper-utils.position-utils")

@@ -5,7 +5,7 @@
 --]]
 --
 
-local PlayerAlerts = {}
+local PlayerAlerts = {} ---@class Utility_PlayerAlerts
 local Events = require("utility.manager-libraries.events")
 
 ---@class UtilityPlayerAlerts_ForceAlertObject @ The cached details of an alert applied to all players on a force. Used to track the alerts and remove them, but also to allow adding/removing from players as they join/leave a force.
@@ -53,8 +53,7 @@ PlayerAlerts.AddCustomAlertToForce = function(force, alertId, alertEntity, alert
 
     -- Get an alertId if one not provided
     if alertId == nil then
-        local currentId = global.UTILITYPLAYERALERTS.forceAlertsNextAutoId -- Work around bug in Jan's plugin: https://github.com/JanSharp/FactorioSumnekoLuaPlugin/issues/4#issuecomment-1193183158
-        alertId = "auto_" .. currentId
+        alertId = "auto_" .. global.UTILITYPLAYERALERTS.forceAlertsNextAutoId
         global.UTILITYPLAYERALERTS.forceAlertsNextAutoId = global.UTILITYPLAYERALERTS.forceAlertsNextAutoId + 1
     end
 
@@ -139,7 +138,7 @@ PlayerAlerts._RemoveAlertFromPlayer = function(forceAlert, player)
         }
     else
         player.remove_alert {
-            prototype = forceAlert.alertPrototypeName --[[@as LuaEntityPrototype]], -- Force typed work around for bug: https://forums.factorio.com/viewtopic.php?f=7&t=102860
+            prototype = forceAlert.alertPrototypeName --[[@as LuaEntityPrototype]], -- Force typed work around for bug: https://forums.factorio.com/viewtopic.php?f=7&t=102860 -- TODO: this should be the prototype not the name now as per 1.1.62. Need to test before just doing it thought.
             position = forceAlert.alertPosition,
             surface = forceAlert.alertSurface,
             type = defines.alert_type.custom,

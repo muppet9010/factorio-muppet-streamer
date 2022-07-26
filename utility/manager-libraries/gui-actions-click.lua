@@ -2,9 +2,9 @@
 -- Must call the MonitorGuiClickActions() function once in root of control.lua for this library to be activated.
 -- Requires the utility "constants" file to be populated within the root of the mod.
 
-local GuiActionsClick = {}
+local GuiActionsClick = {} ---@class Utility_GuiActionsClick
 local Constants = require("constants")
-MOD = MOD or {} ---@type table<string, any>
+MOD = MOD or {} ---@class MOD
 MOD.guiClickActions = MOD.guiClickActions or {} ---@type table<string, function>
 
 ---@class UtilityGuiActionsClick_ActionData @ The response object passed to the callback function when the GUI element is clicked. Registered with GuiActionsClick.RegisterGuiForClick().

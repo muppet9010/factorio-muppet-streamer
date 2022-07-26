@@ -1,4 +1,4 @@
-local GiveItems = {}
+local GiveItems = {} ---@class GiveItems
 local PlayerWeapon = require("utility.functions.player-weapon")
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")

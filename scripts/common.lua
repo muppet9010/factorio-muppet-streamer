@@ -1,6 +1,5 @@
-local Common = {}
+local Common = {} ---@class Common
 local MathUtils = require("utility.helper-utils.math-utils")
-local Constants = require("constants")
 local TableUtils = require("utility.helper-utils.table-utils")
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 

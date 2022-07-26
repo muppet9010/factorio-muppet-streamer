@@ -3,7 +3,7 @@
 ]]
 --
 
-local PositionUtils = {}
+local PositionUtils = {} ---@class Utility_PositionUtils
 local MathUtils = require("utility.helper-utils.math-utils")
 local math_rad, math_cos, math_sin, math_floor, math_sqrt, math_abs, math_random = math.rad, math.cos, math.sin, math.floor, math.sqrt, math.abs, math.random
 
@@ -309,7 +309,7 @@ PositionUtils.GrowBoundingBox = function(boundingBox, growthX, growthY)
     }
 end
 
---- Checks if a collision box is populated with valid data.
+--- Checks if a bounding box is populated with valid data.
 ---@param boundingBox BoundingBox
 ---@return boolean
 PositionUtils.IsBoundingBoxPopulated = function(boundingBox)

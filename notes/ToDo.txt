@@ -8,7 +8,6 @@ DO NEAR FUTURE:
     - Aggressive Driver - Add option to place a vehicle if none is found. Would take the name of a vehicle, the name and quantity of fuel to put in the placed vehicle, and the radius to try and place it within of the player. Direction would be as random as we can currently do with the placement searching. Option to remove the vehicle at the end of the effect. Actually do this as a seperate feature to give player a vehcile. Support cars, spiders and locomotive vehicle types being placed in valid spots within a random distance from the player. Have this feature support checking if a nearby vehicle is drivable first. As then these can be chained togeather via use of remotes or sequential commands.
 	- Change all effect notification game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
     - Support modded entities across commands.
-    - With Sumneko 3.5 is there any good way to refine either the generics or type specific (uint) math library to remove a lot of the casting requirements?
 
 
 Future Confirmed (bigger things):

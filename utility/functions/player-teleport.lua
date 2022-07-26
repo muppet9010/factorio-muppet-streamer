@@ -6,7 +6,7 @@
 local PositionUtils = require("utility.helper-utils.position-utils")
 local DirectionUtils = require("utility.helper-utils.direction-utils")
 
-local PlayerTeleport = {}
+local PlayerTeleport = {} ---@class Utility_PlayerTeleport
 
 ----------------------------------------------------------------------------------
 --                          PUBLIC FUNCTIONS

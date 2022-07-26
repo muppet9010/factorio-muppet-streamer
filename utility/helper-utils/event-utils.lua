@@ -3,7 +3,7 @@
 ]]
 --
 
-local EventUtils = {}
+local EventUtils = {} ---@class Utility_EventUtils
 
 EventUtils.WasCreativeModeInstantDeconstructionUsed = function(event)
     if event.instant_deconstruction ~= nil and event.instant_deconstruction == true then

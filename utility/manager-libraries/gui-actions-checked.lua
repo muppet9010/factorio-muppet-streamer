@@ -2,9 +2,9 @@
 -- Must call the MonitorGuiCheckActions() function once in root of control.lua for this library to be activated.
 -- Requires the utility "constants" file to be populated within the root of the mod.
 
-local GuiActionsChecked = {}
+local GuiActionsChecked = {} ---@class Utility_GuiActionsChecked
 local Constants = require("constants")
-MOD = MOD or {} ---@type table<string, any>
+MOD = MOD or {} ---@class MOD
 MOD.guiCheckedActions = MOD.guiCheckedActions or {} ---@type table<string, function>
 
 ---@class UtilityGuiActionsChecked_ActionData @ The response object passed to the callback function when the GUI element is checked/unchecked. Registered with GuiActionsChecked.RegisterGuiForCheckedStateChange().

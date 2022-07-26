@@ -3,7 +3,7 @@
 ]]
 --
 
-local StringUtils = {}
+local StringUtils = {} ---@class Utility_StringUtils
 local math_floor = math.floor
 local string_match, string_find, string_sub, string_len, string_gsub = string.match, string.find, string.sub, string.len, string.gsub
 

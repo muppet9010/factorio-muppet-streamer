@@ -19,7 +19,9 @@
 ]]
 --
 
-local StyleData = {}
+-- CODE NOTE: at present the data stage prototypes for GuiStyle are too incomlete to be added to this. 2022-07-26.
+
+local StyleData = {} ---@class Utility_StyleData
 
 local Colors = require("utility.lists.colors")
 
@@ -227,8 +229,7 @@ StyleData.GeneratePrototypes = function()
                 padding = 0
             }
             for k, v in pairs(attributes[2] --[[@as table<string, table>]]) do
-                if type(k) == "number" then
-                    ---@cast k uint @ Its really a uint vlaue if its a number type.
+                if type(k) == "number" then ---@cast k uint @ It's really a uint value if its a number type.
                     defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                 else
                     defaultStyle[styleNameVersion][k] = v
@@ -267,8 +268,7 @@ StyleData.GeneratePrototypes = function()
                         minimal_height = 0
                     }
                     for k, v in pairs(attributes[2] --[[@as table<string, table>]]) do
-                        if type(k) == "number" then
-                            ---@cast k uint @ Its really a uint vlaue if its a number type.
+                        if type(k) == "number" then ---@cast k uint @ It's really a uint value if its a number type.
                             defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                         else
                             defaultStyle[styleNameVersion][k] = v
@@ -335,6 +335,7 @@ StyleData.GeneratePrototypes = function()
         end
     end
 
+    ---@type Prototype.Font[]
     local muppetFonts = {
         {
             type = "font",
