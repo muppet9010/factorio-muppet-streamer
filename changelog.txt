@@ -4,6 +4,7 @@ Date: 2022-XX-XX
   Features:
   Changes:
   Bugfixes:
+    - Enable Dead Building Ghosts - Fix crash when setting was enabled on loading a map.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.24
