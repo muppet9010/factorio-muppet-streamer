@@ -439,8 +439,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
     -- Set up the main player variable arrays, these are references to the players variable index and not the actual LuaPlayer index value.
     local itemsToDistribute = storageInventory.get_contents()
     local playersItemCounts = {} ---@type PlayerInventoryShuffle_PlayersItemCounts
-    for i = 1, playersCount do
-        ---@cast i uint @ Work around for Sumneko missing fully working typing on FOR variables: https://github.com/sumneko/lua-language-server/issues/1367.
+    for i = 1, playersCount do ---@type uint
         playersItemCounts[i] = {}
     end
 
@@ -466,8 +465,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
         -- Work out how many items each destination will get and assign them to a specific players list index.
         itemsLeftToAssign = itemCount
         playersAvailableToRecieveThisItem = {} ---@type table<uint, uint> @ A list of the players list indexes that is trimmed once assigned this item.
-        for i = 1, playersCount do
-            ---@cast i uint
+        for i = 1, playersCount do ---@type uint
             playersAvailableToRecieveThisItem[i] = i
         end
 
@@ -530,9 +528,8 @@ PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInvento
     end
 
     -- Distribute the items to the actual players.
-    local playerIndexsWithFreeInventorySpace_table = {} ---@type table<uint, LuaPlayer> -- Becomes a table as we remove keys without re-ordering.
-    for i, player in pairs(players) do
-        ---@cast i uint
+    local playerIndexsWithFreeInventorySpace_table = {} ---@type table<uint, LuaPlayer> -- Becomes a gappy table as we remove keys without re-ordering.
+    for i, player in pairs(players) do ---@cast i uint
         playerIndexsWithFreeInventorySpace_table[i] = player
     end
 

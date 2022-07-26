@@ -42,8 +42,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
     if gunInventory == nil then
         return nil, nil
     end
-    for gunInventoryIndex = 1, #gunInventory do
-        ---@cast gunInventoryIndex uint
+    for gunInventoryIndex = 1, #gunInventory do ---@type uint
         local gunItemStack = gunInventory[gunInventoryIndex]
         if gunItemStack.valid_for_read then
             -- Weapon in this slot.

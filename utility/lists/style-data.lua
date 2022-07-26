@@ -227,8 +227,7 @@ StyleData.GeneratePrototypes = function()
                 padding = 0
             }
             for k, v in pairs(attributes[2] --[[@as table<string, table>]]) do
-                if type(k) == "number" then
-                    ---@cast k uint @ Its really a uint vlaue if its a number type.
+                if type(k) == "number" then ---@cast k uint @ It's really a uint value if its a number type.
                     defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                 else
                     defaultStyle[styleNameVersion][k] = v
@@ -267,8 +266,7 @@ StyleData.GeneratePrototypes = function()
                         minimal_height = 0
                     }
                     for k, v in pairs(attributes[2] --[[@as table<string, table>]]) do
-                        if type(k) == "number" then
-                            ---@cast k uint @ Its really a uint vlaue if its a number type.
+                        if type(k) == "number" then ---@cast k uint @ It's really a uint value if its a number type.
                             defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                         else
                             defaultStyle[styleNameVersion][k] = v
