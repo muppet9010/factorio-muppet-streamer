@@ -1,7 +1,7 @@
 --- Library functions to help manage adding and handling Factorio commands.
 --- Requires the utility "constants" file to be populated within the root of the mod.
 
-local CommandsUtils = {}
+local CommandsUtils = {} ---@class Utility_CommandsUtils
 local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local Constants = require("constants")
 local Colors = require("utility.lists.colors")

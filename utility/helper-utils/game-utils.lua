@@ -3,7 +3,7 @@
 ]]
 --
 
-local GameUtils = {}
+local GameUtils = {} ---@class Utility_GameUtils
 
 --- Called from OnInit
 GameUtils.DisableWinOnRocket = function()

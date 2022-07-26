@@ -2,7 +2,7 @@
 -- This is for hooking in to base game entities that when left clicked by the player open a base game GUI, i.e. market. This library is used to fire a mod function when a GUI is opened to do some action, normally replace the base game GUI with a custom GUI. Given that you can't just make clickable entities in Factorio.
 -- Includes 2 registration methods, one for all instances of a specific GUI type (defines.gui_type) and another for when any GUI on a specific entity unit_number is opened. Both allow custom data to be stored at registration time and will include a referecne to the entity clicked in the standard Facotrio event fields (on_gui_opened).
 
-local GuiActionsOpened = {}
+local GuiActionsOpened = {} ---@class Utility_GuiActionsOpened
 MOD = MOD or {} ---@type table<string, any>
 MOD.guiOpenedActions = MOD.guiOpenedActions or {} ---@type table<string, function>
 

@@ -9,7 +9,7 @@
 -- Sumneko should skip checking this file for certain checks at present.
 ---@diagnostic disable: no-unknown
 
-local PrototypeUtils = {}
+local PrototypeUtils = {} ---@class Utility_PrototypeUtils
 local TableUtils = require("utility.helper-utils.table-utils")
 local math_ceil = math.ceil
 

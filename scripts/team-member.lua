@@ -1,6 +1,6 @@
 -- This is a legacy feature and while it should still work, it isn't being kept up to date in terms of code style. Was made for Colonel Will many years ago and hasn;t been used for years (2022).
 
-local TeamMember = {}
+local TeamMember = {} ---@class TeamMember
 local Events = require("utility.manager-libraries.events")
 local GuiUtil = require("utility.manager-libraries.gui-util")
 local CommandsUtils = require("utility.helper-utils.commands-utils")

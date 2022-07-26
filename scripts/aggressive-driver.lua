@@ -1,4 +1,4 @@
-local AggressiveDriver = {}
+local AggressiveDriver = {} ---@class AggressiveDriver
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local PositionUtils = require("utility.helper-utils.position-utils")

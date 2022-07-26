@@ -3,7 +3,7 @@
 ]]
 --
 
-local MathUtils = {}
+local MathUtils = {} ---@class Utility_MathUtils
 local math_min, math_max, math_floor, math_random, math_exp = math.min, math.max, math.floor, math.random, math.exp
 
 MathUtils.LogisticEquation = function(index, height, steepness)

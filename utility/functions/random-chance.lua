@@ -3,7 +3,7 @@
 ]]
 --
 
-local RandomChance = {}
+local RandomChance = {} ---@class Utility_RandomChance
 local math_floor, math_random = math.floor, math.random
 
 --- Takes a number and returns an int of the value with any partial int value being converted to a chance of +1 included in the returned result.

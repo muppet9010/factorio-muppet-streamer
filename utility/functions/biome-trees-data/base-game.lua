@@ -1,5 +1,5 @@
 -- Vanilla - 1.1.5
-local Data = {}
+local Data = {} ---@class Utility_BiomeTrees_BaseGame
 
 Data.GetTileData = function()
     -- Any tile not listed will have a random tree placed on it assuming the player can walk on the tile, otherwise no tree.

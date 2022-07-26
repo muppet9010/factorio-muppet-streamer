@@ -18,7 +18,7 @@ local LoggingUtils = require("utility.helper-utils.logging-utils")
 local BaseGameData = require("utility.functions.biome-trees-data.base-game")
 local AlienBiomesData = require("utility.functions.biome-trees-data.alien-biomes")
 
-local BiomeTrees = {}
+local BiomeTrees = {} ---@class Utility_BiomeTrees
 
 --- Debug testing/logging options. Al should be false in releases.
 local LogNonPositives = false
@@ -270,7 +270,7 @@ BiomeTrees._SearchForSuitableTrees = function(tileData, tileTemp, tileMoisture)
         end
         if #suitableTrees > 0 then
             if LogPositives then
-                LoggingUtils.LogMod(#suitableTrees .. " found on accuracy: " .. accuracy, false)
+                LoggingUtils.ModLog(#suitableTrees .. " found on accuracy: " .. accuracy, false)
             end
             break
         end

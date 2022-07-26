@@ -1,7 +1,7 @@
 -- Library to register and handle base game GUI types being closed, allows registering and handling functions in a modular way.
 -- This is for hooking in to when the player closes a game GUI, i.e. market or a custom GUI window. This library is used to fire a mod function when this specific GUI type is closed to do some action, normally update custom GUI state that the GUI's been closed by the player. Is the closing side of the gui-actions-opened library.
 
-local GuiActionsClosed = {}
+local GuiActionsClosed = {} ---@class Utility_GuiActionsClosed
 MOD = MOD or {} ---@type table<string, any>
 MOD.guiClosedActions = MOD.guiClosedActions or {} ---@type table<string, function>
 

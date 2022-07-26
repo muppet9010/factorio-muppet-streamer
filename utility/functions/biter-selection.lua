@@ -6,7 +6,7 @@
 local MathUtils = require("utility.helper-utils.math-utils")
 local RandomChance = require("utility.functions.random-chance")
 
-local BiterSelection = {}
+local BiterSelection = {} ---@class Utility_BiterSelection
 
 ---@alias UtilityBiterSelection_SpawnerTypes 'biter-spawner'|'spitter-spawner'|string @ Biter and spitter are the base game unit spawners, but mods can add new named ones, so any string is accepted.
 

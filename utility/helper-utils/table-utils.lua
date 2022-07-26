@@ -3,7 +3,7 @@
 ]]
 --
 
-local TableUtils = {}
+local TableUtils = {} ---@class Utility_TableUtils
 local string_rep = string.rep
 
 --- Copies a table and all of its children all the way down.

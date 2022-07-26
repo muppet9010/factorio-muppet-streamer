@@ -1,4 +1,4 @@
-local BuildingGhosts = {}
+local BuildingGhosts = {} ---@class BuildingGhosts
 local Events = require("utility.manager-libraries.events")
 local MathUtils = require("utility.helper-utils.math-utils")
 

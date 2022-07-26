@@ -1,4 +1,4 @@
-local PlayerInventoryShuffle = {}
+local PlayerInventoryShuffle = {} ---@class PlayerInventoryShuffle
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Colors = require("utility.lists.colors")

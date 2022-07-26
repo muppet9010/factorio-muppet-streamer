@@ -3,7 +3,7 @@
 
     Usage: Call any public functions (not starting with "_") as required.
 ]]
-local PlayerWeapon = {}
+local PlayerWeapon = {} ---@class Utility_PlayerWeapon
 
 ----------------------------------------------------------------------------------
 --                          PUBLIC FUNCTIONS

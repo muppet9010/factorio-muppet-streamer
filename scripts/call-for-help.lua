@@ -1,4 +1,4 @@
-local CallForHelp = {}
+local CallForHelp = {} ---@class CallForHelp
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")

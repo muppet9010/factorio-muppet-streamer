@@ -3,7 +3,7 @@
 
 -- CODE NOTE: This is a bit of a weird feature, but implimented in Biter Hunt Group mod a long time ago. If it needs using for a new project I think it needs a review and cleansing as its just weird and likely has a lot of edge cases from trying to Sumneko type it. A number of the handling functions just don't seem that logical and Sumneko can struggle to handle them as such.
 
-local SettingsManager = {}
+local SettingsManager = {} ---@class Utility_SettingsManager
 local BooleanUtils = require("utility.helper-utils.boolean-utils")
 local LoggingUtils = require("utility.helper-utils.logging-utils")
 

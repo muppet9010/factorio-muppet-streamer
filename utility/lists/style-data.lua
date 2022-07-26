@@ -19,7 +19,7 @@
 ]]
 --
 
-local StyleData = {}
+local StyleData = {} ---@class Utility_StyleData
 
 local Colors = require("utility.lists.colors")
 
@@ -63,7 +63,7 @@ StyleData.GeneratePrototypes = function()
         }
     end
 
-    -- FLOW
+    -- FLOW --TODO: include prototype classes
     styleNamesGenerated.flow = {} ---@type table<string, table<string, string>>
     for _, direction in pairs({{"_horizontal", "horizontal"}, {"_vertical", "vertical"}}) do
         styleNamesGenerated.flow[direction[2]] = {}

@@ -5,7 +5,7 @@
 --]]
 --
 
-local PlayerAlerts = {}
+local PlayerAlerts = {} ---@class Utility_PlayerAlerts
 local Events = require("utility.manager-libraries.events")
 
 ---@class UtilityPlayerAlerts_ForceAlertObject @ The cached details of an alert applied to all players on a force. Used to track the alerts and remove them, but also to allow adding/removing from players as they join/leave a force.

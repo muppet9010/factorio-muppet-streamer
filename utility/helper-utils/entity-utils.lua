@@ -3,7 +3,7 @@
 ]]
 --
 
-local EntityUtils = {}
+local EntityUtils = {} ---@class Utility_EntityUtils
 local PositionUtils = require("utility.helper-utils.position-utils")
 
 ---@param surface LuaSurface
@@ -31,7 +31,7 @@ EntityUtils.ReturnAllObjectsInArea = function(surface, positionedBoundingBox, co
                 if (onlyForceAffected == nil) or (entity.force == onlyForceAffected) then
                     if (not onlyDestructible) or (entity.destructible) then
                         if (not onlyKillable) or (entity.health ~= nil) then
-                            if (not collisionBoxOnlyEntities) or (PositionUtils.IsCollisionBoxPopulated(entity.prototype.collision_box)) then
+                            if (not collisionBoxOnlyEntities) or (PositionUtils.IsBoundingBoxPopulated(entity.prototype.collision_box)) then
                                 table.insert(filteredEntitiesFound, entity)
                             end
                         end

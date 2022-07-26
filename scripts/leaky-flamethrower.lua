@@ -1,4 +1,4 @@
-local LeakyFlamethrower = {}
+local LeakyFlamethrower = {} ---@class LeakyFlamethrower
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")

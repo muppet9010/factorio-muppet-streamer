@@ -5,6 +5,7 @@ Date: 2022-XX-XX
   Changes:
   Bugfixes:
     - Enable Dead Building Ghosts - Fix crash when setting was enabled on loading a map.
+    - Library files - Fixed a few code places where non-existant functions where called, unknown if these were used in mod's features.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.24

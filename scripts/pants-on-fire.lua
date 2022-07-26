@@ -1,6 +1,4 @@
--- Provided by andredrews (JD-Plays community) and inspired by Comfy scenario.
-
-local PantsOnFire = {}
+local PantsOnFire = {} ---@class PantsOnFire
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")

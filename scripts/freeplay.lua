@@ -1,4 +1,4 @@
-local Freeplay = {}
+local Freeplay = {} ---@class Freeplay
 local GameUtils = require("utility.helper-utils.game-utils")
 
 Freeplay.OnStartup = function()
