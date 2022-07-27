@@ -4,6 +4,7 @@ Date: 2022-XXXXXX
   Features:
   Changes:
   Bugfixes:
+    - Various extreme edge case handling across features identified by improved developement tools.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.25

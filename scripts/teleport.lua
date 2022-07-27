@@ -259,6 +259,10 @@ Teleport.PlanTeleportTarget = function(eventData)
 
     -- Get the Player object and confirm its valid.
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        -- Target player has been deleted since the command was run.
+        return
+    end
 
     -- Check the player is alive (not dead) and not in editor mode. If they are just end the attempt.
     if targetPlayer.controller_type ~= defines.controllers.character then
@@ -290,6 +294,7 @@ Teleport.PlanTeleportTarget = function(eventData)
             -- This target position has been found to be bad so remove any spawners too close to this bad location for this player.
             ---@type double, double, double
             local distanceXDiff, distanceYDiff, spawnerDistance
+            ---@type uint
             for index, spawnerDistanceDetails in pairs(data.spawnerDistances) do
                 -- CODE NOTE: Do locally rather than via function call as we call this a lot and its so simple logic.
                 distanceXDiff = targetPlayer_position.x - spawnerDistanceDetails.spawnerDetails.position.x

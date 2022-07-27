@@ -18,7 +18,7 @@ local PlayerWeapon = {} ---@class Utility_PlayerWeapon
 ---@field beforeSelectedWeaponGunIndex uint @ The weapon slot that the player had selected before the weapon was removed.
 
 --- Ensure the player has the specified weapon, clearing any weapon filters if needed. Includes options to ensure compatibility with a specific ammo type, otherwise will ensure the ammo slot setup allows the gun to be placed even if the ammo filter is incompatible.
----@param player LuaPlayer
+---@param player LuaPlayer @ Requires the player to be in a position to receive the weapon, has character and in character controller.
 ---@param weaponName string
 ---@param forceWeaponToWeaponInventorySlot boolean @ If the weapon should be forced to be equipped, otherwise it may end up in their inventory.
 ---@param selectWeapon boolean
@@ -66,10 +66,14 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
 
     -- Handle if the player doesn't already have the gun equipped.
     local needsGunGiving = false
-    local characterInventory  ---@type LuaInventory @ Only populated if needsGunGiving is true.
+    local characterInventory  ---@type LuaInventory|nil @ Only populated if needsGunGiving is true.
     if weaponFoundIndex == nil then
         needsGunGiving = true
         characterInventory = player.get_main_inventory()
+        if characterInventory == nil then
+            -- Just return as player is in some bad state.
+            return nil, nil
+        end
 
         if freeGunIndex ~= nil then
             -- Player has a free slot, so we can just use it.
@@ -118,6 +122,10 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
 
     -- Get the ammo slot for the equipped gun.
     local ammoInventory = player.get_inventory(defines.inventory.character_ammo)
+    if ammoInventory == nil then
+        -- Just return as player is in some bad state.
+        return nil, nil
+    end
     local ammoItemStack = ammoInventory[weaponFoundIndex]
 
     -- Make sure the ammo slot is safe with our set weapon based on any planned ammo type. As otherwise we can't give the gun.
@@ -176,6 +184,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
 
     -- Give the gun if needed. We had to handle ammo first for both when needing a gun giving and not.
     if needsGunGiving then
+        ---@cast characterInventory - nil @ Inventory was cached already if needsGunGiving was set to true.
         -- Remove 1 item of the weapon type from the players inventory if they had one, to simulate equipping the weapon. Otherwise we will flag this as giving the player a weapon.
         if characterInventory.get_item_count(weaponName) == 0 then
             -- No instance of the weapon in the player's inventory.

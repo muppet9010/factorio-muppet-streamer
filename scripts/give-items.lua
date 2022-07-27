@@ -102,6 +102,10 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
     local data = eventData.data ---@type GiveItems_GiveWeaponAmmoScheduled
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        -- Target player has been deleted since the command was run.
+        return
+    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         game.print({"message.muppet_streamer_give_player_weapon_ammo_not_character_controller", data.target})
         return

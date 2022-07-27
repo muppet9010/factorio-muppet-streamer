@@ -126,6 +126,10 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     local data = event.data ---@type PlayerDropInventory_ApplyDropItemsData
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        -- Target player has been deleted since the command was run.
+        return
+    end
     local targetPlayer_index = targetPlayer.index
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         -- Player not alive or in non playing mode.
@@ -241,13 +245,21 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             end
 
             -- Drop the specific item.
-            local itemStackToDropFrom  ---@type LuaItemStack
+            local itemStackToDropFrom  ---@type LuaItemStack|nil
             if inventoryNameOfItemNumberToDrop == "cursorStack" then
                 -- Special case as not a real inventory.
                 itemStackToDropFrom = player.cursor_stack
             else
                 local inventory = player.get_inventory(inventoryNameOfItemNumberToDrop)
+                if inventory == nil then
+                    CommandsUtils.LogPrintError(commandName, nil, "didn't find inventory id " .. inventoryNameOfItemNumberToDrop .. "' for " .. player.name, nil)
+                    return
+                end
                 itemStackToDropFrom = inventory.find_item_stack(itemNameToDrop)
+                if itemStackToDropFrom == nil then
+                    CommandsUtils.LogPrintError(commandName, nil, "didn't find item stack for item '" .. itemNameToDrop .. "' in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop, nil)
+                    return
+                end
             end
             local itemStackToDropFrom_count = itemStackToDropFrom.count
             if itemStackToDropFrom_count == 1 then

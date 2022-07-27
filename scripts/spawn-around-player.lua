@@ -153,6 +153,10 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     local data = eventData.data ---@type SpawnAroundPlayer_ScheduledDetails
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        -- Target player has been deleted since the command was run.
+        return
+    end
     local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0
     local entityTypeDetails = SpawnAroundPlayer.EntityTypeDetails[data.entityName]
     if data.followPlayer and entityTypeDetails.GetPlayersMaxBotFollowers ~= nil then

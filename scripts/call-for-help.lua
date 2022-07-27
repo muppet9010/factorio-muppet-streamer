@@ -185,6 +185,10 @@ CallForHelp.CallForHelp = function(eventData)
     local data = eventData.data ---@type CallForHelp_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        -- Target player has been deleted since the command was run.
+        return
+    end
     if targetPlayer.controller_type ~= defines.controllers.character then
         game.print({"message.muppet_streamer_call_for_help_not_character_controller", data.target})
         return

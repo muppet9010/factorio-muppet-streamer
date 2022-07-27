@@ -56,7 +56,7 @@ AggressiveDriver.OnLoad = function()
 end
 
 AggressiveDriver.OnStartup = function()
-    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver")
+    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast group - nil @ Script always has permission to create groups.
     group.set_allows_action(defines.input_action.toggle_driving, false)
 end
 
@@ -113,6 +113,10 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     local data = eventData.data ---@type AggressiveDriver_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        -- Target player has been deleted since the command was run.
+        return
+    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         game.print({"message.muppet_streamer_aggressive_driver_not_character_controller", data.target})
         return
@@ -156,7 +160,8 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.originalPlayersPermissionGroup[targetPlayer.index] = global.originalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
 
-    targetPlayer.permission_group = game.permissions.get_group("AggressiveDriver")
+    local permissionGroup = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast permissionGroup - nil @ Script always has permission to create groups.
+    targetPlayer.permission_group = permissionGroup
     global.aggressiveDriver.affectedPlayers[targetPlayer.index] = true
 
     game.print({"message.muppet_streamer_aggressive_driver_start", targetPlayer.name})
@@ -305,7 +310,14 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
         return
     end
 
+    -- Remove the flag against this player as being currently affected by the leaky flamethrower.
+    global.aggressiveDriver.affectedPlayers[playerIndex] = nil
+
     player = player or game.get_player(playerIndex)
+    if player == nil then
+        -- Player has been deleted while the effect was running.
+        return
+    end
 
     -- Return the player to their initial permission group.
     if player.permission_group.name == "AggressiveDriver" then
@@ -313,9 +325,6 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
         player.permission_group = global.originalPlayersPermissionGroup[playerIndex]
         global.originalPlayersPermissionGroup[playerIndex] = nil
     end
-
-    -- Remove the flag against this player as being currently affected by the leaky flamethrower.
-    global.aggressiveDriver.affectedPlayers[playerIndex] = nil
 
     -- Set the final state of the train to braking and straight as this ticks input. As soon as any player in the train tries to control it they will get control.
     player.riding_state = {

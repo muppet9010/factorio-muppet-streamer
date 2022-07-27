@@ -202,6 +202,10 @@ end
 ---@param event on_player_joined_game
 PlayerAlerts._OnPlayerJoinedGame = function(event)
     local player = game.get_player(event.player_index)
+    if player == nil then
+        -- Player was deleted upon joining, so just ignore.
+        return
+    end
 
     -- Get the alerts for this player's force if there are any.
     local forceAlerts = PlayerAlerts._GetForceAlerts(player.force.index)
@@ -219,6 +223,10 @@ end
 ---@param event on_player_changed_force
 PlayerAlerts._OnPlayerChangedForce = function(event)
     local player = game.get_player(event.player_index)
+    if player == nil then
+        -- Player was deleted upon changing force, so just ignore.
+        return
+    end
     local newForce, oldForce = player.force, event.force
 
     -- Get the alerts for this player's old force and if there are any remove them from the player.

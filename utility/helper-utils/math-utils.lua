@@ -159,8 +159,8 @@ end
 
 --- Returns the passed in number clamped to within the range of an uint 64 (min 0), with optional additional min and max's applied.
 ---@param value int
----@param min? uint|nil
----@param max? uint|nil
+---@param min? uint64|nil
+---@param max? uint64|nil
 ---@return uint64 clampedValue
 ---@return boolean valueWasOutsideRange
 MathUtils.ClampToUInt64 = function(value, min, max)
@@ -176,8 +176,8 @@ end
 
 --- Returns the passed in number clamped to within the range of an uint 16 (min 0), with optional additional min and max's applied.
 ---@param value int
----@param min? uint|nil
----@param max? uint|nil
+---@param min? uint16|nil
+---@param max? uint16|nil
 ---@return uint16 clampedValue
 ---@return boolean valueWasOutsideRange
 MathUtils.ClampToUInt16 = function(value, min, max)
@@ -193,8 +193,8 @@ end
 
 --- Returns the passed in number clamped to within the range of an uint 8 (min 0), with optional additional min and max's applied.
 ---@param value int
----@param min? uint|nil
----@param max? uint|nil
+---@param min? uint8|nil
+---@param max? uint8|nil
 ---@return uint8 clampedValue
 ---@return boolean valueWasOutsideRange
 MathUtils.ClampToUInt8 = function(value, min, max)

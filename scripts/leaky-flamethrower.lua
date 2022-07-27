@@ -52,7 +52,7 @@ LeakyFlamethrower.OnLoad = function()
 end
 
 LeakyFlamethrower.OnStartup = function()
-    local group = game.permissions.get_group("LeakyFlamethrower") or game.permissions.create_group("LeakyFlamethrower")
+    local group = game.permissions.get_group("LeakyFlamethrower") or game.permissions.create_group("LeakyFlamethrower") ---@cast group - nil @ Script always has permission to create groups.
     group.set_allows_action(defines.input_action.select_next_valid_gun, false)
     group.set_allows_action(defines.input_action.toggle_driving, false)
     group.set_allows_action(defines.input_action.change_shooting_state, false)
@@ -92,6 +92,10 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local data = eventData.data ---@type LeakyFlamethrower_ScheduledEventDetails
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        -- Target player has been deleted since the command was run.
+        return
+    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         game.print({"message.muppet_streamer_leaky_flamethrower_not_character_controller", data.target})
         return
@@ -146,7 +150,8 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.originalPlayersPermissionGroup[targetPlayer_index] = global.originalPlayersPermissionGroup[targetPlayer_index] or targetPlayer.permission_group
 
-    targetPlayer.permission_group = game.permissions.get_group("LeakyFlamethrower")
+    local group = game.permissions.get_group("LeakyFlamethrower") or game.permissions.create_group("LeakyFlamethrower") ---@cast group - nil @ Script always has permission to create groups.
+    targetPlayer.permission_group = group
     global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = {flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails}
 
     local startingAngle = math.random(0, 360)
@@ -258,7 +263,14 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
         return
     end
 
+    -- Remove the flag against this player as being currently affected by the leaky flamethrower.
+    global.leakyFlamethrower.affectedPlayers[playerIndex] = nil
+
     player = player or game.get_player(playerIndex)
+    if player == nil then
+        -- Player has been deleted while the effect was running.
+        return
+    end
     local playerHasCharacter = player ~= nil and player.character ~= nil
 
     -- Take back any weapon and ammo from a player with a character (alive or just dead).
@@ -283,9 +295,6 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Remove any shooting state set and maintained from previous ticks.
     player.shooting_state = {state = defines.shooting.not_shooting}
-
-    -- Remove the flag against this player as being currently affected by the leaky flamethrower.
-    global.leakyFlamethrower.affectedPlayers[playerIndex] = nil
 
     -- Print a message based on ending status.
     if status == EffectEndStatus.completed then

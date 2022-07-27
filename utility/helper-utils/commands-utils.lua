@@ -28,6 +28,10 @@ CommandsUtils.Register = function(name, helpText, commandFunction, adminOnly)
                 commandFunction(data)
             else
                 local player = game.get_player(data.player_index)
+                if player == nil then
+                    game.print("Player index " .. data.player_index .. " tried to run command, but player doesn't exist any more so being ignored.", Colors.red)
+                    return
+                end
                 if player.admin then
                     commandFunction(data)
                 else

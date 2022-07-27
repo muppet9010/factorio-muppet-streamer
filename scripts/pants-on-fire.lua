@@ -118,6 +118,10 @@ PantsOnFire.ApplyToPlayer = function(eventData)
     local data = eventData.data ---@type PantsOnFire_ScheduledEventDetails
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        -- Target player has been deleted since the command was run.
+        return
+    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         game.print({"message.muppet_streamer_pants_on_fire_not_character_controller", data.target})
         return
@@ -217,8 +221,14 @@ PantsOnFire.StopEffectOnPlayer = function(playerIndex, player, status)
         return
     end
 
-    player = player or game.get_player(playerIndex)
+    -- Remove the flag against this player as being currently affected by pants on fire.
     global.PantsOnFire.playersSteps[playerIndex] = nil
+
+    player = player or game.get_player(playerIndex)
+    if player == nil then
+        -- Player has been deleted while the effect was running.
+        return
+    end
 
     if status == EffectEndStatus.completed then
         game.print({"message.muppet_streamer_pants_on_fire_stop", player.name})

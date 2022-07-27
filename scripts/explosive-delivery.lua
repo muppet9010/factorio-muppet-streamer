@@ -175,6 +175,9 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     local data = eventData.data ---@type ExplosiveDelivery_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        return
+    end
     -- Don't need to check if the target is alive or anything. We will happily bomb their corpse.
 
     ---@type MapPosition, LuaSurface
@@ -216,6 +219,11 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         local targetEntityPos = PositionUtils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
         local targetEntity = surface.create_entity {name = "muppet_streamer-explosive-delivery-target", position = targetEntityPos}
 
+        -- If the entity fails to create (should never happen) just skip this explosive.
+        if targetEntity == nil then
+            goto CreateExplosiveLoop_End
+        end
+
         -- Spawn the explosives off the players screen (non map view). Have to allow enough distance for explosives crossing players screen, i.e. the targetPos being NW of the player and the explosives spawn SE of the player, they need to be far away enough away to spawn off the player's screen before flying over their head.
         local explosiveCreateDistance = math.max(100, data.accuracyRadiusMax * 2)
         local explosiveCreatePos = PositionUtils.RandomLocationInRadius(targetPos, explosiveCreateDistance, explosiveCreateDistance)
@@ -228,6 +236,8 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
 
         -- Remove the temporary dummy target entity.
         targetEntity.destroy()
+
+        ::CreateExplosiveLoop_End::
     end
 end
 
