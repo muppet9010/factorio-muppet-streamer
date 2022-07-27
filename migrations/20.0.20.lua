@@ -1,4 +1,4 @@
--- Just re-scan for all spawners and replace the old data. Any delayed or mid attempts loop of Teleprot to biterNest will fail (note added to changelog).
+-- Just re-scan for all spawners and replace the old data. Any delayed or mid attempts loop of Teleport to biterNest will fail (note added to changelog).
 
 local Teleport = {}
 
@@ -7,7 +7,7 @@ local Teleport = {}
 ---@return surfaceForceBiterNests surfacesSpawners
 Teleport.FindExistingSpawnersOnAllSurfaces = function()
     local surfacesSpawners = {} ---@type surfaceForceBiterNests
-    for _, surface in pairs(game.surfaces) do
+    for _, surface in pairs(game.surfaces --[[@as table<uint,LuaSurface>]]) do
         local surface_index = surface.index
         surfacesSpawners[surface_index] = {}
         local spawners = surface.find_entities_filtered {type = "unit-spawner"}

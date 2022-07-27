@@ -15,7 +15,7 @@ local BuildingGhosts = require("scripts.building-ghosts")
 local Common = require("scripts.common")
 
 local function CreateGlobals()
-    global.origionalPlayersPermissionGroup = global.origionalPlayersPermissionGroup or {} ---@type table<uint, LuaPermissionGroup> @ Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
+    global.originalPlayersPermissionGroup = global.originalPlayersPermissionGroup or {} ---@type table<uint, LuaPermissionGroup> @ Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
 
     TeamMember.CreateGlobals()
     BuildingGhosts.CreateGlobals()
@@ -81,7 +81,7 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, OnSettingChanged)
 script.on_load(OnLoad)
 EventScheduler.RegisterScheduler()
 
--- Mod wide function interface table creation. Means EmmyLua can support it and saves on UPS cost of old Interface function middelayer.
+-- Mod wide function interface table creation. Means EmmyLua can support it.
 MOD = MOD or {} ---@class MOD
 MOD.Interfaces = MOD.Interfaces or {} ---@class MOD_InternalInterfaces
 MOD.Interfaces.Commands = MOD.Interfaces.Commands or {} ---@class MOD_InternalInterfaces_Commands

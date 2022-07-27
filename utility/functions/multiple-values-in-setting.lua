@@ -1,7 +1,7 @@
 -- Library to support using mod settings to accept a JSON list (array) of values for N instances of something. Rather than having to add lots of repeat mod settings entry boxes.
--- So you can have 3 settings; 1 each for name, type and number. Then the user can provide either a single value for each or a JSON list of values and this will automatically seperate the settings and group them togeather based on submission order.
+-- So you can have 3 settings; 1 each for name, type and number. Then the user can provide either a single value for each or a JSON list of values and this will automatically separate the settings and group them together based on submission order.
 
--- CODE NOTE: This is a bit of a weird feature, but implimented in Biter Hunt Group mod a long time ago. If it needs using for a new project I think it needs a review and cleansing as its just weird and likely has a lot of edge cases from trying to Sumneko type it. A number of the handling functions just don't seem that logical and Sumneko can struggle to handle them as such.
+-- CODE NOTE: This is a bit of a weird feature, but implemented in Biter Hunt Group mod a long time ago. If it needs using for a new project I think it needs a review and cleansing as its just weird and likely has a lot of edge cases from trying to Sumneko type it. A number of the handling functions just don't seem that logical and Sumneko can struggle to handle them as such.
 
 local SettingsManager = {} ---@class Utility_SettingsManager
 local BooleanUtils = require("utility.helper-utils.boolean-utils")
@@ -21,9 +21,9 @@ SettingsManager.ExpectedValueTypes = {
 ---@field hasChildren boolean @ If the expected type is a list.
 ---@field childExpectedValueType UtilitySettingsManager_ExpectedValueType @ The type of entry in the list.
 
----@alias UtilityMultipleValuesInSettings_GlobalGroupsContainer table<uint, UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurence> @ Key'd by the the occurence number of the grouped settings (id argument when retrieving setting values).
----@alias UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurence table<string, UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurenceSetting>
----@alias UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurenceSetting table<string, boolean|number|string|nil>
+---@alias UtilityMultipleValuesInSettings_GlobalGroupsContainer table<uint, UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurrence> @ Key'd by the the occurrence number of the grouped settings (id argument when retrieving setting values).
+---@alias UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurrence table<string, UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurrenceSetting>
+---@alias UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurrenceSetting table<string, boolean|number|string|nil>
 
 ---@alias UtilityMultipleValuesInSettings_DefaultSettingsContainer table<string, boolean|number|string|nil>  @ Key'd by the setting name.
 
@@ -32,9 +32,9 @@ SettingsManager.ExpectedValueTypes = {
 ----------------------------------------------------------------------------------
 
 --[[
-    If only 1 value is passed it sets ID 0 as that value. If array of expected values is recieved then each ID above 0 uses the array value and ID 0 is set as the defaultValue.
-    Value is converted to the expected type. If nil is returned this is deemed as invalid data entry and default value is returned alogn with non stopping error message.
-    The expectedType value is passed to callback function "valueHandlingFunction" to be processed uniquely for each setting. If this is ommitted then the value is just straight assigned without any processing.
+    If only 1 value is passed it sets ID 0 as that value. If array of expected values is received then each ID above 0 uses the array value and ID 0 is set as the defaultValue.
+    Value is converted to the expected type. If nil is returned this is deemed as invalid data entry and default value is returned along with non stopping error message.
+    The expectedType value is passed to callback function "valueHandlingFunction" to be processed uniquely for each setting. If this is omitted then the value is just straight assigned without any processing.
     Clears all instances of the setting from all groups in the groups container before updating. Only way to remove old stale data.
 ]]
 ---@param factorioSettingType 'startup'|'global'|'player' @ The Factorio setting type.
@@ -43,9 +43,9 @@ SettingsManager.ExpectedValueTypes = {
 ---@param defaultSettingsContainer table @ Just pass in a reference to an empty table (not nil) in factorio mod `global`. Same table can be used for all settings and container names.
 ---@param defaultValue boolean|number|string|nil @ The default raw value to be passed in to the provided valueHandlingFunction.
 ---@param globalGroupsContainer table @ Just pass in a reference to an empty table (not nil) in factorio mod `global`. Same table can be used for all settings and container names.
----@param globalSettingContainerName 'settings'|string @ A unique name for this group of settings. Not sure when you would want seperate groups of settings as it would allow repeat instances of the same setting.
+---@param globalSettingContainerName 'settings'|string @ A unique name for this group of settings. Not sure when you would want separate groups of settings as it would allow repeat instances of the same setting.
 ---@param globalSettingName string @ The setting name that's used for storing and retrieving the value in this feature.
----@param valueHandlingFunction? fun(value: any):any|nil @ A function that is run on the value of each occurence of the setting to process the value before recording it.
+---@param valueHandlingFunction? fun(value: any):any|nil @ A function that is run on the value of each occurrence of the setting to process the value before recording it.
 SettingsManager.HandleSettingWithArrayOfValues = function(factorioSettingType, factorioSettingName, expectedValueType, defaultSettingsContainer, defaultValue, globalGroupsContainer, globalSettingContainerName, globalSettingName, valueHandlingFunction)
     if expectedValueType == nil or expectedValueType == "" then
         error("Setting '[" .. tostring(factorioSettingType) .. "][" .. tostring(factorioSettingName) .. "]' has no value type coded.")
@@ -59,7 +59,7 @@ SettingsManager.HandleSettingWithArrayOfValues = function(factorioSettingType, f
     ---@cast globalGroupsContainer UtilityMultipleValuesInSettings_GlobalGroupsContainer @ Done so that the function's type is clear when calling.
 
     for _, group in pairs(globalGroupsContainer) do
-        ---@cast group UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurence @ Sumneko is struggling to deal with the weird code structure.
+        ---@cast group UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurrence @ Sumneko is struggling to deal with the weird code structure.
         group[globalSettingContainerName][globalSettingName] = nil
     end
 
@@ -116,10 +116,10 @@ SettingsManager.HandleSettingWithArrayOfValues = function(factorioSettingType, f
     end
 end
 
---- Get the specific occurence (id) value for the specific setting and container.
+--- Get the specific occurrence (id) value for the specific setting and container.
 ---@param globalGroupsContainer table @ Just pass in a reference to an empty table (not nil) in factorio mod `global`. Same table can be used for all settings and container names.
----@param id uint @ The occurence number of the grouped settings.
----@param globalSettingContainerName 'settings'|string @ A unique name for this group of settings. Not sure when you would want seperate groups of settings as it would allow repeat instances of the same setting.
+---@param id uint @ The occurrence number of the grouped settings.
+---@param globalSettingContainerName 'settings'|string @ A unique name for this group of settings. Not sure when you would want separate groups of settings as it would allow repeat instances of the same setting.
 ---@param globalSettingName string @ The setting name that's used for storing and retrieving the value in this feature.
 ---@param defaultSettingsContainer table @ Just pass in a reference to an empty table (not nil) in factorio mod `global`. Same table can be used for all settings and container names.
 ---@return boolean|number|string|nil
@@ -142,9 +142,9 @@ end
 
 --- Creates an entry in the global container for this setting name. Usually only used for testing as the main SettingsManager.HandleSettingWithArrayOfValues() handles this for standard use.
 ---@param globalGroupsContainer table @ Just pass in a reference to an empty table (not nil) in factorio mod `global`. Same table can be used for all settings and container names.
----@param id uint @ The occurence number of the grouped settings.
----@param globalSettingContainerName 'settings'|string @ A unique name for this group of settings. Not sure when you would want seperate groups of settings as it would allow repeat instances of the same setting.
----@return UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurenceSetting occurenceSettingGlobalGroupContainer @ The created occurence of the setting in the global container.
+---@param id uint @ The occurrence number of the grouped settings.
+---@param globalSettingContainerName 'settings'|string @ A unique name for this group of settings. Not sure when you would want separate groups of settings as it would allow repeat instances of the same setting.
+---@return UtilityMultipleValuesInSettings_GlobalGroupsContainerOccurrenceSetting occurrenceSettingGlobalGroupContainer @ The created occurrence of the setting in the global container.
 SettingsManager._CreateGlobalGroupSettingsContainer = function(globalGroupsContainer, id, globalSettingContainerName)
     ---@cast globalGroupsContainer UtilityMultipleValuesInSettings_GlobalGroupsContainer @ Done so that the function's type is clear when calling.
     globalGroupsContainer[id] = globalGroupsContainer[id] or {}

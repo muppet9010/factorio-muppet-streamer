@@ -1,5 +1,5 @@
 --[[
-    Functionaility related to player's weapons. Includes options to force a specific weapon to be given and/or equipped. Returns details so the preivous weapon/options can be returned if desired.
+    Functionality related to player's weapons. Includes options to force a specific weapon to be given and/or equipped. Returns details so the previous weapon/options can be returned if desired.
 
     Usage: Call any public functions (not starting with "_") as required.
 ]]
@@ -20,11 +20,11 @@ local PlayerWeapon = {} ---@class Utility_PlayerWeapon
 --- Ensure the player has the specified weapon, clearing any weapon filters if needed. Includes options to ensure compatibility with a specific ammo type, otherwise will ensure the ammo slot setup allows the gun to be placed even if the ammo filter is incompatible.
 ---@param player LuaPlayer
 ---@param weaponName string
----@param forceWeaponToWeaponInventorySlot boolean @ If the weapon should be forced to be equiped, otherwise it may end up in their inventory.
+---@param forceWeaponToWeaponInventorySlot boolean @ If the weapon should be forced to be equipped, otherwise it may end up in their inventory.
 ---@param selectWeapon boolean
----@param ammoTypePlanned? string|nil @ The name of the ammo planned to be put in this weapon. Handles removing the ammo from the weapon slot and any fitlers if needed. Doesn't actaully give any ammo.
+---@param ammoTypePlanned? string|nil @ The name of the ammo planned to be put in this weapon. Handles removing the ammo from the weapon slot and any filters if needed. Doesn't actually give any ammo.
 ---@return boolean|nil weaponGiven @ If the weapon item had to be given to the player, compared to them already having it and it possibly just being moved between their inventories. Returns nil for invalid situations, i.e. called on a player with no gun inventory.
----@return UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon|nil removedWeaponDetails @ Details on the weapon that was removed to add the new wepaon. Is nil if no active weapon was set/found, i.e. weapon was found/put in to the players main inventory and not as an equiped weapon.
+---@return UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon|nil removedWeaponDetails @ Details on the weapon that was removed to add the new weapon. Is nil if no active weapon was set/found, i.e. weapon was found/put in to the players main inventory and not as an equipped weapon.
 PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInventorySlot, selectWeapon, ammoTypePlanned)
     if player == nil or not player.valid then
         return nil, nil
@@ -47,7 +47,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
         if gunItemStack.valid_for_read then
             -- Weapon in this slot.
             if gunItemStack.name == weaponName then
-                -- Player already has this gun equiped.
+                -- Player already has this gun equipped.
                 weaponFoundIndex = gunInventoryIndex
                 break
             end
@@ -64,7 +64,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
         end
     end
 
-    -- Handle if the player doesn't already have the gun equiped.
+    -- Handle if the player doesn't already have the gun equipped.
     local needsGunGiving = false
     local characterInventory  ---@type LuaInventory @ Only populated if needsGunGiving is true.
     if weaponFoundIndex == nil then
@@ -77,7 +77,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
         else
             -- Player doesn't have a free slot.
             if forceWeaponToWeaponInventorySlot then
-                -- As forceWeaponToWeaponInventorySlot is true and as the player has full gun slots then a weapon (and ammo) slot is "cleared" so that our weapon can then be put there. We select the least inconvient weapon slot to clear.
+                -- As forceWeaponToWeaponInventorySlot is true and as the player has full gun slots then a weapon (and ammo) slot is "cleared" so that our weapon can then be put there. We select the least inconvenient weapon slot to clear.
 
                 -- Get the best gun slot to clear out and use.
                 if freeButFilteredGunIndex ~= nil then
@@ -116,7 +116,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
         end ---@cast weaponFoundIndex - nil @ All logic paths either ensure its populated or return.
     end
 
-    -- Get the ammo slot for the equiped gun.
+    -- Get the ammo slot for the equipped gun.
     local ammoInventory = player.get_inventory(defines.inventory.character_ammo)
     local ammoItemStack = ammoInventory[weaponFoundIndex]
 
@@ -176,7 +176,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
 
     -- Give the gun if needed. We had to handle ammo first for both when needing a gun giving and not.
     if needsGunGiving then
-        -- Remove 1 item of the weapon type from the players inventory if they had one, to simulate equiping the weapon. Otherwise we will flag this as giving the player a weapon.
+        -- Remove 1 item of the weapon type from the players inventory if they had one, to simulate equipping the weapon. Otherwise we will flag this as giving the player a weapon.
         if characterInventory.get_item_count(weaponName) == 0 then
             -- No instance of the weapon in the player's inventory.
             weaponGiven = true
@@ -200,7 +200,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
     return weaponGiven, removedWeaponDetails
 end
 
---- Sets the players weapon filter back to what was removed. Assumes that anything put in the wepaon slot in the mean time is to be overridden.
+--- Sets the players weapon filter back to what was removed. Assumes that anything put in the weapon slot in the mean time is to be overridden.
 --- If the player's character is currently alive then it also equips the weapon and ammo from their inventory (assuming they still have them).
 ---@param player LuaPlayer
 ---@param removedWeaponDetails UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon

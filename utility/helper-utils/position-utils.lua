@@ -257,11 +257,11 @@ PositionUtils.CalculateBoundingBoxFrom2Points = function(point1, point2)
     return {left_top = {x = minX, y = minY}, right_bottom = {x = maxX, y = maxY}}
 end
 
----@param listOfBoundingBoxs BoundingBox[]
+---@param listOfBoundingBoxes BoundingBox[]
 ---@return BoundingBox
-PositionUtils.CalculateBoundingBoxToIncludeAllBoundingBoxs = function(listOfBoundingBoxs)
+PositionUtils.CalculateBoundingBoxToIncludeAllBoundingBoxes = function(listOfBoundingBoxes)
     local minX, maxX, minY, maxY
-    for _, boundingBox in pairs(listOfBoundingBoxs) do
+    for _, boundingBox in pairs(listOfBoundingBoxes) do
         for _, point in pairs({boundingBox.left_top, boundingBox.right_bottom}) do
             if minX == nil or point.x < minX then
                 minX = point.x
@@ -280,7 +280,7 @@ PositionUtils.CalculateBoundingBoxToIncludeAllBoundingBoxs = function(listOfBoun
     return {left_top = {x = minX, y = minY}, right_bottom = {x = maxX, y = maxY}}
 end
 
--- Applies an offset to a position. If you are rotating the offset first consider using PositionUtils.RotateOffsetAroundPosition() as lower UPS than the 2 seperate function calls.
+-- Applies an offset to a position. If you are rotating the offset first consider using PositionUtils.RotateOffsetAroundPosition() as lower UPS than the 2 separate function calls.
 ---@param position MapPosition
 ---@param offset MapPosition
 ---@return MapPosition
@@ -356,7 +356,7 @@ end
 -- Gets the distance between the 2 positions.
 ---@param pos1 MapPosition
 ---@param pos2 MapPosition
----@return double @ is inheriently a positive number.
+---@return double @ is inherently a positive number.
 PositionUtils.GetDistance = function(pos1, pos2)
     return (((pos1.x - pos2.x) ^ 2) + ((pos1.y - pos2.y) ^ 2)) ^ 0.5
 end
@@ -367,7 +367,7 @@ end
 ---@param pos1 MapPosition
 ---@param pos2 MapPosition
 ---@param axis Axis
----@return double @ is inheriently a positive number.
+---@return double @ is inherently a positive number.
 PositionUtils.GetDistanceSingleAxis = function(pos1, pos2, axis)
     return math_abs(pos1[axis] - pos2[axis])
 end
@@ -382,7 +382,7 @@ end
 
 ---@param position MapPosition
 ---@param boundingBox BoundingBox
----@param safeTiling? boolean|nil @ If enabled the boundingbox can be tiled without risk of an entity on the border being in 2 result sets, i.e. for use on each chunk.
+---@param safeTiling? boolean|nil @ If enabled the BoundingBox can be tiled without risk of an entity on the border being in 2 result sets, i.e. for use on each chunk.
 ---@return boolean
 PositionUtils.IsPositionInBoundingBox = function(position, boundingBox, safeTiling)
     if safeTiling == nil or not safeTiling then
@@ -447,14 +447,14 @@ PositionUtils.GetPositionForOrientationDistance = function(startingPos, distance
     return newPos
 end
 
---- Gets the position for a distance along a line from a starting positon towards a target position.
+--- Gets the position for a distance along a line from a starting position towards a target position.
 ---@param startingPos MapPosition
 ---@param targetPos MapPosition
 ---@param distance double
 ---@return MapPosition
 PositionUtils.GetPositionForDistanceBetween2Points = function(startingPos, targetPos, distance)
     local angleRad = -math.atan2(startingPos.y - targetPos.y, targetPos.x - startingPos.x) + 1.5707963267949 -- Static value is to re-align it from east to north as 0 value.
-    -- equivilent to: math.rad(math.deg(-math.atan2(startingPos.y - targetPos.y, targetPos.x - startingPos.x)) + 90)
+    -- equivalent to: math.rad(math.deg(-math.atan2(startingPos.y - targetPos.y, targetPos.x - startingPos.x)) + 90)
 
     local newPos = {
         x = (distance * math_sin(angleRad)) + startingPos.x,
@@ -517,7 +517,7 @@ end
 
 --- The valid key names in a table that can be converted in to a MapPosition with PositionUtils.TableToProperPosition(). Useful when you want to just check that no unexpected keys are present, i.e. command argument checking.
 ---@type table<string|uint, string|uint>
-PositionUtils.MapPositionConvertableTableValidKeysList = {
+PositionUtils.MapPositionConvertibleTableValidKeysList = {
     [1] = 1,
     [2] = 2,
     x = "x",

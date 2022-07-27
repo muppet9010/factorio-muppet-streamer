@@ -55,7 +55,7 @@ end
 PantsOnFire.PantsOnFireCommand = function(command)
     local commandName = "muppet_streamer_pants_on_fire"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount"})
     if commandData == nil then
         return
     end
@@ -175,12 +175,12 @@ PantsOnFire.WalkCheck = function(eventData)
             -- 20 flames seems the minimum to set a tree on fire.
             fireEntity = step.surface.create_entity({name = "fire-flame", position = step.position, initial_ground_flame_count = data.flameCount, force = data.force})
 
-            -- If the player is in a vehicle do direct health damage to stop them hiding from the effects in armoured vehicles.
+            -- If the player is in a vehicle do direct health damage to stop them hiding from the effects in armored vehicles.
             if player.vehicle then
                 local playerCharacter = player.character
                 if playerCharacter then
                     data.ticksInVehicle = data.ticksInVehicle + data.fireGap
-                    -- Damage is square of how long they are in a vehicle to give a scale between those with no shields/armour and heavily shielded players. Total damage is done as an amount per second regardless of how often the fire gap delay has the ground effect created and thus this function called.
+                    -- Damage is square of how long they are in a vehicle to give a scale between those with no shields/armor and heavily shielded players. Total damage is done as an amount per second regardless of how often the fire gap delay has the ground effect created and thus this function called.
                     local secondsInVehicle = math.ceil(data.ticksInVehicle / 60)
                     local damageForPeriodOfSecond = MathUtils.ClampToFloat((secondsInVehicle ^ 4) / (60 / data.fireGap)) -- We don't care if the value is clamped within the allowed range as its already so large.
                     playerCharacter.damage(damageForPeriodOfSecond, data.force, "fire", fireEntity)
@@ -200,7 +200,7 @@ PantsOnFire.WalkCheck = function(eventData)
     end
 end
 
---- Called when a player has died, but before thier character is turned in to a corpse.
+--- Called when a player has died, but before their character is turned in to a corpse.
 ---@param event on_pre_player_died
 PantsOnFire.OnPrePlayerDied = function(event)
     PantsOnFire.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)

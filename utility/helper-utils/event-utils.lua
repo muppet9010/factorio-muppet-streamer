@@ -1,5 +1,5 @@
 --[[
-    Event related utility functions. Seperate to the Events library for registering event handlers.
+    Event related utility functions. Separate to the Events library for registering event handlers.
 ]]
 --
 

@@ -114,7 +114,7 @@ LoggingUtils._RecordToModsLog = function(text)
     game.write_file(Constants.LogFileName, tostring(text) .. "\r\n", true)
 end
 
--- Runs the function in a wrapper that will log detailed infromation should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.
+-- Runs the function in a wrapper that will log detailed information should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.
 -- CODE NOTE: JustARandomGeek doesn't believe that the ".instrument" check is needed for the control hook and the presence of the __DebugAdapter variable is enough. Check if this function is used ever again.
 ---@param functionRef function,
 ---@param ... any
@@ -272,7 +272,7 @@ LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
     return returnedSafeTable
 end
 
---- Writes out sequential numbers at the set position. Used as a visial debugging tool.
+--- Writes out sequential numbers at the set position. Used as a visual debugging tool.
 ---@param targetSurfaceIdentification SurfaceIdentification
 ---@param targetPosition LuaEntity|MapPosition
 LoggingUtils.WriteOutNumberedMarker = function(targetSurfaceIdentification, targetPosition)
@@ -289,7 +289,7 @@ LoggingUtils.WriteOutNumberedMarker = function(targetSurfaceIdentification, targ
     global.UtilityLogging_NumberedCount = global.UtilityLogging_NumberedCount + 1
 end
 
---- Writes out sequential numbers at the SurfacePositionString. Used as a visial debugging tool.
+--- Writes out sequential numbers at the SurfacePositionString. Used as a visual debugging tool.
 ---@param targetSurfacePositionString SurfacePositionString
 LoggingUtils.WriteOutNumberedMarkerForSurfacePositionString = function(targetSurfacePositionString)
     local tempSurfaceId, tempPos = StringUtils.SurfacePositionStringToSurfaceAndPosition(targetSurfacePositionString)

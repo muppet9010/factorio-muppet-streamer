@@ -37,7 +37,7 @@ end
 ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local commandName = "muppet_streamer_schedule_explosive_delivery"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "explosiveCount", "explosiveType", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "explosiveCount", "explosiveType", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay"})
     if commandData == nil then
         return
     end
@@ -65,7 +65,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end ---@cast target string
 
     local targetPosition = commandData.targetPosition
-    if not CommandsUtils.CheckTableArgument(targetPosition, false, commandName, "targetPosition", PositionUtils.MapPositionConvertableTableValidKeysList, command.parameter) then
+    if not CommandsUtils.CheckTableArgument(targetPosition, false, commandName, "targetPosition", PositionUtils.MapPositionConvertibleTableValidKeysList, command.parameter) then
         return
     end ---@cast targetPosition MapPosition|nil
     if targetPosition ~= nil then
@@ -77,7 +77,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
 
     local targetOffset = commandData.targetOffset ---@type MapPosition|nil
-    if not CommandsUtils.CheckTableArgument(targetOffset, false, commandName, "targetOffset", PositionUtils.MapPositionConvertableTableValidKeysList, command.parameter) then
+    if not CommandsUtils.CheckTableArgument(targetOffset, false, commandName, "targetOffset", PositionUtils.MapPositionConvertibleTableValidKeysList, command.parameter) then
         return
     end ---@cast targetOffset MapPosition|nil
     if targetOffset ~= nil then
@@ -116,7 +116,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end ---@cast salvoDelayTicks uint|nil
     salvoDelayTicks = salvoDelayTicks or 0
 
-    -- If this is a multi salvo wave we need to cache the target position from the first delivery for the subsequent deliveryies of that wave. So setup the salvoWaveId for later population.
+    -- If this is a multi salvo wave we need to cache the target position from the first delivery for the subsequent deliveries of that wave. So setup the salvoWaveId for later population.
     local maxBatchNumber = 0 ---@type uint @ Batch 0 is the first batch.
     local salvoWaveId  ---@type uint|nil
     if explosiveCount > salvoSize then
@@ -128,7 +128,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local explosiveCountRemaining = explosiveCount
     ---@type uint
     for batchNumber = 0, maxBatchNumber do
-        explosiveCount = math.min(salvoSize, explosiveCountRemaining)
+        explosiveCount = math.min(salvoSize, explosiveCountRemaining) --[[@as uint]]
         explosiveCountRemaining = explosiveCountRemaining - explosiveCount
 
         global.explosiveDelivery.nextId = global.explosiveDelivery.nextId + 1
@@ -180,7 +180,7 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     ---@type MapPosition, LuaSurface
     local targetPos, surface
     -- Check if we need to obtain a target position from the salvo wave rather than calculate it now.
-    local salvoWaveId = data.salvoWaveId -- Variables existance is a work around for Sumneko's missing object field nil detection.
+    local salvoWaveId = data.salvoWaveId -- Variables existence is a work around for Sumneko's missing object field nil detection.
     if salvoWaveId ~= nil and global.explosiveDelivery.salvoWaveDetails[salvoWaveId] ~= nil then
         targetPos = global.explosiveDelivery.salvoWaveDetails[salvoWaveId].targetPosition
         surface = global.explosiveDelivery.salvoWaveDetails[salvoWaveId].targetSurface

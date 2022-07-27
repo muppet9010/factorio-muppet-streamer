@@ -63,7 +63,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 
 Notes:
 
-- Explosives will fly in from offscreen to random locations around the target player within the accuracy settings. They may take a few seconds to complete their delivery as they fly in using their native throwing/shooting/spitting speed.
+- Explosives will fly in from off screen to random locations around the target player within the accuracy settings. They may take a few seconds to complete their delivery as they fly in using their native throwing/shooting/spitting speed.
 - Weapons are on the "enemy" team (force) and so don't get affected by your research, but will be affected by any weapon research set on the "enemy" team by other mods.
 - targetPosition and targetOffset expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 
@@ -177,8 +177,8 @@ Teleports other players on the server to near your position.
     - delay: DECIMAL - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target (case sensitive).
     - arrivalRadius - DECIMAL - Optional: players teleported to the target player will be placed within this max distance. Defaults to 10.
-    - blacklistedPlayerNames - STRING_LIST - Optional: comma separated list of player names who will never be teleported to the target player. These are removed from the available players lists and counts. These names are case sensitive to the player's ingame name.
-    - whitelistedPlayerNames - STRING_LIST - Optional: comma separated list of player names who will be the only ones who can be teleported to the target player. If provided these whitelisted players who are online constitute the entire available player list that any other filtering options are applied to. If not provided then all online players not blacklisted are valid players to select from based on filtering criteria. These names are case sensitive to the player's ingame name.
+    - blacklistedPlayerNames - STRING_LIST - Optional: comma separated list of player names who will never be teleported to the target player. These are removed from the available players lists and counts. These names are case sensitive to the player's in-game name.
+    - whitelistedPlayerNames - STRING_LIST - Optional: comma separated list of player names who will be the only ones who can be teleported to the target player. If provided these whitelisted players who are online constitute the entire available player list that any other filtering options are applied to. If not provided then all online players not blacklisted are valid players to select from based on filtering criteria. These names are case sensitive to the player's in-game name.
     - callRadius - DECIMAL - Optional: the max distance a player can be from the target and still be teleported to them. If not provided then a player at any distance can be teleported to the target player. If the `sameSurfaceOnly` argument is set to `false` (non default) then the `callRadius` argument is ignored entirely.
     - sameSurfaceOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same surface as the target player or not. If `false` then the `callRadius` argument is ignored as it can't logically be applied. Defaults to `true`.
     - sameTeamOnly - BOOLEAN - Optional: if the players being teleported to the target have to be on the same team (force) as the target player or not. Defaults to `true`.
@@ -246,7 +246,7 @@ Sets the ground on fire behind a player forcing them to run.
 
 Notes:
 
-- If a player is in a vehicle while the effect is active they take increasing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armoured vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
+- If a player is in a vehicle while the effect is active they take increasing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armored vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
 
 
 Player Drop Inventory
@@ -263,7 +263,7 @@ Schedules the targeted player to drop their inventory on the ground over time.
     - dropOnBelts: BOOLEAN - Optional: if the dropped items should be placed on belts or not. Defaults to False.
     - gap: DECIMAL - Mandatory: how many seconds between each drop event. Must convert to a minimum of 1 tick, so a value of 1/60th (0.167) or more of a second.
     - occurrences: INTEGER - Mandatory: how many times the drop events are done.
-    - dropEquipment: BOOLEAN - Optional: if the player's armour and weapons are dropped or not. Defaults to True.
+    - dropEquipment: BOOLEAN - Optional: if the player's armor and weapons are dropped or not. Defaults to True.
 - Example command for dropping 10% of starting inventory items 5 times: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":2, "occurrences":5}`
 - Example command for 10 drops of 5 items, including on belts: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"constant", "quantityValue":5, "gap":2, "occurrences":10, "dropOnBelts":true}`
 
@@ -271,7 +271,7 @@ Notes:
 
 - Not intended to empty a player's inventory all in 1 go. A direct Lua script could be used for that.
 - For percentage based quantity values it will drop a minimum of 1 item per cycle. So that very low values/inventory sizes don't drop anything.
-- If the player doesn't have any items to drop for any given drop event then that occurence is marked as completed and the effect continues until all occurrences have occurred at their set gaps. The event does not not stop unless the player dies or all occurrences have been completed.
+- If the player doesn't have any items to drop for any given drop event then that occurrence is marked as completed and the effect continues until all occurrences have occurred at their set gaps. The event does not not stop unless the player dies or all occurrences have been completed.
 
 
 
@@ -283,9 +283,9 @@ Takes all the inventory items from the target players, shuffles them and then di
 - Command syntax: `/muppet_streamer_player_inventory_shuffle [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
-    - includedPlayers: STRING_LIST/STRING -  Mandatory Special: either blank, a comma separated list of the player names to include (assuming they are online at the time), or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's ingame name. At least one of includedPlayers or includedForces settings must be provided.
-    - includedForces: STRING_LIST/STRING -  Mandatory Special: a comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's ingame name. At least one of includedPlayers or includedForces settings must be provided.
-    - includeEquipment: BOOLEAN - Optional: if the player's armour and weapons are included for shuffling or not. Defaults to True.
+    - includedPlayers: STRING_LIST/STRING -  Mandatory Special: either blank, a comma separated list of the player names to include (assuming they are online at the time), or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's in-game name. At least one of includedPlayers or includedForces settings must be provided.
+    - includedForces: STRING_LIST/STRING -  Mandatory Special: a comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's in-game name. At least one of includedPlayers or includedForces settings must be provided.
+    - includeEquipment: BOOLEAN - Optional: if the player's armor and weapons are included for shuffling or not. Defaults to True.
     - includeHandCrafting: BOOLEAN - Optional: if the player's hand crafting should be cancelled and the ingredients shuffled. Defaults to True.
     - destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to receive an item type compared to the number of source inventories. A value of 0 will allow the for the same number of players to receive an item as lost it, greater than 1 ensures a wider distribution away from the source number of inventories. Defaults to 1 to ensure some uneven spreading of items. See notes for logic on item distribution and how this setting interacts with other settings.
     - destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to receive the item. Used to allow scaling of item recipients for large player counts. A value of 0 will mean there is no scaling of source to destination inventories. Defaults to 0.25. See notes for logic on item distribution and how this setting interacts with other settings.
@@ -302,7 +302,7 @@ Notes:
     - A random number of new players to receive each item type is worked out. This is based on the number of source players for that item type, with a +/- random value applied based on the greatest between; the destinationPlayersMinimumVariance setting, and the destinationPlayersVarianceFactor setting multiplied by the number of source inventories. This allows a minimum variation of receiving players compared to source inventories to be enforced even when very small player targets are online. The final value of new players for the items to be split across will never be less than 1 or greater than all of the online target players.
     - The number of each item each selected player will receive is a random proportion of the total. This is controlled by the recipientItemMinToMaxRatio setting. This setting defines the minimum to maximum ratio between 2 players, i.e. setting of 4 means a player receiving the maximum number can receive up to 4 times as many as a player receiving the minimum. This setting's implementation isn't quite exact and should be viewed as a rough guide.
     - Any items that can't be fitted into the intended destination player will be given to another online targeted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targeted player then they will be dropped on the floor at the targeted players’ feet. This situation can occur as items are taken from the player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
-- Players are given items using Factorios default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
+- Players are given items using Factorio's default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
 - If includeHandCrafting is True; Any hand crafting by players will be cancelled and the ingredients added into the shared items. To limit the UPS impact from this, each item stack (icon in crafting queue) that is cancelled will have any ingredients greater than 4 full player inventories worth dropped on the ground rather than included into the shared items. Multiple separate crafts will be individually handled and so have their own limits. This will come into play in the example of a player filling up their inventory with stone and starts crafting stone furnaces, then refills with stone and does this again 4 times all at once. As these crafts would all go into 1 craft item (icon in the queue).
 - All attempts are made to give the items to players, but as a last resort they will be dropped on the ground. In large quantities this can cause a UPS stutter as the core Factorio game engine handles it. This will arise if players have all their different inventories full and have long crafting queues with extra items already used in these crafts.
 - This command can be UPS intensive for large player numbers (10/20+), if players have very large modded inventories, or if lots of players are hand crafting lots of things. In these cases the server may pause for a moment or two until the event completes. This feature has been refactored multiple times for UPS improvements, but ultimately does a lot of API commands and inventory manipulation which is UPS intensive.
@@ -320,7 +320,7 @@ A way to soft limit players on the map and have research to increase it.
 - Set the "Team member technology pack count" setting to -1 to disable the feature entirely and remove it from the screen/shortcut bar.
 - Modding interface and command to increase the max team member count by a set amount. For use with other mods/streaming integrations when the research option isn't being used.
 - Command:
-    - syntax: `/muppet_streamer_change_team_member_max CHANGENUMBER`
+    - syntax: `/muppet_streamer_change_team_member_max NUMBER`
     - example to increase by 2: `/muppet_streamer_change_team_member_max 2`
 
 
@@ -330,7 +330,7 @@ Start with building's ghost on death unlocked
 
 A mod setting that can make all forces start with ghosts being placed upon entity deaths. Ideal if your chat blows up your base often early game and you freehand build, so don't have a blueprint to just paste down again.
 
-This is the same as if the force had researched the vanilla construction robot technology to unlock it, by giving entity ghosts a long life time. The mod setting can be safely disabled post technology research if desired without it undoing any researched ghost lifetimer.
+This is the same as if the force had researched the vanilla construction robot technology to unlock it, by giving entity ghosts a long life time. The mod setting can be safely disabled post technology research if desired without it undoing any researched ghost life timer.
 
 
 

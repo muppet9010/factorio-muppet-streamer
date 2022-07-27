@@ -47,8 +47,8 @@ end
 --- Called when desired to remove a specific GUI type closing from triggering its action.
 ---
 --- Should be called to remove links for buttons when their elements are removed to stop global data lingering. But newly registered functions will overwrite them so not critical to remove.
----@param guiType defines.gui_type|'all' @ Corrisponds to the same argument name on GuiActionsClosed.RegisterActionNameForGuiTypeClosed().
----@param actionName string @ Corrisponds to the same argument name on GuiActionsClosed.RegisterActionNameForGuiTypeClosed().
+---@param guiType defines.gui_type|'all' @ Corresponds to the same argument name on GuiActionsClosed.RegisterActionNameForGuiTypeClosed().
+---@param actionName string @ Corresponds to the same argument name on GuiActionsClosed.RegisterActionNameForGuiTypeClosed().
 GuiActionsClosed.RemoveActionNameForGuiTypeClosed = function(guiType, actionName)
     if guiType == nil or actionName == nil then
         error("GuiActions.RemoveActionNameForGuiTypeClosed called with missing arguments")
@@ -63,7 +63,7 @@ end
 --                                    Internal Functions
 --------------------------------------------------------------------------------------------
 
---- Called when each on_gui_closed event orrurs and identifies any registered actionName functions to trigger.
+--- Called when each on_gui_closed event occurs and identifies any registered actionName functions to trigger.
 ---@param rawFactorioEventData on_gui_closed
 GuiActionsClosed._HandleGuiClosedAction = function(rawFactorioEventData)
     local guiType = rawFactorioEventData.gui_type

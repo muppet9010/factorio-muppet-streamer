@@ -6,6 +6,8 @@
 local TableUtils = {} ---@class Utility_TableUtils
 local string_rep = string.rep
 
+-- csSpell:ignore deepcopy @ Ignore in this file, but don't add as shouldn't be seen outside theis reference.
+
 --- Copies a table and all of its children all the way down.
 --- Based on code from Factorio "__core__.lualib.util.lua", table.deepcopy().
 ---@param object table @ The object to copy.
@@ -15,7 +17,7 @@ TableUtils.DeepCopy = function(object)
     return TableUtils._DeepCopy_InnerCopy(object, lookup_table)
 end
 
---- Takes an array of tables and returns a new table with copies of their contents. Merges children when they are tables togeather, but non table data types will have the latest value as the result.
+--- Takes an array of tables and returns a new table with copies of their contents. Merges children when they are tables together, but non table data types will have the latest value as the result.
 --- Based on code from Factorio "__core__.lualib.util.lua", util.merge().
 ---@param tables table<any, any>[]
 ---@return table mergedTable
@@ -40,7 +42,7 @@ end
 --- Takes an array of tables and returns a new table with references to their top level contents. Does a shallow merge, so just the top level key/values. Last duplicate key's value processed will be the final result.
 ---@param sourceTables table<any,any>[]
 ---@return table mergedTable
-TableUtils.TableMergeOrigionalsShallow = function(sourceTables)
+TableUtils.TableMergeOriginalsShallow = function(sourceTables)
     local mergedTable = {} ---@type table<any, any>
     for _, sourceTable in pairs(sourceTables) do
         for k in pairs(sourceTable) do
@@ -124,7 +126,7 @@ TableUtils.TableKeyToArray = function(aTable)
     return newArray
 end
 
---- Makes a comma seperated text string from a table's keys. Includes spaces after each comma.
+--- Makes a comma separated text string from a table's keys. Includes spaces after each comma.
 ---@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.
 ---@return string
 TableUtils.TableKeyToCommaString = function(aTable)
@@ -142,7 +144,7 @@ TableUtils.TableKeyToCommaString = function(aTable)
     return newString
 end
 
---- Makes a comma seperated text string from a table's values. Includes spaces after each comma.
+--- Makes a comma separated text string from a table's values. Includes spaces after each comma.
 ---@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.
 ---@return string
 TableUtils.TableValueToCommaString = function(aTable)
@@ -340,7 +342,7 @@ end
 --                          PRIVATE FUNCTIONS
 ----------------------------------------------------------------------------------
 
---- Inner looping of DeepCopy. Kept as seperate function as then its a copy of Factorio core utils.
+--- Inner looping of DeepCopy. Kept as separate function as then its a copy of Factorio core utils.
 ---@param object any
 ---@param lookup_table table<any, any>
 ---@return any
@@ -371,10 +373,10 @@ end
 ---@return string
 TableUtils._TableContentsToJSON = function(targetTable, name, singleLineOutput, tablesLogged, indent, stopTraversing)
     local newLineCharacter = "\r\n"
-    local indentstring = string_rep(" ", (indent * 4))
+    local indentString = string_rep(" ", (indent * 4))
     if singleLineOutput then
         newLineCharacter = ""
-        indentstring = ""
+        indentString = ""
     end
     tablesLogged[targetTable] = "logged"
     local table_contents = ""
@@ -393,7 +395,7 @@ TableUtils._TableContentsToJSON = function(targetTable, name, singleLineOutput, 
                     if tablesLogged[k] ~= nil then
                         subStopTraversing = true
                     end
-                    key = "{" .. newLineCharacter .. TableUtils._TableContentsToJSON(k, name, singleLineOutput, tablesLogged, indent + 1, subStopTraversing) .. newLineCharacter .. indentstring .. "}"
+                    key = "{" .. newLineCharacter .. TableUtils._TableContentsToJSON(k, name, singleLineOutput, tablesLogged, indent + 1, subStopTraversing) .. newLineCharacter .. indentString .. "}"
                 end
             elseif type(k) == "function" then
                 key = '"' .. tostring(k) .. '"'
@@ -414,7 +416,7 @@ TableUtils._TableContentsToJSON = function(targetTable, name, singleLineOutput, 
                     if tablesLogged[v] ~= nil then
                         subStopTraversing = true
                     end
-                    value = "{" .. newLineCharacter .. TableUtils._TableContentsToJSON(v, name, singleLineOutput, tablesLogged, indent + 1, subStopTraversing) .. newLineCharacter .. indentstring .. "}"
+                    value = "{" .. newLineCharacter .. TableUtils._TableContentsToJSON(v, name, singleLineOutput, tablesLogged, indent + 1, subStopTraversing) .. newLineCharacter .. indentString .. "}"
                 end
             elseif type(v) == "function" then
                 value = '"' .. tostring(v) .. '"'
@@ -424,10 +426,10 @@ TableUtils._TableContentsToJSON = function(targetTable, name, singleLineOutput, 
             if table_contents ~= "" then
                 table_contents = table_contents .. "," .. newLineCharacter
             end
-            table_contents = table_contents .. indentstring .. tostring(key) .. ":" .. tostring(value)
+            table_contents = table_contents .. indentString .. tostring(key) .. ":" .. tostring(value)
         end
     else
-        table_contents = indentstring .. ""
+        table_contents = indentString .. ""
     end
     if indent == 1 then
         local resultString = ""

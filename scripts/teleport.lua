@@ -59,7 +59,7 @@ local MaxDistancePositionAroundTarget = 10
 ---@field backupTeleportSettings? Teleport_CommandDetails|nil
 ---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
 ---@field thisAttemptPosition? MapPosition|nil @ The map position of the current teleport attempt.
----@field spawnerDistances table<uint, Teleport_TargetPlayerSpawnerDistanceDetails> @ If destinationType is biterNest then populated when looking for a spawner to target, otherwise empty. Key'd as a gappy numerial order. The enemy spawners found on this surface from our spawner list and the distance they are from the player's current position.
+---@field spawnerDistances table<uint, Teleport_TargetPlayerSpawnerDistanceDetails> @ If destinationType is biterNest then populated when looking for a spawner to target, otherwise empty. Key'd as a gappy numerical order. The enemy spawners found on this surface from our spawner list and the distance they are from the player's current position.
 
 ---@class Teleport_TargetPlayerSpawnerDistanceDetails
 ---@field distance double
@@ -71,7 +71,7 @@ local MaxDistancePositionAroundTarget = 10
 ---@field position MapPosition
 ---@field forceName string
 
----@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then bacth ignoring of non-enemy spawners.
+---@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then batch ignoring of non-enemy spawners.
 
 local commandName = "muppet_streamer_teleport"
 
@@ -99,7 +99,7 @@ end
 --- Triggered when the RCON command is run.
 ---@param command CustomCommandData
 Teleport.TeleportCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings"})
     if commandData == nil then
         return
     end
@@ -116,7 +116,7 @@ end
 ---@param commandData table<string, any> @ Table of arguments passed in to the RCON command.
 ---@param depth uint @ Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
 ---@param commandStringText string @ The raw command text sent via RCON.
----@return Teleport_CommandDetails|nil commandDetails @ Command details are returned if no errors hit, othewise nil is returned.
+---@return Teleport_CommandDetails|nil commandDetails @ Command details are returned if no errors hit, otherwise nil is returned.
 Teleport.GetCommandData = function(commandData, depth, commandStringText)
     local depthErrorMessage = ""
     if depth > 0 then
@@ -252,7 +252,7 @@ Teleport.ScheduleTeleportCommand = function(commandValues)
 end
 
 --- When the actual teleport action needs to be planned and done (post scheduled delay).
---- Refereshs all player data on each load as waiting for pathfinder requests can make subsequent executions have different player stata data.
+--- Refreshes all player data on each load as waiting for pathfinder requests can make subsequent executions have different player state data.
 ---@param eventData UtilityScheduledEvent_CallbackObject
 Teleport.PlanTeleportTarget = function(eventData)
     local data = eventData.data ---@type Teleport_TeleportDetails
@@ -360,7 +360,7 @@ Teleport.PlanTeleportTarget = function(eventData)
                 -- Remove the spawner from this search.
                 data.spawnerDistances[firstSpawnerDistancesIndex] = nil
 
-                -- Remove the spawner from the global spawner lsit.
+                -- Remove the spawner from the global spawner list.
                 global.teleport.surfaceBiterNests[targetPlayer_surface_index][nearestSpawnerDistanceDetails.spawnerDetails.forceName][nearestSpawnerDistanceDetails.spawnerDetails.unitNumber] = nil
 
                 -- Clear the spawner result so the while loop continues to look at the nearest remaining one.
@@ -389,7 +389,7 @@ Teleport.PlanTeleportTarget = function(eventData)
     local teleportResponse = PlayerTeleport.RequestTeleportToNearPosition(targetPlayer, targetPlayer_surface, data.destinationTargetPosition, data.arrivalRadius, MaxRandomPositionsAroundTargetToTry, MaxDistancePositionAroundTarget, data.reachableOnly and targetPlayer_position or nil)
 
     -- Handle the teleport response.
-    local pathRequestId = teleportResponse.pathRequestId -- Variables existance is a workaround for Sumneko missing object field nil detection.
+    local pathRequestId = teleportResponse.pathRequestId -- Variables existence is a workaround for Sumneko missing object field nil detection.
     if teleportResponse.teleportSucceeded == true then
         -- All completed.
         return
@@ -446,9 +446,9 @@ Teleport.OnScriptPathRequestFinished = function(event)
             Teleport.PlanTeleportTarget({data = data})
         end
     else
-        -- Path request succeded.
+        -- Path request succeeded.
 
-        -- CODE NOTE: As this has an unknown delay between request and result we need to validate everything important is unchanged before accepting the result and teleporting the player there. If sometihng critical has changed we repeat the entire target selection to avoid complicated code. But we subtract 1 from the attempts so its a free retry.
+        -- CODE NOTE: As this has an unknown delay between request and result we need to validate everything important is unchanged before accepting the result and teleporting the player there. If something critical has changed we repeat the entire target selection to avoid complicated code. But we subtract 1 from the attempts so its a free retry.
 
         -- Check the player is still alive and in a suitable game state (not editor) to be teleported. If they aren't suitable just abandon the teleport.
         if data.targetPlayer.controller_type ~= defines.controllers.character then
@@ -507,7 +507,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
     end
 end
 
---- Called when a higher priority teleport has failed. If theres a backup teleprot action that will be tried next.
+--- Called when a higher priority teleport has failed. If there's a backup teleport action that will be tried next.
 ---@param data Teleport_TeleportDetails
 Teleport.DoBackupTeleport = function(data)
     if data.backupTeleportSettings ~= nil then
@@ -572,7 +572,7 @@ end
 --- Called when a spawner has been created and we need to add it to our records.
 ---@param spawner LuaEntity
 Teleport.SpawnerCreated = function(spawner)
-    -- Create the surface table if it doesn't exist. Happens when the surface is created adhock during play.
+    -- Create the surface table if it doesn't exist. Happens when the surface is created adhoc during play.
     local spawner_surface_index = spawner.surface.index
     global.teleport.surfaceBiterNests[spawner_surface_index] = global.teleport.surfaceBiterNests[spawner_surface_index] or {}
     -- Record the spawner.

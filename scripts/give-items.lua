@@ -28,7 +28,7 @@ end
 GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     local commandName = "muppet_streamer_give_player_weapon_ammo"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount"})
     if commandData == nil then
         return
     end

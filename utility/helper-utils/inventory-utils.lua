@@ -52,13 +52,13 @@ InventoryUtils.TryMoveInventoriesLuaItemStacks = function(sourceInventory, targe
         local itemStack = sourceInventory[index] ---@type LuaItemStack
         if itemStack.valid_for_read then
             -- Work out how many to try and move.
-            local itemStack_origionalCount = itemStack.count
-            local maxToMoveCount = math_ceil(itemStack_origionalCount * ratioToMove) --[[@as uint]]
+            local itemStack_originalCount = itemStack.count
+            local maxToMoveCount = math_ceil(itemStack_originalCount * ratioToMove) --[[@as uint]]
 
             -- Have to set the source count to be the max amount to move, try the insert, and then set the source count back to the required final result. As this is a game object and so I can't just clone it to try the insert with without losing its associated data.
             itemStack.count = maxToMoveCount
             local movedCount = targetInventory.insert(itemStack)
-            itemStack.count = itemStack_origionalCount - movedCount
+            itemStack.count = itemStack_originalCount - movedCount
 
             -- Check what was moved and any next steps.
             if movedCount > 0 then

@@ -64,7 +64,7 @@ end
 AggressiveDriver.AggressiveDriverCommand = function(command)
     local commandName = "muppet_streamer_aggressive_driver"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "control", "teleportDistance"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "duration", "control", "teleportDistance"})
     if commandData == nil then
         return
     end
@@ -154,7 +154,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     end
 
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
-    global.origionalPlayersPermissionGroup[targetPlayer.index] = global.origionalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
+    global.originalPlayersPermissionGroup[targetPlayer.index] = global.originalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
 
     targetPlayer.permission_group = game.permissions.get_group("AggressiveDriver")
     global.aggressiveDriver.affectedPlayers[targetPlayer.index] = true
@@ -215,15 +215,15 @@ AggressiveDriver.Drive = function(eventData)
         if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
             local train = vehicle.train
 
-            -- If the train isn't in manual mode then set it. We do this every tick if needed so that other palyers setting it to automatic gets overridden.
+            -- If the train isn't in manual mode then set it. We do this every tick if needed so that other players setting it to automatic gets overridden.
             if train.manual_mode ~= true then
                 -- Don't set every tick blindly as it resets the players key directions on that tick to be forced to straight forwards.
                 train.manual_mode = true
             end
 
             -- If the train is already moving work out if accelerating or reversing the players carriage keeps the train moving in its current direction.
-            -- If the train isn't moving then later in the function the standand flip movement detection will start moving the train in the other direction.
-            -- For a train just starting its scripted control this will also avoid flipping the trains direction, so it continues in its current travel direction. As it would loose the feel of an out of control train and would take a while to stop and build up reversing speed. If the train starts with no speed then the standard direction start logic will make the train move "forwards" in direct relation to the player's carriage facing, not the train's, as theres no known "good" start direction here.
+            -- If the train isn't moving then later in the function the standard flip movement detection will start moving the train in the other direction.
+            -- For a train just starting its scripted control this will also avoid flipping the trains direction, so it continues in its current travel direction. As it would loose the feel of an out of control train and would take a while to stop and build up reversing speed. If the train starts with no speed then the standard direction start logic will make the train move "forwards" in direct relation to the player's carriage facing, not the train's, as there's no known "good" start direction here.
             local vehicle_speed = vehicle.speed
             if vehicle_speed ~= 0 then
                 local train_speed = train.speed
@@ -288,7 +288,7 @@ AggressiveDriver.Drive = function(eventData)
     end
 end
 
---- Called when a player has died, but before thier character is turned in to a corpse.
+--- Called when a player has died, but before their character is turned in to a corpse.
 ---@param event on_pre_player_died
 AggressiveDriver.OnPrePlayerDied = function(event)
     AggressiveDriver.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)
@@ -310,11 +310,11 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
     -- Return the player to their initial permission group.
     if player.permission_group.name == "AggressiveDriver" then
         -- If the permission group has been changed by something else don't set it back to the last non modded one.
-        player.permission_group = global.origionalPlayersPermissionGroup[playerIndex]
-        global.origionalPlayersPermissionGroup[playerIndex] = nil
+        player.permission_group = global.originalPlayersPermissionGroup[playerIndex]
+        global.originalPlayersPermissionGroup[playerIndex] = nil
     end
 
-    -- Remove the flag aginst this player as being currently affected by the leaky flamethrower.
+    -- Remove the flag against this player as being currently affected by the leaky flamethrower.
     global.aggressiveDriver.affectedPlayers[playerIndex] = nil
 
     -- Set the final state of the train to braking and straight as this ticks input. As soon as any player in the train tries to control it they will get control.

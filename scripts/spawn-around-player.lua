@@ -45,7 +45,7 @@ local ExistingEntitiesTypes = {
 
 SpawnAroundPlayer.quantitySearchRadius = 3
 SpawnAroundPlayer.densitySearchRadius = 0.6
-SpawnAroundPlayer.offgridPlacementJitter = 0.3
+SpawnAroundPlayer.offGridPlacementJitter = 0.3
 
 SpawnAroundPlayer.CreateGlobals = function()
     global.spawnAroundPlayer = global.spawnAroundPlayer or {}
@@ -66,7 +66,7 @@ end
 SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     local commandName = "muppet_streamer_spawn_around_player"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "force", "entityName", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "force", "entityName", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer"})
     if commandData == nil then
         return
     end
@@ -193,13 +193,13 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
         ---@class SpawnAroundPlayer_GroupPlacementDetails
         local groupPlacementDetails = {followsLeft = followsLeft} -- Do as table so it can be passed by reference in to functions and updated inline by each.
 
-        -- Do outer perimiter first. Does a grid across the circle circumference.
+        -- Do outer perimeter first. Does a grid across the circle circumference.
         for yOffset = -data.radiusMax, data.radiusMax, entityTypeDetails.gridPlacementSize do
-            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, 1, yOffset, groupPlacementDetails, force)
-            SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, -1, yOffset, groupPlacementDetails, force)
+            SpawnAroundPlayer.PlaceEntityAroundPerimeterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, 1, yOffset, groupPlacementDetails, force)
+            SpawnAroundPlayer.PlaceEntityAroundPerimeterOnLine(entityTypeDetails, data, targetPos, surface, targetPlayer, data.radiusMax, -1, yOffset, groupPlacementDetails, force)
         end
 
-        -- Fill inwards from the perimiter up to the required depth (max radius to min radius).
+        -- Fill inwards from the perimeter up to the required depth (max radius to min radius).
         if data.radiusMin ~= data.radiusMax then
             -- Fill in between circles
             for yOffset = -data.radiusMax, data.radiusMax, entityTypeDetails.gridPlacementSize do
@@ -214,7 +214,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     end
 end
 
---- Place an entity where a stright line crosses the circumference of a circle. When done in a grid of lines across the circumference then the perimeter of the circle will have been filled in.
+--- Place an entity where a straight line crosses the circumference of a circle. When done in a grid of lines across the circumference then the perimeter of the circle will have been filled in.
 ---@param entityTypeDetails SpawnAroundPlayer_EntityTypeDetails
 ---@param data SpawnAroundPlayer_ScheduledDetails
 ---@param targetPos MapPosition
@@ -225,7 +225,7 @@ end
 ---@param lineYOffset int
 ---@param groupPlacementDetails SpawnAroundPlayer_GroupPlacementDetails
 ---@param force LuaForce
-SpawnAroundPlayer.PlaceEntityAroundPerimiterOnLine = function(entityTypeDetails, data, targetPos, surface, targetPlayer, radius, lineSlope, lineYOffset, groupPlacementDetails, force)
+SpawnAroundPlayer.PlaceEntityAroundPerimeterOnLine = function(entityTypeDetails, data, targetPos, surface, targetPlayer, radius, lineSlope, lineYOffset, groupPlacementDetails, force)
     local crossPos1, crossPos2 = PositionUtils.FindWhereLineCrossesCircle(radius, lineSlope, lineYOffset)
     if crossPos1 ~= nil then
         SpawnAroundPlayer.PlaceEntityNearPosition(entityTypeDetails, PositionUtils.ApplyOffsetToPosition(crossPos1, targetPos), surface, targetPlayer, data, groupPlacementDetails, force)
@@ -281,7 +281,7 @@ SpawnAroundPlayer.CombatBotEntityTypeDetails = function(setEntityName, canFollow
             return setEntityName
         end,
         GetEntityAlignedPosition = function(position)
-            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offGridPlacementJitter)
         end,
         gridPlacementSize = 1,
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
@@ -339,7 +339,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             return BiomeTrees.GetBiomeTreeName(surface, position)
         end,
         GetEntityAlignedPosition = function(position)
-            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offGridPlacementJitter)
         end,
         gridPlacementSize = 1,
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
@@ -362,7 +362,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             end
         end,
         GetEntityAlignedPosition = function(position)
-            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offGridPlacementJitter)
         end,
         gridPlacementSize = 2,
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
@@ -413,7 +413,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             return "land-mine"
         end,
         GetEntityAlignedPosition = function(position)
-            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offGridPlacementJitter)
         end,
         gridPlacementSize = 1,
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
@@ -429,7 +429,7 @@ SpawnAroundPlayer.EntityTypeDetails = {
             return "fire-flame"
         end,
         GetEntityAlignedPosition = function(position)
-            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offgridPlacementJitter)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offGridPlacementJitter)
         end,
         gridPlacementSize = 1,
         FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
@@ -457,7 +457,7 @@ SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer = function(targetPlayer)
         return 0
     end
     local max = targetPlayer.character_maximum_following_robot_count_bonus + targetPlayer.force.maximum_following_robot_count
-    local current = #targetPlayer.following_robots --[[@as uint @ The game doesn't allow more than a uint max following robots, so the count can't be abpove a uint.]]
+    local current = #targetPlayer.following_robots --[[@as uint @ The game doesn't allow more than a uint max following robots, so the count can't be above a uint.]]
     return max - current
 end
 

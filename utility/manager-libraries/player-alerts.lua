@@ -46,7 +46,7 @@ end
 ---@param alertMessage LocalisedString
 ---@param showOnMap boolean
 ---@return UtilityPlayerAlerts_AlertId alertId @ The Id of the created alert.
----@deprecated An alert only lasts for 5-10 (?) seconds and then auto finishes. We need to have an option for a continous alert that auto adds a new one just before the hard coded timer runs out.
+---@deprecated An alert only lasts for 5-10 (?) seconds and then auto finishes. We need to have an option for a continuous alert that auto adds a new one just before the hard coded timer runs out.
 PlayerAlerts.AddCustomAlertToForce = function(force, alertId, alertEntity, alertSignalId, alertMessage, showOnMap)
     local forceId = force.index
     local forceAlerts = PlayerAlerts._GetCreateForceAlertsGlobalObject(forceId)
@@ -238,7 +238,7 @@ PlayerAlerts._OnPlayerChangedForce = function(event)
     end
 end
 
---- Called when 2 forces are merging togeather. Is triggered before each player on the old force has PlayerAlerts._OnPlayerChangedForce() triggered.
+--- Called when 2 forces are merging together. Is triggered before each player on the old force has PlayerAlerts._OnPlayerChangedForce() triggered.
 ---@param event on_forces_merging
 PlayerAlerts._OnForcesMerging = function(event)
     local removedForce_index, mergedForce, mergedForce_index = event.source.index, event.destination, event.destination.index

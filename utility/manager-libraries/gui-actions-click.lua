@@ -37,8 +37,8 @@ end
 --- Generally called from the GuiUtil library now, but can be called manually from OnLoad().
 ---
 --- Called to register a button or sprite-button GuiElement's name and type to a specific GUI click action name and optional standard data (global to all players). Only needs to be run once per mod.
----@param elementName string @ The name of the element. Must be unique within mod once elementName and elementType arguments are combined togeather.
----@param elementType string @ The type of the element. Must be unique within mod once elementName and elementType arguments are combined togeather.
+---@param elementName string @ The name of the element. Must be unique within mod once elementName and elementType arguments are combined together.
+---@param elementType string @ The type of the element. Must be unique within mod once elementName and elementType arguments are combined together.
 ---@param actionName string @ The actionName of the registered function to be called when the GUI element is clicked.
 ---@param data? any|nil @ Any provided data will be passed through to the actionName's registered function upon the GUI element being clicked.
 ---@param disabled? boolean|nil @ If TRUE then click not registered (for use with GUI templating). Otherwise FALSE or nil will registered normally.
@@ -64,8 +64,8 @@ end
 --- Called when desired to remove a specific button GuiElement from triggering its action.
 ---
 --- Should be called to remove links for buttons when their elements are removed to stop global data lingering. But newly registered functions will overwrite them so not critical to remove.
----@param elementName string @ Corrisponds to the same argument name on GuiActionsClick.RegisterGuiForClick().
----@param elementType string @ Corrisponds to the same argument name on GuiActionsClick.RegisterGuiForClick().
+---@param elementName string @ Corresponds to the same argument name on GuiActionsClick.RegisterGuiForClick().
+---@param elementType string @ Corresponds to the same argument name on GuiActionsClick.RegisterGuiForClick().
 GuiActionsClick.RemoveGuiForClick = function(elementName, elementType)
     if elementName == nil then
         error("GuiActions.RemoveButtonName called with missing arguments")
@@ -81,7 +81,7 @@ end
 --                                    Internal Functions
 --------------------------------------------------------------------------------------------
 
---- Called when each on_gui_click event orrurs and identifies any registered actionName functions to trigger.
+--- Called when each on_gui_click event occurs and identifies any registered actionName functions to trigger.
 ---@param rawFactorioEventData on_gui_click
 GuiActionsClick._HandleGuiClickAction = function(rawFactorioEventData)
     if global.UTILITYGUIACTIONSGUICLICK == nil then

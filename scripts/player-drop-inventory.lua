@@ -25,21 +25,21 @@ local QuantityType = {
 ---@field player_index uint
 ---@field player LuaPlayer
 ---@field gap uint @ Must be > 0.
----@field totaloccurrences uint
+---@field totalOccurrences uint
 ---@field dropOnBelts boolean
 ---@field dropEquipment boolean
 ---@field staticItemCount uint|nil
 ---@field dynamicPercentageItemCount uint|nil
----@field currentoccurrences uint
+---@field currentOccurrences uint
 
----@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|'cursorStack', uint> @ Dictionary of each inventory to a cached total count across all items (count of each item all added togeather) were in that inventory.
+---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|'cursorStack', uint> @ Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
 ---@alias PlayerDropInventory_InventoryContents table<defines.inventory|'cursorStack', table<string, uint>> @ Dictionary of each inventory to a cached list of item name and counts in that inventory.
 
 local commandName = "muppet_streamer_player_drop_inventory"
 
 PlayerDropInventory.CreateGlobals = function()
     global.playerDropInventory = global.playerDropInventory or {}
-    global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {} ---@type table<uint, true> @ A dictionary of player indexs that have the effect active on them currently.
+    global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {} ---@type table<uint, true> @ A dictionary of player indexes that have the effect active on them currently.
     global.playerDropInventory.nextId = global.playerDropInventory.nextId or 0 ---@type uint
 end
 
@@ -53,7 +53,7 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment"})
     if commandData == nil then
         return
     end
@@ -145,7 +145,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         staticItemCount = data.quantityValue
     elseif data.quantityType == QuantityType.startingPercentage then
         local totalItemCount = PlayerDropInventory.GetPlayersItemCount(targetPlayer, data.dropEquipment)
-        staticItemCount = math.max(1, math.floor(totalItemCount / (100 / data.quantityValue))) -- Output will always be a uint based on the input values prior valdiation.
+        staticItemCount = math.max(1, math.floor(totalItemCount / (100 / data.quantityValue))) -- Output will always be a uint based on the input values prior validation.
     elseif data.quantityType == QuantityType.realtimePercentage then
         dynamicPercentageItemCount = data.quantityValue
     end
@@ -160,12 +160,12 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         player_index = targetPlayer_index,
         player = targetPlayer,
         gap = data.gap,
-        totaloccurrences = data.occurrences,
+        totalOccurrences = data.occurrences,
         dropOnBelts = data.dropOnBelts,
         dropEquipment = data.dropEquipment,
         staticItemCount = staticItemCount,
         dynamicPercentageItemCount = dynamicPercentageItemCount,
-        currentoccurrences = 0
+        currentOccurrences = 0
     }
     PlayerDropInventory.PlayerDropItems_Scheduled({tick = event.tick, instanceId = scheduledDropItemsData.player_index, data = scheduledDropItemsData})
 end
@@ -196,13 +196,13 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint @ End value will always end up as a uint from the validated input values.]]
     end ---@cast itemCountToDrop - nil
 
-    -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurence count has completed.
+    -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurrence count has completed.
     if totalItemCount > 0 then
         local itemCountDropped = 0
         local surface, position = player.surface, player.position
 
         -- Drop a single random item from across the range of inventories at a time until the required number of items have been dropped.
-        -- CODE NOTE: This is quite Lua code inefficient, but does ensure truely random items are dropped.
+        -- CODE NOTE: This is quite Lua code inefficient, but does ensure truly random items are dropped.
         while itemCountDropped < itemCountToDrop do
             -- Select the single random item number to be dropped from across the total item count.
             local itemNumberToDrop = math.random(1, totalItemCount)
@@ -281,9 +281,9 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         end
     end
 
-    -- Schedule the next occurence if we haven't completed them all yet.
-    data.currentoccurrences = data.currentoccurrences + 1
-    if data.currentoccurrences < data.totaloccurrences then
+    -- Schedule the next occurrence if we haven't completed them all yet.
+    data.currentOccurrences = data.currentOccurrences + 1
+    if data.currentOccurrences < data.totalOccurrences then
         EventScheduler.ScheduleEventOnce(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)

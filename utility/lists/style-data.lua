@@ -13,13 +13,13 @@
     Require the file and obtain the MuppetStyles dictionary in any usage scenarios (lua files) to get autocomplete list of all the styles and their options. Saves having to remember them or check which options are available in this source code.
         local MuppetStyles = require("utility.lists.style-data").MuppetStyles
         local MuppetFonts = require("utility.lists.style-data").MuppetFonts
-    If a sub field is available in the autocomplete list then one must be selected, otherwise you will end up with a blank style at runtime. For this reason (and simplicity) the margin, padding and other optional settings are just a single string with each combintion covered.
+    If a sub field is available in the autocomplete list then one must be selected, otherwise you will end up with a blank style at runtime. For this reason (and simplicity) the margin, padding and other optional settings are just a single string with each combination covered.
         i.e: MuppetStyles.flow.vertical.marginTL_spaced
     The final type of "plain" is with no padding, margin, etc. Its provided to comply with the above statement that a style autocomplete entry is only valid if you reach the end of the sub options list.
 ]]
 --
 
--- CODE NOTE: at present the data stage prototypes for GuiStyle are too incomlete to be added to this. 2022-07-26.
+-- CODE NOTE: at present the data stage prototypes for GuiStyle are too incomplete to be added to this. 2022-07-26.
 
 local StyleData = {} ---@class Utility_StyleData
 
@@ -282,7 +282,7 @@ StyleData.GeneratePrototypes = function()
 
     -- LABEL
     styleNamesGenerated.label = {} ---@type table<string, table<string, table<string, string>>>
-    for _, purpose in pairs({{"_text", Colors.white}, {"_heading", Colors.guiheadingcolor}}) do
+    for _, purpose in pairs({{"_text", Colors.white}, {"_heading", Colors.guiHeadingColor}}) do
         local purposeEmmyLuaName = string.sub(purpose[1], 2)
         styleNamesGenerated.label[purposeEmmyLuaName] = {}
         for _, textSize in pairs({{"_small", "_small"}, {"_medium", "_medium"}, {"_large", "_large"}}) do

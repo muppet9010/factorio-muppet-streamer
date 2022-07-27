@@ -107,7 +107,7 @@ EntityUtils.DestroyAllObjectsInArea = function(surface, positionedBoundingBox, o
     end
 end
 
--- Kills an entity and handles the optional arguments as Facotrio API doesn't accept nil arguments.
+-- Kills an entity and handles the optional arguments as Factorio API doesn't accept nil arguments.
 ---@param entity LuaEntity
 ---@param killerForce LuaForce
 ---@param killerCauseEntity? LuaEntity|nil

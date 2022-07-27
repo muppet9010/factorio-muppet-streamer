@@ -77,7 +77,7 @@ end
 CallForHelp.CallForHelpCommand = function(command)
     local commandName = "muppet_streamer_call_for_help"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "arrivalRadius", "callRadius", "sameSurfaceOnly", "sameTeamOnly", "blacklistedPlayerNames", "whitelistedPlayerNames", "callSelection", "number", "activePercentage"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "arrivalRadius", "callRadius", "sameSurfaceOnly", "sameTeamOnly", "blacklistedPlayerNames", "whitelistedPlayerNames", "callSelection", "number", "activePercentage"})
     if commandData == nil then
         return
     end
@@ -168,7 +168,7 @@ CallForHelp.CallForHelpCommand = function(command)
         activePercentage = 0
     end
 
-    -- Atleast one of number or activePercentage must have been set above 0.
+    -- At least one of number or activePercentage must have been set above 0.
     if number == 0 and activePercentage == 0 then
         CommandsUtils.LogPrintError(commandName, nil, "either number or activePercentage must be provided", command.parameter)
         return
@@ -301,7 +301,7 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
     local teleportResponse = PlayerTeleport.RequestTeleportToNearPosition(helpPlayer, targetPlayerSurface, targetPlayerPosition, arrivalRadius, MaxRandomPositionsAroundTargetToTry, MaxDistancePositionAroundTarget, helpPlayer.surface == targetPlayerSurface and targetPlayerPosition or nil)
 
     -- Handle the teleport response.
-    local pathRequestId = teleportResponse.pathRequestId -- Variables existance is a workaround for Sumneko missing object field nil detection.
+    local pathRequestId = teleportResponse.pathRequestId -- Variables existence is a workaround for Sumneko missing object field nil detection.
     if teleportResponse.teleportSucceeded == true then
         -- All completed.
         return
@@ -370,13 +370,13 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         if pathRequest.attempt > MaxPathfinderAttemptsForTargetLocation then
             game.print({"message.muppet_streamer_call_for_help_no_teleport_location_found", helpPlayer.name, pathRequest.targetPlayer.name})
         else
-            -- Make another request. Obtain fresh data where needed, but by and large try agian with the same target location and details to join others already teleported.
+            -- Make another request. Obtain fresh data where needed, but by and large try again with the same target location and details to join others already teleported.
             CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, pathRequest.targetPlayer.vehicle or pathRequest.targetPlayer.character, pathRequest.callForHelpId, pathRequest.attempt, pathRequest.sameSurfaceOnly, pathRequest.sameTeamOnly)
         end
     else
-        -- Path request succeded.
+        -- Path request succeeded.
 
-        -- CODE NOTE: As this has an unknown delay between request and result we need to validate everything important is unchanged before accepting the result and teleporting the player there. If something critical has changed we repeat the entire placement selection to avoid complicated code. But we don't increment the attempts so it's a free retry. Obtain fresh data where needed, but by and large try agian with the same target location and details to join others already teleported.
+        -- CODE NOTE: As this has an unknown delay between request and result we need to validate everything important is unchanged before accepting the result and teleporting the player there. If something critical has changed we repeat the entire placement selection to avoid complicated code. But we don't increment the attempts so it's a free retry. Obtain fresh data where needed, but by and large try again with the same target location and details to join others already teleported.
 
         -- Check the helping player is still alive and in a suitable game state (not editor) to be teleported. If they aren't suitable just abandon the teleport.
         if helpPlayer.controller_type ~= defines.controllers.character then
@@ -438,11 +438,11 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         end
     end
 
-    -- If theres no pending path requests left then this call for help is completed.
+    -- If there's no pending path requests left then this call for help is completed.
     CallForHelp.CheckIfCallForHelpCompleted(pathRequest)
 end
 
---- If theres no pending path requests left then this call for help is completed.
+--- If there's no pending path requests left then this call for help is completed.
 ---@param pathRequest CallForHelp_PathRequestObject
 CallForHelp.CheckIfCallForHelpCompleted = function(pathRequest)
     if next(global.callForHelp.callForHelpIds[pathRequest.callForHelpId].pendingPathRequests) == nil then

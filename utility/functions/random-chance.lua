@@ -1,5 +1,5 @@
 --[[
-    Handles selecting a random item from a list of inperfect selection chances.
+    Handles selecting a random item from a list of imperfect selection chances.
 ]]
 --
 
@@ -26,7 +26,7 @@ end
 
 --- Updates the 'chancePropertyName' named attribute of each entry in the referenced `dataSet` table to be proportional of a combined dataSet value of 1.
 ---
---- The dataset is a table of entries. Each entry has various keys that are used in the calling scope and ignored by this funciton. It also has a key of the name passed in as the chancePropertyName parameter that defines the chance of this result.
+--- The dataset is a table of entries. Each entry has various keys that are used in the calling scope and ignored by this function. It also has a key of the name passed in as the chancePropertyName parameter that defines the chance of this result.
 ---@param dataSet table[] @ The dataSet to be reviewed and updated.
 ---@param chancePropertyName string @ The attribute name that has the chance value per dataSet entry.
 ---@param skipFillingEmptyChance? boolean @ Defaults to FALSE. If TRUE then total chance below 1 will not be scaled up, so that nil results can be had in random selection.

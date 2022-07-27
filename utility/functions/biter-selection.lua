@@ -27,7 +27,7 @@ local BiterSelection = {} ---@class Utility_BiterSelection
 --                          PUBLIC FUNCTIONS
 ----------------------------------------------------------------------------------
 
---- Get the biters's xxx for the current evolution. Will cache the last result to avoid frequent lookups based on the probabilityGlobalName. Use different probabilityGlobalName's if different evolution values are going to be checked and so should be cached in parrallel.
+--- Get the biters's xxx for the current evolution. Will cache the last result to avoid frequent lookups based on the probabilityGlobalName. Use different probabilityGlobalName's if different evolution values are going to be checked and so should be cached in parallel.
 ---@param probabilityGlobalName string
 ---@param spawnerType UtilityBiterSelection_SpawnerTypes @ Biter and spitter are the base game unit spawners, but mods can add new named ones, so any string is accepted.
 ---@param evolution double
@@ -50,7 +50,7 @@ BiterSelection.GetBiterType = function(probabilityGlobalName, spawnerType, evolu
     return RandomChance.GetRandomEntryFromNormalisedDataSet(modEnemyProbabilities[spawnerType].probabilities, "chance").unitName
 end
 
---- Get the best (highest evolution) worm's entity name for the current evolution. Will cache the last result to avoid frequent lookups based on the wormEvoGlobalName. Use different wormEvoGlobalName's if different evolution values are going to be checked and so should be cached in parrallel.
+--- Get the best (highest evolution) worm's entity name for the current evolution. Will cache the last result to avoid frequent lookups based on the wormEvoGlobalName. Use different wormEvoGlobalName's if different evolution values are going to be checked and so should be cached in parallel.
 ---@param wormEvoGlobalName string
 ---@param evolution double
 ---@return string wormEntityName
@@ -76,9 +76,9 @@ end
 ---@param currentEvolution double
 ---@return UtilityBiterSelection_UnitChanceEntry[]
 BiterSelection._CalculateSpecificBiterSelectionProbabilities = function(spawnerType, currentEvolution)
-    local rawUnitProbs = game.entity_prototypes[spawnerType].result_units
+    local rawUnitProbabilities = game.entity_prototypes[spawnerType].result_units
     local currentEvolutionProbabilities = {} ---@type UtilityBiterSelection_UnitChanceEntry[]
-    for _, possibility in pairs(rawUnitProbs) do
+    for _, possibility in pairs(rawUnitProbabilities) do
         local startSpawnPointIndex  ---@type int
         for spawnPointIndex, spawnPoint in pairs(possibility.spawn_points) do
             if spawnPoint.evolution_factor <= currentEvolution then

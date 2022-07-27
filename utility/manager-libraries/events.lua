@@ -1,7 +1,7 @@
 --[[
     Events is used to register one or more functions to be run when a script.event occurs.
     It supports defines.events and custom events. Also offers a raise event method.
-    Intended for use with a modular script design to avoid having to link to each modulars functions in a centralised event handler.
+    Intended for use with a modular script design to avoid having to link to each modular functions in a centralised event handler.
 
     CODE NOTE: this has been typed, but the greyness between defines.events being a number, custom event uints and custom names as strings has caused some confusion in it. If refactoring the internal code try and clear this all up after proper review and testing.
 ]]
@@ -25,8 +25,8 @@ MOD.eventFilters = MOD.eventFilters or {} ---@type table<int, table<string, Even
 --- Called from OnLoad() from each script file. Registers the event in Factorio and the handler function for all event types and custom events.
 ---@param eventName defines.events|string @ Either Factorio event or a custom modded event name.
 ---@param handlerName string @ Unique name of this event handler instance. Used to avoid duplicate handler registration and if removal is required.
----@param handlerFunction fun(eventData: EventData) @ The function that is called when the event triggers. When the function is called it will recieve the standard single Factorio event specific data table argument, which is at a minimum the EventData class.
----@param thisFilterData? EventFilter[]|nil @ List of Factorio EventFilters the mod should recieve this eventName occurances for or nil for all occurances. If an empty table (not nil) is passed in then nothing is registered for this handler (silently rejected). Filtered events have to expect to recieve results outside of their own filters. As a Factorio event type can only be subscribed to one time with a combined Filter list of all desires across the mod.
+---@param handlerFunction fun(eventData: EventData) @ The function that is called when the event triggers. When the function is called it will receive the standard single Factorio event specific data table argument, which is at a minimum the EventData class.
+---@param thisFilterData? EventFilter[]|nil @ List of Factorio EventFilters the mod should receive this eventName occurrences for or nil for all occurrences. If an empty table (not nil) is passed in then nothing is registered for this handler (silently rejected). Filtered events have to expect to receive results outside of their own filters. As a Factorio event type can only be subscribed to one time with a combined Filter list of all desires across the mod.
 ---@return uint|nil registeredEventId? @ The eventId raised for this handler (if one was). Useful for custom event names when you need to store the eventId to return via a remote interface call.
 Events.RegisterHandlerEvent = function(eventName, handlerName, handlerFunction, thisFilterData)
     if eventName == nil or handlerName == nil or handlerFunction == nil then
@@ -182,7 +182,7 @@ Events._RegisterEvent = function(eventName, thisFilterName, thisFilterData)
     end
     local eventId  ---@type uint
     local filterData  ---@type table
-    thisFilterData = thisFilterData ~= nil and TableUtils.DeepCopy(thisFilterData) or nil -- Deepcopy it so if a persisted or shared table is passed in we don't cause changes to source table.
+    thisFilterData = thisFilterData ~= nil and TableUtils.DeepCopy(thisFilterData) or nil -- DeepCopy it so if a persisted or shared table is passed in we don't cause changes to source table.
     if type(eventName) == "number" then
         -- Factorio event.
         eventId = eventName --[[@as uint]]
@@ -195,12 +195,12 @@ Events._RegisterEvent = function(eventName, thisFilterName, thisFilterData)
             MOD.eventFilters[eventId][thisFilterName] = thisFilterData
             local currentFilter, currentHandler = script.get_event_filter(eventId), script.get_event_handler(eventId)
             if currentHandler ~= nil and currentFilter == nil then
-                -- an event is registered already and has no filter, so already fully lienent.
+                -- an event is registered already and has no filter, so already fully lenient.
                 return eventId
             else
                 -- add new filter to any existing old filter and let it be re-applied.
                 filterData = {} ---@type EventFilter[]
-                for _, filterTable in pairs(MOD.eventFilters[eventId] --[[@as table<any, any>[][] @ Not entirely sure on this, but it makes it happy and there isn;t any Type Def for event filters from Debugger.]]) do
+                for _, filterTable in pairs(MOD.eventFilters[eventId] --[[@as table<any, any>[][] @ Not entirely sure on this, but it makes it happy and there isn't any Type Def for event filters from Debugger.]]) do
                     filterTable[1].mode = "or"
                     for _, filterEntry in pairs(filterTable) do
                         table.insert(filterData, filterEntry)

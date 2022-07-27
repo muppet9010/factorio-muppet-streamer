@@ -10,14 +10,14 @@ local LoggingUtils = require("utility.helper-utils.logging-utils")
 local Constants = require("constants")
 local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 
----@alias UtilityGuiUtil_StoreName string @ A named container that GUI elements have their references saved within under the GUI elements name and type. Used to provide logical seperation of GUI elements stored. Typically used for different GUis or major sections of a GUI, as the destroy GUI element functions can handle whole StoreNames automatically.
+---@alias UtilityGuiUtil_StoreName string @ A named container that GUI elements have their references saved within under the GUI elements name and type. Used to provide logical separation of GUI elements stored. Typically used for different GUis or major sections of a GUI, as the destroy GUI element functions can handle whole StoreNames automatically.
 ---@alias UtilityGuiUtil_GuiElementName string @ A generally unique string made by combining an elements name and type with mod name. However if storing references to the created elements within the libraries player element reference storage we need never obtain the GUI element by name and thus it doesn't have to be unique. Does need to be unique within the StoreName however. Format is: ModName-ElementName-ElementType ,i.e. "my_mod-topHeading-label".
 
 --- Takes generally everything that GuiElement.add() accepts in Factorio API with the below key differences:
 --- - Compulsory "parent" argument of who to create the GUI element under if it isn't a child element itself.
 --- - Doesn't support the "name" attribute, but offers "descriptiveName" instead. See the attributes details.
 ---@class UtilityGuiUtil_ElementDetails_Add : UtilityGuiUtil_ElementDetails_LuaGuiElement.add_param
---- The GUI element this newly created element will be a child of. Not needed (ignored) if this ElementDetails is specificed as a child within another ElementDetails specification.
+--- The GUI element this newly created element will be a child of. Not needed (ignored) if this ElementDetails is specified as a child within another ElementDetails specification.
 ---@field parent? LuaGuiElement|nil
 --- A descriptive name of the element. If provided will be automatically merged with the element's type and the mod name to make a semi unique reference name of type UtilityGuiUtil_GuiElementName that the GUI element will have as its "name" attribute.
 ---@field descriptiveName? string|nil
@@ -26,7 +26,7 @@ local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 ---@field styling? UtilityGuiUtil_ElementDetails_styling|nil
 ---@field caption? UtilityGuiUtil_ElementDetails_caption|nil
 ---@field tooltip? UtilityGuiUtil_ElementDetails_caption|nil
---- An array of other Element Details to recursively add in this hierachy. Parent argument isn't required for children and is ignored if provided for them as it's worked out during recursive loop of creating the children.
+--- An array of other Element Details to recursively add in this hierarchy. Parent argument isn't required for children and is ignored if provided for them as it's worked out during recursive loop of creating the children.
 ---@field children? UtilityGuiUtil_ElementDetails_Add[]|nil
 ---@field registerClick? UtilityGuiUtil_ElementDetails_registerClick|nil
 ---@field registerCheckedStateChange? UtilityGuiUtil_ElementDetails_registerCheckedStateChange|nil
@@ -50,7 +50,7 @@ local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 ---@field data table @ Any provided data will be passed through to the actionName's registered function upon the GUI element being checked/unchecked.
 ---@field disabled boolean If TRUE then checked state change not registered (for use with GUI templating). Otherwise FALSE or nil will register normally.
 
---- Limited subset of UtilityGuiUtil_ElementDetails_Add options that can be updated on an existing Gui Element, plus the writable LuaGuiElement attributes.
+--- Limited subset of UtilityGuiUtil_ElementDetails_Add options that can be updated on an existing Gui Element, plus the writeable LuaGuiElement attributes.
 ---
 --- Review the LuaGuiElement documentation for which attributes can be directly set on an existing element (https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement).
 ---@class UtilityGuiUtil_ElementDetails_Update : UtilityGuiUtil_ElementDetails_LuaGuiElement.updatable
@@ -79,11 +79,12 @@ GuiUtil.AddElement = function(elementDetails)
         error("GuiUtil.AddElement() doesn't support the 'name' attribute being provided, use 'descriptiveName' instead.")
     end
     if elementDetails[1] ~= nil then
-        error("GuiUtil.AddElement() recieved a non-key'd value. This is a syntax mistake in the ElementDetails as something is outside of a list.")
+        error("GuiUtil.AddElement() received a non-key'd value. This is a syntax mistake in the ElementDetails as something is outside of a list.")
     end
     if elementDetails.style ~= nil and type(elementDetails.style) ~= "string" then
         error("GuiUtil.AddElement() had a style attribute set other than a string. Common causes are a table being passed in as MuppetStyles hasn't been qualified to a final style string.")
     end
+    -- cSpell:ignore styleing @ Just allow here, but don;t autocomplete for it.
     if elementDetails["styleing"] ~= nil then
         error("GuiUtil.AddElement() had a 'styleing' attribute, this is a typo for 'styling'.")
     end
@@ -350,7 +351,7 @@ end
 
 --- Returns the specified attributeName's locale string from the elementDetails, while replacing the string "self" if found with an autogenerated locale string. The auto generated string is in the form: "gui-" + TYPE + "." + UtilityGuiUtil_GuiElementName. i.e. "gui-caption.my_mod-topHeading-label". So it matches if a standard locale naming scheme is in use.
 ---
---- Is safe to call for a attributeName that doesn;t exist in the elementDetails, it will just return nil.
+--- Is safe to call for a attributeName that doesn't exist in the elementDetails, it will just return nil.
 ---@param elementDetails UtilityGuiUtil_ElementDetails_Add
 ---@param attributeName "'caption'"|"'tooltip'"
 ---@return string|table|nil updatedAttributeNameObject
@@ -377,7 +378,7 @@ GuiUtil._ReplaceLocaleNameSelfWithGeneratedName = function(elementDetails, attri
 end
 
 --------------------------------------------------------------------------
--- Custom Objects for use in mutliple public classes
+-- Custom Objects for use in multiple public classes
 --------------------------------------------------------------------------
 
 --- A table of LuaStyle attribute names and values (key/value) to be applied post element creation (after style). Saves having to capture the added element and then set style attributes one at a time in calling code.
@@ -403,17 +404,17 @@ end
 ---
 --- Note: this is registered each time its run, but as its a single registration globally within the mod under the given name the entries can safely overwrite each other. The data attribute isn't per player, but instead is a global context for all players who trigger this click. Data is intended for uses like passing element name/type details to generic response functions.
 ---
---- If being used make sure to review Gui-Actions-Click.lua and its GuiActionsClick.MonitorGuiClickActions() function as its a prereq for the features usage. Also need to register the click actionName to a callback function with GuiActionsClick.LinkGuiClickActionNameToFunction().
+--- If being used make sure to review Gui-Actions-Click.lua and its GuiActionsClick.MonitorGuiClickActions() function as its a pre-req for the features usage. Also need to register the click actionName to a callback function with GuiActionsClick.LinkGuiClickActionNameToFunction().
 ---@alias UtilityGuiUtil_ElementDetails_registerClick UtilityGuiUtil_ElementDetails_RegisterClickOption
 
 --- If populated registers a function to be triggered when a user checks/un-checks the GUI element. Does this by passing the supplied table of arguments to GuiActionsChecked.RegisterGuiForCheckedStateChange() which configures and manages detection of the checked state change and the functions calling. See that library and function for full usage details.
 ---
 --- Note: this is registered each time its run, but as its a single registration globally within the mod under the given name the entries can safely overwrite each other. The data attribute isn't per player, but instead is a global context for all players who trigger this click. Data is intended for uses like passing element name/type details to generic response functions.
 ---
---- If being used make sure to review Gui-Actions-Checked.lua and its GuiActionsChecked.MonitorGuiCheckedActions() function as its a prereq for the features usage. Also need to register the checked actionName to a callback function with GuiActionsChecked.LinkGuiCheckedActionNameToFunction().
+--- If being used make sure to review Gui-Actions-Checked.lua and its GuiActionsChecked.MonitorGuiCheckedActions() function as its a pre-req for the features usage. Also need to register the checked actionName to a callback function with GuiActionsChecked.LinkGuiCheckedActionNameToFunction().
 ---@alias UtilityGuiUtil_ElementDetails_registerCheckedStateChange UtilityGuiUtil_ElementDetails_RegisterCheckedOption
 
---- A table of key/value pairs that is applied to the element via the API post element creation. Intended for the occasioanl adhock attributes you want to update or can't set during the add() API function. i.e. drag_target or auto_center.
+--- A table of key/value pairs that is applied to the element via the API post element creation. Intended for the occasional adhoc attributes you want to update or can't set during the add() API function. i.e. drag_target or auto_center.
 ---
 --- [View documentation](https://lua-api.factorio.com/latest/LuaGuiElement.html)
 ---
@@ -1016,7 +1017,7 @@ end
 ---[View documentation](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.number)
 ---@field number double
 ---[RW]
----Whether this textfield is limited to only numberic characters.
+---Whether this textfield is limited to only numeric characters.
 ---
 ---[View documentation](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.numeric)
 ---
@@ -1162,3 +1163,5 @@ end
 ---@field zoom double
 
 return GuiUtil
+
+-- cSpell:ignore dont @ Used in some of the GuiElement definitions, but don't want as a real word and I've never used it so no need for it in global dictionaries/lists.

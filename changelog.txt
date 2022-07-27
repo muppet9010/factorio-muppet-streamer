@@ -93,7 +93,7 @@ Date: 2022-05-07
     - Leaky flamethrower feature - if weapon/ammo items and/or filters were removed to equip the player with a flamethrower then these are restored upon the effect completing or the player dieing.
     - Leaky flamethrower feature - random aiming across a larger distribution area.
     - Leaky flamethrower feature - after effect ends the player's active weapon is returned to what it was before the effect started, rather than being left on whichever weapon slot the flamethrower was put in.
-    - Pants On Fire - if you stay in a vehicle you will take exponential damage until you get out. This will scale quickly to handle players from no armour up to heavily shielded players.
+    - Pants On Fire - if you stay in a vehicle you will take exponential damage until you get out. This will scale quickly to handle players from no armor up to heavily shielded players.
   Bugfixes:
     - Give Weapon & Ammo feature - when forceWeaponToSlot set to True it will force the weapon into a filtered gun slot if needed.
     - Leaky flamethrower feature - handles if all slots are full/filtered by clearing one for the flamethrower.

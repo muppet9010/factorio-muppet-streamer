@@ -41,7 +41,7 @@ end
 ---@param force LuaForce
 BuildingGhosts.EnableForForce = function(force)
     if force.ghost_time_to_live < customGhostLife then
-        force.ghost_time_to_live = math.min(force.ghost_time_to_live + customGhostLife, MathUtils.uintMax) --[[@as uint @ Safe as any sensible values added togetaher will be millions of the 2 billion max.]]
+        force.ghost_time_to_live = math.min(force.ghost_time_to_live + customGhostLife, MathUtils.uintMax) --[[@as uint @ Safe as any sensible values added together will be millions of the 2 billion max.]]
     end
 end
 

@@ -17,7 +17,7 @@ MOD.guiCheckedActions = MOD.guiCheckedActions or {} ---@type table<string, funct
 --                                    Public Functions
 --------------------------------------------------------------------------------------------
 
---- Must be called once within the mod to activate the library for reacting to gui checkeds. On other direct registering to the "on_gui_checked_state_changed" event is allowed within the mod.
+--- Must be called once within the mod to activate the library for reacting to gui checked. On other direct registering to the "on_gui_checked_state_changed" event is allowed within the mod.
 ---
 --- Called from the root of Control.lua or from OnLoad.
 GuiActionsChecked.MonitorGuiCheckedActions = function()
@@ -37,8 +37,8 @@ end
 --- Generally called from the GuiUtil library now, but can be called manually from OnLoad().
 ---
 --- Called to register a checkbox's name and type to a specific GUI checked action name and optional standard data (global to all players). Only needs to be run once per mod.
----@param elementName string @ The name of the element. Must be unique within mod once elementName and elementType arguments are combined togeather.
----@param elementType string @ The type of the element. Must be unique within mod once elementName and elementType arguments are combined togeather.
+---@param elementName string @ The name of the element. Must be unique within mod once elementName and elementType arguments are combined together.
+---@param elementType string @ The type of the element. Must be unique within mod once elementName and elementType arguments are combined together.
 ---@param actionName string @ The actionName of the registered function to be called when the GUI element is checked.
 ---@param data? any|nil @ Any provided data will be passed through to the actionName's registered function upon the GUI element being checked.
 ---@param disabled? boolean|nil @ If TRUE then checked not registered (for use with GUI templating). Otherwise FALSE or nil will registered normally.
@@ -57,9 +57,9 @@ end
 
 --- Called when desired to remove a specific checkbox from triggering its action.
 ---
---- Should be called to remove links for checkboxs when their elements are removed to stop global data lingering. But newly registered functions will overwrite them so not critical to remove.
----@param elementName string @ Corrisponds to the same argument name on GuiActionsChecked.RegisterGuiForCheckedStateChange().
----@param elementType string @ Corrisponds to the same argument name on GuiActionsChecked.RegisterGuiForCheckedStateChange().
+--- Should be called to remove links for checkboxes when their elements are removed to stop global data lingering. But newly registered functions will overwrite them so not critical to remove.
+---@param elementName string @ Corresponds to the same argument name on GuiActionsChecked.RegisterGuiForCheckedStateChange().
+---@param elementType string @ Corresponds to the same argument name on GuiActionsChecked.RegisterGuiForCheckedStateChange().
 GuiActionsChecked.RemoveGuiForCheckedStateChange = function(elementName, elementType)
     if elementName == nil then
         error("GuiActions.RemoveButtonName called with missing arguments")
@@ -75,7 +75,7 @@ end
 --                                    Internal Functions
 --------------------------------------------------------------------------------------------
 
---- Called when each on_gui_checked_state_changed event orrurs and identifies any registered actionName functions to trigger.
+--- Called when each on_gui_checked_state_changed event occurs and identifies any registered actionName functions to trigger.
 ---@param rawFactorioEventData on_gui_checked_state_changed
 GuiActionsChecked._HandleGuiCheckedAction = function(rawFactorioEventData)
     if global.UTILITYGUIACTIONSGUICHECKED == nil then

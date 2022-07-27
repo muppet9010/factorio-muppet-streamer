@@ -65,11 +65,11 @@ Common.CallCommandFromRemote = function(commandName, options)
 
     -- Check options are populated.
     if options == nil then
-        CommandsUtils.LogPrintError("Remote Interface", commandName, "recieved no option data", nil)
+        CommandsUtils.LogPrintError("Remote Interface", commandName, "received no option data", nil)
         return
     end
 
-    -- Get the command string equivilent for the remote call.
+    -- Get the command string equivalent for the remote call.
     local commandString
     if type(options) == "string" then
         -- Options should be a JSON string already so can just pass it through.
@@ -78,7 +78,7 @@ Common.CallCommandFromRemote = function(commandName, options)
         -- Options should be a table of settings, so convert it to JSOn and just pass it through.
         commandString = game.table_to_json(options)
     else
-        CommandsUtils.LogPrintError("Remote Interface", commandName, "recieved unexpected option data type: " .. type(options), TableUtils.TableContentsToJSON(options, nil, true))
+        CommandsUtils.LogPrintError("Remote Interface", commandName, "received unexpected option data type: " .. type(options), TableUtils.TableContentsToJSON(options, nil, true))
         return
     end
 

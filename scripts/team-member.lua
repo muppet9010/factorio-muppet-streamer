@@ -1,4 +1,4 @@
--- This is a legacy feature and while it should still work, it isn't being kept up to date in terms of code style. Was made for Colonel Will many years ago and hasn;t been used for years (2022).
+-- This is a legacy feature and while it should still work, it isn't being kept up to date in terms of code style. Was made for Colonel Will many years ago and hasn't been used for years (2022).
 
 local TeamMember = {} ---@class TeamMember
 local Events = require("utility.manager-libraries.events")
@@ -157,7 +157,7 @@ end
 TeamMember.RemoteIncreaseTeamMemberLevel = function(changeQuantity)
     local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max remote interface "
     if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] ~= 0 then
-        LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
+        LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researches aren't being used.")
         return
     end
     global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount + changeQuantity
@@ -170,22 +170,22 @@ TeamMember.CommandChangeTeamMemberLevel = function(command)
     local errorMessageStartText = "ERROR: muppet_streamer_change_team_member_max command "
     if #args ~= 1 then
         LoggingUtils.LogPrintError(errorMessageStartText .. "requires a value to be provided to change the level by.")
-        LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStartText .. "received text: " .. command.parameter)
         return
     end
     local changeValueString = args[1]
     local changeValue = tonumber(changeValueString)
     if changeValue == nil then
         LoggingUtils.LogPrintError(errorMessageStartText .. "requires a number value to be provided to change the level by, provided: " .. changeValueString)
-        LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStartText .. "received text: " .. command.parameter)
         return
     else
         changeValue = math.floor(changeValue) ---@type int
     end
 
     if settings.startup["muppet_streamer-recruit_team_member_technology_cost"].value --[[@as int]] ~= 0 then
-        LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researchs aren't being used.")
-        LoggingUtils.LogPrintError(errorMessageStartText .. "recieved text: " .. command.parameter)
+        LoggingUtils.LogPrintError(errorMessageStartText .. " is only suitable for use when technology researches aren't being used.")
+        LoggingUtils.LogPrintError(errorMessageStartText .. "received text: " .. command.parameter)
         return
     end
 

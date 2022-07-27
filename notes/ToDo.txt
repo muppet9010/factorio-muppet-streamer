@@ -32,7 +32,7 @@ Future Concepts:
         - option: spider goes in search of water and/or fish.
         - option: walk towards nearest biter base (use teleport biter nest tracking). - use some sort of back off when damaged.
         - option: walk towards nearest enemy unit group (use teleport to nearest biter logic). - use some sort of back off when damaged.
-    - Change player (named or all) characters to other things, i.e. biters. Need to check how armour, ammo, etc handles this. Also would need to be delayed until after other active event has finished.
+    - Change player (named or all) characters to other things, i.e. biters. Need to check how armor, ammo, etc handles this. Also would need to be delayed until after other active event has finished.
     - Custom grenade, cluster grenade and nuke:
         - Requested by eoraptor666 (BigMonD).
         - Mod options for the custom:

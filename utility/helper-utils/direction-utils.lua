@@ -25,7 +25,7 @@ DirectionUtils.RotateDirectionByDirection = function(directionToRotate, referenc
     end
 end
 
---- Takes an orientation (0-1) and returns the nerest direction (int 0-7).
+--- Takes an orientation (0-1) and returns the nearest direction (int 0-7).
 ---
 --- Should be done locally if called frequently.
 ---@param orientation RealOrientation
@@ -42,7 +42,7 @@ DirectionUtils.OrientationToNearestDirection = function(orientation)
     end
 end
 
---- Takes an orientation (0-1) and returns the nerest cardinal direction (int 0,2,4,6).
+--- Takes an orientation (0-1) and returns the nearest cardinal direction (int 0,2,4,6).
 ---
 --- Should be done locally if called frequently.
 ---@param orientation RealOrientation

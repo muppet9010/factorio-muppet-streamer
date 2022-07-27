@@ -8,9 +8,9 @@ local Colors = {} ---@class Utility_Colors
 -- Custom colors can be added, but shouldn't be removed or changed.
 
 --Custom Colors
-Colors.lightred = {255, 100, 100, 255} ---@type Color -- Good for red writing on GUI backgrounds.
-Colors.midred = {255, 50, 50, 255} ---@type Color -- Between red and lightred, used for writing on the screen.
-Colors.guiheadingcolor = {255, 230, 192, 255} ---@type Color
+Colors.lightRed = {255, 100, 100, 255} ---@type Color -- Good for red writing on GUI backgrounds.
+Colors.midRed = {255, 50, 50, 255} ---@type Color -- Between red and lightRed, used for writing on the screen.
+Colors.guiHeadingColor = {255, 230, 192, 255} ---@type Color
 
 --Red
 Colors.lightsalmon = {255, 160, 122, 255} ---@type Color
@@ -173,8 +173,8 @@ Colors.sienna = {160, 82, 45, 255} ---@type Color
 Colors.brown = {165, 42, 42, 255} ---@type Color
 Colors.maroon = {128, 0, 0, 255} ---@type Color
 
--- Named presets - Must be last so we can reference allready added values.
-Colors.errorMessage = Colors.midred
+-- Named presets - Must be last so we can reference already added values.
+Colors.errorMessage = Colors.midRed
 Colors.warningMessage = Colors.orange
 
 return Colors

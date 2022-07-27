@@ -17,8 +17,8 @@ end
 MathUtils.RoundNumberToDecimalPlaces = function(num, numDecimalPlaces)
     local result
     if numDecimalPlaces ~= nil and numDecimalPlaces > 0 then
-        local mult = 10 ^ numDecimalPlaces
-        result = math_floor(num * mult + 0.5) / mult
+        local multiplier = 10 ^ numDecimalPlaces
+        result = math_floor((num * multiplier) + 0.5) / multiplier
     else
         result = math_floor(num + 0.5)
     end
@@ -42,7 +42,7 @@ MathUtils.IsNumberNan = function(value)
     end
 end
 
---- This steps through the ints with min and max being seperatee steps.
+--- This steps through the ints with min and max being separate steps.
 ---@param value int
 ---@param min int
 ---@param max int
@@ -72,7 +72,7 @@ MathUtils.LoopFloatValueWithinRange = function(value, min, max)
     end
 end
 
---- This treats the min and max values as equal when looping: max - 0.1, max/min, min + 0.1. But maxExclusive will give the minInclusive value. So maxExclsuive can never be returned.
+--- This treats the min and max values as equal when looping: max - 0.1, max/min, min + 0.1. But maxExclusive will give the minInclusive value. So maxExclusive can never be returned.
 ---
 --- Should be done locally if called frequently.
 ---@param value double
@@ -225,7 +225,7 @@ MathUtils.ClampToFloat = function(value, min, max)
     end
 end
 
--- This doesn't guarentee correct on some of the edge cases, but is as close as possible assuming that 1/256 is the variance for the same number (Bilka, Dev on Discord)
+-- This doesn't guarantee correct on some of the edge cases, but is as close as possible assuming that 1/256 is the variance for the same number (Bilka, Dev on Discord)
 MathUtils.FuzzyCompareDoubles = function(num1, logic, num2)
     local numDif = num1 - num2
     local variance = 1 / 256

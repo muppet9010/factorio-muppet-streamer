@@ -69,7 +69,7 @@ StringUtils.FormatSurfacePositionToString = function(surfaceId, positionTable)
     return surfaceId .. "_" .. positionTable.x .. "," .. positionTable.y --[[@as SurfacePositionString]]
 end
 
---- Backwards converts a SurfacePositionString to usable data. This is ineffecient and should only be used for debugging.
+--- Backwards converts a SurfacePositionString to usable data. This is inefficient and should only be used for debugging.
 ---@param surfacePositionString SurfacePositionString
 ---@return uint surfaceIndex
 ---@return MapPosition position
@@ -180,7 +180,7 @@ StringUtils.DisplayTimeOfTicks = function(inputTicks, displayLargestTimeUnit, di
     end
 end
 
---- Seperates out the number and unit from when they combined in a single string, i.e. 5Kwh
+--- Separates out the number and unit from when they combined in a single string, i.e. 5Kwh
 ---@param text string
 ---@return double number
 ---@return string unit
