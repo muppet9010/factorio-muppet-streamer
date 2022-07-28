@@ -115,4 +115,28 @@ Common.CallCommandFromRemote = function(commandName, options)
     end
 end
 
+--- Gets a valid lua item prototype for the request and raises any errors needed.
+---@param itemName string
+---@param itemType string
+---@param mandatory boolean
+---@param commandName string @ Used for error messages.
+---@param argumentName? string|nil @ Used for error messages.
+---@param commandString? string|nil @ Used for error messages.
+---@return LuaItemPrototype|nil itemPrototype
+---@return boolean validArgument @ If false the argument is invalid for the command and it should probably stop execution.
+Common.GetItemPrototype = function(itemName, itemType, mandatory, commandName, argumentName, commandString)
+    if not CommandsUtils.CheckStringArgument(itemName, mandatory, commandName, argumentName, nil, commandString) then
+        return nil, false
+    end
+    local weaponType ---@type LuaItemPrototype|nil
+    if itemName ~= nil and itemName ~= "" then
+        weaponType = game.item_prototypes[itemName]
+        if weaponType == nil or weaponType.type ~= itemType then
+            CommandsUtils.LogPrintError(commandName, argumentName, "isn't a valid " .. itemType .. " type: " .. tostring(itemName), commandString)
+            return nil, false
+        end
+    end
+    return weaponType, true
+end
+
 return Common

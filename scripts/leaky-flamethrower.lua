@@ -17,6 +17,8 @@ local EffectEndStatus = {
 ---@class LeakyFlamethrower_ScheduledEventDetails
 ---@field target string @ Target player's name.
 ---@field ammoCount uint
+---@field weaponType LuaItemPrototype
+---@field ammoType LuaItemPrototype
 
 ---@class LeakyFlamethrower_ShootFlamethrowerDetails
 ---@field player LuaPlayer
@@ -29,11 +31,15 @@ local EffectEndStatus = {
 ---@field usedSomeAmmo boolean @ If the player has actually used some of their ammo, otherwise the player's weapons are still on cooldown.
 ---@field startingAmmoItemStacksCount uint @ How many item stacks of ammo the player had when we start trying to fire the weapon.
 ---@field startingAmmoItemStackAmmo uint @ The "ammo" property of the ammo item stack the player had when we start trying to fire the weapon.
+---@field weaponType LuaItemPrototype
+---@field ammoType LuaItemPrototype
 
 ---@class LeakyFlamethrower_AffectedPlayersDetails
 ---@field flamethrowerGiven boolean @ If a flamethrower weapon had to be given to the player or if they already had one.
 ---@field burstsLeft uint
 ---@field removedWeaponDetails UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
+---@field weaponType LuaItemPrototype
+---@field ammoType LuaItemPrototype
 
 local commandName = "muppet_streamer_leaky_flamethrower"
 
@@ -57,7 +63,7 @@ end
 
 ---@param command CustomCommandData
 LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "ammoCount" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "ammoCount", "weaponType", "ammoType" })
     if commandData == nil then
         return
     end
@@ -78,9 +84,31 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
         return
     end ---@cast ammoCount uint
 
+    local weaponType, valid = Common.GetItemPrototype(commandData.weaponType, "gun", false, commandName, "weaponType", command.parameter)
+    if not valid then return end
+    if weaponType == nil then
+        -- No custom weapon set, so use the base game weapon and confirm its valid.
+        weaponType = game.item_prototypes["flamethrower"]
+        if weaponType == nil or weaponType.type ~= "gun" then
+            CommandsUtils.LogPrintError(commandName, nil, "tried to use base game 'flamethrower' weapon, but it doesn't exist in this save.", command.parameter)
+            return
+        end
+    end
+
+    local ammoType, valid = Common.GetItemPrototype(commandData.ammoType, "ammo", false, commandName, "ammoType", command.parameter)
+    if not valid then return end
+    if ammoType == nil then
+        -- No custom ammo set, so use the base game ammo and confirm its valid.
+        ammoType = game.item_prototypes["flamethrower-ammo"]
+        if ammoType == nil or ammoType.type ~= "ammo" then
+            CommandsUtils.LogPrintError(commandName, nil, "tried to use base game 'flamethrower-ammo' ammo, but it doesn't exist in this save.", command.parameter)
+            return
+        end
+    end
+
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 ---@type uint @ Needed for weird bug reason, maybe in Sumneko or maybe the plugin with its fake global.
     ---@type LeakyFlamethrower_ScheduledEventDetails
-    local scheduledEventDetails = { target = target, ammoCount = ammoCount }
+    local scheduledEventDetails = { target = target, ammoCount = ammoCount, weaponType = weaponType, ammoType = ammoType }
     EventScheduler.ScheduleEventOnce(scheduleTick, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, scheduledEventDetails)
 end
 
@@ -104,7 +132,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     end
 
     targetPlayer.driving = false
-    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, "flamethrower", true, true, "flamethrower-ammo") ---@cast removedWeaponDetails - nil @ removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equipped (not allowing it to go in to the player's inventory).
+    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponType.name, true, true, data.ammoType.name) ---@cast removedWeaponDetails - nil @ removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equipped (not allowing it to go in to the player's inventory).
 
     if flamethrowerGiven == nil then
         CommandsUtils.LogPrintError(commandName, nil, "target player can't be given a flamethrower for some odd reason: " .. data.target, nil)
@@ -116,26 +144,26 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     if selectedAmmoItemStack.valid_for_read then
         -- There's a stack there and it will be flamethrower ammo from when we forced the weapon to the player.
         -- Just give the ammo to the player and it will auto assign it correctly.
-        local inserted = targetPlayer.insert({ name = "flamethrower-ammo", count = data.ammoCount })
+        local inserted = targetPlayer.insert({ name = data.ammoType.name, count = data.ammoCount })
         if inserted < data.ammoCount then
-            targetPlayer.surface.spill_item_stack(targetPlayer.position, { name = "flamethrower-ammo", count = data.ammoCount - inserted }, true, nil, false)
+            targetPlayer.surface.spill_item_stack(targetPlayer.position, { name = data.ammoType.name, count = data.ammoCount - inserted }, true, nil, false)
         end
     else
         -- No current ammo in the slot. So just set our required one.
-        selectedAmmoItemStack.set_stack({ name = "flamethrower-ammo", count = data.ammoCount })
+        selectedAmmoItemStack.set_stack({ name = data.ammoType.name, count = data.ammoCount })
     end
 
     -- Check the player has the weapon equipped as expected. (same as checking logic as when it tries to fire the weapon).
     local selectedGunIndex = targetPlayer.character.selected_gun_index
     local selectedGunInventory = targetPlayer.get_inventory(defines.inventory.character_guns)[selectedGunIndex]
-    if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= "flamethrower" then
+    if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= data.weaponType.name then
         -- Flamethrower has been removed as active weapon by some script.
         CommandsUtils.LogPrintError(commandName, nil, "target player weapon state isn't right for some odd reason: " .. data.target, nil)
         return
     end
     -- Check the player has the weapon's ammo equipped as expected. (same as checking logic as when it tries to fire the weapon).
     local selectedAmmoInventory = targetPlayer.get_inventory(defines.inventory.character_ammo)[selectedGunIndex]
-    if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= "flamethrower-ammo" then
+    if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= data.ammoType.name then
         -- Ammo has been removed by some script. As we wouldn't have reached this point in a managed loop as its beyond the last burst.
         CommandsUtils.LogPrintError(commandName, nil, "target player ammo state isn't right for some odd reason: " .. data.target, nil)
         return
@@ -148,14 +176,14 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     global.originalPlayersPermissionGroup[targetPlayer_index] = global.originalPlayersPermissionGroup[targetPlayer_index] or targetPlayer.permission_group
 
     targetPlayer.permission_group = LeakyFlamethrower.GetOrCreatePermissionGroup()
-    global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = { flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails }
+    global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = { flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails, weaponType = data.weaponType, ammoType = data.ammoType }
 
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
     game.print({ "message.muppet_streamer_leaky_flamethrower_start", targetPlayer.name })
 
     ---@type LeakyFlamethrower_ShootFlamethrowerDetails
-    local shootFlamethrowerDetails = { player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index, usedSomeAmmo = false, startingAmmoItemStacksCount = startingAmmoItemStacksCount, startingAmmoItemStackAmmo = startingAmmoItemStackAmmo }
+    local shootFlamethrowerDetails = { player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index, usedSomeAmmo = false, startingAmmoItemStacksCount = startingAmmoItemStacksCount, startingAmmoItemStackAmmo = startingAmmoItemStackAmmo, weaponType = data.weaponType, ammoType = data.ammoType }
     ---@type UtilityScheduledEvent_CallbackObject
     local shootFlamethrowerCallbackObject = { tick = eventData.tick, instanceId = targetPlayer_index, data = shootFlamethrowerDetails }
     LeakyFlamethrower.ShootFlamethrower(shootFlamethrowerCallbackObject)
@@ -173,7 +201,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
     -- Check the player has the weapon equipped as expected.
     local selectedGunIndex = player.character.selected_gun_index
     local selectedGunInventory = player.get_inventory(defines.inventory.character_guns)[selectedGunIndex]
-    if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= "flamethrower" then
+    if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= data.weaponType.name then
         -- Flamethrower has been removed as active weapon by some script.
         LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
@@ -181,7 +209,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
 
     -- Check the player has the weapon's ammo equipped as expected.
     local selectedAmmoInventory = player.get_inventory(defines.inventory.character_ammo)[selectedGunIndex]
-    if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= "flamethrower-ammo" then
+    if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= data.ammoType.name then
         -- Ammo has been removed by some script. As we wouldn't have reached this point in a managed loop as its beyond the last burst.
         LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
@@ -272,10 +300,10 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     -- Take back any weapon and ammo from a player with a character (alive or just dead).
     if playerHasCharacter then
         if affectedPlayer.flamethrowerGiven then
-            PlayerWeapon.TakeItemFromPlayerOrGround(player, "flamethrower", 1)
+            PlayerWeapon.TakeItemFromPlayerOrGround(player, affectedPlayer.weaponType.name, 1)
         end
         if affectedPlayer.burstsLeft > 0 then
-            PlayerWeapon.TakeItemFromPlayerOrGround(player, "flamethrower-ammo", affectedPlayer.burstsLeft)
+            PlayerWeapon.TakeItemFromPlayerOrGround(player, affectedPlayer.ammoType.name, affectedPlayer.burstsLeft)
         end
     end
 

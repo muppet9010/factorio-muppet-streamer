@@ -45,18 +45,8 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         return
     end ---@cast target string
 
-    local weaponTypeString = commandData.weaponType
-    if not CommandsUtils.CheckStringArgument(weaponTypeString, false, commandName, "weaponType", nil, command.parameter) then
-        return
-    end
-    local weaponType ---@type LuaItemPrototype|nil
-    if weaponTypeString ~= nil and weaponTypeString ~= "" then
-        weaponType = game.item_prototypes[weaponTypeString]
-        if weaponType == nil or weaponType.type ~= "gun" then
-            CommandsUtils.LogPrintError(commandName, "weaponType", "isn't a valid weapon type: " .. tostring(weaponTypeString), command.parameter)
-            return
-        end
-    end
+    local weaponType, valid = Common.GetItemPrototype(commandData.weaponType, "gun", false, commandName, "weaponType", command.parameter)
+    if not valid then return end
 
     local forceWeaponToSlot = commandData.forceWeaponToSlot
     if not CommandsUtils.CheckBooleanArgument(forceWeaponToSlot, false, commandName, "forceWeaponToSlot", command.parameter) then
@@ -74,18 +64,8 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         selectWeapon = false
     end
 
-    local ammoTypeString = commandData.ammoType
-    if not CommandsUtils.CheckStringArgument(ammoTypeString, false, commandName, "ammoType", nil, command.parameter) then
-        return
-    end
-    local ammoType ---@type LuaItemPrototype|nil
-    if ammoTypeString ~= nil and ammoTypeString ~= "" then
-        ammoType = game.item_prototypes[ammoTypeString]
-        if ammoType == nil or ammoType.type ~= "ammo" then
-            CommandsUtils.LogPrintError(commandName, "ammoType", "isn't a valid ammo type: " .. tostring(ammoTypeString), command.parameter)
-            return
-        end
-    end
+    local ammoType, valid = Common.GetItemPrototype(commandData.ammoType, "ammo", false, commandName, "ammoType", command.parameter)
+    if not valid then return end
 
     local ammoCount = commandData.ammoCount
     if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, commandName, "ammoCount", 1, MathUtils.uintMax, command.parameter) then

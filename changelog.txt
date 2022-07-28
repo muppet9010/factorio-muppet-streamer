@@ -2,6 +2,7 @@
 Version: 20.1.26
 Date: 2022-XXXXXX
   Features:
+    - Leaky Flamethrower - supports custom weapon and ammo names as options for modded playthroughs.
   Changes:
   Bugfixes:
     - Various extreme edge case handling across features identified by improved developement tools.

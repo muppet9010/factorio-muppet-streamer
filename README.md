@@ -77,9 +77,12 @@ Forces the targeted player to wield a flamethrower that shoots in random directi
 - Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds the flamethrower and effects are delayed before starting. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
-    - ammoCount: INTEGER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired.
     - target: STRING - Mandatory: the player name to target (case sensitive).
-- Example command: `/muppet_streamer_leaky_flamethrower {"ammoCount":5, "target":"muppet9010"}`
+    - ammoCount: INTEGER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired.
+    - weaponType: STRING - Optional: the name of the specific flamethrower type weapon you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower weapon, `flamethrower`.
+    - ammoType: STRING - Optional: the name of the specific flamethrower type ammo you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower ammo, `flamethrower-ammo`.
+- Example command standard usage: `/muppet_streamer_leaky_flamethrower {"target":"muppet9010", "ammoCount":5}`
+- Example command using Cryogun from Space Exploration mod: `/muppet_streamer_leaky_flamethrower {"target":"muppet9010", "ammoCount":5, "weaponType":"se-cryogun", "ammoType":"se-cryogun-ammo"}`
 
 Notes:
 
@@ -90,6 +93,7 @@ Notes:
 - While activated the player can not change the active gun via the switch to the next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
 - The flamethrower is yours and so any of your damage upgrades will affect it.
+- Alternative flamethrower weapons will need to fire at the same rate as the vanilla flamethrower for the effect to work correctly. generally this is the case with modded "stream" type weapons, but you will need to test/check to confirm.
 
 
 
