@@ -261,7 +261,7 @@ Teleport.PlanTeleportTarget = function(eventData)
     -- Get the Player object and confirm its valid.
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        -- Target player has been deleted since the command was run.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
 

@@ -47,6 +47,8 @@ SpawnAroundPlayer.quantitySearchRadius = 3
 SpawnAroundPlayer.densitySearchRadius = 0.6
 SpawnAroundPlayer.offGridPlacementJitter = 0.3
 
+local commandName = "muppet_streamer_spawn_around_player"
+
 SpawnAroundPlayer.CreateGlobals = function()
     global.spawnAroundPlayer = global.spawnAroundPlayer or {}
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId or 0 ---@type uint
@@ -64,7 +66,6 @@ end
 
 ---@param command CustomCommandData
 SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
-    local commandName = "muppet_streamer_spawn_around_player"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "force", "entityName", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer" })
     if commandData == nil then
@@ -154,7 +155,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        -- Target player has been deleted since the command was run.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0

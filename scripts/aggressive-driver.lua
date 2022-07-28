@@ -41,6 +41,8 @@ local EffectEndStatus = {
 ---@field distance double
 ---@field vehicle LuaEntity
 
+local commandName = "muppet_streamer_aggressive_driver"
+
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type uint
@@ -62,7 +64,6 @@ end
 
 ---@param command CustomCommandData
 AggressiveDriver.AggressiveDriverCommand = function(command)
-    local commandName = "muppet_streamer_aggressive_driver"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "control", "teleportDistance" })
     if commandData == nil then
@@ -114,7 +115,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        -- Target player has been deleted since the command was run.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
@@ -315,7 +316,7 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
 
     player = player or game.get_player(playerIndex)
     if player == nil then
-        -- Player has been deleted while the effect was running.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted while the effect was running.", nil)
         return
     end
 

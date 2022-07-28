@@ -59,7 +59,7 @@ TeamMember.OnLuaShortcut = function(event)
     if shortcutName == "muppet_streamer-team_member_gui_button" then
         local player = game.get_player(event.player_index)
         if player == nil then
-            -- Player has been deleted since the player clicked the shortcut button.
+            LoggingUtils.LogPrintWarning("ERROR: muppet_streamer team member feature: Player has been deleted since the player clicked the shortcut button.")
             return
         end
         if global.teamMember.playerGuiOpened[player.index] then
@@ -76,7 +76,7 @@ TeamMember.OnPlayerJoinedGame = function(event)
     global.teamMember.playerGuiOpened[playerIndex] = global.teamMember.playerGuiOpened[playerIndex] or true
     local player = game.get_player(playerIndex)
     if player == nil then
-        -- Player has been deleted while the player joined the server.
+        LoggingUtils.LogPrintWarning("ERROR: muppet_streamer team member feature: Player has been deleted while they were joining the server.")
         return
     end
     TeamMember.GuiRecreateForPlayer(player)

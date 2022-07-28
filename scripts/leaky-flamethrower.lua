@@ -93,7 +93,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        -- Target player has been deleted since the command was run.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
@@ -268,7 +268,7 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
 
     player = player or game.get_player(playerIndex)
     if player == nil then
-        -- Player has been deleted while the effect was running.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted while the effect was running.", nil)
         return
     end
     local playerHasCharacter = player ~= nil and player.character ~= nil

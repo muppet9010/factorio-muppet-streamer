@@ -127,7 +127,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        -- Target player has been deleted since the command was run.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     local targetPlayer_index = targetPlayer.index

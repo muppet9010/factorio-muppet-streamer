@@ -59,6 +59,8 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 ---@field player LuaPlayer
 ---@field distance double
 
+local commandName = "muppet_streamer_call_for_help"
+
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
     global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type uint
@@ -75,7 +77,6 @@ end
 
 ---@param command CustomCommandData
 CallForHelp.CallForHelpCommand = function(command)
-    local commandName = "muppet_streamer_call_for_help"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "arrivalRadius", "callRadius", "sameSurfaceOnly", "sameTeamOnly", "blacklistedPlayerNames", "whitelistedPlayerNames", "callSelection", "number", "activePercentage" })
     if commandData == nil then
@@ -186,7 +187,7 @@ CallForHelp.CallForHelp = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        -- Target player has been deleted since the command was run.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character then

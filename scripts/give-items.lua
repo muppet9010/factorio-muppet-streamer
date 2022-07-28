@@ -13,6 +13,8 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field forceWeaponToSlot boolean
 ---@field selectWeapon boolean
 
+local commandName = "muppet_streamer_give_player_weapon_ammo"
+
 GiveItems.CreateGlobals = function()
     global.giveItems = global.giveItems or {}
     global.giveItems.nextId = global.giveItems.nextId or 0 ---@type uint
@@ -26,7 +28,6 @@ end
 
 ---@param command CustomCommandData
 GiveItems.GivePlayerWeaponAmmoCommand = function(command)
-    local commandName = "muppet_streamer_give_player_weapon_ammo"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount" })
     if commandData == nil then
@@ -103,7 +104,7 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        -- Target player has been deleted since the command was run.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then

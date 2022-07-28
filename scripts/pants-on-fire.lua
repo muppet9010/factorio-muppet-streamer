@@ -37,6 +37,8 @@ local EffectEndStatus = {
     invalid = "invalid"
 }
 
+local commandName = "muppet_streamer_pants_on_fire"
+
 PantsOnFire.CreateGlobals = function()
     global.PantsOnFire = global.PantsOnFire or {}
     global.PantsOnFire.nextId = global.PantsOnFire.nextId or 0 ---@type uint
@@ -53,7 +55,6 @@ end
 
 ---@param command CustomCommandData
 PantsOnFire.PantsOnFireCommand = function(command)
-    local commandName = "muppet_streamer_pants_on_fire"
 
     local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount" })
     if commandData == nil then
@@ -119,7 +120,7 @@ PantsOnFire.ApplyToPlayer = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        -- Target player has been deleted since the command was run.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
@@ -226,7 +227,7 @@ PantsOnFire.StopEffectOnPlayer = function(playerIndex, player, status)
 
     player = player or game.get_player(playerIndex)
     if player == nil then
-        -- Player has been deleted while the effect was running.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted while the effect was running.", nil)
         return
     end
 
