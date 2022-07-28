@@ -87,4 +87,4 @@ local recruited_team_member_gui_title = {
 --                            ADD SETTING PROTOTYPES
 ----------------------------------------------------------------------------------
 
-data:extend({enable_building_ghosts, disable_intro_message, disable_rocket_win, starting_reveal, recruit_team_member_technology_cost, recruit_team_member_technology_title, recruit_team_member_technology_description, recruited_team_member_gui_title})
+data:extend({ enable_building_ghosts, disable_intro_message, disable_rocket_win, starting_reveal, recruit_team_member_technology_cost, recruit_team_member_technology_title, recruit_team_member_technology_description, recruited_team_member_gui_title })

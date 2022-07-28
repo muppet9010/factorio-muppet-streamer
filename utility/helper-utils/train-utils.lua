@@ -84,7 +84,7 @@ TrainUtils.GetTrainSpeedCalculationData = function(train, train_speed, trainCarr
     if trainCarriagesDataArray == nil then
         trainCarriagesDataArray = {} ---@type TrainUtils_TrainCarriageData[]
         for i, entity in pairs(train_carriages) do
-            trainCarriagesDataArray[i] = {entity = entity}
+            trainCarriagesDataArray[i] = { entity = entity }
         end
     end
 
@@ -175,7 +175,7 @@ end
 ---@return boolean noFuelFound @ TRUE if no fuel was found in any forward moving locomotive. Generally FALSE is returned when all is normal.
 TrainUtils.UpdateTrainSpeedCalculationDataForCurrentFuel = function(trainSpeedCalculationData, trainCarriagesDataArray, trainMovingForwardsToCacheData, train)
     -- Get a current fuel for the forwards movement of the train.
-    local fuelPrototype  ---@type LuaItemPrototype|nil
+    local fuelPrototype ---@type LuaItemPrototype|nil
     local noFuelFound = true
     for _, carriageCachedData in pairs(trainCarriagesDataArray) do
         -- Only process locomotives that are powering the trains movement.
@@ -317,7 +317,7 @@ TrainUtils.EstimateTrainTicksToCoverDistanceWithSameStartAndEndSpeed = function(
     local finalSpeed = targetSpeedAbsolute + (accelerationForcePerTick * accelerationTicks)
 
     -- Based on if the train would be going faster than its max speed handle the braking time part differently.
-    local ticks  ---@type uint
+    local ticks ---@type uint
     if finalSpeed > trainData.maxSpeed then
         -- The train would be going faster than max speed at the end so re-estimate acceleration up to the max speed cap and then the time it will take at max speed to cover the required distance.
 
@@ -420,7 +420,7 @@ TrainUtils.DestroyCarriagesOnRailEntity = function(railEntity, killForce, killer
     if not railEntity.can_be_destroyed() then
         local railEntityCollisionBox = PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, railEntity.name, "collision_box")
         local positionedCollisionBox = PositionUtils.ApplyBoundingBoxToPosition(railEntity.position, railEntityCollisionBox, railEntity.orientation)
-        local carriagesFound = surface.find_entities_filtered {area = positionedCollisionBox, type = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}}
+        local carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = { "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" } }
         for _, carriage in pairs(carriagesFound) do
             -- If the carriage is currently not destructible make it so, so we can kill it normally.
             if not carriage.destructible then
@@ -431,7 +431,7 @@ TrainUtils.DestroyCarriagesOnRailEntity = function(railEntity, killForce, killer
         if railEntity.type == "curved-rail" then
             railEntityCollisionBox = PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, railEntity.name, "secondary_collision_box")
             positionedCollisionBox = PositionUtils.ApplyBoundingBoxToPosition(railEntity.position, railEntityCollisionBox, railEntity.orientation)
-            carriagesFound = surface.find_entities_filtered {area = positionedCollisionBox, type = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}}
+            carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = { "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" } }
             for _, carriage in pairs(carriagesFound) do
                 -- If the carriage is currently not destructible make it so, so we can kill it normally.
                 if not carriage.destructible then
@@ -454,7 +454,7 @@ TrainUtils.MineCarriagesOnRailEntity = function(railEntity, surface, ignoreMinab
     if not railEntity.can_be_destroyed() then
         local railEntityCollisionBox = PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, railEntity.name, "collision_box")
         local positionedCollisionBox = PositionUtils.ApplyBoundingBoxToPosition(railEntity.position, railEntityCollisionBox, railEntity.orientation)
-        local carriagesFound = surface.find_entities_filtered {area = positionedCollisionBox, type = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}}
+        local carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = { "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" } }
         for _, carriage in pairs(carriagesFound) do
             -- If stopTrain is enabled and the carriage is currently moving stop its train.
             if stopTrain then
@@ -463,12 +463,12 @@ TrainUtils.MineCarriagesOnRailEntity = function(railEntity, surface, ignoreMinab
                     carriage.train.manual_mode = true
                 end
             end
-            carriage.mine {inventory = destinationInventory, ignore_minable = ignoreMinableEntityFlag, raise_destroyed = true}
+            carriage.mine { inventory = destinationInventory, ignore_minable = ignoreMinableEntityFlag, raise_destroyed = true }
         end
         if railEntity.type == "curved-rail" then
             railEntityCollisionBox = PrototypeAttributes.GetAttribute(PrototypeAttributes.PrototypeTypes.entity, railEntity.name, "secondary_collision_box")
             positionedCollisionBox = PositionUtils.ApplyBoundingBoxToPosition(railEntity.position, railEntityCollisionBox, railEntity.orientation)
-            carriagesFound = surface.find_entities_filtered {area = positionedCollisionBox, type = {"locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon"}}
+            carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = { "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" } }
             for _, carriage in pairs(carriagesFound) do
                 -- If stopTrain is enabled and the carriage is currently moving stop its train.
                 if stopTrain then
@@ -477,7 +477,7 @@ TrainUtils.MineCarriagesOnRailEntity = function(railEntity, surface, ignoreMinab
                         carriage.train.manual_mode = true
                     end
                 end
-                carriage.mine {inventory = destinationInventory, ignore_minable = ignoreMinableEntityFlag, raise_destroyed = true}
+                carriage.mine { inventory = destinationInventory, ignore_minable = ignoreMinableEntityFlag, raise_destroyed = true }
             end
         end
     end

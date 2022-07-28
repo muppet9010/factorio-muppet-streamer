@@ -113,7 +113,7 @@ PrototypeUtils.GetRecipeIngredientsAddedTogether = function(recipeIngredientHand
     for ingredientType in pairs(ingredientTypes) do
         local ingredientsList = {}
         for _, recipeIngredientHandlingTable in pairs(recipeIngredientHandlingTables) do
-            local ingredients  ---@type table<string, string|double> @ Try to find the correct ingredients for our desired type, if not found just try all of them to find one to use. Assume its a simple ingredient list last.
+            local ingredients ---@type table<string, string|double> @ Try to find the correct ingredients for our desired type, if not found just try all of them to find one to use. Assume its a simple ingredient list last.
             if recipeIngredientHandlingTable[1][ingredientType] ~= nil then
                 ingredients = recipeIngredientHandlingTable[1][ingredientType].ingredients or recipeIngredientHandlingTable[1][ingredientType] --[[@as table<string, string|double>]]
             elseif recipeIngredientHandlingTable[1]["ingredients"] ~= nil then
@@ -147,7 +147,7 @@ PrototypeUtils.GetRecipeIngredientsAddedTogether = function(recipeIngredientHand
         ingredientsTable[ingredientType] = {}
         for name, count in pairs(ingredientsList) do
             if ingredientsList[name] > 0 then
-                table.insert(ingredientsTable[ingredientType], {name, count})
+                table.insert(ingredientsTable[ingredientType], { name, count })
             end
         end
     end
@@ -180,7 +180,7 @@ PrototypeUtils.GetRecipeAttribute = function(recipe, attributeName, recipeCostTy
 end
 
 PrototypeUtils.DoesRecipeResultsIncludeItemName = function(recipePrototype, itemName)
-    for _, recipeBase in pairs({recipePrototype, recipePrototype.normal, recipePrototype.expensive}) do
+    for _, recipeBase in pairs({ recipePrototype, recipePrototype.normal, recipePrototype.expensive }) do
         if recipeBase ~= nil then
             if recipeBase.result ~= nil and recipeBase.result == itemName then
                 return true
@@ -265,12 +265,12 @@ end
 
 PrototypeUtils.CreateLandPlacementTestEntityPrototype = function(entityToClone, newEntityName, subgroup)
     subgroup = subgroup or "other"
-    return PrototypeUtils.CreatePlacementTestEntityPrototype(entityToClone, newEntityName, subgroup, {"water-tile", "colliding-with-tiles-only"})
+    return PrototypeUtils.CreatePlacementTestEntityPrototype(entityToClone, newEntityName, subgroup, { "water-tile", "colliding-with-tiles-only" })
 end
 
 PrototypeUtils.CreateWaterPlacementTestEntityPrototype = function(entityToClone, newEntityName, subgroup)
     subgroup = subgroup or "other"
-    return PrototypeUtils.CreatePlacementTestEntityPrototype(entityToClone, newEntityName, subgroup, {"ground-tile", "colliding-with-tiles-only"})
+    return PrototypeUtils.CreatePlacementTestEntityPrototype(entityToClone, newEntityName, subgroup, { "ground-tile", "colliding-with-tiles-only" })
 end
 
 return PrototypeUtils

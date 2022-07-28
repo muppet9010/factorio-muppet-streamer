@@ -2942,25 +2942,25 @@ Data.GetTileTagToTreeColors = function()
         yellow = {green = "green", yellow = "yellow", orange = "orange"}
     }]]
     local tagsToColors = {
-        purple = {purple = "purple"},
-        red = {red = "red"},
-        violet = {violet = "violet"},
-        blue = {blue = "blue"},
-        green = {green = "green"},
-        orange = {orange = "orange"},
-        turquoise = {turquoise = "turquoise"},
-        yellow = {yellow = "yellow"}
+        purple = { purple = "purple" },
+        red = { red = "red" },
+        violet = { violet = "violet" },
+        blue = { blue = "blue" },
+        green = { green = "green" },
+        orange = { orange = "orange" },
+        turquoise = { turquoise = "turquoise" },
+        yellow = { yellow = "yellow" }
     }
     tagsToColors.mauve = tagsToColors.violet
     tagsToColors.olive = tagsToColors.green
-    tagsToColors.white = {white = "white"}
+    tagsToColors.white = { white = "white" }
     tagsToColors.aubergine = tagsToColors.purple
     tagsToColors.beige = tagsToColors.yellow
-    tagsToColors.black = {white = "white"}
+    tagsToColors.black = { white = "white" }
     tagsToColors.brown = tagsToColors.yellow
     tagsToColors.cream = tagsToColors.yellow
     tagsToColors.dustyrose = tagsToColors.red
-    tagsToColors.grey = {white = "white"}
+    tagsToColors.grey = { white = "white" }
     tagsToColors.tan = tagsToColors.yellow
     --[[
         Tree Colors:

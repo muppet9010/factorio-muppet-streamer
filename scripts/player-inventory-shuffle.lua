@@ -54,14 +54,14 @@ PlayerInventoryShuffle.CreateGlobals = function()
 end
 
 PlayerInventoryShuffle.OnLoad = function()
-    CommandsUtils.Register("muppet_streamer_player_inventory_shuffle", {"api-description.muppet_streamer_player_inventory_shuffle"}, PlayerInventoryShuffle.PlayerInventoryShuffleCommand, true)
+    CommandsUtils.Register("muppet_streamer_player_inventory_shuffle", { "api-description.muppet_streamer_player_inventory_shuffle" }, PlayerInventoryShuffle.PlayerInventoryShuffleCommand, true)
     EventScheduler.RegisterScheduledEventType("PlayerInventoryShuffle.MixUpPlayerInventories", PlayerInventoryShuffle.MixUpPlayerInventories)
     MOD.Interfaces.Commands.PlayerInventoryShuffle = PlayerInventoryShuffle.PlayerInventoryShuffleCommand
 end
 
 ---@param command CustomCommandData
 PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "includedPlayers", "includedForces", "includeEquipment", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "includedPlayers", "includedForces", "includeEquipment", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio" })
     if commandData == nil then
         return
     end
@@ -221,12 +221,12 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
 
     if SinglePlayerTesting or SinglePlayerTesting_DuplicateInputItems then
         -- Fakes the only player as multiple players so that the 1 players inventory is spread across these multiple fake players, but still all ends up inside the single real player's inventory.
-        players = {game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1]}
+        players = { game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1], game.players[1] }
     end
 
     -- Check that there are the minimum of 2 players to shuffle.
     if #players <= 1 then
-        game.print({"message.muppet_streamer_player_inventory_shuffle_not_enough_players"})
+        game.print({ "message.muppet_streamer_player_inventory_shuffle_not_enough_players" })
         return
     end
 
@@ -234,7 +234,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
     local playerNamePrettyList
     if requestData.includeAllPlayersOnServer == true then
         -- Is all active players.
-        playerNamePrettyList = {"message.muppet_streamer_player_inventory_shuffle_all_players"}
+        playerNamePrettyList = { "message.muppet_streamer_player_inventory_shuffle_all_players" }
     else
         playerNamePrettyList = ""
         for _, force in pairs(requestData.includedForces) do
@@ -246,11 +246,11 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
         -- Remove leading comma and space
         playerNamePrettyList = string.sub(playerNamePrettyList, 3)
     end
-    game.print({"message.muppet_streamer_player_inventory_shuffle_start", playerNamePrettyList})
+    game.print({ "message.muppet_streamer_player_inventory_shuffle_start", playerNamePrettyList })
 
     -- Do the collection and distribution.
     local storageInventory, itemSources = PlayerInventoryShuffle.CollectPlayerItems(players, requestData)
-    local playersItemCounts = PlayerInventoryShuffle.CalculateItemDistribution(storageInventory, itemSources, requestData, #players --[[@as uint]])
+    local playersItemCounts = PlayerInventoryShuffle.CalculateItemDistribution(storageInventory, itemSources, requestData, #players--[[@as uint]] )
     local playerIndexesWithFreeInventorySpace_table = PlayerInventoryShuffle.DistributePlannedItemsToPlayers(storageInventory, players, playersItemCounts)
     PlayerInventoryShuffle.DistributeRemainingItemsAnywhere(storageInventory, players, playerIndexesWithFreeInventorySpace_table)
 
@@ -266,11 +266,11 @@ end
 PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     -- Work out what inventories we will be emptying based on settings.
     -- CODE NOTE: Empty main inventory before armor so no oddness with main inventory size changes.
-    local inventoryNamesToCheck  ---@type defines.inventory[]
+    local inventoryNamesToCheck ---@type defines.inventory[]
     if requestData.includeEquipment then
-        inventoryNamesToCheck = {defines.inventory.character_main, defines.inventory.character_trash, defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo}
+        inventoryNamesToCheck = { defines.inventory.character_main, defines.inventory.character_trash, defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo }
     else
-        inventoryNamesToCheck = {defines.inventory.character_main, defines.inventory.character_trash}
+        inventoryNamesToCheck = { defines.inventory.character_main, defines.inventory.character_trash }
     end
 
     -- We will track the number of player sources for each item type when moving the items in to the shared inventory.
@@ -324,7 +324,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid losing items, it will actually duplicate some of the last players items.
-                                game.print({"message.muppet_streamer_player_inventory_shuffle_item_limit_reached"}, Colors.lightRed)
+                                game.print({ "message.muppet_streamer_player_inventory_shuffle_item_limit_reached" }, Colors.lightRed)
                                 storageInventoryFull = true
                                 break
                             end
@@ -357,7 +357,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
 
                 -- Have to cancel each item one at a time while there still are some. As if you cancel a pre-requisite or final item then the other related items are auto cancelled and any attempt to iterate a cached list errors.
                 while player.crafting_queue_size > 0 do
-                    player.cancel_crafting {index = 1, count = 99999999} -- Just a number to get all.
+                    player.cancel_crafting { index = 1, count = 99999999 } -- Just a number to get all.
 
                     -- Move each item type in the player's inventory to the storage inventory until we have got them all. See code notes at top of file for iterating inventory slots vs get_contents().
                     -- CODE NOTE: All items will end up in players main inventory as their other inventories have already been emptied. No trashing or other actions will occur mid tick.
@@ -389,7 +389,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                     storageInventory.resize(storageInventorySize)
                                 else
                                     -- This is very simplistic and just used to avoid losing items, it will actually duplicate some of the last players items.
-                                    game.print({"message.muppet_streamer_player_inventory_shuffle_item_limit_reached"}, Colors.lightRed)
+                                    game.print({ "message.muppet_streamer_player_inventory_shuffle_item_limit_reached" }, Colors.lightRed)
                                     storageInventoryFull = true
                                     break
                                 end
@@ -454,7 +454,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
 
         -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random +/- of the greatest between the ItemDestinationPlayerCountRange and destinationPlayersMinimumVariance.
         destinationCountVariance = math_max(requestData.destinationPlayersMinimumVariance, math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor)))
-        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance --[[@as integer @ needed due to expected type in math.random().]], destinationCountVariance), 1), playersCount) --[[@as uint @ The min and max values are uints.]]
+        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance--[[@as integer @ needed due to expected type in math.random().]] , destinationCountVariance), 1), playersCount) --[[@as uint @ The min and max values are uints.]]
 
         -- Work out the raw ratios of items each destination will get.
         totalAssignedRatio, destinationRatios = 0, {}
@@ -487,7 +487,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
                 itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint @ The min and max values are uints.]]
             end
             itemsLeftToAssign = itemsLeftToAssign - itemCountForPlayerIndex
-            table.insert(playersItemCounts[playerIndex], {name = itemName, count = itemCountForPlayerIndex})
+            table.insert(playersItemCounts[playerIndex], { name = itemName, count = itemCountForPlayerIndex })
 
             if itemsLeftToAssign == 0 then
                 -- All of this item type assigned so stop.
@@ -518,8 +518,8 @@ end
 ---@return table<uint, LuaPlayer> playerIndexesWithFreeInventorySpace_table
 PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInventory, players, playersItemCounts)
     -- Distribute any armors and guns first to the players as these will affect players inventory sizes and usage of ammo slots for the rest of the items.
-    local armorItemNames = game.get_filtered_item_prototypes({{filter = "type", type = "armor"}})
-    local gunItemNames = game.get_filtered_item_prototypes({{filter = "type", type = "gun"}})
+    local armorItemNames = game.get_filtered_item_prototypes({ { filter = "type", type = "armor" } })
+    local gunItemNames = game.get_filtered_item_prototypes({ { filter = "type", type = "gun" } })
     for playerIndex, orderedPlayerItemCountList in pairs(playersItemCounts) do
         local player = players[playerIndex]
         for order, itemCounts in pairs(orderedPlayerItemCountList) do
@@ -612,7 +612,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
         if next(itemsLeftInStorage) ~= nil then
             -- Just drop it all on the floor at the players feet. No need to remove it from the inventory as we will destroy it next.
             -- CODE NOTE: the spilling on the ground is very UPS costly, especially the further away from each player. So Distributing semi equally across all players should help reduce this impact. Ideally this state won't be reached.
-            game.print({"message.muppet_streamer_player_inventory_shuffle_not_enough_room_for_items"})
+            game.print({ "message.muppet_streamer_player_inventory_shuffle_not_enough_room_for_items" })
             storageInventory.sort_and_merge()
             ---@type LuaItemStack, LuaPlayer
             local storageItemStack, randomPlayer
@@ -661,7 +661,7 @@ PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemNa
             end
         else
             -- We want some of the items from the stack, so add the required number with attributes to the player.
-            itemToInsert = {name = itemName, count = itemCountToTakeFromThisStack, health = itemStackToTakeFrom.health, durability = itemStackToTakeFrom.durability}
+            itemToInsert = { name = itemName, count = itemCountToTakeFromThisStack, health = itemStackToTakeFrom.health, durability = itemStackToTakeFrom.durability }
             if itemStackToTakeFrom.type == "ammo" then
                 itemToInsert.ammo = itemStackToTakeFrom.ammo
             end

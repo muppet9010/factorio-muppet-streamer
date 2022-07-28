@@ -48,7 +48,7 @@ AggressiveDriver.CreateGlobals = function()
 end
 
 AggressiveDriver.OnLoad = function()
-    CommandsUtils.Register("muppet_streamer_aggressive_driver", {"api-description.muppet_streamer_aggressive_driver"}, AggressiveDriver.AggressiveDriverCommand, true)
+    CommandsUtils.Register("muppet_streamer_aggressive_driver", { "api-description.muppet_streamer_aggressive_driver" }, AggressiveDriver.AggressiveDriverCommand, true)
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "AggressiveDriver.OnPrePlayerDied", AggressiveDriver.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.Drive", AggressiveDriver.Drive)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.ApplyToPlayer", AggressiveDriver.ApplyToPlayer)
@@ -64,7 +64,7 @@ end
 AggressiveDriver.AggressiveDriverCommand = function(command)
     local commandName = "muppet_streamer_aggressive_driver"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "duration", "control", "teleportDistance"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "control", "teleportDistance" })
     if commandData == nil then
         return
     end
@@ -104,7 +104,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
 
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
     ---@type AggressiveDriver_DelayedCommandDetails
-    local delayedCommandDetails = {target = target, duration = duration, control = control, teleportDistance = teleportDistance}
+    local delayedCommandDetails = { target = target, duration = duration, control = control, teleportDistance = teleportDistance }
     EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, delayedCommandDetails)
 end
 
@@ -118,7 +118,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
-        game.print({"message.muppet_streamer_aggressive_driver_not_character_controller", data.target})
+        game.print({ "message.muppet_streamer_aggressive_driver_not_character_controller", data.target })
         return
     end
 
@@ -129,7 +129,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
 
     local inVehicle = targetPlayer.vehicle ~= nil
     if not inVehicle and data.teleportDistance > 0 then
-        local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "locomotive", "spider-vehicle"}}
+        local vehicles = targetPlayer.surface.find_entities_filtered { position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = { "car", "locomotive", "spider-vehicle" } }
         local distanceSortedVehicles = {} ---@type AggressiveDriver_SortedVehicleEntry[]
         for _, vehicle in pairs(vehicles) do
             -- If the vehicle has an empty drivers seat and isn't lacking fuel then include it in the suitable vehicles list.
@@ -137,7 +137,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                 local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(vehicle)
                 if currentFuel ~= nil then
                     local distance = PositionUtils.GetDistance(targetPlayer.position, vehicle.position)
-                    table.insert(distanceSortedVehicles, {distance = distance, vehicle = vehicle})
+                    table.insert(distanceSortedVehicles, { distance = distance, vehicle = vehicle })
                 end
             end
         end
@@ -153,7 +153,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         end
     end
     if not inVehicle then
-        game.print({"message.muppet_streamer_aggressive_driver_no_vehicle", data.target})
+        game.print({ "message.muppet_streamer_aggressive_driver_no_vehicle", data.target })
         return
     end
 
@@ -164,13 +164,13 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     targetPlayer.permission_group = permissionGroup
     global.aggressiveDriver.affectedPlayers[targetPlayer.index] = true
 
-    game.print({"message.muppet_streamer_aggressive_driver_start", targetPlayer.name})
+    game.print({ "message.muppet_streamer_aggressive_driver_start", targetPlayer.name })
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
 
     ---@type AggressiveDriver_DriveEachTickDetails
-    local driveEachTickDetails = {player_index = targetPlayer.index, player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0}
+    local driveEachTickDetails = { player_index = targetPlayer.index, player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0 }
     ---@type UtilityScheduledEvent_CallbackObject
-    local driveCallbackObject = {tick = game.tick, instanceId = driveEachTickDetails.player_index, data = driveEachTickDetails}
+    local driveCallbackObject = { tick = game.tick, instanceId = driveEachTickDetails.player_index, data = driveEachTickDetails }
     AggressiveDriver.Drive(driveCallbackObject)
 end
 
@@ -198,7 +198,7 @@ AggressiveDriver.Drive = function(eventData)
                 data.accelerationTicks = 1
             else
                 -- Walk in the current direction.
-                player.walking_state = {walking = true, direction = player.walking_state.direction}
+                player.walking_state = { walking = true, direction = player.walking_state.direction }
             end
         else
             -- Player has no control so we will set both acceleration and direction.
@@ -211,7 +211,7 @@ AggressiveDriver.Drive = function(eventData)
                 data.directionDurationTicks = data.directionDurationTicks - 1
             end
 
-            player.walking_state = {walking = true, direction = data.spiderDirection}
+            player.walking_state = { walking = true, direction = data.spiderDirection }
         end
     else
         -- Cars and trains.
@@ -334,7 +334,7 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Print a message based on ending status.
     if status == EffectEndStatus.completed then
-        game.print({"message.muppet_streamer_aggressive_driver_stop", player.name})
+        game.print({ "message.muppet_streamer_aggressive_driver_stop", player.name })
     end
 end
 

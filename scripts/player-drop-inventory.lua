@@ -44,7 +44,7 @@ PlayerDropInventory.CreateGlobals = function()
 end
 
 PlayerDropInventory.OnLoad = function()
-    CommandsUtils.Register("muppet_streamer_player_drop_inventory", {"api-description.muppet_streamer_player_drop_inventory"}, PlayerDropInventory.PlayerDropInventoryCommand, true)
+    CommandsUtils.Register("muppet_streamer_player_drop_inventory", { "api-description.muppet_streamer_player_drop_inventory" }, PlayerDropInventory.PlayerDropInventoryCommand, true)
     EventScheduler.RegisterScheduledEventType("PlayerDropInventory.PlayerDropItems_Scheduled", PlayerDropInventory.PlayerDropItems_Scheduled)
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "PlayerDropInventory.OnPrePlayerDied", PlayerDropInventory.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("PlayerDropInventory.ApplyToPlayer", PlayerDropInventory.ApplyToPlayer)
@@ -53,7 +53,7 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment" })
     if commandData == nil then
         return
     end
@@ -133,7 +133,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     local targetPlayer_index = targetPlayer.index
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         -- Player not alive or in non playing mode.
-        game.print({"message.muppet_streamer_player_drop_inventory_not_character_controller", data.target})
+        game.print({ "message.muppet_streamer_player_drop_inventory_not_character_controller", data.target })
         return
     end
 
@@ -158,7 +158,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     global.playerDropInventory.affectedPlayers[targetPlayer_index] = true
 
     -- Do the first effect now.
-    game.print({"message.muppet_streamer_player_drop_inventory_start", targetPlayer.name})
+    game.print({ "message.muppet_streamer_player_drop_inventory_start", targetPlayer.name })
     ---@type PlayerDropInventory_ScheduledDropItemsData
     local scheduledDropItemsData = {
         player_index = targetPlayer_index,
@@ -171,7 +171,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         dynamicPercentageItemCount = dynamicPercentageItemCount,
         currentOccurrences = 0
     }
-    PlayerDropInventory.PlayerDropItems_Scheduled({tick = event.tick, instanceId = scheduledDropItemsData.player_index, data = scheduledDropItemsData})
+    PlayerDropInventory.PlayerDropItems_Scheduled({ tick = event.tick, instanceId = scheduledDropItemsData.player_index, data = scheduledDropItemsData })
 end
 
 --- Apply the drop item effect to the player.
@@ -245,7 +245,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             end
 
             -- Drop the specific item.
-            local itemStackToDropFrom  ---@type LuaItemStack|nil
+            local itemStackToDropFrom ---@type LuaItemStack|nil
             if inventoryNameOfItemNumberToDrop == "cursorStack" then
                 -- Special case as not a real inventory.
                 itemStackToDropFrom = player.cursor_stack
@@ -271,7 +271,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
                 -- CODE NOTE: ItemStacks have a single durability and ammo stat which effectively is for the first item in the itemStack, with the other items in the itemStack all being full.
                 -- CODE NOTE: when the itemStack's count is reduced by 1 the itemStacks durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
-                local itemToDrop = {name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability}
+                local itemToDrop = { name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability }
                 if itemStackToDropFrom.type == "ammo" then
                     itemToDrop.ammo = itemStackToDropFrom.ammo
                 end
@@ -299,7 +299,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         EventScheduler.ScheduleEventOnce(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
-        game.print({"message.muppet_streamer_player_drop_inventory_stop", player.name})
+        game.print({ "message.muppet_streamer_player_drop_inventory_stop", player.name })
     end
 end
 
@@ -323,7 +323,7 @@ end
 ---@return uint totalItemsCount
 PlayerDropInventory.GetPlayersItemCount = function(player, includeEquipment)
     local totalItemsCount = 0 ---@type uint
-    for _, inventoryName in pairs({defines.inventory.character_main, defines.inventory.character_trash}) do
+    for _, inventoryName in pairs({ defines.inventory.character_main, defines.inventory.character_trash }) do
         for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
             totalItemsCount = totalItemsCount + count
         end
@@ -334,7 +334,7 @@ PlayerDropInventory.GetPlayersItemCount = function(player, includeEquipment)
     end
 
     if includeEquipment then
-        for _, inventoryName in pairs({defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo}) do
+        for _, inventoryName in pairs({ defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo }) do
             for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
                 totalItemsCount = totalItemsCount + count
             end
@@ -353,7 +353,7 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
     local totalItemsCount = 0 ---@type uint
     local inventoryItemCounts = {} ---@type PlayerDropInventory_InventoryItemCounts
     local inventoryContents = {} ---@type PlayerDropInventory_InventoryContents
-    for _, inventoryName in pairs({defines.inventory.character_main, defines.inventory.character_trash}) do
+    for _, inventoryName in pairs({ defines.inventory.character_main, defines.inventory.character_trash }) do
         local contents = player.get_inventory(inventoryName).get_contents()
         inventoryContents[inventoryName] = contents
         local inventoryTotalCount = 0 ---@type uint
@@ -368,11 +368,11 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
         local count = cursorStack.count
         totalItemsCount = totalItemsCount + count
         inventoryItemCounts["cursorStack"] = count
-        inventoryContents["cursorStack"] = {[cursorStack.name] = count}
+        inventoryContents["cursorStack"] = { [cursorStack.name] = count }
     end
 
     if includeEquipment then
-        for _, inventoryName in pairs({defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo}) do
+        for _, inventoryName in pairs({ defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo }) do
             local contents = player.get_inventory(inventoryName).get_contents()
             inventoryContents[inventoryName] = contents
             local inventoryTotalCount = 0 ---@type uint

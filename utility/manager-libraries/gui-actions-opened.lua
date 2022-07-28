@@ -100,11 +100,11 @@ GuiActionsOpened._HandleGuiOpenedAction = function(rawFactorioEventData)
     local guiType, entityOpened = rawFactorioEventData.gui_type, rawFactorioEventData.entity
 
     if global.UTILITYGUIACTIONSGUITYPEOPENED ~= nil and guiType ~= nil then
-        for _, guiTypeHandled in pairs({guiType, "all"}) do
+        for _, guiTypeHandled in pairs({ guiType, "all" }) do
             if global.UTILITYGUIACTIONSGUITYPEOPENED[guiTypeHandled] ~= nil then
                 for actionName, data in pairs(global.UTILITYGUIACTIONSGUITYPEOPENED[guiTypeHandled]) do
                     local actionFunction = MOD.guiOpenedActions[actionName]
-                    local actionData = {actionName = actionName, playerIndex = rawFactorioEventData.player_index, guiType = guiTypeHandled, data = data, eventData = rawFactorioEventData}
+                    local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, guiType = guiTypeHandled, data = data, eventData = rawFactorioEventData }
                     if actionFunction == nil then
                         error("ERROR: Entity GUI Opened Handler - no registered action for name: '" .. tostring(actionName) .. "'")
                         return
@@ -118,7 +118,7 @@ GuiActionsOpened._HandleGuiOpenedAction = function(rawFactorioEventData)
     if global.UTILITYGUIACTIONSENTITYGUIOPENED ~= nil and entityOpened ~= nil and global.UTILITYGUIACTIONSENTITYGUIOPENED[entityOpened.unit_number] ~= nil then
         for actionName, data in pairs(global.UTILITYGUIACTIONSENTITYGUIOPENED[entityOpened.unit_number]) do
             local actionFunction = MOD.guiOpenedActions[actionName]
-            local actionData = {actionName = actionName, playerIndex = rawFactorioEventData.player_index, entity = entityOpened, data = data, eventData = rawFactorioEventData}
+            local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, entity = entityOpened, data = data, eventData = rawFactorioEventData }
             if actionFunction == nil then
                 error("ERROR: Entity GUI Opened Handler - no registered action for name: '" .. tostring(actionName) .. "'")
                 return

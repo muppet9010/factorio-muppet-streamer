@@ -79,7 +79,7 @@ BiterSelection._CalculateSpecificBiterSelectionProbabilities = function(spawnerT
     local rawUnitProbabilities = game.entity_prototypes[spawnerType].result_units
     local currentEvolutionProbabilities = {} ---@type UtilityBiterSelection_UnitChanceEntry[]
     for _, possibility in pairs(rawUnitProbabilities) do
-        local startSpawnPointIndex  ---@type int
+        local startSpawnPointIndex ---@type int
         for spawnPointIndex, spawnPoint in pairs(possibility.spawn_points) do
             if spawnPoint.evolution_factor <= currentEvolution then
                 startSpawnPointIndex = spawnPointIndex
@@ -91,7 +91,7 @@ BiterSelection._CalculateSpecificBiterSelectionProbabilities = function(spawnerT
             if possibility.spawn_points[startSpawnPointIndex + 1] ~= nil then
                 endSpawnPoint = possibility.spawn_points[startSpawnPointIndex + 1]
             else
-                endSpawnPoint = {evolution_factor = 1.0, weight = startSpawnPoint.weight}
+                endSpawnPoint = { evolution_factor = 1.0, weight = startSpawnPoint.weight }
             end
 
             local weight
@@ -103,7 +103,7 @@ BiterSelection._CalculateSpecificBiterSelectionProbabilities = function(spawnerT
             else
                 weight = startSpawnPoint.weight
             end
-            table.insert(currentEvolutionProbabilities, {chance = weight, unitName = possibility.unit})
+            table.insert(currentEvolutionProbabilities, { chance = weight, unitName = possibility.unit })
         end
     end
     currentEvolutionProbabilities = RandomChance.NormaliseChanceList(currentEvolutionProbabilities, "chance") ---@type UtilityBiterSelection_UnitChanceEntry[]
@@ -114,7 +114,7 @@ end
 ---@param evolution double @ The evolution the worm turret must be below.
 ---@return string|nil wormTurret
 BiterSelection._CalculateSpecificWormForEvolution = function(evolution)
-    local turrets = game.get_filtered_entity_prototypes({{filter = "turret"}, {mode = "and", filter = "build-base-evolution-requirement", comparison = "≤", value = evolution}, {mode = "and", filter = "flag", flag = "placeable-enemy"}, {mode = "and", filter = "flag", flag = "player-creation", invert = true}})
+    local turrets = game.get_filtered_entity_prototypes({ { filter = "turret" }, { mode = "and", filter = "build-base-evolution-requirement", comparison = "≤", value = evolution }, { mode = "and", filter = "flag", flag = "placeable-enemy" }, { mode = "and", filter = "flag", flag = "player-creation", invert = true } })
     if #turrets == 0 then
         return nil
     end

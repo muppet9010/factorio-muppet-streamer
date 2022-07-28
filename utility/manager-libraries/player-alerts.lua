@@ -138,7 +138,7 @@ PlayerAlerts._RemoveAlertFromPlayer = function(forceAlert, player)
         }
     else
         player.remove_alert {
-            prototype = forceAlert.alertPrototypeName --[[@as LuaEntityPrototype]], -- Force typed work around for bug: https://forums.factorio.com/viewtopic.php?f=7&t=102860 -- TODO: this should be the prototype not the name now as per 1.1.62. Need to test before just doing it thought.
+            prototype = forceAlert.alertPrototypeName --[[@as LuaEntityPrototype]] , -- Force typed work around for bug: https://forums.factorio.com/viewtopic.php?f=7&t=102860 -- TODO: this should be the prototype not the name now as per 1.1.62. Need to test before just doing it thought.
             position = forceAlert.alertPosition,
             surface = forceAlert.alertSurface,
             type = defines.alert_type.custom,

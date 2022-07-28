@@ -106,7 +106,7 @@ GuiUtil.AddElement = function(elementDetails)
     local attributes, returnElement, storeName, styling, registerClick, registerCheckedStateChange, children = elementDetails.attributes, elementDetails.returnElement, elementDetails.storeName, elementDetails.styling, elementDetails.registerClick, elementDetails.registerCheckedStateChange, elementDetails.children
     elementDetails.attributes, elementDetails.returnElement, elementDetails.storeName, elementDetails.styling, elementDetails.registerClick, elementDetails.registerCheckedStateChange, elementDetails.children = nil, nil, nil, nil, nil, nil, nil
 
-    local element = elementDetails.parent.add(elementDetails --[[@as LuaGuiElement.add_param]])
+    local element = elementDetails.parent.add(elementDetails--[[@as LuaGuiElement.add_param]] )
 
     local returnElements = {} ---@type table<string, LuaGuiElement>
     if returnElement then
@@ -156,7 +156,7 @@ GuiUtil.AddElement = function(elementDetails)
                 child.parent = element
                 local childReturnElements = GuiUtil.AddElement(child)
                 if childReturnElements ~= nil then
-                    returnElements = TableUtils.TableMergeCopies({returnElements, childReturnElements})
+                    returnElements = TableUtils.TableMergeCopies({ returnElements, childReturnElements })
                 end
             end
         end
@@ -250,9 +250,9 @@ GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeNa
         changes.attributes = nil
     end
 
-    for argName, argValue in pairs(changes --[[@as table<string, any>]]) do
+    for argName, argValue in pairs(changes--[[@as table<string, any>]] ) do
         if argName == "caption" or argName == "tooltip" then
-            argValue = GuiUtil._ReplaceLocaleNameSelfWithGeneratedName({name = generatedName, [argName] = argValue}, argName)
+            argValue = GuiUtil._ReplaceLocaleNameSelfWithGeneratedName({ name = generatedName, [argName] = argValue }, argName)
         end
         element[argName] = argValue --[[@as LuaGuiElement @ Short term fix for bug in debugger]]
     end
@@ -366,7 +366,7 @@ GuiUtil._ReplaceLocaleNameSelfWithGeneratedName = function(elementDetails, attri
         if elementDetails.descriptiveName == nil then
             error("GuiUtil._ReplaceLocaleNameSelfWithGeneratedName called with 'self value for an element with no name attribute.")
         end
-        attributeNamesValue = {"gui-" .. attributeName .. "." .. elementDetails["name"]}
+        attributeNamesValue = { "gui-" .. attributeName .. "." .. elementDetails["name"] }
     elseif type(attributeNamesValue) == "table" and attributeNamesValue[1] ~= nil and attributeNamesValue[1] == "self" then
         -- Value is an array with the first value of "self". So a localised string with "self" as the locale name.
         if elementDetails.descriptiveName == nil then

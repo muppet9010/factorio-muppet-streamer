@@ -22,7 +22,7 @@ TeamMember.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_lua_shortcut, "TeamMember", TeamMember.OnLuaShortcut)
     Events.RegisterHandlerEvent(defines.events.on_player_joined_game, "TeamMember", TeamMember.OnPlayerJoinedGame)
     Events.RegisterHandlerEvent(defines.events.on_player_left_game, "TeamMember", TeamMember.OnPlayerLeftGame)
-    CommandsUtils.Register("muppet_streamer_change_team_member_max", {"api-description.muppet_streamer_change_team_member_max"}, TeamMember.CommandChangeTeamMemberLevel, true)
+    CommandsUtils.Register("muppet_streamer_change_team_member_max", { "api-description.muppet_streamer_change_team_member_max" }, TeamMember.CommandChangeTeamMemberLevel, true)
 end
 
 TeamMember.OnStartup = function()
@@ -135,7 +135,7 @@ TeamMember.GuiCreateForPlayer = function(player)
                         {
                             type = "label",
                             name = "team_members_recruited",
-                            tooltip = {"self"},
+                            tooltip = { "self" },
                             style = "muppet_label_text_large_bold",
                             storeName = "TeamMember"
                         }
@@ -158,7 +158,7 @@ TeamMember.GuiUpdateForPlayer = function(player)
     if not global.teamMember.playerGuiOpened[player.index] then
         return
     end
-    GuiUtil.UpdateElementFromPlayersReferenceStorage(player.index, "TeamMember", "team_members_recruited", "label", {caption = {"self", global.teamMember.recruitTeamMemberTitle, #game.connected_players - 1, global.teamMember.recruitedMaxCount}}, false)
+    GuiUtil.UpdateElementFromPlayersReferenceStorage(player.index, "TeamMember", "team_members_recruited", "label", { caption = { "self", global.teamMember.recruitTeamMemberTitle, #game.connected_players - 1, global.teamMember.recruitedMaxCount } }, false)
 end
 
 ---@param changeQuantity int

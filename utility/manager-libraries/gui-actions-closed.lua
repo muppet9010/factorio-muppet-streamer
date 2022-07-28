@@ -69,11 +69,11 @@ GuiActionsClosed._HandleGuiClosedAction = function(rawFactorioEventData)
     local guiType = rawFactorioEventData.gui_type
 
     if global.UTILITYGUIACTIONSGUITYPECLOSED ~= nil and guiType ~= nil then
-        for _, guiTypeHandled in pairs({guiType, "all"}) do
+        for _, guiTypeHandled in pairs({ guiType, "all" }) do
             if global.UTILITYGUIACTIONSGUITYPECLOSED[guiTypeHandled] ~= nil then
                 for actionName, data in pairs(global.UTILITYGUIACTIONSGUITYPECLOSED[guiTypeHandled]) do
                     local actionFunction = MOD.guiClosedActions[actionName]
-                    local actionData = {actionName = actionName, playerIndex = rawFactorioEventData.player_index, guiType = guiTypeHandled, data = data, eventData = rawFactorioEventData}
+                    local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, guiType = guiTypeHandled, data = data, eventData = rawFactorioEventData }
                     if actionFunction == nil then
                         error("ERROR: Entity GUI Closed Handler - no registered action for name: '" .. tostring(actionName) .. "'")
                         return

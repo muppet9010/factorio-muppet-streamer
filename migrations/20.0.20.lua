@@ -7,14 +7,14 @@ local Teleport = {}
 ---@return surfaceForceBiterNests surfacesSpawners
 Teleport.FindExistingSpawnersOnAllSurfaces = function()
     local surfacesSpawners = {} ---@type surfaceForceBiterNests
-    for _, surface in pairs(game.surfaces --[[@as table<uint,LuaSurface>]]) do
+    for _, surface in pairs(game.surfaces--[[@as table<uint,LuaSurface>]] ) do
         local surface_index = surface.index
         surfacesSpawners[surface_index] = {}
-        local spawners = surface.find_entities_filtered {type = "unit-spawner"}
+        local spawners = surface.find_entities_filtered { type = "unit-spawner" }
         for _, spawner in pairs(spawners) do
             local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name
             surfacesSpawners[surface_index][spawner_force_name] = surfacesSpawners[surface_index][spawner_force_name] or {}
-            surfacesSpawners[surface_index][spawner_force_name][spawner_unitNumber] = {unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position}
+            surfacesSpawners[surface_index][spawner_force_name][spawner_unitNumber] = { unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position }
         end
     end
     return surfacesSpawners

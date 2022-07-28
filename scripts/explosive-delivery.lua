@@ -28,7 +28,7 @@ ExplosiveDelivery.CreateGlobals = function()
 end
 
 ExplosiveDelivery.OnLoad = function()
-    CommandsUtils.Register("muppet_streamer_schedule_explosive_delivery", {"api-description.muppet_streamer_schedule_explosive_delivery"}, ExplosiveDelivery.ScheduleExplosiveDeliveryCommand, true)
+    CommandsUtils.Register("muppet_streamer_schedule_explosive_delivery", { "api-description.muppet_streamer_schedule_explosive_delivery" }, ExplosiveDelivery.ScheduleExplosiveDeliveryCommand, true)
     EventScheduler.RegisterScheduledEventType("ExplosiveDelivery.DeliverExplosives", ExplosiveDelivery.DeliverExplosives)
     MOD.Interfaces.Commands.ExplosiveDelivery = ExplosiveDelivery.ScheduleExplosiveDeliveryCommand
 end
@@ -37,7 +37,7 @@ end
 ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     local commandName = "muppet_streamer_schedule_explosive_delivery"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "explosiveCount", "explosiveType", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "explosiveCount", "explosiveType", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay" })
     if commandData == nil then
         return
     end
@@ -118,11 +118,12 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
 
     -- If this is a multi salvo wave we need to cache the target position from the first delivery for the subsequent deliveries of that wave. So setup the salvoWaveId for later population.
     local maxBatchNumber = 0 ---@type uint @ Batch 0 is the first batch.
-    local salvoWaveId  ---@type uint|nil
+    local salvoWaveId ---@type uint|nil
     if explosiveCount > salvoSize then
         global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1
         salvoWaveId = global.explosiveDelivery.nextSalvoWaveId
-        maxBatchNumber = math.floor(explosiveCount / salvoSize) --[[@as uint @ Both inputs are verified uints and with the math.floor() it can't go below 0]] -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
+        maxBatchNumber = math.floor(explosiveCount / salvoSize) --[[@as uint @ Both inputs are verified uints and with the math.floor() it can't go below 0]]
+        -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
     end
 
     local explosiveCountRemaining = explosiveCount
@@ -145,7 +146,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             finalSalvo = (batchNumber == maxBatchNumber)
         }
 
-        local batchScheduleTick  ---@type UtilityScheduledEvent_UintNegative1
+        local batchScheduleTick ---@type UtilityScheduledEvent_UintNegative1
         local batchSalvoDelay = batchNumber * salvoDelayTicks
         if batchSalvoDelay > 0 then
             -- There's a salvo delay.
@@ -217,7 +218,7 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
     for _ = 1, data.explosiveCount do
         -- The explosives have to be fired at something, so we make a temporary dummy target entity at the desired explosion position.
         local targetEntityPos = PositionUtils.RandomLocationInRadius(targetPos, data.accuracyRadiusMax, data.accuracyRadiusMin)
-        local targetEntity = surface.create_entity {name = "muppet_streamer-explosive-delivery-target", position = targetEntityPos}
+        local targetEntity = surface.create_entity { name = "muppet_streamer-explosive-delivery-target", position = targetEntityPos }
 
         -- If the entity fails to create (should never happen) just skip this explosive.
         if targetEntity == nil then
@@ -229,9 +230,9 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         local explosiveCreatePos = PositionUtils.RandomLocationInRadius(targetPos, explosiveCreateDistance, explosiveCreateDistance)
 
         if explosiveType.projectileName ~= nil then
-            surface.create_entity {name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed}
+            surface.create_entity { name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed }
         elseif explosiveType.beamName ~= nil then
-            surface.create_entity {name = explosiveType.beamName, position = explosiveCreatePos, target = targetEntity, source_position = explosiveCreatePos}
+            surface.create_entity { name = explosiveType.beamName, position = explosiveCreatePos, target = targetEntity, source_position = explosiveCreatePos }
         end
 
         -- Remove the temporary dummy target entity.

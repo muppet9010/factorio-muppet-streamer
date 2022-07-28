@@ -39,7 +39,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
 
     -- If a vehicle, get its current nearest cardinal direction (4 direction) to orientation.
     -- CODE NOTE: This isn't perfect, but is better than nothing until this Interface Request is done: https://forums.factorio.com/viewtopic.php?f=28&t=102792
-    local playersVehicle_directionToCheck  ---@type defines.direction|nil
+    local playersVehicle_directionToCheck ---@type defines.direction|nil
     if targetPlayerPlacementEntity_isVehicle then
         playersVehicle_directionToCheck = DirectionUtils.OrientationToNearestCardinalDirection(targetPlayerPlacementEntity.orientation)
     end
@@ -57,7 +57,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
 
         if playersVehicle_directionToCheck ~= nil then
             -- Check the entity can be placed with its current nearest cardinal direction to orientation, as the searching API doesn't check for this.
-            if arrivalPos ~= nil and not targetSurface.can_place_entity {name = targetPlayerPlacementEntity.name, position = arrivalPos, direction = playersVehicle_directionToCheck, force = targetPlayer_force, build_check_type = defines.build_check_type.manual} then
+            if arrivalPos ~= nil and not targetSurface.can_place_entity { name = targetPlayerPlacementEntity.name, position = arrivalPos, direction = playersVehicle_directionToCheck, force = targetPlayer_force, build_check_type = defines.build_check_type.manual } then
                 -- Can't be placed here. As we can't exclude this location from a find_non_colliding_position, we have to declare this entire random position bad and try a new random location.
                 arrivalPos = nil
             end
@@ -79,7 +79,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
         -- Create the path request. We use the player's real character for this as in worst case they can get out of their vehicle and walk back through the narrow terrain.
         local targetPlayer_character_prototype = targetPlayer_character.prototype
         local pathRequestId =
-            targetSurface.request_path {
+        targetSurface.request_path {
             bounding_box = targetPlayer_character_prototype.collision_box,
             collision_mask = targetPlayer_character_prototype.collision_mask,
             start = arrivalPos,
@@ -88,7 +88,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
             radius = 1.0,
             can_open_gates = true,
             entity_to_ignore = targetPlayerPlacementEntity,
-            pathfind_flags = {allow_paths_through_own_entities = true, cache = false}
+            pathfind_flags = { allow_paths_through_own_entities = true, cache = false }
         }
         responseDetails.pathRequestId = pathRequestId
         return responseDetails

@@ -128,7 +128,7 @@ LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
         return
     end
 
-    local args = {...} ---@type any[]
+    local args = { ... } ---@type any[]
 
     -- Is in debug mode so catch any errors and log state data.
     -- Only produces correct stack traces in regular Factorio, not in debugger as this adds extra lines to the stacktrace.
@@ -186,7 +186,7 @@ LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
 
     -- Simple values just get returned.
     if type(thing) ~= "table" then
-        return {LITERAL_VALUE = thing}
+        return { LITERAL_VALUE = thing }
     end ---@cast thing table
 
     -- Handle specific Factorio Lua objects
@@ -281,7 +281,7 @@ LoggingUtils.WriteOutNumberedMarker = function(targetSurfaceIdentification, targ
         text = global.UtilityLogging_NumberedCount,
         surface = targetSurfaceIdentification,
         target = targetPosition,
-        color = {r = 1.0, g = 0.0, b = 0.0, a = 1.0},
+        color = { r = 1.0, g = 0.0, b = 0.0, a = 1.0 },
         scale_with_zoom = true,
         alignment = "center",
         vertical_alignment = "bottom"
@@ -306,7 +306,7 @@ end
 
 ---@param errorMessage string
 LoggingUtils._RunFunctionAndCatchErrors_ErrorHandlerFunction = function(errorMessage)
-    local errorObject = {message = errorMessage, stacktrace = debug.traceback()}
+    local errorObject = { message = errorMessage, stacktrace = debug.traceback() }
     return errorObject
 end
 

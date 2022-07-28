@@ -55,7 +55,7 @@ GuiActionsClick.RegisterGuiForClick = function(elementName, elementType, actionN
     local name = GuiActionsClick._GenerateGuiElementName(elementName, elementType)
     global.UTILITYGUIACTIONSGUICLICK = global.UTILITYGUIACTIONSGUICLICK or {} ---@type table<string, UtilityGuiActionsClick_GuiClickDetails>
     if not disabled then
-        global.UTILITYGUIACTIONSGUICLICK[name] = {actionName = actionName, data = data}
+        global.UTILITYGUIACTIONSGUICLICK[name] = { actionName = actionName, data = data }
     else
         global.UTILITYGUIACTIONSGUICLICK[name] = nil
     end
@@ -92,7 +92,7 @@ GuiActionsClick._HandleGuiClickAction = function(rawFactorioEventData)
     if guiClickDetails ~= nil then
         local actionName = guiClickDetails.actionName
         local actionFunction = MOD.guiClickActions[actionName]
-        local actionData = {actionName = actionName, playerIndex = rawFactorioEventData.player_index, data = guiClickDetails.data, eventData = rawFactorioEventData}
+        local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, data = guiClickDetails.data, eventData = rawFactorioEventData }
         if actionFunction == nil then
             error("ERROR: GUI Click Handler - no registered action for name: '" .. tostring(actionName) .. "'")
             return

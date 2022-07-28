@@ -44,7 +44,7 @@ LeakyFlamethrower.CreateGlobals = function()
 end
 
 LeakyFlamethrower.OnLoad = function()
-    CommandsUtils.Register("muppet_streamer_leaky_flamethrower", {"api-description.muppet_streamer_leaky_flamethrower"}, LeakyFlamethrower.LeakyFlamethrowerCommand, true)
+    CommandsUtils.Register("muppet_streamer_leaky_flamethrower", { "api-description.muppet_streamer_leaky_flamethrower" }, LeakyFlamethrower.LeakyFlamethrowerCommand, true)
     EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ShootFlamethrower", LeakyFlamethrower.ShootFlamethrower)
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "LeakyFlamethrower.OnPrePlayerDied", LeakyFlamethrower.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ApplyToPlayer", LeakyFlamethrower.ApplyToPlayer)
@@ -60,7 +60,7 @@ end
 
 ---@param command CustomCommandData
 LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, {"delay", "target", "ammoCount"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "ammoCount" })
     if commandData == nil then
         return
     end
@@ -83,7 +83,7 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
 
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 ---@type uint @ Needed for weird bug reason, maybe in Sumneko or maybe the plugin with its fake global.
     ---@type LeakyFlamethrower_ScheduledEventDetails
-    local scheduledEventDetails = {target = target, ammoCount = ammoCount}
+    local scheduledEventDetails = { target = target, ammoCount = ammoCount }
     EventScheduler.ScheduleEventOnce(scheduleTick, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, scheduledEventDetails)
 end
 
@@ -97,7 +97,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
-        game.print({"message.muppet_streamer_leaky_flamethrower_not_character_controller", data.target})
+        game.print({ "message.muppet_streamer_leaky_flamethrower_not_character_controller", data.target })
         return
     end
     local targetPlayer_index = targetPlayer.index
@@ -119,13 +119,13 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     if selectedAmmoItemStack.valid_for_read then
         -- There's a stack there and it will be flamethrower ammo from when we forced the weapon to the player.
         -- Just give the ammo to the player and it will auto assign it correctly.
-        local inserted = targetPlayer.insert({name = "flamethrower-ammo", count = data.ammoCount})
+        local inserted = targetPlayer.insert({ name = "flamethrower-ammo", count = data.ammoCount })
         if inserted < data.ammoCount then
-            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = "flamethrower-ammo", count = data.ammoCount - inserted}, true, nil, false)
+            targetPlayer.surface.spill_item_stack(targetPlayer.position, { name = "flamethrower-ammo", count = data.ammoCount - inserted }, true, nil, false)
         end
     else
         -- No current ammo in the slot. So just set our required one.
-        selectedAmmoItemStack.set_stack({name = "flamethrower-ammo", count = data.ammoCount})
+        selectedAmmoItemStack.set_stack({ name = "flamethrower-ammo", count = data.ammoCount })
     end
 
     -- Check the player has the weapon equipped as expected. (same as checking logic as when it tries to fire the weapon).
@@ -152,16 +152,16 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
 
     local group = game.permissions.get_group("LeakyFlamethrower") or game.permissions.create_group("LeakyFlamethrower") ---@cast group - nil @ Script always has permission to create groups.
     targetPlayer.permission_group = group
-    global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = {flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails}
+    global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = { flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails }
 
     local startingAngle = math.random(0, 360)
     local startingDistance = math.random(2, 10)
-    game.print({"message.muppet_streamer_leaky_flamethrower_start", targetPlayer.name})
+    game.print({ "message.muppet_streamer_leaky_flamethrower_start", targetPlayer.name })
 
     ---@type LeakyFlamethrower_ShootFlamethrowerDetails
-    local shootFlamethrowerDetails = {player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index, usedSomeAmmo = false, startingAmmoItemStacksCount = startingAmmoItemStacksCount, startingAmmoItemStackAmmo = startingAmmoItemStackAmmo}
+    local shootFlamethrowerDetails = { player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index, usedSomeAmmo = false, startingAmmoItemStacksCount = startingAmmoItemStacksCount, startingAmmoItemStackAmmo = startingAmmoItemStackAmmo }
     ---@type UtilityScheduledEvent_CallbackObject
-    local shootFlamethrowerCallbackObject = {tick = eventData.tick, instanceId = targetPlayer_index, data = shootFlamethrowerDetails}
+    local shootFlamethrowerCallbackObject = { tick = eventData.tick, instanceId = targetPlayer_index, data = shootFlamethrowerDetails }
     LeakyFlamethrower.ShootFlamethrower(shootFlamethrowerCallbackObject)
 end
 
@@ -218,7 +218,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         end
     end
 
-    local nextShootDelay  ---@type uint
+    local nextShootDelay ---@type uint
     data.currentBurstTicks = data.currentBurstTicks + 1
     -- Do the action for this tick.
     if data.currentBurstTicks > 100 then
@@ -226,7 +226,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         data.currentBurstTicks = 0
         data.burstsDone = data.burstsDone + 1
         global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft = global.leakyFlamethrower.affectedPlayers[playerIndex].burstsLeft - 1
-        player.shooting_state = {state = defines.shooting.not_shooting}
+        player.shooting_state = { state = defines.shooting.not_shooting }
         if data.burstsDone == data.maxBursts then
             LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
             return
@@ -239,7 +239,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         data.distance = math.min(math.max(data.distance + ((math.random() * 2) - 1), 2), 10)
         data.angle = data.angle + (math.random(-10, 10))
         local targetPos = PositionUtils.GetPositionForAngledDistance(player.position, data.distance, data.angle)
-        player.shooting_state = {state = defines.shooting.shooting_selected, position = targetPos}
+        player.shooting_state = { state = defines.shooting.shooting_selected, position = targetPos }
         nextShootDelay = 1
     end
 
@@ -294,11 +294,11 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     end
 
     -- Remove any shooting state set and maintained from previous ticks.
-    player.shooting_state = {state = defines.shooting.not_shooting}
+    player.shooting_state = { state = defines.shooting.not_shooting }
 
     -- Print a message based on ending status.
     if status == EffectEndStatus.completed then
-        game.print({"message.muppet_streamer_leaky_flamethrower_stop", player.name})
+        game.print({ "message.muppet_streamer_leaky_flamethrower_stop", player.name })
     end
 end
 

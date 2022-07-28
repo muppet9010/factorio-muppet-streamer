@@ -101,16 +101,16 @@ InventoryUtils.TryTakeGridsItems = function(sourceGrid, targetInventory, dropUnm
 
     --Do the actual item moving.
     for _, equipment in pairs(sourceGrid.equipment) do
-        local moved = targetInventory.insert({name = equipment.name, count = 1})
+        local moved = targetInventory.insert({ name = equipment.name, count = 1 })
         if moved > 0 then
-            sourceGrid.take({equipment = equipment})
+            sourceGrid.take({ equipment = equipment })
         end
         if moved == 0 then
             itemAllMoved = false
             if dropUnmovedOnGround then
                 sourceOwner = sourceOwner or targetInventory.entity_owner or targetInventory.player_owner
-                sourceOwner.surface.spill_item_stack(sourceOwner.position, {name = equipment.name, count = 1}, true, sourceOwner.force, false)
-                sourceGrid.take({equipment = equipment})
+                sourceOwner.surface.spill_item_stack(sourceOwner.position, { name = equipment.name, count = 1 }, true, sourceOwner.force, false)
+                sourceGrid.take({ equipment = equipment })
             end
         end
     end
@@ -149,7 +149,7 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
     --Do the actual item moving.
     for name, count in pairs(contents) do
         local toMove = math_ceil(count * ratioToMove) --[[@as uint @ This can't have a multiplier above 1.]]
-        local moved = targetInventory.insert({name = name, count = toMove})
+        local moved = targetInventory.insert({ name = name, count = toMove })
         local remaining = count - moved
         if moved > 0 then
             contents[name] = remaining
@@ -158,7 +158,7 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
             itemAllMoved = false
             if dropUnmovedOnGround then
                 sourceOwner = sourceOwner or targetInventory.entity_owner or targetInventory.player_owner
-                sourceOwner.surface.spill_item_stack(sourceOwner.position, {name = name, count = remaining}, true, sourceOwner.force, false)
+                sourceOwner.surface.spill_item_stack(sourceOwner.position, { name = name, count = remaining }, true, sourceOwner.force, false)
                 contents[name] = 0
             end
         end
@@ -201,8 +201,9 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
         -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
         -- CODE NOTE: ItemStacks have a single durability and ammo stat which effectively is for the first item in the itemStack, with the other items in the itemStack all being full.
         -- CODE NOTE: when the itemStack's count is reduced the itemStacks durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
-        local toMove = math_ceil(simpleItemStack.count * ratioToMove) --[[@as uint]] -- This can't have a multiplier above 1.
-        local moved = targetInventory.insert({name = simpleItemStack.name, count = toMove, health = simpleItemStack.health, ammo = simpleItemStack.ammo})
+        local toMove = math_ceil(simpleItemStack.count * ratioToMove) --[[@as uint]]
+        -- This can't have a multiplier above 1.
+        local moved = targetInventory.insert({ name = simpleItemStack.name, count = toMove, health = simpleItemStack.health, ammo = simpleItemStack.ammo })
         local remaining = simpleItemStack.count - moved
         if moved > 0 then
             simpleItemStacks[index].count = remaining
@@ -211,7 +212,7 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
             itemAllMoved = false
             if dropUnmovedOnGround then
                 sourceOwner = sourceOwner or targetInventory.entity_owner or targetInventory.player_owner
-                sourceOwner.surface.spill_item_stack(sourceOwner.position, {name = simpleItemStack.name, count = remaining}, true, sourceOwner.force, false)
+                sourceOwner.surface.spill_item_stack(sourceOwner.position, { name = simpleItemStack.name, count = remaining }, true, sourceOwner.force, false)
                 simpleItemStacks[index].count = 0
             end
         end

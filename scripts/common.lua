@@ -10,9 +10,9 @@ local CommandsUtils = require("utility.helper-utils.commands-utils")
 ---@param settingName string
 ---@return UtilityScheduledEvent_UintNegative1
 Common.DelaySecondsSettingToScheduledEventTickValue = function(delaySeconds, currentTick, commandName, settingName)
-    local scheduleTick  ---@type UtilityScheduledEvent_UintNegative1
+    local scheduleTick ---@type UtilityScheduledEvent_UintNegative1
     if (delaySeconds ~= nil and delaySeconds > 0) then
-        local valueWasOutsideRange  ---@type boolean
+        local valueWasOutsideRange ---@type boolean
         scheduleTick, valueWasOutsideRange = MathUtils.ClampToUInt(currentTick + math.floor(delaySeconds * 60))
         if valueWasOutsideRange then
             CommandsUtils.LogPrintWarning(commandName, settingName, "capped at max ticks, as excessively large number of delay seconds provided: " .. tostring(delaySeconds), nil)

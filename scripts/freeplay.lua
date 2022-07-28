@@ -10,7 +10,7 @@ Freeplay.OnStartup = function()
     end
     local startingReveal = settings.startup["muppet_streamer-starting_reveal"].value --[[@as int @ Can be -1 for not set (Factorio Settings), or 0+ as a set value.]]
     if startingReveal >= 0 then
-        GameUtils.SetStartingMapReveal(startingReveal --[[@as uint]])
+        GameUtils.SetStartingMapReveal(startingReveal--[[@as uint]] )
     end
 end
 

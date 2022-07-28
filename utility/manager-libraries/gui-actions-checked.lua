@@ -49,7 +49,7 @@ GuiActionsChecked.RegisterGuiForCheckedStateChange = function(elementName, eleme
     local name = GuiActionsChecked._GenerateGuiElementName(elementName, elementType)
     global.UTILITYGUIACTIONSGUICHECKED = global.UTILITYGUIACTIONSGUICHECKED or {} ---@type table<string, UtilityGuiActionsChecked_GuiCheckedDetails>
     if not disabled then
-        global.UTILITYGUIACTIONSGUICHECKED[name] = {actionName = actionName, data = data}
+        global.UTILITYGUIACTIONSGUICHECKED[name] = { actionName = actionName, data = data }
     else
         global.UTILITYGUIACTIONSGUICHECKED[name] = nil
     end
@@ -86,7 +86,7 @@ GuiActionsChecked._HandleGuiCheckedAction = function(rawFactorioEventData)
     if guiCheckedDetails ~= nil then
         local actionName = guiCheckedDetails.actionName
         local actionFunction = MOD.guiCheckedActions[actionName]
-        local actionData = {actionName = actionName, playerIndex = rawFactorioEventData.player_index, data = guiCheckedDetails.data, eventData = rawFactorioEventData}
+        local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, data = guiCheckedDetails.data, eventData = rawFactorioEventData }
         if actionFunction == nil then
             error("ERROR: GUI Checked Handler - no registered action for name: '" .. tostring(actionName) .. "'")
             return

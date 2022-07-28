@@ -44,11 +44,11 @@ end
 StyleData.GeneratePrototypes = function()
     local defaultStyle = data.raw["gui-style"]["default"] ---@type table<string, table<string|uint, any>>
 
-    local frameShadowRisenColor = {0, 0, 0, 0.35}
-    local frameShadowSunkenColor = {0, 0, 0, 1}
+    local frameShadowRisenColor = { 0, 0, 0, 0.35 }
+    local frameShadowSunkenColor = { 0, 0, 0, 1 }
     local frameShadowRisen = function()
         return {
-            position = {183, 128},
+            position = { 183, 128 },
             corner_size = 8,
             tint = frameShadowRisenColor,
             scale = 0.5,
@@ -57,7 +57,7 @@ StyleData.GeneratePrototypes = function()
     end
     local frameShadowSunken = function()
         return {
-            position = {200, 128},
+            position = { 200, 128 },
             corner_size = 8,
             tint = frameShadowSunkenColor,
             scale = 0.5,
@@ -67,11 +67,11 @@ StyleData.GeneratePrototypes = function()
 
     -- FLOW
     styleNamesGenerated.flow = {} ---@type table<string, table<string, string>>
-    for _, direction in pairs({{"_horizontal", "horizontal"}, {"_vertical", "vertical"}}) do
+    for _, direction in pairs({ { "_horizontal", "horizontal" }, { "_vertical", "vertical" } }) do
         styleNamesGenerated.flow[direction[2]] = {}
-        for _, margin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
-            for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
-                for _, spacing in pairs({{"", 0}, {"_spaced", 4}}) do
+        for _, margin in pairs({ { "", 0, 0, 0, 0 }, { "_marginTL", 4, 4, 0, 0 } }) do
+            for _, padding in pairs({ { "", 0, 0, 0, 0 }, { "_paddingBR", 0, 0, 4, 4 } }) do
+                for _, spacing in pairs({ { "", 0 }, { "_spaced", 4 } }) do
                     local detailsName = margin[1] .. padding[1] .. spacing[1]
                     local styleName = "muppet_flow" .. direction[1] .. detailsName
                     defaultStyle[styleName .. StyleData.styleVersion] = {
@@ -96,24 +96,24 @@ StyleData.GeneratePrototypes = function()
     styleNamesGenerated.frame = {} ---@type table<string, table<string, string>>
     for _, graphic in pairs(
         {
-            {"_main", {base = {position = {0, 0}, corner_size = 8}}, 0, 0},
-            {"_main_shadowSunken", {base = {position = {0, 0}, corner_size = 8}, shadow = frameShadowSunken()}, 2, 0},
-            {"_main_shadowRisen", {base = {position = {0, 0}, corner_size = 8}, shadow = frameShadowRisen()}, 0, 2},
-            {"_content", {base = {position = {68, 0}, corner_size = 8}}, 0, 0},
-            {"_content_shadowSunken", {base = {position = {68, 0}, corner_size = 8}, shadow = frameShadowSunken()}, 2, 0},
-            {"_content_shadowRisen", {base = {position = {68, 0}, corner_size = 8}, shadow = frameShadowRisen()}, 0, 2},
-            {"_contentInnerDark", {base = {position = {34, 0}, corner_size = 8}}, 0, 0},
-            {"_contentInnerDark_shadowSunken", {base = {position = {34, 0}, corner_size = 8}, shadow = frameShadowSunken()}, 2, 0},
-            {"_contentInnerDark_shadowRisen", {base = {position = {34, 0}, corner_size = 8}, shadow = frameShadowRisen()}, 0, 2},
-            {"_contentInnerLight", {base = {position = {0, 17}, corner_size = 8}}, 0, 0},
-            {"_contentInnerLight_shadowSunken", {base = {position = {0, 17}, corner_size = 8}, shadow = frameShadowSunken()}, 2, 0},
-            {"_contentInnerLight_shadowRisen", {base = {position = {0, 17}, corner_size = 8}, shadow = frameShadowRisen()}, 0, 2}
+            { "_main", { base = { position = { 0, 0 }, corner_size = 8 } }, 0, 0 },
+            { "_main_shadowSunken", { base = { position = { 0, 0 }, corner_size = 8 }, shadow = frameShadowSunken() }, 2, 0 },
+            { "_main_shadowRisen", { base = { position = { 0, 0 }, corner_size = 8 }, shadow = frameShadowRisen() }, 0, 2 },
+            { "_content", { base = { position = { 68, 0 }, corner_size = 8 } }, 0, 0 },
+            { "_content_shadowSunken", { base = { position = { 68, 0 }, corner_size = 8 }, shadow = frameShadowSunken() }, 2, 0 },
+            { "_content_shadowRisen", { base = { position = { 68, 0 }, corner_size = 8 }, shadow = frameShadowRisen() }, 0, 2 },
+            { "_contentInnerDark", { base = { position = { 34, 0 }, corner_size = 8 } }, 0, 0 },
+            { "_contentInnerDark_shadowSunken", { base = { position = { 34, 0 }, corner_size = 8 }, shadow = frameShadowSunken() }, 2, 0 },
+            { "_contentInnerDark_shadowRisen", { base = { position = { 34, 0 }, corner_size = 8 }, shadow = frameShadowRisen() }, 0, 2 },
+            { "_contentInnerLight", { base = { position = { 0, 17 }, corner_size = 8 } }, 0, 0 },
+            { "_contentInnerLight_shadowSunken", { base = { position = { 0, 17 }, corner_size = 8 }, shadow = frameShadowSunken() }, 2, 0 },
+            { "_contentInnerLight_shadowRisen", { base = { position = { 0, 17 }, corner_size = 8 }, shadow = frameShadowRisen() }, 0, 2 }
         }
     ) do
         local graphicEmmyLuaName = string.sub(graphic[1], 2)
         styleNamesGenerated.frame[graphicEmmyLuaName] = {}
-        for _, margin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
-            for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
+        for _, margin in pairs({ { "", 0, 0, 0, 0 }, { "_marginTL", 4, 4, 0, 0 } }) do
+            for _, padding in pairs({ { "", 0, 0, 0, 0 }, { "_paddingBR", 0, 0, 4, 4 } }) do
                 local detailsName = margin[1] .. padding[1]
                 local styleName = "muppet_frame" .. graphic[1] .. detailsName
                 defaultStyle[styleName .. StyleData.styleVersion] = {
@@ -135,8 +135,8 @@ StyleData.GeneratePrototypes = function()
 
     -- SCROLL
     styleNamesGenerated.scroll = {} ---@type table<string, string>
-    for _, margin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
-        for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
+    for _, margin in pairs({ { "", 0, 0, 0, 0 }, { "_marginTL", 4, 4, 0, 0 } }) do
+        for _, padding in pairs({ { "", 0, 0, 0, 0 }, { "_paddingBR", 0, 0, 4, 4 } }) do
             local detailsName = margin[1] .. padding[1]
             local styleName = "muppet_scroll" .. detailsName
             defaultStyle[styleName .. StyleData.styleVersion] = {
@@ -160,11 +160,11 @@ StyleData.GeneratePrototypes = function()
 
     -- TABLE
     styleNamesGenerated.table = {} ---@type table<string, string>
-    for _, tableMargin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
-        for _, tablePadding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
-            for _, cellPadding in pairs({{"", 0, 0, 0, 0}, {"_cellPadded", 4, 4, 4, 4}}) do
-                for _, verticalSpaced in pairs({{"", 0}, {"_verticalSpaced", 4}}) do
-                    for _, horizontalSpaced in pairs({{"", 0}, {"_horizontalSpaced", 4}}) do
+    for _, tableMargin in pairs({ { "", 0, 0, 0, 0 }, { "_marginTL", 4, 4, 0, 0 } }) do
+        for _, tablePadding in pairs({ { "", 0, 0, 0, 0 }, { "_paddingBR", 0, 0, 4, 4 } }) do
+            for _, cellPadding in pairs({ { "", 0, 0, 0, 0 }, { "_cellPadded", 4, 4, 4, 4 } }) do
+                for _, verticalSpaced in pairs({ { "", 0 }, { "_verticalSpaced", 4 } }) do
+                    for _, horizontalSpaced in pairs({ { "", 0 }, { "_horizontalSpaced", 4 } }) do
                         local detailsName = tableMargin[1] .. tablePadding[1] .. cellPadding[1] .. verticalSpaced[1] .. horizontalSpaced[1]
                         local styleName = "muppet_table" .. detailsName
                         defaultStyle[styleName .. StyleData.styleVersion] = {
@@ -193,7 +193,7 @@ StyleData.GeneratePrototypes = function()
 
     -- SPRITE
     styleNamesGenerated.sprite = {} ---@type table<string, string>
-    for _, size in pairs({{"_32", 32}, {"_48", 48}, {"_64", 64}}) do
+    for _, size in pairs({ { "_32", 32 }, { "_48", 48 }, { "_64", 64 } }) do
         local detailsName = size[1]
         local styleName = "muppet_sprite" .. detailsName
         defaultStyle[styleName .. StyleData.styleVersion] = {
@@ -211,24 +211,24 @@ StyleData.GeneratePrototypes = function()
     styleNamesGenerated.spriteButton = {} ---@type table<string, string>
     for _, attributes in pairs(
         {
-            {"", {}},
-            {"_frame", {default_graphical_set = {base = {position = {0, 0}, corner_size = 8}, shadow = {position = {440, 24}, corner_size = 8, draw_type = "outer"}}}},
-            {"_noBorder", {default_graphical_set = {}, hovered_graphical_set = {}, clicked_graphical_set = {}}},
-            {"_frameCloseButtonClickable", {default_graphical_set = {base = {position = {0, 0}, corner_size = 8}, shadow = {position = {440, 24}, corner_size = 8, draw_type = "outer"}}, padding = -6, width = 16, height = 16}}
+            { "", {} },
+            { "_frame", { default_graphical_set = { base = { position = { 0, 0 }, corner_size = 8 }, shadow = { position = { 440, 24 }, corner_size = 8, draw_type = "outer" } } } },
+            { "_noBorder", { default_graphical_set = {}, hovered_graphical_set = {}, clicked_graphical_set = {} } },
+            { "_frameCloseButtonClickable", { default_graphical_set = { base = { position = { 0, 0 }, corner_size = 8 }, shadow = { position = { 440, 24 }, corner_size = 8, draw_type = "outer" } }, padding = -6, width = 16, height = 16 } }
         }
     ) do
-        for _, size in pairs({{"", nil}, {"_mod", 36}, {"_smallText", 28}, {"_clickable", 16}, {"_32", 32}, {"_48", 48}, {"_64", 64}}) do
+        for _, size in pairs({ { "", nil }, { "_mod", 36 }, { "_smallText", 28 }, { "_clickable", 16 }, { "_32", 32 }, { "_48", 48 }, { "_64", 64 } }) do
             local detailsName = attributes[1] .. size[1]
             local styleName = "muppet_sprite_button" .. detailsName
             local styleNameVersion = styleName .. StyleData.styleVersion
             defaultStyle[styleNameVersion] = {
                 type = "button_style",
-                width = size[2] --[[@as uint|nil]],
-                height = size[2] --[[@as uint|nil]],
+                width = size[2] --[[@as uint|nil]] ,
+                height = size[2] --[[@as uint|nil]] ,
                 margin = 0,
                 padding = 0
             }
-            for k, v in pairs(attributes[2] --[[@as table<string, table>]]) do
+            for k, v in pairs(attributes[2]--[[@as table<string, table>]] ) do
                 if type(k) == "number" then ---@cast k uint @ It's really a uint value if its a number type.
                     defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                 else
@@ -241,18 +241,18 @@ StyleData.GeneratePrototypes = function()
 
     -- BUTTON
     styleNamesGenerated.button = {} ---@type table<string, table<string, string>>
-    for _, textSize in pairs({{"_small", "_small"}, {"_medium", "_medium"}, {"_large", "_large"}}) do
+    for _, textSize in pairs({ { "_small", "_small" }, { "_medium", "_medium" }, { "_large", "_large" } }) do
         local textSizeEmmyLuaName = string.sub(textSize[1], 2)
         styleNamesGenerated.button[textSizeEmmyLuaName] = {}
-        for _, boldness in pairs({{"", ""}, {"_semibold", "_semibold"}, {"_bold", "_bold"}}) do
+        for _, boldness in pairs({ { "", "" }, { "_semibold", "_semibold" }, { "_bold", "_bold" } }) do
             for _, attributes in pairs(
                 {
-                    {"", {}},
-                    {"_frame", {default_graphical_set = {base = {position = {0, 0}, corner_size = 8}, shadow = {position = {440, 24}, corner_size = 8, draw_type = "outer"}}, default_font_color = Colors.white, hovered_font_color = Colors.white, clicked_font_color = Colors.white}},
-                    {"_noBorder", {default_graphical_set = {}, hovered_graphical_set = {}, clicked_graphical_set = {}}}
+                    { "", {} },
+                    { "_frame", { default_graphical_set = { base = { position = { 0, 0 }, corner_size = 8 }, shadow = { position = { 440, 24 }, corner_size = 8, draw_type = "outer" } }, default_font_color = Colors.white, hovered_font_color = Colors.white, clicked_font_color = Colors.white } },
+                    { "_noBorder", { default_graphical_set = {}, hovered_graphical_set = {}, clicked_graphical_set = {} } }
                 }
             ) do
-                for _, padding in pairs({{"", 0, -2, 0, -2}, {"_paddingSides", 4, 0, 4, 0}, {"_paddingNone", -2, -6, -2, -6}, {"_paddingTight", 0, -4, 0, -4}}) do
+                for _, padding in pairs({ { "", 0, -2, 0, -2 }, { "_paddingSides", 4, 0, 4, 0 }, { "_paddingNone", -2, -6, -2, -6 }, { "_paddingTight", 0, -4, 0, -4 } }) do
                     local detailsName = boldness[1] .. attributes[1] .. padding[1]
                     local styleName = "muppet_button_text" .. textSize[1] .. detailsName
                     local styleNameVersion = styleName .. StyleData.styleVersion
@@ -267,7 +267,7 @@ StyleData.GeneratePrototypes = function()
                         minimal_width = 0,
                         minimal_height = 0
                     }
-                    for k, v in pairs(attributes[2] --[[@as table<string, table>]]) do
+                    for k, v in pairs(attributes[2]--[[@as table<string, table>]] ) do
                         if type(k) == "number" then ---@cast k uint @ It's really a uint value if its a number type.
                             defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                         else
@@ -282,15 +282,15 @@ StyleData.GeneratePrototypes = function()
 
     -- LABEL
     styleNamesGenerated.label = {} ---@type table<string, table<string, table<string, string>>>
-    for _, purpose in pairs({{"_text", Colors.white}, {"_heading", Colors.guiHeadingColor}}) do
+    for _, purpose in pairs({ { "_text", Colors.white }, { "_heading", Colors.guiHeadingColor } }) do
         local purposeEmmyLuaName = string.sub(purpose[1], 2)
         styleNamesGenerated.label[purposeEmmyLuaName] = {}
-        for _, textSize in pairs({{"_small", "_small"}, {"_medium", "_medium"}, {"_large", "_large"}}) do
+        for _, textSize in pairs({ { "_small", "_small" }, { "_medium", "_medium" }, { "_large", "_large" } }) do
             local textSizeEmmyLuaName = string.sub(textSize[1], 2)
             styleNamesGenerated.label[purposeEmmyLuaName][textSizeEmmyLuaName] = {}
-            for _, boldness in pairs({{"", ""}, {"_semibold", "_semibold"}, {"_bold", "_bold"}}) do
-                for _, margin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
-                    for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}, {"_paddingSides", 4, 0, 4, 0}}) do
+            for _, boldness in pairs({ { "", "" }, { "_semibold", "_semibold" }, { "_bold", "_bold" } }) do
+                for _, margin in pairs({ { "", 0, 0, 0, 0 }, { "_marginTL", 4, 4, 0, 0 } }) do
+                    for _, padding in pairs({ { "", 0, 0, 0, 0 }, { "_paddingBR", 0, 0, 4, 4 }, { "_paddingSides", 4, 0, 4, 0 } }) do
                         local detailsName = boldness[1] .. margin[1] .. padding[1]
                         local styleName = "muppet_label" .. purpose[1] .. textSize[1] .. detailsName
                         defaultStyle[styleName .. StyleData.styleVersion] = {
@@ -316,8 +316,8 @@ StyleData.GeneratePrototypes = function()
 
     -- TEXT BOX - set width & height setting when using as base game has values that can't be nil'd
     styleNamesGenerated.textbox = {} ---@type table<string, string>
-    for _, margin in pairs({{"", 0, 0, 0, 0}, {"_marginTL", 4, 4, 0, 0}}) do
-        for _, padding in pairs({{"", 0, 0, 0, 0}, {"_paddingBR", 0, 0, 4, 4}}) do
+    for _, margin in pairs({ { "", 0, 0, 0, 0 }, { "_marginTL", 4, 4, 0, 0 } }) do
+        for _, padding in pairs({ { "", 0, 0, 0, 0 }, { "_paddingBR", 0, 0, 4, 4 } }) do
             local detailsName = margin[1] .. padding[1]
             local styleName = "muppet_textbox" .. detailsName
             defaultStyle[styleName .. StyleData.styleVersion] = {

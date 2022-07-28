@@ -27,7 +27,7 @@ TableUtils.TableMergeCopies = function(tables)
         for k, v in pairs(table) do
             if (type(v) == "table") then
                 if (type(ret[k] or false) == "table") then
-                    ret[k] = TableUtils.TableMergeCopies {ret[k], v}
+                    ret[k] = TableUtils.TableMergeCopies { ret[k], v }
                 else
                     ret[k] = TableUtils.DeepCopy(v)
                 end

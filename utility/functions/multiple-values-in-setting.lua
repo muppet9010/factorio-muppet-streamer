@@ -9,12 +9,12 @@ local LoggingUtils = require("utility.helper-utils.logging-utils")
 
 ---@class UtilitySettingsManager_ExpectedValueTypes
 SettingsManager.ExpectedValueTypes = {
-    string = {name = "string", hasChildren = false}, ---@type UtilitySettingsManager_ExpectedValueType
-    number = {name = "number", hasChildren = false}, ---@type UtilitySettingsManager_ExpectedValueType
-    boolean = {name = "boolean", hasChildren = false}, ---@type UtilitySettingsManager_ExpectedValueType
-    arrayOfStrings = {name = "arrayOfStrings", hasChildren = true, childExpectedValueType = SettingsManager.ExpectedValueTypes.string}, ---@type UtilitySettingsManager_ExpectedValueType
-    arrayOfNumbers = {name = "arrayOfNumbers", hasChildren = true, childExpectedValueType = SettingsManager.ExpectedValueTypes.number}, ---@type UtilitySettingsManager_ExpectedValueType
-    arrayOfBooleans = {name = "arrayOfBooleans", hasChildren = true, childExpectedValueType = SettingsManager.ExpectedValueTypes.boolean} ---@type UtilitySettingsManager_ExpectedValueType
+    string = { name = "string", hasChildren = false }, ---@type UtilitySettingsManager_ExpectedValueType
+    number = { name = "number", hasChildren = false }, ---@type UtilitySettingsManager_ExpectedValueType
+    boolean = { name = "boolean", hasChildren = false }, ---@type UtilitySettingsManager_ExpectedValueType
+    arrayOfStrings = { name = "arrayOfStrings", hasChildren = true, childExpectedValueType = SettingsManager.ExpectedValueTypes.string }, ---@type UtilitySettingsManager_ExpectedValueType
+    arrayOfNumbers = { name = "arrayOfNumbers", hasChildren = true, childExpectedValueType = SettingsManager.ExpectedValueTypes.number }, ---@type UtilitySettingsManager_ExpectedValueType
+    arrayOfBooleans = { name = "arrayOfBooleans", hasChildren = true, childExpectedValueType = SettingsManager.ExpectedValueTypes.boolean } ---@type UtilitySettingsManager_ExpectedValueType
 }
 ---@class UtilitySettingsManager_ExpectedValueType
 ---@field name string @ Same as key in the ExpectedValueTypes table.
@@ -65,11 +65,11 @@ SettingsManager.HandleSettingWithArrayOfValues = function(factorioSettingType, f
 
     -- Set a default function to be run if one wasn't provided.
     valueHandlingFunction = valueHandlingFunction or function(value)
-            return value
-        end
+        return value
+    end
 
     local values = settings[factorioSettingType][factorioSettingName].value ---@type boolean|number|string|nil
-    local tableOfValues = game.json_to_table(values --[[@as string]])
+    local tableOfValues = game.json_to_table(values--[[@as string]] )
 
     local isMultipleGroups
     if tableOfValues == nil or type(tableOfValues) ~= "table" then
@@ -167,7 +167,7 @@ SettingsManager._ValueToType = function(value, expectedType)
         value = string.gsub(tostring(value), "%%", "")
         return tonumber(value)
     elseif expectedType == SettingsManager.ExpectedValueTypes.boolean then
-        return BooleanUtils.ToBoolean(value --[[@as boolean|string|int]])
+        return BooleanUtils.ToBoolean(value--[[@as boolean|string|int]] )
     elseif expectedType.hasChildren then
         if type(value) ~= "table" then
             return nil

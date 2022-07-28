@@ -9,7 +9,7 @@ local EventScheduler = {} ---@class Utility_EventScheduler
 MOD = MOD or {} ---@class MOD
 ---@type table<string, function>
 MOD.scheduledEventNames =
-    MOD.scheduledEventNames or
+MOD.scheduledEventNames or
     {
         ["EventScheduler.GamePrint"] = function(event)
             -- Builtin game.print delayed function, needed for 0 tick logging (startup) writing to screen activities.
@@ -223,7 +223,7 @@ EventScheduler._OnSchedulerCycle = function(event)
     if global.UTILITYSCHEDULEDFUNCTIONS ~= nil and global.UTILITYSCHEDULEDFUNCTIONS[tick] ~= nil then
         for eventName, instances in pairs(global.UTILITYSCHEDULEDFUNCTIONS[tick]) do
             for instanceId, scheduledFunctionData in pairs(instances) do
-                local eventData = {tick = tick, name = eventName, instanceId = instanceId, data = scheduledFunctionData}
+                local eventData = { tick = tick, name = eventName, instanceId = instanceId, data = scheduledFunctionData }
                 if MOD.scheduledEventNames[eventName] ~= nil then
                     MOD.scheduledEventNames[eventName](eventData)
                 else
@@ -240,7 +240,7 @@ EventScheduler._OnSchedulerCycle = function(event)
             local nextEventName, nextInstances = next(global.UTILITYSCHEDULEDFUNCTIONSPERTICK, eventName)
             for instanceId, scheduledFunctionData in pairs(instances) do
                 ---@type UtilityScheduledEvent_CallbackObject
-                local eventData = {tick = tick, name = eventName, instanceId = instanceId, data = scheduledFunctionData}
+                local eventData = { tick = tick, name = eventName, instanceId = instanceId, data = scheduledFunctionData }
                 if MOD.scheduledEventNames[eventName] ~= nil then
                     MOD.scheduledEventNames[eventName](eventData)
                 else
@@ -302,7 +302,7 @@ end
 ---@return UtilityScheduledEvent_ScheduledFunctions_ActionFunctionOutcome|nil result @ Returns either a table with result of TRUE if the event is scheduled or nil. As nil allows the parsing function to continue looking, while TRUE will stop the looping.
 EventScheduler._IsEventScheduledOnceInTickEntry = function(tickEvents, targetEventName, targetInstanceId)
     if tickEvents[targetEventName] ~= nil and tickEvents[targetEventName][targetInstanceId] ~= nil then
-        return {result = true}
+        return { result = true }
     end
 end
 
@@ -348,7 +348,7 @@ EventScheduler._GetScheduledOnceEventsFromTickEntry = function(tickEvents, targe
             instanceId = targetInstanceId,
             eventData = tickEvents[targetEventName][targetInstanceId]
         }
-        return {results = scheduledEvent}
+        return { results = scheduledEvent }
     end
 end
 
@@ -383,7 +383,7 @@ end
 ---@return UtilityScheduledEvent_ScheduledFunctions_ActionFunctionOutcome|nil result @ Returns either a table with a result of TRUE if found or nil. As nil allows the parsing function to continue looking, while TRUE will stop the looping.
 EventScheduler._IsEventScheduledInEachTickList = function(everyTickEvents, targetEventName, targetInstanceId)
     if everyTickEvents[targetEventName] ~= nil and everyTickEvents[targetEventName][targetInstanceId] ~= nil then
-        return {result = true}
+        return { result = true }
     end
 end
 
@@ -420,7 +420,7 @@ EventScheduler._GetScheduledEventFromEachTickList = function(everyTickEvents, ta
             instanceId = targetInstanceId,
             eventData = everyTickEvents[targetEventName][targetInstanceId]
         }
-        return {results = scheduledEvent}
+        return { results = scheduledEvent }
     end
 end
 

@@ -39,12 +39,12 @@ Events.RegisterHandlerEvent = function(eventName, handlerName, handlerFunction, 
     if MOD.eventIdHandlerNameToEventIdsListIndex[eventId] == nil or MOD.eventIdHandlerNameToEventIdsListIndex[eventId][handlerName] == nil then
         -- Is the first registering of this unique handler name for this event id.
         MOD.eventsById[eventId] = MOD.eventsById[eventId] or {}
-        table.insert(MOD.eventsById[eventId], {handlerName = handlerName, handlerFunction = handlerFunction})
+        table.insert(MOD.eventsById[eventId], { handlerName = handlerName, handlerFunction = handlerFunction })
         MOD.eventIdHandlerNameToEventIdsListIndex[eventId] = MOD.eventIdHandlerNameToEventIdsListIndex[eventId] or {}
         MOD.eventIdHandlerNameToEventIdsListIndex[eventId][handlerName] = #MOD.eventsById[eventId]
     else
         -- Is a re-registering of a unique handler name for this event id, so just update everything.
-        MOD.eventsById[eventId][MOD.eventIdHandlerNameToEventIdsListIndex[eventId][handlerName]] = {handlerName = handlerName, handlerFunction = handlerFunction}
+        MOD.eventsById[eventId][MOD.eventIdHandlerNameToEventIdsListIndex[eventId][handlerName]] = { handlerName = handlerName, handlerFunction = handlerFunction }
     end
     return eventId
 end
@@ -61,12 +61,12 @@ Events.RegisterHandlerCustomInput = function(actionName, handlerName, handlerFun
     if MOD.eventActionNameHandlerNameToEventActionNamesListIndex[actionName] == nil or MOD.eventActionNameHandlerNameToEventActionNamesListIndex[actionName][handlerName] == nil then
         -- Is the first registering of this unique handler name for this action name.
         MOD.eventsByActionName[actionName] = MOD.eventsByActionName[actionName] or {}
-        table.insert(MOD.eventsByActionName[actionName], {handlerName = handlerName, handlerFunction = handlerFunction})
+        table.insert(MOD.eventsByActionName[actionName], { handlerName = handlerName, handlerFunction = handlerFunction })
         MOD.eventActionNameHandlerNameToEventActionNamesListIndex[actionName] = MOD.eventActionNameHandlerNameToEventActionNamesListIndex[actionName] or {}
         MOD.eventActionNameHandlerNameToEventActionNamesListIndex[actionName][handlerName] = #MOD.eventsByActionName[actionName]
     else
         -- Is a re-registering of a unique handler name for this action name, so just update everything.
-        MOD.eventsByActionName[actionName][MOD.eventActionNameHandlerNameToEventActionNamesListIndex[actionName][handlerName]] = {handlerName = handlerName, handlerFunction = handlerFunction}
+        MOD.eventsByActionName[actionName][MOD.eventActionNameHandlerNameToEventActionNamesListIndex[actionName][handlerName]] = { handlerName = handlerName, handlerFunction = handlerFunction }
     end
 end
 
@@ -121,9 +121,9 @@ Events.RaiseEvent = function(eventData)
     eventData.tick = game.tick
     local eventName = eventData.name
     if type(eventName) == "number" then
-        script.raise_event(eventName --[[@as uint]], eventData)
+        script.raise_event(eventName--[[@as uint]] , eventData)
     elseif MOD.customEventNameToId[eventName] ~= nil then
-        local eventId = MOD.customEventNameToId[eventName --[[@as string]]]
+        local eventId = MOD.customEventNameToId[eventName--[[@as string]] ]
         script.raise_event(eventId, eventData)
     else
         error("WARNING: raise event called that doesn't exist: " .. eventName)
@@ -158,13 +158,13 @@ Events._HandleEvent = function(eventData)
     -- Numeric for loop is faster than pairs and this logic is black boxed from code developer using library.
     if eventData["input_name"] == nil then
         -- All non custom input events (majority).
-        local eventsById = MOD.eventsById[eventData.name --[[@as defines.events|uint @ In a non custom input event code block, but can't cast object field.]]]
+        local eventsById = MOD.eventsById[eventData.name--[[@as defines.events|uint @ In a non custom input event code block, but can't cast object field.]] ]
         for i = 1, #eventsById do
             eventsById[i].handlerFunction(eventData)
         end
     else
         -- Custom Input type event.
-        local eventsByInputName = MOD.eventsByActionName[eventData.input_name --[[@as string @ In a non custom input event code block, but can't cast object field.]]]
+        local eventsByInputName = MOD.eventsByActionName[eventData.input_name--[[@as string @ In a non custom input event code block, but can't cast object field.]] ]
         for i = 1, #eventsByInputName do
             eventsByInputName[i].handlerFunction(eventData)
         end
@@ -180,8 +180,8 @@ Events._RegisterEvent = function(eventName, thisFilterName, thisFilterData)
     if eventName == nil then
         error("Events.RegisterEvent called with missing arguments")
     end
-    local eventId  ---@type uint
-    local filterData  ---@type table
+    local eventId ---@type uint
+    local filterData ---@type table
     thisFilterData = thisFilterData ~= nil and TableUtils.DeepCopy(thisFilterData) or nil -- DeepCopy it so if a persisted or shared table is passed in we don't cause changes to source table.
     if type(eventName) == "number" then
         -- Factorio event.
@@ -200,7 +200,7 @@ Events._RegisterEvent = function(eventName, thisFilterName, thisFilterData)
             else
                 -- add new filter to any existing old filter and let it be re-applied.
                 filterData = {} ---@type EventFilter[]
-                for _, filterTable in pairs(MOD.eventFilters[eventId] --[[@as table<any, any>[][] @ Not entirely sure on this, but it makes it happy and there isn't any Type Def for event filters from Debugger.]]) do
+                for _, filterTable in pairs(MOD.eventFilters[eventId]--[[@as table<any, any>[][] @ Not entirely sure on this, but it makes it happy and there isn't any Type Def for event filters from Debugger.]] ) do
                     filterTable[1].mode = "or"
                     for _, filterEntry in pairs(filterTable) do
                         table.insert(filterData, filterEntry)
