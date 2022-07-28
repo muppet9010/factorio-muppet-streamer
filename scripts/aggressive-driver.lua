@@ -58,8 +58,7 @@ AggressiveDriver.OnLoad = function()
 end
 
 AggressiveDriver.OnStartup = function()
-    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast group - nil @ Script always has permission to create groups.
-    group.set_allows_action(defines.input_action.toggle_driving, false)
+    AggressiveDriver.GetOrCreatePermissionGroup()
 end
 
 ---@param command CustomCommandData
@@ -161,8 +160,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.originalPlayersPermissionGroup[targetPlayer.index] = global.originalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
 
-    local permissionGroup = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast permissionGroup - nil @ Script always has permission to create groups.
-    targetPlayer.permission_group = permissionGroup
+    targetPlayer.permission_group = AggressiveDriver.GetOrCreatePermissionGroup()
     global.aggressiveDriver.affectedPlayers[targetPlayer.index] = true
 
     game.print({ "message.muppet_streamer_aggressive_driver_start", targetPlayer.name })
@@ -337,6 +335,14 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
     if status == EffectEndStatus.completed then
         game.print({ "message.muppet_streamer_aggressive_driver_stop", player.name })
     end
+end
+
+--- Gets the permission group for this feature. Will create it if needed.
+---@return LuaPermissionGroup
+AggressiveDriver.GetOrCreatePermissionGroup = function()
+    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast group - nil @ Script always has permission to create groups.
+    group.set_allows_action(defines.input_action.toggle_driving, false)
+    return group
 end
 
 return AggressiveDriver

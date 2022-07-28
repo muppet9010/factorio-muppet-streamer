@@ -6,13 +6,17 @@ BUGS:
 
 DO NEAR FUTURE:
     - Aggressive Driver - Add option to place a vehicle if none is found. Would take the name of a vehicle, the name and quantity of fuel to put in the placed vehicle, and the radius to try and place it within of the player. Direction would be as random as we can currently do with the placement searching. Option to remove the vehicle at the end of the effect. Actually do this as a separate feature to give player a vehicle. Support cars, spiders and locomotive vehicle types being placed in valid spots within a random distance from the player. Have this feature support checking if a nearby vehicle is drivable first. As then these can be chained together via use of remotes or sequential commands.
-	- Change all effect notification game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
-    - Support modded entities across commands.
+    - Support modded entities across commands:
+        - Explosive Delivery - numerous settings.
+        - Leaky flamethrower - the weapon it gives the player for the effect.
+        - Pants on fire - the fire entity created behind the player.
+        - Spawn Around Player - entityName should have "custom" as supported string and then you can provide the thing to be spawned and name of ammo to be inserted in to it.
 
 
 Future Confirmed (bigger things):
     - Time duration events should add to existing ones if active.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room. Should never be "lost".
+	- Change all effect notification game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
 
 
 Future Concepts:

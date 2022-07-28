@@ -52,10 +52,7 @@ LeakyFlamethrower.OnLoad = function()
 end
 
 LeakyFlamethrower.OnStartup = function()
-    local group = game.permissions.get_group("LeakyFlamethrower") or game.permissions.create_group("LeakyFlamethrower") ---@cast group - nil @ Script always has permission to create groups.
-    group.set_allows_action(defines.input_action.select_next_valid_gun, false)
-    group.set_allows_action(defines.input_action.toggle_driving, false)
-    group.set_allows_action(defines.input_action.change_shooting_state, false)
+    LeakyFlamethrower.GetOrCreatePermissionGroup()
 end
 
 ---@param command CustomCommandData
@@ -150,8 +147,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.originalPlayersPermissionGroup[targetPlayer_index] = global.originalPlayersPermissionGroup[targetPlayer_index] or targetPlayer.permission_group
 
-    local group = game.permissions.get_group("LeakyFlamethrower") or game.permissions.create_group("LeakyFlamethrower") ---@cast group - nil @ Script always has permission to create groups.
-    targetPlayer.permission_group = group
+    targetPlayer.permission_group = LeakyFlamethrower.GetOrCreatePermissionGroup()
     global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = { flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails }
 
     local startingAngle = math.random(0, 360)
@@ -300,6 +296,16 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     if status == EffectEndStatus.completed then
         game.print({ "message.muppet_streamer_leaky_flamethrower_stop", player.name })
     end
+end
+
+--- Gets the permission group for this feature. Will create it if needed.
+---@return LuaPermissionGroup
+LeakyFlamethrower.GetOrCreatePermissionGroup = function()
+    local group = game.permissions.get_group("LeakyFlamethrower") or game.permissions.create_group("LeakyFlamethrower") ---@cast group - nil @ Script always has permission to create groups.
+    group.set_allows_action(defines.input_action.select_next_valid_gun, false)
+    group.set_allows_action(defines.input_action.toggle_driving, false)
+    group.set_allows_action(defines.input_action.change_shooting_state, false)
+    return group
 end
 
 return LeakyFlamethrower
