@@ -48,7 +48,9 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds the creation of the explosives will be delayed for. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay. This doesn't include the in-flight time.
     - explosiveCount: INTEGER - Mandatory: the quantity of explosives to be delivered.
-    - explosiveType: STRING - Mandatory: the type of explosive, can be any one of: "grenade", "clusterGrenade", "slowdownCapsule", "poisonCapsule", "artilleryShell", "explosiveRocket", "atomicRocket", "smallSpit", "mediumSpit", "largeSpit". Is case sensitive.
+    - explosiveType: STRING - Mandatory: the type of explosive, can be any one of the base game built-in options: `grenade`, `clusterGrenade`, `slowdownCapsule`, `poisonCapsule`, `artilleryShell`, `explosiveRocket`, `atomicRocket`, `smallSpit`, `mediumSpit`, `largeSpit`, or `custom`. Is case sensitive. Custom requires the additional options `customExplosiveType` and `customExplosiveSpeed` options to be set/considered.
+    - customExplosiveType: STRING - Mandatory Special: only required/supported if `explosiveType` is set to `custom`. Sets the name of the explosive to be used. Must be either a `projectile` or `stream` entity type.
+    - customExplosiveSpeed: DECIMAL - Mandatory Special: only required/supported if `explosiveType` is set to `custom`. Sets the speed of the custom explosive type in the air. Only applies to `projectile` entity type. Default is 0.3 if not specified, same as most built in options.
     - target: STRING - Mandatory: a player name to target the position and surface of (case sensitive).
     - targetPosition: OBJECT - Optional: a position to target instead of the player's position. Will still come on to the target players map (surface). See notes for syntax examples.
     - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offset set. See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
@@ -60,10 +62,11 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - Example command grenades: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
 - Example command offset grenade: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"grenade", "target":"muppet9010", "targetOffset":{"x":10,"y":10}}`
 - Example command large count of atomic rockets using salvo and delay: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":50, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":300}`
+- Example command for custom type: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":5, "explosiveType":"custom", "target":"muppet9010", "customExplosiveType":"cannon-projectile", "customExplosiveSpeed":1, "accuracyRadiusMax":10}`
 
 Notes:
 
-- Explosives will fly in from off screen to random locations around the target player within the accuracy settings. They may take a few seconds to complete their delivery as they fly in using their native throwing/shooting/spitting speed.
+- Explosives will fly in from off screen to random locations around the target player within the accuracy settings. They may take a few seconds to complete their delivery as they fly in using their native throwing/shooting/spitting speed. Any explosive that collides with things (i.e. tank cannon shells) may complete their damage before they reach the player.
 - Weapons are on a special enemy force so that they will hurt everything on the map, 'muppet_streamer_enemy'. This also means that player damage upgrades don't affect these effects.
 - targetPosition and targetOffset expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 

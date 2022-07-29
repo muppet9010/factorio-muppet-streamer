@@ -78,7 +78,10 @@ local function OnStartup()
     AggressiveDriver.OnStartup()
 
     -- Ensure our special enemy force is always present.
-    global.Forces.muppet_streamer_enemy = global.Forces.muppet_streamer_enemy or game.create_force("muppet_streamer_enemy") -- No alliances set to any other force.
+    if global.Forces.muppet_streamer_enemy == nil then
+        -- CODE NOTE: done as separate line rather than `x = x or blah` as Sumneko kept on flashing it as an error.
+        global.Forces.muppet_streamer_enemy = game.create_force("muppet_streamer_enemy") -- No alliances set to any other force.
+    end
 end
 
 script.on_init(OnStartup)
