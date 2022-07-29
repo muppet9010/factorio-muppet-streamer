@@ -7,6 +7,9 @@ local VehicleUtils = {} ---@class Utility_VehicleUtils
 ---@return LuaItemPrototype|nil currentFuelPrototype @ Will be nil if there's no current fuel in the vehicle.
 VehicleUtils.GetVehicleCurrentFuelPrototype = function(vehicle)
     local loco_burner = vehicle.burner
+    if loco_burner == nil then
+        return nil
+    end
 
     -- Check any currently burning fuel inventory first.
     local currentFuelItem = loco_burner.currently_burning

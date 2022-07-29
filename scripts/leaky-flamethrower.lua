@@ -94,6 +94,7 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
             return
         end
     end
+    --TODO: this also needs to check that the gun is a stream weapon which can shoot at the ground.
 
     local ammoType, valid = Common.GetItemPrototype(commandData.ammoType, "ammo", false, commandName, "ammoType", command.parameter)
     if not valid then return end
@@ -105,6 +106,7 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
             return
         end
     end
+    --TODO: this needs to check that the ammo works with the valid gun.
 
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 ---@type uint @ Needed for weird bug reason, maybe in Sumneko or maybe the plugin with its fake global.
     ---@type LeakyFlamethrower_ScheduledEventDetails

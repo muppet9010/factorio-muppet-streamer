@@ -5,6 +5,7 @@
 
 local InventoryUtils = {} ---@class Utility_InventoryUtils
 local TableUtils = require("utility.helper-utils.table-utils")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
 local math_min, math_max, math_ceil = math.min, math.max, math.ceil
 
 --- Returns the item name for the provided entity.
@@ -109,7 +110,11 @@ InventoryUtils.TryTakeGridsItems = function(sourceGrid, targetInventory, dropUnm
             itemAllMoved = false
             if dropUnmovedOnGround then
                 sourceOwner = sourceOwner or targetInventory.entity_owner or targetInventory.player_owner
-                sourceOwner.surface.spill_item_stack(sourceOwner.position, { name = equipment.name, count = 1 }, true, sourceOwner.force, false)
+                if sourceOwner ~= nil then
+                    sourceOwner.surface.spill_item_stack(sourceOwner.position, { name = equipment.name, count = 1 }, true, sourceOwner.force, false)
+                else
+                    LoggingUtils.LogPrintWarning("Can't spill items on the ground as no source inventory to use position from. InventoryUtils.TryTakeGridsItems().", false)
+                end
                 sourceGrid.take({ equipment = equipment })
             end
         end
@@ -158,7 +163,11 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
             itemAllMoved = false
             if dropUnmovedOnGround then
                 sourceOwner = sourceOwner or targetInventory.entity_owner or targetInventory.player_owner
-                sourceOwner.surface.spill_item_stack(sourceOwner.position, { name = name, count = remaining }, true, sourceOwner.force, false)
+                if sourceOwner ~= nil then
+                    sourceOwner.surface.spill_item_stack(sourceOwner.position, { name = name, count = remaining }, true, sourceOwner.force, false)
+                else
+                    LoggingUtils.LogPrintWarning("Can't spill items on the ground as no source inventory to use position from. InventoryUtils.TryTakeGridsItems().", false)
+                end
                 contents[name] = 0
             end
         end
@@ -212,7 +221,11 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
             itemAllMoved = false
             if dropUnmovedOnGround then
                 sourceOwner = sourceOwner or targetInventory.entity_owner or targetInventory.player_owner
-                sourceOwner.surface.spill_item_stack(sourceOwner.position, { name = simpleItemStack.name, count = remaining }, true, sourceOwner.force, false)
+                if sourceOwner ~= nil then
+                    sourceOwner.surface.spill_item_stack(sourceOwner.position, { name = simpleItemStack.name, count = remaining }, true, sourceOwner.force, false)
+                else
+                    LoggingUtils.LogPrintWarning("Can't spill items on the ground as no source inventory to use position from. InventoryUtils.TryTakeGridsItems().", false)
+                end
                 simpleItemStacks[index].count = 0
             end
         end

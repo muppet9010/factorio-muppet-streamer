@@ -76,7 +76,6 @@ GuiActionsClosed._HandleGuiClosedAction = function(rawFactorioEventData)
                     local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, guiType = guiTypeHandled, data = data, eventData = rawFactorioEventData }
                     if actionFunction == nil then
                         error("ERROR: Entity GUI Closed Handler - no registered action for name: '" .. tostring(actionName) .. "'")
-                        return
                     end
                     actionFunction(actionData)
                 end

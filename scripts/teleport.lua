@@ -479,6 +479,11 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- Get the players current placement entity and vehicle facing.
         local currentPlayerPlacementEntity, currentPlayerPlacementEntity_isVehicle = PlayerTeleport.GetPlayerTeleportPlacementEntity(data.targetPlayer, nil)
+        if currentPlayerPlacementEntity == nil then
+            -- If the target player doesn't have an entity then nothing further to do.
+            game.print({ "message.muppet_streamer_teleport_no_character", data.targetPlayer.name })
+            return
+        end
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
@@ -500,7 +505,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
         end
         if currentPlayerPlacementEntity_vehicleDirectionFacing ~= nil then
             -- Change the vehicles orientation to match the direction we checked. This will be a slight angle change, but the teleport should hide it.
-            currentPlayerPlacementEntity.orientation = currentPlayerPlacementEntity_vehicleDirectionFacing / 8
+            currentPlayerPlacementEntity.orientation = currentPlayerPlacementEntity_vehicleDirectionFacing / 8 --[[@as RealOrientation]]
         end
 
         -- Everything is as expected still, so teleport can commence.
@@ -583,7 +588,7 @@ Teleport.SpawnerCreated = function(spawner)
     local spawner_surface_index = spawner.surface.index
     global.teleport.surfaceBiterNests[spawner_surface_index] = global.teleport.surfaceBiterNests[spawner_surface_index] or {}
     -- Record the spawner.
-    local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name
+    local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name ---@cast spawner_unitNumber -nil @ Spawner entities always have a unit_number field.
     global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name] = global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name] or {}
     global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name][spawner_unitNumber] = { unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position }
 end
@@ -601,7 +606,7 @@ Teleport.SpawnerRemoved = function(spawner)
         -- No records for this force on this surface so nothing to remove. Shouldn't be possible to reach, but is safer.
         return
     end
-    thisSurfaceForceBiterNests[spawner.unit_number] = nil
+    thisSurfaceForceBiterNests[spawner.unit_number--[[@as uint @ Spawner entity always has a unit_number.]] ] = nil
 end
 
 --- Find all existing spawners on all surfaces and record them. For use at mods initial load to handle being added to a map mid game.
@@ -613,7 +618,7 @@ Teleport.FindExistingSpawnersOnAllSurfaces = function()
         surfacesSpawners[surface_index] = {}
         local spawners = surface.find_entities_filtered { type = "unit-spawner" }
         for _, spawner in pairs(spawners) do
-            local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name
+            local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name ---@cast spawner_unitNumber -nil @ Spawner entities always have a unit_number field.
             surfacesSpawners[surface_index][spawner_force_name] = surfacesSpawners[surface_index][spawner_force_name] or {}
             surfacesSpawners[surface_index][spawner_force_name][spawner_unitNumber] = { unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position }
         end

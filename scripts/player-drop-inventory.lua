@@ -248,7 +248,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             local itemStackToDropFrom ---@type LuaItemStack|nil
             if inventoryNameOfItemNumberToDrop == "cursorStack" then
                 -- Special case as not a real inventory.
-                itemStackToDropFrom = player.cursor_stack
+                itemStackToDropFrom = player.cursor_stack ---@cast itemStackToDropFrom -nil @ We know the cursor_stack is populated if its gone down this logic path.
             else
                 local inventory = player.get_inventory(inventoryNameOfItemNumberToDrop)
                 if inventory == nil then
@@ -329,7 +329,7 @@ PlayerDropInventory.GetPlayersItemCount = function(player, includeEquipment)
         end
     end
     local cursorStack = player.cursor_stack
-    if cursorStack.valid_for_read then
+    if cursorStack ~= nil and cursorStack.valid_for_read then
         totalItemsCount = totalItemsCount + cursorStack.count
     end
 
@@ -364,7 +364,7 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
         inventoryItemCounts[inventoryName] = inventoryTotalCount
     end
     local cursorStack = player.cursor_stack
-    if cursorStack.valid_for_read then
+    if cursorStack ~= nil and cursorStack.valid_for_read then
         local count = cursorStack.count
         totalItemsCount = totalItemsCount + count
         inventoryItemCounts["cursorStack"] = count

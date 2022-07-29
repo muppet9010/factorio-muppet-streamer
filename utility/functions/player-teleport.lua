@@ -25,7 +25,7 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
     -- The response object with the result in it.
     ---@type UtilityPlayerTeleport_TeleportRequestResponseDetails
     local responseDetails = {
-        --targetPlayerTeleportEntity = nil @ Always populated later in function.
+        targetPlayerTeleportEntity = nil,
         targetPosition = nil,
         teleportSucceeded = false,
         pathRequestId = nil,
@@ -35,7 +35,13 @@ PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurf
     -- Get the working data.
     local targetPlayer_force = targetPlayer.force
     local targetPlayer_character = targetPlayer.character
+    if targetPlayer_character == nil then
+        return responseDetails
+    end
     local targetPlayerPlacementEntity, targetPlayerPlacementEntity_isVehicle = PlayerTeleport.GetPlayerTeleportPlacementEntity(targetPlayer, targetPlayer_character)
+    if targetPlayerPlacementEntity == nil then
+        return responseDetails
+    end
 
     -- If a vehicle, get its current nearest cardinal direction (4 direction) to orientation.
     -- CODE NOTE: This isn't perfect, but is better than nothing until this Interface Request is done: https://forums.factorio.com/viewtopic.php?f=28&t=102792
@@ -113,7 +119,7 @@ PlayerTeleport.TeleportToSpecificPosition = function(targetPlayer, targetSurface
     local targetPlayer_vehicle = targetPlayer.vehicle
 
     -- Teleport the appropriate entity to the specified position.
-    if PlayerTeleport.IsTeleportableVehicle(targetPlayer_vehicle) then
+    if targetPlayer_vehicle ~= nil and PlayerTeleport.IsTeleportableVehicle(targetPlayer_vehicle) then
         teleportSucceeded = targetPlayer_vehicle.teleport(targetPosition, targetSurface)
     else
         if targetPlayer_vehicle ~= nil and targetPlayer_vehicle.valid then
@@ -141,7 +147,7 @@ PlayerTeleport.TeleportToSpecificPosition = function(targetPlayer, targetSurface
 end
 
 --- Confirms if the vehicle is teleportable (non train).
----@param vehicle LuaEntity
+---@param vehicle LuaEntity|nil
 ---@return boolean isVehicleTeleportable
 PlayerTeleport.IsTeleportableVehicle = function(vehicle)
     if vehicle == nil then
@@ -158,7 +164,7 @@ end
 --- Get the entity that will be placed when the teleport is done, either a teleportable vehicle or the players character.
 ---@param targetPlayer LuaPlayer
 ---@param targetPlayer_character? LuaEntity|nil @ If nil is passed in and the player's character entity is needed it will be obtained.
----@return LuaEntity placementEntity
+---@return LuaEntity|nil placementEntity @ Can be nil if player doesn't have a vehicle or character.
 ---@return boolean isVehicle
 PlayerTeleport.GetPlayerTeleportPlacementEntity = function(targetPlayer, targetPlayer_character)
     local targetPlayer_vehicle = targetPlayer.vehicle
@@ -174,7 +180,7 @@ end
 ----------------------------------------------------------------------------------
 
 ---@class UtilityPlayerTeleport_TeleportRequestResponseDetails @ A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occurred.
----@field targetPlayerTeleportEntity LuaEntity @ The entity we did the teleport request for.
+---@field targetPlayerTeleportEntity LuaEntity|nil @ The entity we did the teleport request for.
 ---@field targetPosition? MapPosition|nil @ The exact position the teleport was attempted to, if one was found.
 ---@field teleportSucceeded boolean @ If the teleport was completed. Will be false if a pathing request was made as part of a reachablePosition option.
 ---@field pathRequestId? uint|nil @ If a reachablePosition was given then the path request Id to monitor for is returned. The state of the player and target should be re-verified upon this pathing request result as the game world will likely have changed in between and so it may not be appropriate for the teleport to be completed.

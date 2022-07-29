@@ -217,7 +217,7 @@ AggressiveDriver.Drive = function(eventData)
 
         -- Train carriages need special handling.
         if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
-            local train = vehicle.train
+            local train = vehicle.train ---@cast train -nil @ A rolling_stock entity always has a train field.
 
             -- If the train isn't in manual mode then set it. We do this every tick if needed so that other players setting it to automatic gets overridden.
             if train.manual_mode ~= true then

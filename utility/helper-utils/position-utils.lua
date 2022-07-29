@@ -435,7 +435,7 @@ end
 ---@param orientation RealOrientation
 ---@return MapPosition
 PositionUtils.GetPositionForOrientationDistance = function(startingPos, distance, orientation)
-    local angle = orientation * 360
+    local angle = orientation * 360 ---@type double
     if angle < 0 then
         angle = 360 + angle
     end

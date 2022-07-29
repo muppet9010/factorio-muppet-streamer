@@ -65,7 +65,7 @@ end
 ---@param directionValue defines.direction
 ---@return RealOrientation
 DirectionUtils.DirectionToOrientation = function(directionValue)
-    return directionValue / 8
+    return directionValue / 8 --[[@as RealOrientation]]
 end
 
 --- A dictionary of directionValue key's (0-7) to their direction name (label's of defines.direction).
@@ -102,9 +102,9 @@ end
 DirectionUtils.LoopOrientationValue = function(orientationValue)
     -- Hard coded copy of MathUtils.LoopFloatValueWithinRangeMaxExclusive().
     if orientationValue >= 1 then
-        return -1 + orientationValue
+        return orientationValue - math.floor(orientationValue) --[[@as RealOrientation]]
     elseif orientationValue < 0 then
-        return 1 + orientationValue
+        return orientationValue - math.ceil(orientationValue) --[[@as RealOrientation]]
     else
         return orientationValue
     end

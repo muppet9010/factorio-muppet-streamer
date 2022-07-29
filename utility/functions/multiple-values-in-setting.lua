@@ -49,10 +49,8 @@ SettingsManager.ExpectedValueTypes = {
 SettingsManager.HandleSettingWithArrayOfValues = function(factorioSettingType, factorioSettingName, expectedValueType, defaultSettingsContainer, defaultValue, globalGroupsContainer, globalSettingContainerName, globalSettingName, valueHandlingFunction)
     if expectedValueType == nil or expectedValueType == "" then
         error("Setting '[" .. tostring(factorioSettingType) .. "][" .. tostring(factorioSettingName) .. "]' has no value type coded.")
-        return
     elseif expectedValueType.name == nil or SettingsManager.ExpectedValueTypes[expectedValueType.name] == nil then
         error("Setting '[" .. tostring(factorioSettingType) .. "][" .. tostring(factorioSettingName) .. "]' has an invalid value type coded: '" .. tostring(expectedValueType.name) .. "'")
-        return
     end
 
     ---@cast defaultSettingsContainer UtilityMultipleValuesInSettings_DefaultSettingsContainer @ Done so that the function's type is clear when calling.
@@ -75,7 +73,7 @@ SettingsManager.HandleSettingWithArrayOfValues = function(factorioSettingType, f
     if tableOfValues == nil or type(tableOfValues) ~= "table" then
         isMultipleGroups = false
     else -- is a table type of value for setting
-        ---@cast tableOfValues table<uint, boolean|number|string|nil>
+        ---@cast tableOfValues table<uint, boolean|number|string>
         if not expectedValueType.hasChildren then
             isMultipleGroups = true
         else
@@ -90,6 +88,7 @@ SettingsManager.HandleSettingWithArrayOfValues = function(factorioSettingType, f
     end
 
     if isMultipleGroups then
+        ---@cast tableOfValues -nil @ If it was nil this logic branch couldn't be reached.
         for id, value in pairs(tableOfValues) do
             local thisGlobalSettingContainer = SettingsManager._CreateGlobalGroupSettingsContainer(globalGroupsContainer, id, globalSettingContainerName)
             local typedValue = SettingsManager._ValueToType(value, expectedValueType)
@@ -153,7 +152,7 @@ SettingsManager._CreateGlobalGroupSettingsContainer = function(globalGroupsConta
 end
 
 -- Strips any % characters from a number value to avoid silly user entry issues. Soft converts the supplied value in to the expected type (not sure if wise?).
----@param value string|number|boolean|table|string[]|number[]|boolean[]|table[]
+---@param value string|number|boolean|table|string[]|number[]|boolean[]|table[]|nil
 ---@param expectedType UtilitySettingsManager_ExpectedValueType
 ---@return boolean|number|string|nil|table
 SettingsManager._ValueToType = function(value, expectedType)

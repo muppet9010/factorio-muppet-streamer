@@ -42,8 +42,12 @@ GuiActionsOpened.RegisterEntityForGuiOpenedAction = function(entity, actionName,
     end
     data = data or {}
     global.UTILITYGUIACTIONSENTITYGUIOPENED = global.UTILITYGUIACTIONSENTITYGUIOPENED or {} ---@type table<uint, table<string, table|nil>>
-    global.UTILITYGUIACTIONSENTITYGUIOPENED[entity.unit_number] = global.UTILITYGUIACTIONSENTITYGUIOPENED[entity.unit_number] or {}
-    global.UTILITYGUIACTIONSENTITYGUIOPENED[entity.unit_number][actionName] = data
+    local entity_unitNumber = entity.unit_number
+    if entity_unitNumber == nil then
+        error("GuiActionsOpened.RegisterEntityForGuiOpenedAction() only supports entities with populated unit_number field.")
+    end
+    global.UTILITYGUIACTIONSENTITYGUIOPENED[entity_unitNumber] = global.UTILITYGUIACTIONSENTITYGUIOPENED[entity_unitNumber] or {}
+    global.UTILITYGUIACTIONSENTITYGUIOPENED[entity_unitNumber][actionName] = data
 end
 
 --- Called when desired to remove a specific entities GUI being opened from triggering its action.
@@ -55,10 +59,14 @@ GuiActionsOpened.RemoveEntityForGuiOpenedAction = function(entity, actionName)
     if entity == nil or actionName == nil then
         error("GuiActions.RemoveEntityForGuiOpenedAction called with missing arguments")
     end
-    if global.UTILITYGUIACTIONSENTITYGUIOPENED == nil or global.UTILITYGUIACTIONSENTITYGUIOPENED[entity.unit_number] == nil then
+    local entity_unitNumber = entity.unit_number
+    if entity_unitNumber == nil then
+        error("GuiActionsOpened.RemoveEntityForGuiOpenedAction() only supports entities with populated unit_number field.")
+    end
+    if global.UTILITYGUIACTIONSENTITYGUIOPENED == nil or global.UTILITYGUIACTIONSENTITYGUIOPENED[entity_unitNumber] == nil then
         return
     end
-    global.UTILITYGUIACTIONSENTITYGUIOPENED[entity.unit_number][actionName] = nil
+    global.UTILITYGUIACTIONSENTITYGUIOPENED[entity_unitNumber][actionName] = nil
 end
 
 -- Called to register a specific GUI type being opened to a named action.
@@ -107,7 +115,6 @@ GuiActionsOpened._HandleGuiOpenedAction = function(rawFactorioEventData)
                     local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, guiType = guiTypeHandled, data = data, eventData = rawFactorioEventData }
                     if actionFunction == nil then
                         error("ERROR: Entity GUI Opened Handler - no registered action for name: '" .. tostring(actionName) .. "'")
-                        return
                     end
                     actionFunction(actionData)
                 end
@@ -115,15 +122,18 @@ GuiActionsOpened._HandleGuiOpenedAction = function(rawFactorioEventData)
         end
     end
 
-    if global.UTILITYGUIACTIONSENTITYGUIOPENED ~= nil and entityOpened ~= nil and global.UTILITYGUIACTIONSENTITYGUIOPENED[entityOpened.unit_number] ~= nil then
-        for actionName, data in pairs(global.UTILITYGUIACTIONSENTITYGUIOPENED[entityOpened.unit_number]) do
-            local actionFunction = MOD.guiOpenedActions[actionName]
-            local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, entity = entityOpened, data = data, eventData = rawFactorioEventData }
-            if actionFunction == nil then
-                error("ERROR: Entity GUI Opened Handler - no registered action for name: '" .. tostring(actionName) .. "'")
-                return
+    if global.UTILITYGUIACTIONSENTITYGUIOPENED ~= nil and entityOpened ~= nil then
+        local entityOpened_unitNumber = entityOpened.unit_number
+        -- If the entity has a unit_number then we could have registered something for it, otherwise we couldn't have registered anything so no need to check.
+        if entityOpened_unitNumber ~= nil and global.UTILITYGUIACTIONSENTITYGUIOPENED[entityOpened_unitNumber] ~= nil then
+            for actionName, data in pairs(global.UTILITYGUIACTIONSENTITYGUIOPENED[entityOpened_unitNumber]) do
+                local actionFunction = MOD.guiOpenedActions[actionName]
+                local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, entity = entityOpened, data = data, eventData = rawFactorioEventData }
+                if actionFunction == nil then
+                    error("ERROR: Entity GUI Opened Handler - no registered action for name: '" .. tostring(actionName) .. "'")
+                end
+                actionFunction(actionData)
             end
-            actionFunction(actionData)
         end
     end
 end

@@ -12,7 +12,7 @@ Teleport.FindExistingSpawnersOnAllSurfaces = function()
         surfacesSpawners[surface_index] = {}
         local spawners = surface.find_entities_filtered { type = "unit-spawner" }
         for _, spawner in pairs(spawners) do
-            local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name
+            local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name ---@cast spawner_unitNumber -nil @ Spawners always have unit numbers.
             surfacesSpawners[surface_index][spawner_force_name] = surfacesSpawners[surface_index][spawner_force_name] or {}
             surfacesSpawners[surface_index][spawner_force_name][spawner_unitNumber] = { unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position }
         end

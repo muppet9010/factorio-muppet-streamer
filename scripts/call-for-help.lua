@@ -181,6 +181,19 @@ CallForHelp.CallForHelpCommand = function(command)
     EventScheduler.ScheduleEventOnce(scheduleTick, "CallForHelp.CallForHelp", global.callForHelp.nextId, delayedCommandDetails)
 end
 
+--- Gets the target players current entity or nil if they aren't valid to be helped.
+---@param targetPlayer LuaPlayer
+---@return LuaEntity|nil targetPlayerEntity
+CallForHelp.GetTargetPlayersEntity = function(targetPlayer)
+    local targetPlayerEntity = targetPlayer.vehicle or targetPlayer.character
+    if targetPlayerEntity == nil then
+        -- Being in a character controller without a character is possible and Space Exploration may do it...
+        game.print({ "message.muppet_streamer_call_for_help_no_character", targetPlayer.name })
+        return nil
+    end
+    return targetPlayerEntity
+end
+
 ---@param eventData UtilityScheduledEvent_CallbackObject
 CallForHelp.CallForHelp = function(eventData)
     local data = eventData.data ---@type CallForHelp_DelayedCommandDetails
@@ -192,6 +205,11 @@ CallForHelp.CallForHelp = function(eventData)
     end
     if targetPlayer.controller_type ~= defines.controllers.character then
         game.print({ "message.muppet_streamer_call_for_help_not_character_controller", data.target })
+        return
+    end
+
+    local targetPlayerEntity = CallForHelp.GetTargetPlayersEntity(targetPlayer)
+    if targetPlayerEntity == nil then
         return
     end
 
@@ -284,7 +302,6 @@ CallForHelp.CallForHelp = function(eventData)
     -- Store the initial details for the call and start the process for each player trying to come to help.
     game.print({ "message.muppet_streamer_call_for_help_start", targetPlayer.name })
     global.callForHelp.callForHelpIds[data.callForHelpId] = { callForHelpId = data.callForHelpId, pendingPathRequests = {} }
-    local targetPlayerEntity = targetPlayer.vehicle or targetPlayer.character
     for _, helpPlayer in pairs(helpPlayers) do
         CallForHelp.PlanTeleportHelpPlayer(helpPlayer, data.arrivalRadius, targetPlayer, targetPlayerPosition, targetPlayerSurface, targetPlayerEntity, data.callForHelpId, 1, data.sameSurfaceOnly, data.sameTeamOnly)
     end
@@ -369,6 +386,12 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         return
     end
 
+    -- Check the target player is still valid to be teleported too. Not technically used in positive path and teleport logic, but used in most negative routes.
+    local targetPlayerEntity = CallForHelp.GetTargetPlayersEntity(pathRequest.targetPlayer)
+    if targetPlayerEntity == nil then
+        return
+    end
+
     if event.path == nil then
         -- Path request failed
         pathRequest.attempt = pathRequest.attempt + 1
@@ -376,7 +399,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
             game.print({ "message.muppet_streamer_call_for_help_no_teleport_location_found", helpPlayer.name, pathRequest.targetPlayer.name })
         else
             -- Make another request. Obtain fresh data where needed, but by and large try again with the same target location and details to join others already teleported.
-            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, pathRequest.targetPlayer.vehicle or pathRequest.targetPlayer.character, pathRequest.callForHelpId, pathRequest.attempt, pathRequest.sameSurfaceOnly, pathRequest.sameTeamOnly)
+            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, targetPlayerEntity, pathRequest.callForHelpId, pathRequest.attempt, pathRequest.sameSurfaceOnly, pathRequest.sameTeamOnly)
         end
     else
         -- Path request succeeded.
@@ -402,7 +425,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
         if helpPlayer.force ~= pathRequest.helpPlayerForce then
             if not pathRequest.sameTeamOnly or (pathRequest.sameTeamOnly and helpPlayer.force == pathRequest.targetPlayer.force) then
                 -- Only try again if the force setting still allows it.
-                CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, pathRequest.targetPlayer.vehicle or pathRequest.targetPlayer.character, pathRequest.callForHelpId, pathRequest.attempt, pathRequest.sameSurfaceOnly, pathRequest.sameTeamOnly)
+                CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, targetPlayerEntity, pathRequest.callForHelpId, pathRequest.attempt, pathRequest.sameSurfaceOnly, pathRequest.sameTeamOnly)
             end
             CallForHelp.CheckIfCallForHelpCompleted(pathRequest)
             return
@@ -410,6 +433,13 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
 
         -- Get the players current placement entity and vehicle facing.
         local currentPlayerPlacementEntity, currentPlayerPlacementEntity_isVehicle = PlayerTeleport.GetPlayerTeleportPlacementEntity(helpPlayer, nil)
+        if currentPlayerPlacementEntity == nil then
+            -- If the helper player doesn't have an entity then nothing further to do for this player.
+            game.print({ "message.muppet_streamer_call_for_help_teleport_action_failed", helpPlayer.name, LoggingUtils.PositionToString(pathRequest.position) })
+            CallForHelp.CheckIfCallForHelpCompleted(pathRequest)
+            return
+        end
+
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
         local currentPlayerPlacementEntity_vehicleDirectionFacing ---@type defines.direction|nil
         if currentPlayerPlacementEntity_isVehicle then
@@ -418,28 +448,30 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
 
         -- Check the helping player's character/vehicle is still as expected.
         if currentPlayerPlacementEntity ~= pathRequest.helpPlayerPlacementEntity then
-            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, pathRequest.targetPlayer.vehicle or pathRequest.targetPlayer.character, pathRequest.callForHelpId, pathRequest.attempt, pathRequest.sameSurfaceOnly, pathRequest.sameTeamOnly)
+            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, targetPlayerEntity, pathRequest.callForHelpId, pathRequest.attempt, pathRequest.sameSurfaceOnly, pathRequest.sameTeamOnly)
             CallForHelp.CheckIfCallForHelpCompleted(pathRequest)
             return
         end
 
         -- Check the target location hasn't been blocked since we made the path request. This also checks the entity can be placed with its current orientation rounded to a direction, so if its changed from when the pathfinder request was made it will either be confirmed as being fine or fail and be retried.
         if not pathRequest.surface.can_place_entity { name = currentPlayerPlacementEntity.name, position = pathRequest.position, direction = currentPlayerPlacementEntity_vehicleDirectionFacing, force = pathRequest.helpPlayerForce, build_check_type = defines.build_check_type.manual } then
-            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, pathRequest.targetPlayer.vehicle or pathRequest.targetPlayer.character, pathRequest.callForHelpId, pathRequest.attempt, pathRequest.sameSurfaceOnly, pathRequest.sameTeamOnly)
+            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, pathRequest.arrivalRadius, pathRequest.targetPlayer, pathRequest.targetPlayerPosition, pathRequest.surface, targetPlayerEntity, pathRequest.callForHelpId, pathRequest.attempt, pathRequest.sameSurfaceOnly, pathRequest.sameTeamOnly)
             CallForHelp.CheckIfCallForHelpCompleted(pathRequest)
             return
         end
         if currentPlayerPlacementEntity_vehicleDirectionFacing ~= nil then
             -- Change the vehicles orientation to match the direction we checked. This will be a slight angle change, but the teleport should hide it.
-            currentPlayerPlacementEntity.orientation = currentPlayerPlacementEntity_vehicleDirectionFacing / 8
+            currentPlayerPlacementEntity.orientation = currentPlayerPlacementEntity_vehicleDirectionFacing / 8 --[[@as RealOrientation]]
         end
 
         -- Everything is as expected still, so teleport can commence.
         local teleportSucceeded = PlayerTeleport.TeleportToSpecificPosition(helpPlayer, pathRequest.surface, pathRequest.position)
 
-        -- If the teleport of the player's entity/vehicle to the specific position failed then do next action if there is one.
+        -- If the teleport of the player's entity/vehicle to the specific position failed then nothing further to do for this player.
         if not teleportSucceeded then
             game.print({ "message.muppet_streamer_call_for_help_teleport_action_failed", helpPlayer.name, LoggingUtils.PositionToString(pathRequest.position) })
+            CallForHelp.CheckIfCallForHelpCompleted(pathRequest)
+            return
         end
     end
 

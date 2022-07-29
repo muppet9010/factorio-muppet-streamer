@@ -95,7 +95,6 @@ GuiActionsClick._HandleGuiClickAction = function(rawFactorioEventData)
         local actionData = { actionName = actionName, playerIndex = rawFactorioEventData.player_index, data = guiClickDetails.data, eventData = rawFactorioEventData }
         if actionFunction == nil then
             error("ERROR: GUI Click Handler - no registered action for name: '" .. tostring(actionName) .. "'")
-            return
         end
         actionFunction(actionData)
     else
