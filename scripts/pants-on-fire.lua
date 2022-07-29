@@ -141,6 +141,12 @@ PantsOnFire.ApplyToPlayer = function(eventData)
     end
     local targetPlayer_index = targetPlayer.index
 
+    -- Check the firePrototype is still valid (unchanged).
+    if not data.firePrototype.valid then
+        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game fire prototype has been changed/removed since the command was run.", nil)
+        return
+    end
+
     -- Effect is already applied to player so don't start a new one.
     if global.PantsOnFire.playersSteps[targetPlayer_index] ~= nil then
         return
@@ -164,6 +170,12 @@ PantsOnFire.WalkCheck = function(eventData)
     local player, playerIndex = data.player, data.player_index
     if player == nil or (not player.valid) then
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        return
+    end
+
+    -- Check the firePrototype is still valid (unchanged).
+    if not data.firePrototype.valid then
+        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game fire prototype has been changed/removed since the command was run.", nil)
         return
     end
 

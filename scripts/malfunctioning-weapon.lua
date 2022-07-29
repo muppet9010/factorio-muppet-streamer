@@ -154,6 +154,17 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
     end
     local targetPlayer_index = targetPlayer.index
 
+    -- Check the weapon and ammo are still valid (unchanged).
+    if not data.weaponPrototype.valid then
+        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game weapon prototype has been changed/removed since the command was run.", nil)
+        return
+    end
+    if not data.ammoPrototype.valid then
+        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game ammo prototype has been changed/removed since the command was run.", nil)
+        return
+    end
+
+    -- If this player already has the effect active then terminate this new instance.
     if global.leakyFlamethrower.affectedPlayers[targetPlayer_index] ~= nil then
         return
     end
@@ -228,6 +239,16 @@ MalfunctioningWeapon.ShootFlamethrower = function(eventData)
     local player, playerIndex = data.player, data.player_index
     if (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
         MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        return
+    end
+
+    -- Check the weapon and ammo are still valid (unchanged).
+    if not data.weaponPrototype.valid then
+        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game weapon prototype has been changed/removed since the command was run.", nil)
+        return
+    end
+    if not data.ammoPrototype.valid then
+        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game ammo prototype has been changed/removed since the command was run.", nil)
         return
     end
 
@@ -353,10 +374,11 @@ MalfunctioningWeapon.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Take back any weapon and ammo from a player with a character (alive or just dead).
     if playerHasCharacter then
-        if affectedPlayer.flamethrowerGiven then
+        -- Confirm the prototypes are still valid, if they aren't then the player will have lost those items anyway.
+        if affectedPlayer.flamethrowerGiven and affectedPlayer.weaponPrototype.valid then
             PlayerWeapon.TakeItemFromPlayerOrGround(player, affectedPlayer.weaponPrototype.name, 1)
         end
-        if affectedPlayer.burstsLeft > 0 then
+        if affectedPlayer.burstsLeft > 0 and affectedPlayer.ammoPrototype.valid then
             PlayerWeapon.TakeItemFromPlayerOrGround(player, affectedPlayer.ammoPrototype.name, affectedPlayer.burstsLeft)
         end
     end
