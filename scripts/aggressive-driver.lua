@@ -309,7 +309,7 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
         return
     end
 
-    -- Remove the flag against this player as being currently affected by the leaky flamethrower.
+    -- Remove the flag against this player as being currently affected by the malfunctioning weapon.
     global.aggressiveDriver.affectedPlayers[playerIndex] = nil
 
     player = player or game.get_player(playerIndex)

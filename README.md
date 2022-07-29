@@ -74,7 +74,7 @@ Malfunctioning Weapon (Leaky Flamethrower)
 
 Forces the targeted player to wield a weapon that shoots in random directions. Shoots a full ammo item, then briefly pauses before firing the next full ammo item. This is a Time Duration event.
 
-- Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
+- Command syntax: `/muppet_streamer_malfunctioning_weapon [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds the flamethrower and effects are delayed before starting. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target (case sensitive).
@@ -82,9 +82,9 @@ Forces the targeted player to wield a weapon that shoots in random directions. S
     - reloadTime: DECIMAL - Optional: how many seconds to wait between each ammo magazine being fired. Defaults to 3 to give a noticeable gap.
     - weaponType: STRING - Optional: the name of the specific weapon you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower weapon, `flamethrower`.
     - ammoType: STRING - Optional: the name of the specific ammo you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower ammo, `flamethrower-ammo`.
-- Example command standard usage (leaky flamethrower): `/muppet_streamer_leaky_flamethrower {"target":"muppet9010", "ammoCount":5}`
-- Example command using shotgun: `/muppet_streamer_leaky_flamethrower {"target":"muppet9010", "ammoCount":3, "weaponType":"shotgun", "ammoType":"shotgun-shell"}`
-- Example command using Cryogun from Space Exploration mod: `/muppet_streamer_leaky_flamethrower {"target":"muppet9010", "ammoCount":5, "weaponType":"se-cryogun", "ammoType":"se-cryogun-ammo"}`
+- Example command standard usage (leaky flamethrower): `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":5}`
+- Example command using shotgun: `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":3, "weaponType":"shotgun", "ammoType":"shotgun-shell"}`
+- Example command using Cryogun from Space Exploration mod: `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":5, "weaponType":"se-cryogun", "ammoType":"se-cryogun-ammo"}`
 
 Notes:
 

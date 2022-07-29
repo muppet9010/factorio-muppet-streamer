@@ -2,9 +2,10 @@
 Version: 20.1.26
 Date: 2022-XXXXXX
   Features:
-    - Leaky Flamethrower - supports custom weapon and ammo names as options for modded playthroughs.
-    - Leaky Flamethrower - added relaodTime to set delay between firing each magazine.
+    - Malfunctioning Weapon - supports custom weapon and ammo names as options for modded playthroughs.
+    - Malfunctioning Weapon - added reloadTime to set delay between firing each magazine.
   Changes:
+    - Leaky Flamethrower - feature renamed to Malfunctioning Weapon as it supports much wider weapon range now. Command name changed with this to "muppet_streamer_malfunctioning_weapon".
   Bugfixes:
     - Various extreme edge case handling across features identified by improved developement tools.
   Info:

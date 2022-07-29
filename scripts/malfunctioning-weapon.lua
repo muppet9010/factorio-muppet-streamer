@@ -1,4 +1,4 @@
-local LeakyFlamethrower = {} ---@class LeakyFlamethrower
+local MalfunctioningWeapon = {} ---@class MalfunctioningWeapon
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
@@ -7,21 +7,21 @@ local PositionUtils = require("utility.helper-utils.position-utils")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
----@enum LeakyFlamethrower_EffectEndStatus
+---@enum MalfunctioningWeapon_EffectEndStatus
 local EffectEndStatus = {
     completed = "completed",
     died = "died",
     invalid = "invalid"
 }
 
----@class LeakyFlamethrower_ScheduledEventDetails
+---@class MalfunctioningWeapon_ScheduledEventDetails
 ---@field target string @ Target player's name.
 ---@field ammoCount uint
 ---@field reloadTicks uint @ >=1
 ---@field weaponPrototype LuaItemPrototype
 ---@field ammoPrototype LuaItemPrototype
 
----@class LeakyFlamethrower_ShootFlamethrowerDetails
+---@class MalfunctioningWeapon_ShootFlamethrowerDetails
 ---@field player LuaPlayer
 ---@field player_index uint
 ---@field angle double
@@ -39,36 +39,36 @@ local EffectEndStatus = {
 ---@field cooldownTicks uint @ >= 1
 ---@field reloadTicks uint @ >=1
 
----@class LeakyFlamethrower_AffectedPlayersDetails
+---@class MalfunctioningWeapon_AffectedPlayersDetails
 ---@field flamethrowerGiven boolean @ If a flamethrower weapon had to be given to the player or if they already had one.
 ---@field burstsLeft uint
 ---@field removedWeaponDetails UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
 ---@field weaponPrototype LuaItemPrototype
 ---@field ammoPrototype LuaItemPrototype
 
-local commandName = "muppet_streamer_leaky_flamethrower"
+local commandName = "muppet_streamer_malfunctioning_weapon"
 
-LeakyFlamethrower.CreateGlobals = function()
+MalfunctioningWeapon.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
-    global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<uint, LeakyFlamethrower_AffectedPlayersDetails> @ Key'd by player_index.
+    global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<uint, MalfunctioningWeapon_AffectedPlayersDetails> @ Key'd by player_index.
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId or 0 ---@type uint
 end
 
-LeakyFlamethrower.OnLoad = function()
-    CommandsUtils.Register("muppet_streamer_leaky_flamethrower", { "api-description.muppet_streamer_leaky_flamethrower" }, LeakyFlamethrower.LeakyFlamethrowerCommand, true)
-    EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ShootFlamethrower", LeakyFlamethrower.ShootFlamethrower)
-    Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "LeakyFlamethrower.OnPrePlayerDied", LeakyFlamethrower.OnPrePlayerDied)
-    EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.ApplyToPlayer", LeakyFlamethrower.ApplyToPlayer)
-    MOD.Interfaces.Commands.LeakyFlamethrower = LeakyFlamethrower.LeakyFlamethrowerCommand
-    EventScheduler.RegisterScheduledEventType("LeakyFlamethrower.StopEffectOnPlayer_Schedule", LeakyFlamethrower.StopEffectOnPlayer_Schedule)
+MalfunctioningWeapon.OnLoad = function()
+    CommandsUtils.Register("muppet_streamer_malfunctioning_weapon", { "api-description.muppet_streamer_malfunctioning_weapon" }, MalfunctioningWeapon.MalfunctioningWeaponCommand, true)
+    EventScheduler.RegisterScheduledEventType("MalfunctioningWeapon.ShootFlamethrower", MalfunctioningWeapon.ShootFlamethrower)
+    Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "MalfunctioningWeapon.OnPrePlayerDied", MalfunctioningWeapon.OnPrePlayerDied)
+    EventScheduler.RegisterScheduledEventType("MalfunctioningWeapon.ApplyToPlayer", MalfunctioningWeapon.ApplyToPlayer)
+    MOD.Interfaces.Commands.MalfunctioningWeapon = MalfunctioningWeapon.MalfunctioningWeaponCommand
+    EventScheduler.RegisterScheduledEventType("MalfunctioningWeapon.StopEffectOnPlayer_Schedule", MalfunctioningWeapon.StopEffectOnPlayer_Schedule)
 end
 
-LeakyFlamethrower.OnStartup = function()
-    LeakyFlamethrower.GetOrCreatePermissionGroup()
+MalfunctioningWeapon.OnStartup = function()
+    MalfunctioningWeapon.GetOrCreatePermissionGroup()
 end
 
 ---@param command CustomCommandData
-LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
+MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
     local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "ammoCount", "reloadTime", "weaponType", "ammoType" })
     if commandData == nil then
         return
@@ -134,14 +134,14 @@ LeakyFlamethrower.LeakyFlamethrowerCommand = function(command)
     reloadTicks = math.max(reloadTicks, ammoPrototype.reload_time)
 
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 ---@type uint @ Needed for weird bug reason, maybe in Sumneko or maybe the plugin with its fake global.
-    ---@type LeakyFlamethrower_ScheduledEventDetails
+    ---@type MalfunctioningWeapon_ScheduledEventDetails
     local scheduledEventDetails = { target = target, ammoCount = ammoCount, reloadTicks = reloadTicks, weaponPrototype = weaponPrototype, ammoPrototype = ammoPrototype }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "LeakyFlamethrower.ApplyToPlayer", global.leakyFlamethrower.nextId, scheduledEventDetails)
+    EventScheduler.ScheduleEventOnce(scheduleTick, "MalfunctioningWeapon.ApplyToPlayer", global.leakyFlamethrower.nextId, scheduledEventDetails)
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
-LeakyFlamethrower.ApplyToPlayer = function(eventData)
-    local data = eventData.data ---@type LeakyFlamethrower_ScheduledEventDetails
+MalfunctioningWeapon.ApplyToPlayer = function(eventData)
+    local data = eventData.data ---@type MalfunctioningWeapon_ScheduledEventDetails
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
@@ -149,7 +149,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
-        game.print({ "message.muppet_streamer_leaky_flamethrower_not_character_controller", data.target })
+        game.print({ "message.muppet_streamer_malfunctioning_weapon_not_character_controller", data.target })
         return
     end
     local targetPlayer_index = targetPlayer.index
@@ -202,7 +202,7 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
     global.originalPlayersPermissionGroup[targetPlayer_index] = global.originalPlayersPermissionGroup[targetPlayer_index] or targetPlayer.permission_group
 
-    targetPlayer.permission_group = LeakyFlamethrower.GetOrCreatePermissionGroup()
+    targetPlayer.permission_group = MalfunctioningWeapon.GetOrCreatePermissionGroup()
     global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = { flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails, weaponPrototype = data.weaponPrototype, ammoPrototype = data.ammoPrototype }
 
     local startingAngle = math.random(0, 360)
@@ -213,21 +213,21 @@ LeakyFlamethrower.ApplyToPlayer = function(eventData)
     local cooldownTicks = math.max(MathUtils.RoundNumberToDecimalPlaces(cooldown, 0), 1) --[[@as uint]]
     -- One or more ticks (rounded). Anything that fires quicker than once per tick will be slowed down as other code can't handle it.
 
-    game.print({ "message.muppet_streamer_leaky_flamethrower_start", targetPlayer.name })
+    game.print({ "message.muppet_streamer_malfunctioning_weapon_start", targetPlayer.name, data.weaponPrototype.localised_name })
 
-    ---@type LeakyFlamethrower_ShootFlamethrowerDetails
+    ---@type MalfunctioningWeapon_ShootFlamethrowerDetails
     local shootFlamethrowerDetails = { player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index, usedSomeAmmo = false, startingAmmoItemStacksCount = startingAmmoItemStacksCount, startingAmmoItemStackAmmo = startingAmmoItemStackAmmo, weaponPrototype = data.weaponPrototype, ammoPrototype = data.ammoPrototype, minRange = minRange, maxRange = maxRange, cooldownTicks = cooldownTicks, reloadTicks = data.reloadTicks }
     ---@type UtilityScheduledEvent_CallbackObject
     local shootFlamethrowerCallbackObject = { tick = eventData.tick, instanceId = targetPlayer_index, data = shootFlamethrowerDetails }
-    LeakyFlamethrower.ShootFlamethrower(shootFlamethrowerCallbackObject)
+    MalfunctioningWeapon.ShootFlamethrower(shootFlamethrowerCallbackObject)
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
-LeakyFlamethrower.ShootFlamethrower = function(eventData)
-    local data = eventData.data ---@type LeakyFlamethrower_ShootFlamethrowerDetails
+MalfunctioningWeapon.ShootFlamethrower = function(eventData)
+    local data = eventData.data ---@type MalfunctioningWeapon_ShootFlamethrowerDetails
     local player, playerIndex = data.player, data.player_index
     if (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
-        LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end
 
@@ -236,7 +236,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
     local selectedGunInventory = player.get_inventory(defines.inventory.character_guns)[selectedGunIndex]
     if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= data.weaponPrototype.name then
         -- Flamethrower has been removed as active weapon by some script.
-        LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end
 
@@ -244,7 +244,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
     local selectedAmmoInventory = player.get_inventory(defines.inventory.character_ammo)[selectedGunIndex]
     if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= data.ammoPrototype.name then
         -- Ammo has been removed by some script. As we wouldn't have reached this point in a managed loop as its beyond the last burst.
-        LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end
 
@@ -286,7 +286,7 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         player.shooting_state = { state = defines.shooting.not_shooting }
 
         if data.burstsDone == data.maxBursts then
-            LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
+            MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
             return
         end
 
@@ -309,33 +309,33 @@ LeakyFlamethrower.ShootFlamethrower = function(eventData)
         nextShootDelayTicks = data.cooldownTicks
     end
 
-    EventScheduler.ScheduleEventOnce(eventData.tick + nextShootDelayTicks, "LeakyFlamethrower.ShootFlamethrower", playerIndex, data)
+    EventScheduler.ScheduleEventOnce(eventData.tick + nextShootDelayTicks, "MalfunctioningWeapon.ShootFlamethrower", playerIndex, data)
 end
 
 --- Called when a player has died, but before their character is turned in to a corpse.
 ---@param event on_pre_player_died
-LeakyFlamethrower.OnPrePlayerDied = function(event)
-    LeakyFlamethrower.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)
+MalfunctioningWeapon.OnPrePlayerDied = function(event)
+    MalfunctioningWeapon.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
-LeakyFlamethrower.StopEffectOnPlayer_Schedule = function(eventData)
-    local data = eventData.data ---@type LeakyFlamethrower_ShootFlamethrowerDetails
+MalfunctioningWeapon.StopEffectOnPlayer_Schedule = function(eventData)
+    local data = eventData.data ---@type MalfunctioningWeapon_ShootFlamethrowerDetails
     local player, playerIndex = data.player, data.player_index
     if (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
-        LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end
 
-    LeakyFlamethrower.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
+    MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
 end
 
 --- Called when the effect has been stopped and the effects state and weapon changes should be undone.
 --- Called when the player is alive or if they have died before their character has been affected.
 ---@param playerIndex uint
 ---@param player LuaPlayer|nil @ Obtained if needed and not provided.
----@param status LeakyFlamethrower_EffectEndStatus
-LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
+---@param status MalfunctioningWeapon_EffectEndStatus
+MalfunctioningWeapon.StopEffectOnPlayer = function(playerIndex, player, status)
     local affectedPlayer = global.leakyFlamethrower.affectedPlayers[playerIndex]
     if affectedPlayer == nil then
         return
@@ -365,7 +365,7 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
     PlayerWeapon.ReturnRemovedWeapon(player, affectedPlayer.removedWeaponDetails)
 
     -- Return the player to their initial permission group.
-    if player.permission_group.name == "LeakyFlamethrower" then
+    if player.permission_group.name == "MalfunctioningWeapon" then
         -- If the permission group has been changed by something else don't set it back to the last non modded one.
         player.permission_group = global.originalPlayersPermissionGroup[playerIndex]
         global.originalPlayersPermissionGroup[playerIndex] = nil
@@ -376,18 +376,18 @@ LeakyFlamethrower.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Print a message based on ending status.
     if status == EffectEndStatus.completed then
-        game.print({ "message.muppet_streamer_leaky_flamethrower_stop", player.name })
+        game.print({ "message.muppet_streamer_malfunctioning_weapon_stop", player.name })
     end
 end
 
 --- Gets the permission group for this feature. Will create it if needed.
 ---@return LuaPermissionGroup
-LeakyFlamethrower.GetOrCreatePermissionGroup = function()
-    local group = game.permissions.get_group("LeakyFlamethrower") or game.permissions.create_group("LeakyFlamethrower") ---@cast group - nil @ Script always has permission to create groups.
+MalfunctioningWeapon.GetOrCreatePermissionGroup = function()
+    local group = game.permissions.get_group("MalfunctioningWeapon") or game.permissions.create_group("MalfunctioningWeapon") ---@cast group - nil @ Script always has permission to create groups.
     group.set_allows_action(defines.input_action.select_next_valid_gun, false)
     group.set_allows_action(defines.input_action.toggle_driving, false)
     group.set_allows_action(defines.input_action.change_shooting_state, false)
     return group
 end
 
-return LeakyFlamethrower
+return MalfunctioningWeapon

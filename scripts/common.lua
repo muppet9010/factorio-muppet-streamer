@@ -46,7 +46,7 @@ Common.CommandNames = {
     muppet_streamer_call_for_help = "muppet_streamer_call_for_help",
     muppet_streamer_schedule_explosive_delivery = "muppet_streamer_schedule_explosive_delivery",
     muppet_streamer_give_player_weapon_ammo = "muppet_streamer_give_player_weapon_ammo",
-    muppet_streamer_leaky_flamethrower = "muppet_streamer_leaky_flamethrower",
+    muppet_streamer_malfunctioning_weapon = "muppet_streamer_malfunctioning_weapon",
     muppet_streamer_pants_on_fire = "muppet_streamer_pants_on_fire",
     muppet_streamer_player_drop_inventory = "muppet_streamer_player_drop_inventory",
     muppet_streamer_player_inventory_shuffle = "muppet_streamer_player_inventory_shuffle",
@@ -100,8 +100,8 @@ Common.CallCommandFromRemote = function(commandName, options)
         MOD.Interfaces.Commands.ExplosiveDelivery(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_give_player_weapon_ammo then
         MOD.Interfaces.Commands.GiveItems(commandData)
-    elseif commandName == Common.CommandNames.muppet_streamer_leaky_flamethrower then
-        MOD.Interfaces.Commands.LeakyFlamethrower(commandData)
+    elseif commandName == Common.CommandNames.muppet_streamer_malfunctioning_weapon then
+        MOD.Interfaces.Commands.MalfunctioningWeapon(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_pants_on_fire then
         MOD.Interfaces.Commands.PantsOnFire(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_player_drop_inventory then
