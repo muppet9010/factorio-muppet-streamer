@@ -189,7 +189,7 @@ PantsOnFire.WalkCheck = function(eventData)
         if step.surface.valid then
             -- Factorio auto deletes the fire-flame entity for us.
             -- 20 flames seems the minimum to set a tree on fire.
-            local fireEntity = step.surface.create_entity({ name = data.firePrototype.name, position = step.position, initial_ground_flame_count = data.flameCount, force = global.forces["muppet_streamer_enemy"] })
+            local fireEntity = step.surface.create_entity({ name = data.firePrototype.name, position = step.position, initial_ground_flame_count = data.flameCount, force = global.Forces.muppet_streamer_enemy })
 
             -- If the player is in a vehicle do direct health damage to stop them hiding from the effects in armored vehicles.
             if player.vehicle then
@@ -199,7 +199,7 @@ PantsOnFire.WalkCheck = function(eventData)
                     -- Damage is square of how long they are in a vehicle to give a scale between those with no shields/armor and heavily shielded players. Total damage is done as an amount per second regardless of how often the fire gap delay has the ground effect created and thus this function called.
                     local secondsInVehicle = math.ceil(data.ticksInVehicle / 60)
                     local damageForPeriodOfSecond = MathUtils.ClampToFloat((secondsInVehicle ^ 4) / (60 / data.fireGap)) -- We don't care if the value is clamped within the allowed range as its already so large.
-                    playerCharacter.damage(damageForPeriodOfSecond, global.forces["muppet_streamer_enemy"], "fire", fireEntity)
+                    playerCharacter.damage(damageForPeriodOfSecond, global.Forces.muppet_streamer_enemy, "fire", fireEntity)
                 end
             end
         end

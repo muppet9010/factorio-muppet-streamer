@@ -230,9 +230,9 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         local explosiveCreatePos = PositionUtils.RandomLocationInRadius(targetPos, explosiveCreateDistance, explosiveCreateDistance)
 
         if explosiveType.projectileName ~= nil then
-            surface.create_entity { name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed }
+            surface.create_entity { name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed, force = global.Forces.muppet_streamer_enemy }
         elseif explosiveType.beamName ~= nil then
-            surface.create_entity { name = explosiveType.beamName, position = explosiveCreatePos, target = targetEntity, source_position = explosiveCreatePos }
+            surface.create_entity { name = explosiveType.beamName, position = explosiveCreatePos, target = targetEntity, source_position = explosiveCreatePos, force = global.Forces.muppet_streamer_enemy }
         end
 
         -- Remove the temporary dummy target entity.

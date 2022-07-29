@@ -64,7 +64,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 Notes:
 
 - Explosives will fly in from off screen to random locations around the target player within the accuracy settings. They may take a few seconds to complete their delivery as they fly in using their native throwing/shooting/spitting speed.
-- Weapons are on the "enemy" team (force) and so don't get affected by your research, but will be affected by any weapon research set on the "enemy" team by other mods.
+- Weapons are on a special enemy force so that they will hurt everything on the map, 'muppet_streamer_enemy'. This also means that player damage upgrades don't affect these effects.
 - targetPosition and targetOffset expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 
 
@@ -131,7 +131,7 @@ Spawns entities in the game around the named player on their side. Includes both
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds before the spawning occurs. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to center upon (case sensitive).
-    - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player` or `enemy`), or left blank for the force of the targeted player. Certain entity types are hardcoded like trees, rocks and fire to be the `neutral` force. Value is case sensitive to Factorio's internal force name.
+    - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player`), or left blank for the force of the targeted player. Certain entity types are hardcoded like trees, rocks and fire to be the `neutral` force. Value is case sensitive to Factorio's internal force name.
 	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, wall, fire, defenderBot, distractorBot, destroyerBot.
 	- radiusMax: INTEGER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: INTEGER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then 0 is used.
@@ -148,6 +148,7 @@ Spawns entities in the game around the named player on their side. Includes both
 Notes:
 
 - For entityType of tree, if placed on a vanilla game tile or with Alien Biomes mod a biome specific tree will be selected, otherwise the tree will be random on other modded tiles. Should support and handle fully defined custom tree types, otherwise they will be ignored.
+- There is a special force included in the mod that is hostile to every other force which can be used if desired for the `forceString` option: muppet_streamer_enemy. The `enemy` force is the one the default biters are on, with players by default on the `player` force.
 
 
 
