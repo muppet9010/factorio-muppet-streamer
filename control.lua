@@ -17,6 +17,8 @@ local Common = require("scripts.common")
 local function CreateGlobals()
     global.originalPlayersPermissionGroup = global.originalPlayersPermissionGroup or {} ---@type table<uint, LuaPermissionGroup> @ Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
 
+    global.forces = global.forces or {} ---@type table<string, LuaForce> @ Key'd by the forces name.
+
     TeamMember.CreateGlobals()
     BuildingGhosts.CreateGlobals()
     ExplosiveDelivery.CreateGlobals()
@@ -73,6 +75,10 @@ local function OnStartup()
     TeamMember.OnStartup()
     MalfunctioningWeapon.OnStartup()
     AggressiveDriver.OnStartup()
+
+    -- Ensure our special enemy force is always present.
+    local modsEnemyForceName = "muppet_streamer_enemy"
+    global.forces["muppet_streamer_enemy"] = global.forces["muppet_streamer_enemy"] or game.create_force(modsEnemyForceName)
 end
 
 script.on_init(OnStartup)

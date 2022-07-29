@@ -45,7 +45,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         return
     end ---@cast target string
 
-    local weaponType, valid = Common.GetItemPrototype(commandData.weaponType, "gun", false, commandName, "weaponType", command.parameter)
+    local weaponType, valid = Common.GetItemPrototypeFromCommandArgument(commandData.weaponType, "gun", false, commandName, "weaponType", command.parameter)
     if not valid then return end
 
     local forceWeaponToSlot = commandData.forceWeaponToSlot
@@ -64,7 +64,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         selectWeapon = false
     end
 
-    local ammoType, valid = Common.GetItemPrototype(commandData.ammoType, "ammo", false, commandName, "ammoType", command.parameter)
+    local ammoType, valid = Common.GetItemPrototypeFromCommandArgument(commandData.ammoType, "ammo", false, commandName, "ammoType", command.parameter)
     if not valid then return end
 
     local ammoCount = commandData.ammoCount

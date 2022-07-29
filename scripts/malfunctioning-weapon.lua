@@ -96,7 +96,7 @@ MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
     end ---@cast reloadSeconds double|nil
     local reloadTicks = math.max(math.floor((reloadSeconds or 3) * 60), 1) --[[@as uint @ Reload was validated as not exceeding a uint during input validation.]]
 
-    local weaponPrototype, valid = Common.GetItemPrototype(commandData.weaponType, "gun", false, commandName, "weaponType", command.parameter)
+    local weaponPrototype, valid = Common.GetItemPrototypeFromCommandArgument(commandData.weaponType, "gun", false, commandName, "weaponType", command.parameter)
     if not valid then return end
     if weaponPrototype == nil then
         -- No custom weapon set, so use the base game weapon and confirm its valid.
@@ -107,7 +107,7 @@ MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
         end
     end
 
-    local ammoPrototype, valid = Common.GetItemPrototype(commandData.ammoType, "ammo", false, commandName, "ammoType", command.parameter)
+    local ammoPrototype, valid = Common.GetItemPrototypeFromCommandArgument(commandData.ammoType, "ammo", false, commandName, "ammoType", command.parameter)
     if not valid then return end
     if ammoPrototype == nil then
         -- No custom ammo set, so use the base game ammo and confirm its valid.

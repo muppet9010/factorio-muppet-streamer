@@ -115,7 +115,7 @@ Common.CallCommandFromRemote = function(commandName, options)
     end
 end
 
---- Gets a valid lua item prototype for the request and raises any errors needed.
+--- Gets a valid lua item prototype for the requested string and raises any errors needed.
 ---@param itemName string
 ---@param itemType string
 ---@param mandatory boolean
@@ -124,19 +124,43 @@ end
 ---@param commandString? string|nil @ Used for error messages.
 ---@return LuaItemPrototype|nil itemPrototype
 ---@return boolean validArgument @ If false the argument is invalid for the command and it should probably stop execution.
-Common.GetItemPrototype = function(itemName, itemType, mandatory, commandName, argumentName, commandString)
+Common.GetItemPrototypeFromCommandArgument = function(itemName, itemType, mandatory, commandName, argumentName, commandString)
     if not CommandsUtils.CheckStringArgument(itemName, mandatory, commandName, argumentName, nil, commandString) then
         return nil, false
     end
-    local weaponType ---@type LuaItemPrototype|nil
+    local itemPrototype ---@type LuaItemPrototype|nil
     if itemName ~= nil and itemName ~= "" then
-        weaponType = game.item_prototypes[itemName]
-        if weaponType == nil or weaponType.type ~= itemType then
+        itemPrototype = game.item_prototypes[itemName]
+        if itemPrototype == nil or itemPrototype.type ~= itemType then
             CommandsUtils.LogPrintError(commandName, argumentName, "isn't a valid " .. itemType .. " type: " .. tostring(itemName), commandString)
             return nil, false
         end
     end
-    return weaponType, true
+    return itemPrototype, true
+end
+
+--- Gets a valid lua entity prototype for the requested string and raises any errors needed.
+---@param entityName string
+---@param entityType string
+---@param mandatory boolean
+---@param commandName string @ Used for error messages.
+---@param argumentName? string|nil @ Used for error messages.
+---@param commandString? string|nil @ Used for error messages.
+---@return LuaEntityPrototype|nil entityPrototype
+---@return boolean validArgument @ If false the argument is invalid for the command and it should probably stop execution.
+Common.GetEntityPrototypeFromCommandArgument = function(entityName, entityType, mandatory, commandName, argumentName, commandString)
+    if not CommandsUtils.CheckStringArgument(entityName, mandatory, commandName, argumentName, nil, commandString) then
+        return nil, false
+    end
+    local entityPrototype ---@type LuaEntityPrototype|nil
+    if entityName ~= nil and entityName ~= "" then
+        entityPrototype = game.entity_prototypes[entityName]
+        if entityPrototype == nil or entityPrototype.type ~= entityType then
+            CommandsUtils.LogPrintError(commandName, argumentName, "isn't a valid " .. entityType .. " type: " .. tostring(entityName), commandString)
+            return nil, false
+        end
+    end
+    return entityPrototype, true
 end
 
 return Common

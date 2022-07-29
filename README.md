@@ -131,7 +131,7 @@ Spawns entities in the game around the named player on their side. Includes both
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds before the spawning occurs. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to center upon (case sensitive).
-    - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player` or `enemy`), or left blank for the force of the targeted player. Certain entity types are hardcoded like trees, rocks and fire to be neutral. Value is case sensitive to Factorio's internal force name.
+    - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player` or `enemy`), or left blank for the force of the targeted player. Certain entity types are hardcoded like trees, rocks and fire to be the `neutral` force. Value is case sensitive to Factorio's internal force name.
 	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, wall, fire, defenderBot, distractorBot, destroyerBot.
 	- radiusMax: INTEGER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: INTEGER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then 0 is used.
@@ -246,14 +246,16 @@ Sets the ground on fire behind a player forcing them to run.
     - target: STRING - Mandatory: the player name to target (case sensitive).
     - duration: DECIMAL - Mandatory: how many seconds the effect lasts on the player.
     - fireGap: INTEGER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
-    - fireHeadStart: INTEGER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continuous running.
+    - fireHeadStart: INTEGER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continuous running with default `fireGap`.
     - flameCount: INTEGER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire. Max is 255.
+    - fireType: STRING - Optional: the name of the specific `fire` type entity you want to have. This is the internal name within Factorio. Defaults to the vanilla Factorio fire entity, `fire-flame`.
 - Example command continuous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
-- Example command sporadic large fire long way behind player: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireHeadStart": 3, "fireGap": 60, "flameCount": 100}`
+- Example command sporadic worm acid spit (low damage type of fire entity): `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireType":"acid-splash-fire-worm-behemoth", "fireGap": 30, "flameCount": 3, "fireHeadStart": 1}`
 
 Notes:
 
 - If a player is in a vehicle while the effect is active they take increasing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armored vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
+- Fire effects are on a special enemy force so that they will hurt everything on the map, 'muppet_streamer_enemy'. This also means that player damage upgrades don't affect these effects.
 
 
 Player Drop Inventory

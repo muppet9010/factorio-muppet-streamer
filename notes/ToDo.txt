@@ -10,6 +10,7 @@ DO NEAR FUTURE:
         - Explosive Delivery - numerous settings. Also needs to check that the default entities/items all exist if try to be used.
         - Pants on fire - the fire entity created behind the player. also need to check that the vanilla fire we try to use exists.
         - Spawn Around Player - entityName should have "custom" as supported string and then you can provide the thing to be spawned and name of ammo to be inserted in to it. Need to check any vanilla items exist if try to be used.
+    - Move all effects from the "enemy" force to the "muppet_streamer_enemy" force.
 
 
 Future Confirmed (bigger things):
