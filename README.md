@@ -10,7 +10,7 @@ Features
 #### Streamer Events
 
 - Can schedule the delivery of some explosives to a player at speed.
-- A leaky flamethrower that shoots for short bursts intermittently.
+- A malfunctioning weapon (leaky flamethrower) that shoots wildly for short bursts intermittently.
 - Give a player a weapon and ammo, plus options to force it as an active weapon.
 - Spawn entities around the player with various placement options.
 - Make the player an aggressive driver.
@@ -69,31 +69,34 @@ Notes:
 
 
 
-Leaky Flamethrower
+Malfunctioning Weapon (Leaky Flamethrower)
 ------------------
 
-Forces the targeted player to wield a flamethrower that shoots in random directions for short bursts until the set ammo is used up. This is a Time Duration event.
+Forces the targeted player to wield a weapon that shoots in random directions. Shoots a full ammo item, then briefly pauses before firing the next full ammo item. This is a Time Duration event.
 
 - Command syntax: `/muppet_streamer_leaky_flamethrower [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds the flamethrower and effects are delayed before starting. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target (case sensitive).
-    - ammoCount: INTEGER - Mandatory: the quantity of ammo to be put in the flamethrower and force fired.
-    - weaponType: STRING - Optional: the name of the specific flamethrower type weapon you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower weapon, `flamethrower`.
-    - ammoType: STRING - Optional: the name of the specific flamethrower type ammo you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower ammo, `flamethrower-ammo`.
-- Example command standard usage: `/muppet_streamer_leaky_flamethrower {"target":"muppet9010", "ammoCount":5}`
+    - ammoCount: INTEGER - Mandatory: the quantity of ammo items to be put in the flamethrower and shot.
+    - reloadTime: DECIMAL - Optional: how many seconds to wait between each ammo magazine being fired. Defaults to 3 to give a noticeable gap.
+    - weaponType: STRING - Optional: the name of the specific weapon you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower weapon, `flamethrower`.
+    - ammoType: STRING - Optional: the name of the specific ammo you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower ammo, `flamethrower-ammo`.
+- Example command standard usage (leaky flamethrower): `/muppet_streamer_leaky_flamethrower {"target":"muppet9010", "ammoCount":5}`
+- Example command using shotgun: `/muppet_streamer_leaky_flamethrower {"target":"muppet9010", "ammoCount":3, "weaponType":"shotgun", "ammoType":"shotgun-shell"}`
 - Example command using Cryogun from Space Exploration mod: `/muppet_streamer_leaky_flamethrower {"target":"muppet9010", "ammoCount":5, "weaponType":"se-cryogun", "ammoType":"se-cryogun-ammo"}`
 
 Notes:
 
 - This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
-- While activated the player will be kicked out of any vehicle they are in and prevented from entering one. As no one likes to be in an enclosed space with flames.
-- The player will be given the flamer and ammo needed for the effect if needed. If given these will be reclaimed at the end of the effect as appropriate. The player’s original gun and weapon selection will be returned to them including any slot filters.
-- While activated the player will lose control over their flamers weapon targeting and firing behaviour.
+- While activated the player will be kicked out of any vehicle they are in and prevented from entering one. As no one likes to be in an enclosed space with weapons firing.
+- The player will be given the weapon and ammo needed for the effect if needed. If given these will be reclaimed at the end of the effect as appropriate. The player’s original gun and weapon selection will be returned to them including any slot filters.
+- While activated the player will lose control over their weapons targeting and firing behaviour.
 - While activated the player can not change the active gun via the switch to the next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
-- The flamethrower is yours and so any of your damage upgrades will affect it.
-- Alternative flamethrower weapons will need to fire at the same rate as the vanilla flamethrower for the effect to work correctly. generally this is the case with modded "stream" type weapons, but you will need to test/check to confirm.
+- The weapon is yours and so any of your damage upgrades for you will affect it.
+- The weapon ammo will need to be able to either target the ground or be shot in a direction.
+- Stream type weapons (i.e. flamethrower) will slowly wonder around in range and direction. Projectile or beam type weapons will jump in their direction far quicker as they generally don't have the concept of target range in the same way.
 
 
 
@@ -265,7 +268,7 @@ Schedules the targeted player to drop their inventory on the ground over time.
     - quantityType: STRING - Mandatory: the way quantity value is interpreted to calculate the number of items to drop per drop event, either `constant`, `startingPercentage` or `realtimePercentage`. Constant uses quantityValue as a static number of items. StartingPercentage means a percentage of the item count at the start of the effect is dropped from the player every drop event. RealtimePercentage means that every time a drop event occurs the player's current inventory item count is used to calculate how many items to drop this event.
     - quantityValue: INTEGER - Mandatory: the number of items to drop. When quantityType is `startingPercentage`, or `realtimePercentage` this number is used as the percentage (0-100).
     - dropOnBelts: BOOLEAN - Optional: if the dropped items should be placed on belts or not. Defaults to False.
-    - gap: DECIMAL - Mandatory: how many seconds between each drop event. Must convert to a minimum of 1 tick, so a value of 1/60th (0.167) or more of a second.
+    - gap: DECIMAL - Mandatory: how many seconds between each drop event.
     - occurrences: INTEGER - Mandatory: how many times the drop events are done.
     - dropEquipment: BOOLEAN - Optional: if the player's armor and weapons are dropped or not. Defaults to True.
 - Example command for dropping 10% of starting inventory items 5 times: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":2, "occurrences":5}`

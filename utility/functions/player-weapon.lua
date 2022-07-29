@@ -158,18 +158,10 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
         -- No expected ammo type so we just need to remove any incompatible ammo, any filter can stay.
         if ammoItemStack ~= nil and ammoItemStack.valid_for_read then
             -- Ammo in the slot so need to check its compatible with the gun.
-            local currentAmmoType_category = ammoItemStack.prototype.get_ammo_type("player").category
-            local newWeaponType_categories = game.item_prototypes[weaponName].attack_parameters.ammo_categories
 
             -- Clear the current ammo stack ready for the the planned ammo if not compatible with the gun.
-            local isCompatible = false
-            for _, newWeaponType_category in pairs(newWeaponType_categories) do
-                if currentAmmoType_category == newWeaponType_category then
-                    isCompatible = true
-                    break
-                end
-            end
-            if not isCompatible then
+            local ammoIsCompatibleWithGun = PlayerWeapon.IsAmmoCompatibleWithWeapon(ammoItemStack.prototype.get_ammo_type("player")--[[@as AmmoType]] , game.item_prototypes[weaponName])
+            if not ammoIsCompatibleWithGun then
                 -- Move it to the players inventory, or the floor.
                 local currentAmmoName, currentAmmoCount = ammoItemStack.name, ammoItemStack.count
                 local ammoInsertedCount = player.insert({ name = currentAmmoName, count = currentAmmoCount, ammo = ammoItemStack.ammo })
@@ -276,6 +268,54 @@ PlayerWeapon.TakeItemFromPlayerOrGround = function(player, itemName, itemCount)
         end
     end
     return removed
+end
+
+--- Checks if an ammo type can be used with a weapon type.
+---
+--- When getting the AmmoType of the ammo LuaItemPrototype with get_ammo_type() he API will automatically return the 'default' source_type if there isn't one defined for the specific type we ask for. So generally you always want to be specific.
+---@param ammoType AmmoType
+---@param weaponItemPrototype LuaItemPrototype
+---@return boolean compatible
+PlayerWeapon.IsAmmoCompatibleWithWeapon = function(ammoType, weaponItemPrototype)
+    local currentAmmoType_category = ammoType.category
+    local newWeaponType_categories = weaponItemPrototype.attack_parameters.ammo_categories
+
+    for _, newWeaponType_category in pairs(newWeaponType_categories) do
+        if currentAmmoType_category == newWeaponType_category then
+            return true
+        end
+    end
+    return false
+end
+
+--- Gets the details for an ammo type fired from a specific weapon. This doesn't include any deviation values.
+---
+--- Includes: min and max range, cooldown between shots.
+---@param ammoType AmmoType
+---@param weaponItemPrototype LuaItemPrototype
+---@return float minRange
+---@return float maxRange
+---@return float cooldown
+PlayerWeapon.GetWeaponAmmoDetails = function(ammoType, weaponItemPrototype)
+    local weapon_attackParameters = weaponItemPrototype.attack_parameters --[[@as AttackParameters @ Assume only sane ItemPrototypes are passed in.]]
+
+    local minRange = weapon_attackParameters.min_range
+
+    local maxRange = weapon_attackParameters.range
+    -- CODE NOTE: the range_modifier isn't exposed via the API at present. Code written for if/when it is included, requested here: https://forums.factorio.com/viewtopic.php?f=28&t=103012
+    local ammoRangeModifier = ammoType.range_modifier ---@diagnostic disable-line: undefined-field, no-unknown
+    if ammoRangeModifier ~= nil then
+        maxRange = maxRange * ammoRangeModifier
+    end
+
+    local cooldown = weapon_attackParameters.cooldown
+    -- CODE NOTE: the cooldown_modifier isn't exposed via the API at present. Code written for if/when it is included, requested here: https://forums.factorio.com/viewtopic.php?f=28&t=103012
+    local cooldownModifier = ammoType.cooldown_modifier ---@diagnostic disable-line: undefined-field, no-unknown
+    if cooldownModifier ~= nil then
+        cooldown = cooldown * cooldownModifier
+    end
+
+    return minRange, maxRange, cooldown
 end
 
 ----------------------------------------------------------------------------------
