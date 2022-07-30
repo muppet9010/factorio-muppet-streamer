@@ -239,7 +239,7 @@ PrototypeUtils.CreatePlacementTestEntityPrototype = function(entityToClone, newE
         type = "simple-entity",
         name = newEntityName,
         subgroup = subgroup,
-        order = "zzz",
+        order = "zzz", -- cSpell: disable-line
         icons = {
             {
                 icon = clonedIcon,

@@ -84,7 +84,7 @@ GuiUtil.AddElement = function(elementDetails)
     if elementDetails.style ~= nil and type(elementDetails.style) ~= "string" then
         error("GuiUtil.AddElement() had a style attribute set other than a string. Common causes are a table being passed in as MuppetStyles hasn't been qualified to a final style string.")
     end
-    -- cSpell:ignore styleing @ Just allow here, but don;t autocomplete for it.
+    -- cSpell:ignore styleing @ Just allow here, but don't autocomplete for it.
     if elementDetails["styleing"] ~= nil then
         error("GuiUtil.AddElement() had a 'styleing' attribute, this is a typo for 'styling'.")
     end
@@ -404,14 +404,14 @@ end
 ---
 --- Note: this is registered each time its run, but as its a single registration globally within the mod under the given name the entries can safely overwrite each other. The data attribute isn't per player, but instead is a global context for all players who trigger this click. Data is intended for uses like passing element name/type details to generic response functions.
 ---
---- If being used make sure to review Gui-Actions-Click.lua and its GuiActionsClick.MonitorGuiClickActions() function as its a pre-req for the features usage. Also need to register the click actionName to a callback function with GuiActionsClick.LinkGuiClickActionNameToFunction().
+--- If being used make sure to review Gui-Actions-Click.lua and its GuiActionsClick.MonitorGuiClickActions() function as its a pre-requisite for the features usage. Also need to register the click actionName to a callback function with GuiActionsClick.LinkGuiClickActionNameToFunction().
 ---@alias UtilityGuiUtil_ElementDetails_registerClick UtilityGuiUtil_ElementDetails_RegisterClickOption
 
 --- If populated registers a function to be triggered when a user checks/un-checks the GUI element. Does this by passing the supplied table of arguments to GuiActionsChecked.RegisterGuiForCheckedStateChange() which configures and manages detection of the checked state change and the functions calling. See that library and function for full usage details.
 ---
 --- Note: this is registered each time its run, but as its a single registration globally within the mod under the given name the entries can safely overwrite each other. The data attribute isn't per player, but instead is a global context for all players who trigger this click. Data is intended for uses like passing element name/type details to generic response functions.
 ---
---- If being used make sure to review Gui-Actions-Checked.lua and its GuiActionsChecked.MonitorGuiCheckedActions() function as its a pre-req for the features usage. Also need to register the checked actionName to a callback function with GuiActionsChecked.LinkGuiCheckedActionNameToFunction().
+--- If being used make sure to review Gui-Actions-Checked.lua and its GuiActionsChecked.MonitorGuiCheckedActions() function as its a pre-requisite for the features usage. Also need to register the checked actionName to a callback function with GuiActionsChecked.LinkGuiCheckedActionNameToFunction().
 ---@alias UtilityGuiUtil_ElementDetails_registerCheckedStateChange UtilityGuiUtil_ElementDetails_RegisterCheckedOption
 
 --- A table of key/value pairs that is applied to the element via the API post element creation. Intended for the occasional adhoc attributes you want to update or can't set during the add() API function. i.e. drag_target or auto_center.

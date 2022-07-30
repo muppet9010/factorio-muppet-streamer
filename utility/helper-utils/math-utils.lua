@@ -4,23 +4,19 @@
 --
 
 local MathUtils = {} ---@class Utility_MathUtils
-local math_min, math_max, math_floor, math_random, math_exp = math.min, math.max, math.floor, math.random, math.exp
+local math_min, math_max, math_floor, math_random = math.min, math.max, math.floor, math.random
 
-MathUtils.LogisticEquation = function(index, height, steepness)
-    return height / (1 + math_exp(steepness * (index - 0)))
-end
-
-MathUtils.ExponentialDecayEquation = function(index, multiplier, scale)
-    return multiplier * math_exp(-index * scale)
-end
-
-MathUtils.RoundNumberToDecimalPlaces = function(num, numDecimalPlaces)
+--- Round the value to the given number of decimal places.
+---@param value double
+---@param numberOfDecimalPlaces uint
+---@return double
+MathUtils.RoundNumberToDecimalPlaces = function(value, numberOfDecimalPlaces)
     local result
-    if numDecimalPlaces ~= nil and numDecimalPlaces > 0 then
-        local multiplier = 10 ^ numDecimalPlaces
-        result = math_floor((num * multiplier) + 0.5) / multiplier
+    if numberOfDecimalPlaces ~= nil and numberOfDecimalPlaces > 0 then
+        local multiplier = 10 ^ numberOfDecimalPlaces
+        result = math_floor((value * multiplier) + 0.5) / multiplier
     else
-        result = math_floor(num + 0.5)
+        result = math_floor(value + 0.5)
     end
     if result ~= result then
         -- Result is NaN so set it to 0.
@@ -225,46 +221,52 @@ MathUtils.ClampToFloat = function(value, min, max)
     end
 end
 
--- This doesn't guarantee correct on some of the edge cases, but is as close as possible assuming that 1/256 is the variance for the same number (Bilka, Dev on Discord)
-MathUtils.FuzzyCompareDoubles = function(num1, logic, num2)
-    local numDif = num1 - num2
+--- This doesn't guarantee correct on some of the edge cases, but is as close as possible assuming that 1/256 is the variance for the same number (Bilka, Dev on Discord)
+---@param value1 double
+---@param logic '='|'!='|'<'|'<='|'>'|'>='
+---@param value2 double
+---@return boolean
+MathUtils.FuzzyCompareDoubles = function(value1, logic, value2)
+    local valueDif = value1 - value2
     local variance = 1 / 256
     if logic == "=" then
-        if numDif < variance and numDif > -variance then
+        if valueDif < variance and valueDif > -variance then
             return true
         else
             return false
         end
     elseif logic == "!=" then
-        if numDif < variance and numDif > -variance then
+        if valueDif < variance and valueDif > -variance then
             return false
         else
             return true
         end
     elseif logic == ">" then
-        if numDif > variance then
+        if valueDif > variance then
             return true
         else
             return false
         end
     elseif logic == ">=" then
-        if numDif > -variance then
+        if valueDif > -variance then
             return true
         else
             return false
         end
     elseif logic == "<" then
-        if numDif < -variance then
+        if valueDif < -variance then
             return true
         else
             return false
         end
     elseif logic == "<=" then
-        if numDif < variance then
+        if valueDif < variance then
             return true
         else
             return false
         end
+    else
+        error("unsupported logic operator: " .. tostring(logic))
     end
 end
 

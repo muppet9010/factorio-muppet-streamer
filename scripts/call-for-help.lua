@@ -16,7 +16,7 @@ local CallSelection = {
     nearest = "nearest"
 }
 
-local SPTesting = false -- Set to true to let yourself go to your own support.
+local SinglePlayerTesting = false -- Set to true to let yourself go to your own support.
 local MaxRandomPositionsAroundTargetToTry = 50 -- Was 10, but upped to reduce odd vehicle rotation issues.
 local MaxDistancePositionAroundTarget = 10.0 ---@type double
 local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries per player once it finds a valid placement position that then has a pathing request return false.
@@ -252,7 +252,7 @@ CallForHelp.CallForHelp = function(eventData)
     local helpPlayersInRange = {} ---@type CallForHelp_HelpPlayerInRange[]
     local targetPlayerForce = targetPlayer.force
     for _, helpPlayer in pairs(availablePlayers) do
-        if SPTesting or helpPlayer ~= targetPlayer then
+        if SinglePlayerTesting or helpPlayer ~= targetPlayer then
             local helpPlayer_surface = helpPlayer.surface
             if (not data.sameTeamOnly or helpPlayer.force == targetPlayerForce) and (not data.sameSurfaceOnly or helpPlayer_surface == targetPlayerSurface) and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
                 local distance

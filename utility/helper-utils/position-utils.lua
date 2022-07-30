@@ -135,10 +135,10 @@ PositionUtils.ApplyBoundingBoxToPosition = function(centerPos, boundingBox, orie
 end
 
 ---@param pos MapPosition
----@param numDecimalPlaces uint
+---@param numberOfDecimalPlaces uint
 ---@return MapPosition
-PositionUtils.RoundPosition = function(pos, numDecimalPlaces)
-    return { x = MathUtils.RoundNumberToDecimalPlaces(pos.x, numDecimalPlaces), y = MathUtils.RoundNumberToDecimalPlaces(pos.y, numDecimalPlaces) }
+PositionUtils.RoundPosition = function(pos, numberOfDecimalPlaces)
+    return { x = MathUtils.RoundNumberToDecimalPlaces(pos.x, numberOfDecimalPlaces), y = MathUtils.RoundNumberToDecimalPlaces(pos.y, numberOfDecimalPlaces) }
 end
 
 ---@param pos MapPosition

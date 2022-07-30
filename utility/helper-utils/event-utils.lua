@@ -31,7 +31,7 @@ EventUtils.GetActionerFromEvent = function(event)
     end
 end
 
---- Returns either tha player or force for robots from the EntityActioner.
+--- Returns either the player or force for robots from the EntityActioner.
 ---
 --- Useful for passing in to rendering player/force filters or for returning items to them.
 ---@param actioner EntityActioner
