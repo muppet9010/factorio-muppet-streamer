@@ -8,9 +8,9 @@ local RandomChance = require("utility.functions.random-chance")
 
 local BiterSelection = {} ---@class Utility_BiterSelection
 
----@alias UtilityBiterSelection_SpawnerTypes 'biter-spawner'|'spitter-spawner'|string @ Biter and spitter are the base game unit spawners, but mods can add new named ones, so any string is accepted.
+---@alias UtilityBiterSelection_SpawnerTypes 'biter-spawner'|'spitter-spawner'|string # Biter and spitter are the base game unit spawners, but mods can add new named ones, so any string is accepted.
 
----@alias UtilityBiterSelection_BiterSpawnerTypeCaches table<string, UtilityBiterSelection_BiterCacheEntry> @ Key'd by the spawner type.
+---@alias UtilityBiterSelection_BiterSpawnerTypeCaches table<string, UtilityBiterSelection_BiterCacheEntry> # Key'd by the spawner type.
 ---@class UtilityBiterSelection_BiterCacheEntry
 ---@field calculatedEvolution double
 ---@field probabilities UtilityBiterSelection_UnitChanceEntry[]
@@ -29,13 +29,13 @@ local BiterSelection = {} ---@class Utility_BiterSelection
 
 --- Get the biters's xxx for the current evolution. Will cache the last result to avoid frequent lookups based on the probabilityGlobalName. Use different probabilityGlobalName's if different evolution values are going to be checked and so should be cached in parallel.
 ---@param probabilityGlobalName string
----@param spawnerType UtilityBiterSelection_SpawnerTypes @ Biter and spitter are the base game unit spawners, but mods can add new named ones, so any string is accepted.
+---@param spawnerType UtilityBiterSelection_SpawnerTypes # Biter and spitter are the base game unit spawners, but mods can add new named ones, so any string is accepted.
 ---@param evolution double
 ---@return string
 BiterSelection.GetBiterType = function(probabilityGlobalName, spawnerType, evolution)
     -- probabilityGlobalName option is a name for tracking this biter evolution probability line. Use unique names if different evolutions are being tracked.
     global.UTILITYBITERSELECTION = global.UTILITYBITERSELECTION or {}
-    global.UTILITYBITERSELECTION.BiterCacheName = global.UTILITYBITERSELECTION.BiterCacheName or {} ---@type table<string, UtilityBiterSelection_BiterSpawnerTypeCaches> @ Key'd by the biter cache name.
+    global.UTILITYBITERSELECTION.BiterCacheName = global.UTILITYBITERSELECTION.BiterCacheName or {} ---@type table<string, UtilityBiterSelection_BiterSpawnerTypeCaches> # Key'd by the biter cache name.
     global.UTILITYBITERSELECTION.BiterCacheName[probabilityGlobalName] = global.UTILITYBITERSELECTION.BiterCacheName[probabilityGlobalName] or {} ---@type UtilityBiterSelection_BiterSpawnerTypeCaches
     local modEnemyProbabilities = global.UTILITYBITERSELECTION.BiterCacheName[probabilityGlobalName]
     if modEnemyProbabilities[spawnerType] == nil then
@@ -56,7 +56,7 @@ end
 ---@return string wormEntityName
 BiterSelection.GetWormType = function(wormEvoGlobalName, evolution)
     global.UTILITYBITERSELECTION = global.UTILITYBITERSELECTION or {}
-    global.UTILITYBITERSELECTION.WormCacheName = global.UTILITYBITERSELECTION.WormCacheName or {} ---@type table<string, UtilityBiterSelection_WormCacheEntry> @ Key'd by the worm cache name.
+    global.UTILITYBITERSELECTION.WormCacheName = global.UTILITYBITERSELECTION.WormCacheName or {} ---@type table<string, UtilityBiterSelection_WormCacheEntry> # Key'd by the worm cache name.
     global.UTILITYBITERSELECTION.WormCacheName[wormEvoGlobalName] = global.UTILITYBITERSELECTION.WormCacheName[wormEvoGlobalName] or {} ---@type UtilityBiterSelection_WormCacheEntry
     local wormEvoType = global.UTILITYBITERSELECTION.WormCacheName[wormEvoGlobalName]
     evolution = MathUtils.RoundNumberToDecimalPlaces(evolution, 2)
@@ -111,7 +111,7 @@ BiterSelection._CalculateSpecificBiterSelectionProbabilities = function(spawnerT
 end
 
 --- Find the highest evolution worm turret's name that is below the required evolution level.
----@param evolution double @ The evolution the worm turret must be below.
+---@param evolution double # The evolution the worm turret must be below.
 ---@return string|nil wormTurret
 BiterSelection._CalculateSpecificWormForEvolution = function(evolution)
     local turrets = game.get_filtered_entity_prototypes({ { filter = "turret" }, { mode = "and", filter = "build-base-evolution-requirement", comparison = "≤", value = evolution }, { mode = "and", filter = "flag", flag = "placeable-enemy" }, { mode = "and", filter = "flag", flag = "player-creation", invert = true } })

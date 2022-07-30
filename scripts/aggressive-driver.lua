@@ -21,21 +21,21 @@ local EffectEndStatus = {
 }
 
 ---@class AggressiveDriver_DelayedCommandDetails
----@field target string @ Player's name.
----@field duration uint @ Ticks
+---@field target string # Player's name.
+---@field duration uint # Ticks
 ---@field control AggressiveDriver_ControlTypes
 ---@field teleportDistance double
 
 ---@class AggressiveDriver_DriveEachTickDetails
 ---@field player_index uint
 ---@field player LuaPlayer
----@field duration uint @ Ticks
+---@field duration uint # Ticks
 ---@field control AggressiveDriver_ControlTypes
----@field accelerationTicks uint @ How many ticks the vehicle has been trying to move in its current direction (forwards or backwards).
----@field accelerationState defines.riding.acceleration @ Should only ever be either accelerating or reversing.
----@field directionDurationTicks uint @ How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
----@field ridingDirection defines.riding.direction @ For if in a car or train vehicle.
----@field spiderDirection defines.direction @ Just for if in a spider vehicle.
+---@field accelerationTicks uint # How many ticks the vehicle has been trying to move in its current direction (forwards or backwards).
+---@field accelerationState defines.riding.acceleration # Should only ever be either accelerating or reversing.
+---@field directionDurationTicks uint # How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
+---@field ridingDirection defines.riding.direction # For if in a car or train vehicle.
+---@field spiderDirection defines.direction # Just for if in a spider vehicle.
 
 ---@class AggressiveDriver_SortedVehicleEntry
 ---@field distance double
@@ -46,7 +46,7 @@ local commandName = "muppet_streamer_aggressive_driver"
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type uint
-    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, true> @ Key'd by player_index.
+    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, true> # Key'd by player_index.
 end
 
 AggressiveDriver.OnLoad = function()
@@ -84,7 +84,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast durationSeconds double
-    local duration = math.floor(durationSeconds * 60) --[[@as uint @ Duration was validated as not exceeding a uint during input validation.]]
+    local duration = math.floor(durationSeconds * 60) --[[@as uint # Duration was validated as not exceeding a uint during input validation.]]
 
     local control = commandData.control
     if not CommandsUtils.CheckStringArgument(control, false, commandName, "control", ControlTypes, command.parameter) then
@@ -217,7 +217,7 @@ AggressiveDriver.Drive = function(eventData)
 
         -- Train carriages need special handling.
         if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
-            local train = vehicle.train ---@cast train -nil @ A rolling_stock entity always has a train field.
+            local train = vehicle.train ---@cast train -nil # A rolling_stock entity always has a train field.
 
             -- If the train isn't in manual mode then set it. We do this every tick if needed so that other players setting it to automatic gets overridden.
             if train.manual_mode ~= true then
@@ -301,7 +301,7 @@ end
 --- Called when the effect has been stopped and the effects state and weapon changes should be undone.
 --- Called when the player is alive or if they have died before their character has been affected.
 ---@param playerIndex uint
----@param player? LuaPlayer|nil @ Obtains player if needed from playerIndex.
+---@param player? LuaPlayer|nil # Obtains player if needed from playerIndex.
 ---@param status AggressiveDriver_EffectEndStatus
 AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
     local affectedPlayer = global.aggressiveDriver.affectedPlayers[playerIndex]
@@ -340,7 +340,7 @@ end
 --- Gets the permission group for this feature. Will create it if needed.
 ---@return LuaPermissionGroup
 AggressiveDriver.GetOrCreatePermissionGroup = function()
-    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast group - nil @ Script always has permission to create groups.
+    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast group - nil # Script always has permission to create groups.
     group.set_allows_action(defines.input_action.toggle_driving, false)
     return group
 end

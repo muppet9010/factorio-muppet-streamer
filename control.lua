@@ -15,7 +15,7 @@ local BuildingGhosts = require("scripts.building-ghosts")
 local Common = require("scripts.common")
 
 local function CreateGlobals()
-    global.originalPlayersPermissionGroup = global.originalPlayersPermissionGroup or {} ---@type table<uint, LuaPermissionGroup> @ Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
+    global.originalPlayersPermissionGroup = global.originalPlayersPermissionGroup or {} ---@type table<uint, LuaPermissionGroup> # Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
 
     ---@class MuppetStreamer_Forces
     global.Forces = global.Forces or {}

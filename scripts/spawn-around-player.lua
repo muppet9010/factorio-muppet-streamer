@@ -30,13 +30,13 @@ local ExistingEntitiesTypes = {
 ---@field GetEntityName fun(surface: LuaSurface, position: MapPosition): string
 ---@field GetEntityAlignedPosition fun(position: MapPosition): MapPosition
 ---@field FindValidPlacementPosition fun(surface: LuaSurface, entityName: string, position: MapPosition, searchRadius, double): MapPosition|nil
----@field PlaceEntity fun(data: SpawnAroundPlayer_PlaceEntityDetails) @ No return or indication if it worked, its a try and forget.
+---@field PlaceEntity fun(data: SpawnAroundPlayer_PlaceEntityDetails) # No return or indication if it worked, its a try and forget.
 ---@field GetPlayersMaxBotFollowers? fun(targetPlayer: LuaPlayer): uint
----@field gridPlacementSize uint|nil @ If the thing needs to be placed on a grid and how big that grid is. Used for things that can't go off grid and have larger collision boxes.
+---@field gridPlacementSize uint|nil # If the thing needs to be placed on a grid and how big that grid is. Used for things that can't go off grid and have larger collision boxes.
 
 ---@class SpawnAroundPlayer_PlaceEntityDetails
 ---@field surface LuaSurface
----@field entityName string @ Prototype entity name.
+---@field entityName string # Prototype entity name.
 ---@field position MapPosition
 ---@field targetPlayer LuaPlayer
 ---@field ammoCount uint|nil
@@ -163,7 +163,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     if data.followPlayer and entityTypeDetails.GetPlayersMaxBotFollowers ~= nil then
         followsLeft = entityTypeDetails.GetPlayersMaxBotFollowers(targetPlayer)
     end
-    local force = data.forceString and game.forces[data.forceString] or (targetPlayer.force) --[[@as LuaForce @ Sumneko R/W workaround.]]
+    local force = data.forceString and game.forces[data.forceString] or (targetPlayer.force) --[[@as LuaForce # Sumneko R/W workaround.]]
 
     if data.quantity ~= nil then
         local placed, targetPlaced, attempts, maxAttempts = 0, data.quantity, 0, data.quantity * 5
@@ -171,7 +171,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
             local position = PositionUtils.RandomLocationInRadius(targetPos, data.radiusMax, data.radiusMin)
             local entityName = entityTypeDetails.GetEntityName(surface, position)
             if entityName ~= nil then
-                local entityAlignedPosition ---@type MapPosition|nil @ While initially always set, it can be unset during its processing.
+                local entityAlignedPosition ---@type MapPosition|nil # While initially always set, it can be unset during its processing.
                 entityAlignedPosition = entityTypeDetails.GetEntityAlignedPosition(position)
                 if data.existingEntities == "avoid" then
                     entityAlignedPosition = entityTypeDetails.FindValidPlacementPosition(surface, entityName, entityAlignedPosition, SpawnAroundPlayer.quantitySearchRadius)
@@ -276,8 +276,8 @@ end
 --- Handler for the generic combat robot types.
 ---
 --- CODE NOTE: must be before SpawnAroundPlayer.EntityTypeDetails() in file so that function can find this one at load (not run) time.
----@param setEntityName string @ Prototype entity name
----@param canFollow boolean @ If the robots should be set to follow the player.
+---@param setEntityName string # Prototype entity name
+---@param canFollow boolean # If the robots should be set to follow the player.
 ---@return SpawnAroundPlayer_EntityTypeDetails
 SpawnAroundPlayer.CombatBotEntityTypeDetails = function(setEntityName, canFollow)
     ---@type SpawnAroundPlayer_EntityTypeDetails
@@ -310,7 +310,7 @@ end
 --- Handler for the generic gun turret with ammo types.
 ---
 --- CODE NOTE: must be before SpawnAroundPlayer.EntityTypeDetails() in file so that function can find this one at load (not run) time.
----@param ammoName string @ Prototype item name
+---@param ammoName string # Prototype item name
 ---@return SpawnAroundPlayer_EntityTypeDetails
 SpawnAroundPlayer.AmmoGunTurretEntityTypeDetails = function(ammoName)
     ---@type SpawnAroundPlayer_EntityTypeDetails
@@ -462,7 +462,7 @@ SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer = function(targetPlayer)
         return 0
     end
     local max = targetPlayer.character_maximum_following_robot_count_bonus + targetPlayer.force.maximum_following_robot_count
-    local current = #targetPlayer.following_robots --[[@as uint @ The game doesn't allow more than a uint max following robots, so the count can't be above a uint.]]
+    local current = #targetPlayer.following_robots --[[@as uint # The game doesn't allow more than a uint max following robots, so the count can't be above a uint.]]
     return max - current
 end
 

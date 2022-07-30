@@ -14,7 +14,7 @@ MOD = MOD or {} ---@class MOD
 MOD.eventsById = MOD.eventsById or {} ---@type table<defines.events|uint, UtilityEvents_EventHandlerObject[]>
 MOD.eventIdHandlerNameToEventIdsListIndex = MOD.eventIdHandlerNameToEventIdsListIndex or {} ---@type table<uint, table<string, int>> A way to get the id key from MOD.eventsById for a specific event id and handler name.
 MOD.eventsByActionName = MOD.eventsByActionName or {} ---@type table<string, UtilityEvents_EventHandlerObject[]>
-MOD.eventActionNameHandlerNameToEventActionNamesListIndex = MOD.eventActionNameHandlerNameToEventActionNamesListIndex or {} ---@type table<string, table<string, int>> @ A way to get the id key from MOD.eventsByActionName for a specific action name and handler name.
+MOD.eventActionNameHandlerNameToEventActionNamesListIndex = MOD.eventActionNameHandlerNameToEventActionNamesListIndex or {} ---@type table<string, table<string, int>> # A way to get the id key from MOD.eventsByActionName for a specific action name and handler name.
 MOD.customEventNameToId = MOD.customEventNameToId or {} ---@type table<string|defines.events, uint>
 MOD.eventFilters = MOD.eventFilters or {} ---@type table<int, table<string, EventFilter[]>>
 
@@ -23,11 +23,11 @@ MOD.eventFilters = MOD.eventFilters or {} ---@type table<int, table<string, Even
 --------------------------------------------------------------------------------------------
 
 --- Called from OnLoad() from each script file. Registers the event in Factorio and the handler function for all event types and custom events.
----@param eventName defines.events|string @ Either Factorio event or a custom modded event name.
----@param handlerName string @ Unique name of this event handler instance. Used to avoid duplicate handler registration and if removal is required.
----@param handlerFunction fun(eventData: EventData) @ The function that is called when the event triggers. When the function is called it will receive the standard single Factorio event specific data table argument, which is at a minimum the EventData class.
----@param thisFilterData? EventFilter[]|nil @ List of Factorio EventFilters the mod should receive this eventName occurrences for or nil for all occurrences. If an empty table (not nil) is passed in then nothing is registered for this handler (silently rejected). Filtered events have to expect to receive results outside of their own filters. As a Factorio event type can only be subscribed to one time with a combined Filter list of all desires across the mod.
----@return uint|nil registeredEventId? @ The eventId raised for this handler (if one was). Useful for custom event names when you need to store the eventId to return via a remote interface call.
+---@param eventName defines.events|string # Either Factorio event or a custom modded event name.
+---@param handlerName string # Unique name of this event handler instance. Used to avoid duplicate handler registration and if removal is required.
+---@param handlerFunction fun(eventData: EventData) # The function that is called when the event triggers. When the function is called it will receive the standard single Factorio event specific data table argument, which is at a minimum the EventData class.
+---@param thisFilterData? EventFilter[]|nil # List of Factorio EventFilters the mod should receive this eventName occurrences for or nil for all occurrences. If an empty table (not nil) is passed in then nothing is registered for this handler (silently rejected). Filtered events have to expect to receive results outside of their own filters. As a Factorio event type can only be subscribed to one time with a combined Filter list of all desires across the mod.
+---@return uint|nil registeredEventId? # The eventId raised for this handler (if one was). Useful for custom event names when you need to store the eventId to return via a remote interface call.
 Events.RegisterHandlerEvent = function(eventName, handlerName, handlerFunction, thisFilterData)
     if eventName == nil or handlerName == nil or handlerFunction == nil then
         error("Events.RegisterHandlerEvent called with missing arguments")
@@ -50,9 +50,9 @@ Events.RegisterHandlerEvent = function(eventName, handlerName, handlerFunction, 
 end
 
 --- Called from OnLoad() from each script file. Registers the custom inputs (key bindings) as their names in Factorio and the handler function for all just custom inputs. These are handled specially in Factorio.
----@param actionName string @ custom input name (key binding).
----@param handlerName string @ Unique handler name.
----@param handlerFunction fun(eventData: CustomInputEvent) @ Function to be triggered on action.
+---@param actionName string # custom input name (key binding).
+---@param handlerName string # Unique handler name.
+---@param handlerFunction fun(eventData: CustomInputEvent) # Function to be triggered on action.
 Events.RegisterHandlerCustomInput = function(actionName, handlerName, handlerFunction)
     if actionName == nil then
         error("Events.RegisterHandlerCustomInput called with missing arguments")
@@ -72,7 +72,7 @@ end
 
 --- Called from OnLoad() from the script file. Registers the custom event name and returns an event ID for use by other mods in subscribing to custom events.
 ---@param eventName string
----@return uint eventId @ Bespoke event id for this custom event.
+---@return uint eventId # Bespoke event id for this custom event.
 Events.RegisterCustomEventName = function(eventName)
     if eventName == nil then
         error("Events.RegisterCustomEventName called with missing arguments")
@@ -88,8 +88,8 @@ Events.RegisterCustomEventName = function(eventName)
 end
 
 --- Called when needed
----@param eventName defines.events|string @ Either a default Factorio event or a custom input action name.
----@param handlerName string @ The unique handler name to remove from this eventName.
+---@param eventName defines.events|string # Either a default Factorio event or a custom input action name.
+---@param handlerName string # The unique handler name to remove from this eventName.
 Events.RemoveHandler = function(eventName, handlerName)
     if eventName == nil or handlerName == nil then
         error("Events.RemoveHandler called with missing arguments")
@@ -140,7 +140,7 @@ Events.RaiseInternalEvent = function(eventData)
     if type(eventName) == "number" then
         Events._HandleEvent(eventData)
     elseif MOD.customEventNameToId[eventName] ~= nil then
-        eventData.name = MOD.customEventNameToId[eventName] --[[@as defines.events @ Is just a higher number than the defines.]]
+        eventData.name = MOD.customEventNameToId[eventName] --[[@as defines.events # Is just a higher number than the defines.]]
         Events._HandleEvent(eventData)
     else
         error("WARNING: raise event called that doesn't exist: " .. eventName)
@@ -158,13 +158,13 @@ Events._HandleEvent = function(eventData)
     -- Numeric for loop is faster than pairs and this logic is black boxed from code developer using library.
     if eventData["input_name"] == nil then
         -- All non custom input events (majority).
-        local eventsById = MOD.eventsById[eventData.name--[[@as defines.events|uint @ In a non custom input event code block, but can't cast object field.]] ]
+        local eventsById = MOD.eventsById[eventData.name--[[@as defines.events|uint # In a non custom input event code block, but can't cast object field.]] ]
         for i = 1, #eventsById do
             eventsById[i].handlerFunction(eventData)
         end
     else
         -- Custom Input type event.
-        local eventsByInputName = MOD.eventsByActionName[eventData.input_name--[[@as string @ In a non custom input event code block, but can't cast object field.]] ]
+        local eventsByInputName = MOD.eventsByActionName[eventData.input_name--[[@as string # In a non custom input event code block, but can't cast object field.]] ]
         for i = 1, #eventsByInputName do
             eventsByInputName[i].handlerFunction(eventData)
         end
@@ -172,8 +172,8 @@ Events._HandleEvent = function(eventData)
 end
 
 --- Registers the function in to the mods event to function matrix. Handles merging filters between multiple functions on the same event.
----@param eventName defines.events|string @ Either Factorio event or a custom modded event name.
----@param thisFilterName string @ The handler name.
+---@param eventName defines.events|string # Either Factorio event or a custom modded event name.
+---@param thisFilterName string # The handler name.
 ---@param thisFilterData? table|nil
 ---@return uint|nil eventId
 Events._RegisterEvent = function(eventName, thisFilterName, thisFilterData)
@@ -200,7 +200,7 @@ Events._RegisterEvent = function(eventName, thisFilterName, thisFilterData)
             else
                 -- add new filter to any existing old filter and let it be re-applied.
                 filterData = {} ---@type EventFilter[]
-                for _, filterTable in pairs(MOD.eventFilters[eventId]--[[@as table<any, any>[][] @ Not entirely sure on this, but it makes it happy and there isn't any Type Def for event filters from Debugger.]] ) do
+                for _, filterTable in pairs(MOD.eventFilters[eventId]--[[@as table<any, any>[][] # Not entirely sure on this, but it makes it happy and there isn't any Type Def for event filters from Debugger.]] ) do
                     filterTable[1].mode = "or"
                     for _, filterEntry in pairs(filterTable) do
                         table.insert(filterData, filterEntry)

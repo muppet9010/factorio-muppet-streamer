@@ -13,11 +13,11 @@ EventUtils.WasCreativeModeInstantDeconstructionUsed = function(event)
     end
 end
 
----@alias EntityActioner LuaPlayer|LuaEntity @ The placer of a built entity, either player or construction robot. A script will have a nil value.
+---@alias EntityActioner LuaPlayer|LuaEntity # The placer of a built entity, either player or construction robot. A script will have a nil value.
 
 --- Get the thing that did the building/mining from an event.
 ---@param event on_built_entity|on_robot_built_entity|script_raised_built|script_raised_revive|on_pre_player_mined_item|on_robot_pre_mined
----@return EntityActioner|nil placer @ Player, construction robot or nil if script done.
+---@return EntityActioner|nil placer # Player, construction robot or nil if script done.
 EventUtils.GetActionerFromEvent = function(event)
     if event.robot ~= nil then
         -- Construction robots

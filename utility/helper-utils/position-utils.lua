@@ -40,7 +40,7 @@ end
 
 -- Returns the table as an x|y table rather than an [1]|[2] table.
 ---@param thing table
----@return MapPosition|nil position? @ x,y key'd table or nil if not a valid MapPosition.
+---@return MapPosition|nil position? # x,y key'd table or nil if not a valid MapPosition.
 PositionUtils.TableToProperPosition = function(thing)
     if thing.x ~= nil and thing.y ~= nil then
         if type(thing.x) == "number" and type(thing.y) == "number" then
@@ -189,8 +189,8 @@ end
 
 --- Rotates an offset around a position. Combines PositionUtils.RotatePositionAround0() and PositionUtils.ApplyOffsetToPosition() to save UPS.
 ---@param orientation RealOrientation
----@param offset MapPosition @ the position to be rotated by the orientation.
----@param position MapPosition @ the position the rotated offset is applied to.
+---@param offset MapPosition # the position to be rotated by the orientation.
+---@param position MapPosition # the position the rotated offset is applied to.
 ---@return MapPosition
 PositionUtils.RotateOffsetAroundPosition = function(orientation, offset, position)
     -- Handle simple cardinal direction rotations.
@@ -356,7 +356,7 @@ end
 -- Gets the distance between the 2 positions.
 ---@param pos1 MapPosition
 ---@param pos2 MapPosition
----@return double @ is inherently a positive number.
+---@return double # is inherently a positive number.
 PositionUtils.GetDistance = function(pos1, pos2)
     return (((pos1.x - pos2.x) ^ 2) + ((pos1.y - pos2.y) ^ 2)) ^ 0.5
 end
@@ -367,7 +367,7 @@ end
 ---@param pos1 MapPosition
 ---@param pos2 MapPosition
 ---@param axis Axis
----@return double @ is inherently a positive number.
+---@return double # is inherently a positive number.
 PositionUtils.GetDistanceSingleAxis = function(pos1, pos2, axis)
     return math_abs(pos1[axis] - pos2[axis])
 end
@@ -382,7 +382,7 @@ end
 
 ---@param position MapPosition
 ---@param boundingBox BoundingBox
----@param safeTiling? boolean|nil @ If enabled the BoundingBox can be tiled without risk of an entity on the border being in 2 result sets, i.e. for use on each chunk.
+---@param safeTiling? boolean|nil # If enabled the BoundingBox can be tiled without risk of an entity on the border being in 2 result sets, i.e. for use on each chunk.
 ---@return boolean
 PositionUtils.IsPositionInBoundingBox = function(position, boundingBox, safeTiling)
     if safeTiling == nil or not safeTiling then
@@ -403,7 +403,7 @@ end
 --- Get a random location within a radius (circle) of a target.
 ---@param centerPos MapPosition
 ---@param maxRadius double
----@param minRadius? double|nil @ Defaults to 0.
+---@param minRadius? double|nil # Defaults to 0.
 ---@return MapPosition
 PositionUtils.RandomLocationInRadius = function(centerPos, maxRadius, minRadius)
     local angle = math_random(0, 360)
@@ -465,10 +465,10 @@ end
 
 --- Find where a line cross a circle at a set radius from a 0 position.
 ---@param radius double
----@param slope double @ the x value per 1 Y. so 1 is a 45 degree SW to NE line. 2 is a steeper line. -1 would be a 45 degree line SE to NW line. -- I THINK...
----@param yIntercept double @ Where on the Y axis the line crosses.
----@return MapPosition|nil firstCrossingPosition @ Position if the line crossed or touched the edge of the circle. Nil if the line never crosses the circle.
----@return MapPosition|nil secondCrossingPosition @ Only a position if the line crossed the circle in 2 places. Nil if the line just touched the edge of the circle or never crossed it.
+---@param slope double # the x value per 1 Y. so 1 is a 45 degree SW to NE line. 2 is a steeper line. -1 would be a 45 degree line SE to NW line. -- I THINK...
+---@param yIntercept double # Where on the Y axis the line crosses.
+---@return MapPosition|nil firstCrossingPosition # Position if the line crossed or touched the edge of the circle. Nil if the line never crosses the circle.
+---@return MapPosition|nil secondCrossingPosition # Only a position if the line crossed the circle in 2 places. Nil if the line just touched the edge of the circle or never crossed it.
 PositionUtils.FindWhereLineCrossesCircle = function(radius, slope, yIntercept)
     local centerPos = { x = 0, y = 0 }
     local A = 1 + slope * slope

@@ -6,9 +6,9 @@ local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class GiveItems_GiveWeaponAmmoScheduled
----@field target string @ Target player's name.
----@field ammoPrototype? LuaItemPrototype|nil @ Nil if no ammo is being given.
----@field ammoCount? uint|nil @ Nil if no ammo is being given.
+---@field target string # Target player's name.
+---@field ammoPrototype? LuaItemPrototype|nil # Nil if no ammo is being given.
+---@field ammoCount? uint|nil # Nil if no ammo is being given.
 ---@field weaponPrototype? LuaItemPrototype|nil
 ---@field forceWeaponToSlot boolean
 ---@field selectWeapon boolean

@@ -81,7 +81,7 @@ DirectionUtils.DirectionValueToName = {
 }
 
 --- Takes a direction input value and if it's greater/less than the allowed orientation range it loops it back within the range.
----@param directionValue defines.direction @ A number from 0-7.
+---@param directionValue defines.direction # A number from 0-7.
 ---@return defines.direction
 DirectionUtils.LoopDirectionValue = function(directionValue)
     -- Hard coded copy of MathUtils.LoopIntValueWithinRange().
@@ -113,7 +113,7 @@ end
 --- Get a direction heading from a start point to an end point that is a on an exact cardinal direction.
 ---@param startPos MapPosition
 ---@param endPos MapPosition
----@return defines.direction|-1|-2 @ Returns -1 if the startPos and endPos are the same. Returns -2 if the positions not on a cardinal direction difference.
+---@return defines.direction|-1|-2 # Returns -1 if the startPos and endPos are the same. Returns -2 if the positions not on a cardinal direction difference.
 DirectionUtils.GetCardinalDirectionHeadingToPosition = function(startPos, endPos)
     if startPos.x == endPos.x then
         if startPos.y > endPos.y then

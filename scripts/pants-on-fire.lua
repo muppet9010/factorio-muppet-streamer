@@ -6,11 +6,11 @@ local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class PantsOnFire_ScheduledEventDetails
----@field target string @ Target player's name.
+---@field target string # Target player's name.
 ---@field finishTick uint
 ---@field fireHeadStart uint
----@field fireGap uint @ Must be > 0.
----@field flameCount uint8 @ Must be > 0.
+---@field fireGap uint # Must be > 0.
+---@field flameCount uint8 # Must be > 0.
 ---@field firePrototype LuaEntityPrototype
 
 ---@class PantsOnFire_EffectDetails
@@ -18,15 +18,15 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field player LuaPlayer
 ---@field finishTick uint
 ---@field fireHeadStart uint
----@field fireGap uint @ Must be > 0.
----@field flameCount uint8 @ Must be > 0.
+---@field fireGap uint # Must be > 0.
+---@field flameCount uint8 # Must be > 0.
 ---@field startFire boolean
 ---@field stepPos uint
 ---@field ticksInVehicle uint
 ---@field firePrototype LuaEntityPrototype
 
----@alias PantsOnFire_PlayersSteps table<uint, PantsOnFire_PlayerSteps> @ A dictionary of player_index to the player's step buffer.
----@alias PantsOnFire_PlayerSteps table<uint, PantsOnFire_PlayerStep> @ Steps is a buffer of a player's step (past position) every fireGap tick interval.
+---@alias PantsOnFire_PlayersSteps table<uint, PantsOnFire_PlayerSteps> # A dictionary of player_index to the player's step buffer.
+---@alias PantsOnFire_PlayerSteps table<uint, PantsOnFire_PlayerStep> # Steps is a buffer of a player's step (past position) every fireGap tick interval.
 ---@class PantsOnFire_PlayerStep -- Details of a unique step of the player for that tick.
 ---@field surface LuaSurface
 ---@field position MapPosition
@@ -79,7 +79,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end ---@cast durationSeconds double
     local finishTick ---@type uint
     if scheduleTick > 0 then
-        finishTick = scheduleTick --[[@as uint @ The scheduleTick can only be -1 or a uint, and the criteria of <0 ensures a uint.]]
+        finishTick = scheduleTick --[[@as uint # The scheduleTick can only be -1 or a uint, and the criteria of <0 ensures a uint.]]
     else
         finishTick = command.tick
     end

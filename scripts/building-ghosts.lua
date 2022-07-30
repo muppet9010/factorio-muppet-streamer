@@ -2,7 +2,7 @@ local BuildingGhosts = {} ---@class BuildingGhosts
 local Events = require("utility.manager-libraries.events")
 local MathUtils = require("utility.helper-utils.math-utils")
 
-local customGhostLife = 40000000 ---@type uint @ Different to the vanilla value so it can be distinguished. Vanilla adds 36288000 (36million vs 40million).
+local customGhostLife = 40000000 ---@type uint # Different to the vanilla value so it can be distinguished. Vanilla adds 36288000 (36million vs 40million).
 
 BuildingGhosts.CreateGlobals = function()
     global.buildingGhosts = global.buildingGhosts or {}
@@ -41,7 +41,7 @@ end
 ---@param force LuaForce
 BuildingGhosts.EnableForForce = function(force)
     if force.ghost_time_to_live < customGhostLife then
-        force.ghost_time_to_live = math.min(force.ghost_time_to_live + customGhostLife, MathUtils.uintMax) --[[@as uint @ Safe as any sensible values added together will be millions of the 2 billion max.]]
+        force.ghost_time_to_live = math.min(force.ghost_time_to_live + customGhostLife, MathUtils.uintMax) --[[@as uint # Safe as any sensible values added together will be millions of the 2 billion max.]]
     end
 end
 
@@ -49,7 +49,7 @@ end
 ---@param force LuaForce
 BuildingGhosts.DisableForForce = function(force)
     if force.ghost_time_to_live >= customGhostLife then
-        force.ghost_time_to_live = math.max(force.ghost_time_to_live - customGhostLife, 0) --[[@as uint @ Safe as max of either subtracting 2 uints or 0.]]
+        force.ghost_time_to_live = math.max(force.ghost_time_to_live - customGhostLife, 0) --[[@as uint # Safe as max of either subtracting 2 uints or 0.]]
     end
 end
 

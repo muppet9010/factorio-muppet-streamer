@@ -17,14 +17,14 @@ local QuantityType = {
 ---@field quantityType PlayerDropInventory_QuantityType
 ---@field quantityValue uint
 ---@field dropOnBelts boolean
----@field gap uint @ Must be > 0.
+---@field gap uint # Must be > 0.
 ---@field occurrences uint
 ---@field dropEquipment boolean
 
 ---@class PlayerDropInventory_ScheduledDropItemsData
 ---@field player_index uint
 ---@field player LuaPlayer
----@field gap uint @ Must be > 0.
+---@field gap uint # Must be > 0.
 ---@field totalOccurrences uint
 ---@field dropOnBelts boolean
 ---@field dropEquipment boolean
@@ -32,14 +32,14 @@ local QuantityType = {
 ---@field dynamicPercentageItemCount uint|nil
 ---@field currentOccurrences uint
 
----@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|'cursorStack', uint> @ Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
----@alias PlayerDropInventory_InventoryContents table<defines.inventory|'cursorStack', table<string, uint>> @ Dictionary of each inventory to a cached list of item name and counts in that inventory.
+---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|'cursorStack', uint> # Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
+---@alias PlayerDropInventory_InventoryContents table<defines.inventory|'cursorStack', table<string, uint>> # Dictionary of each inventory to a cached list of item name and counts in that inventory.
 
 local commandName = "muppet_streamer_player_drop_inventory"
 
 PlayerDropInventory.CreateGlobals = function()
     global.playerDropInventory = global.playerDropInventory or {}
-    global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {} ---@type table<uint, true> @ A dictionary of player indexes that have the effect active on them currently.
+    global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {} ---@type table<uint, true> # A dictionary of player indexes that have the effect active on them currently.
     global.playerDropInventory.nextId = global.playerDropInventory.nextId or 0 ---@type uint
 end
 
@@ -92,7 +92,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(gapSeconds, "double", true, commandName, "gap", 1 / 60, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast gapSeconds double
-    local gap = math.floor(gapSeconds * 60) --[[@as uint @ gapSeconds was validated as not exceeding a uint during input validation.]]
+    local gap = math.floor(gapSeconds * 60) --[[@as uint # gapSeconds was validated as not exceeding a uint during input validation.]]
 
     local occurrences = commandData.occurrences
     if not CommandsUtils.CheckNumberArgument(occurrences, "int", true, commandName, "occurrences", 1, MathUtils.uintMax, command.parameter) then
@@ -197,7 +197,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     if data.staticItemCount ~= nil then
         itemCountToDrop = data.staticItemCount
     else
-        itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint @ End value will always end up as a uint from the validated input values.]]
+        itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint # End value will always end up as a uint from the validated input values.]]
     end ---@cast itemCountToDrop - nil
 
     -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurrence count has completed.
@@ -248,7 +248,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             local itemStackToDropFrom ---@type LuaItemStack|nil
             if inventoryNameOfItemNumberToDrop == "cursorStack" then
                 -- Special case as not a real inventory.
-                itemStackToDropFrom = player.cursor_stack ---@cast itemStackToDropFrom -nil @ We know the cursor_stack is populated if its gone down this logic path.
+                itemStackToDropFrom = player.cursor_stack ---@cast itemStackToDropFrom -nil # We know the cursor_stack is populated if its gone down this logic path.
             else
                 local inventory = player.get_inventory(inventoryNameOfItemNumberToDrop)
                 if inventory == nil then

@@ -30,9 +30,9 @@ local MaxTargetAttempts = 5
 local MaxRandomPositionsAroundTargetToTry = 50 -- Was 10, but upped to reduce odd vehicle rotation issues.
 local MaxDistancePositionAroundTarget = 10
 
----@class Teleport_CommandDetails @ The details for a specific teleport event in an an RCON command.
+---@class Teleport_CommandDetails # The details for a specific teleport event in an an RCON command.
 ---@field delay UtilityScheduledEvent_UintNegative1
----@field target string @ Target player's name.
+---@field target string # Target player's name.
 ---@field arrivalRadius double
 ---@field minDistance double
 ---@field maxDistance double
@@ -42,13 +42,13 @@ local MaxDistancePositionAroundTarget = 10
 ---@field backupTeleportSettings? Teleport_CommandDetails|nil
 ---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
 
----@class Teleport_TeleportDetails @ The data on a teleport action being undertaken. This includes the attributes from the first Teleport_CommandDetails within it directly.
+---@class Teleport_TeleportDetails # The data on a teleport action being undertaken. This includes the attributes from the first Teleport_CommandDetails within it directly.
 ---@field teleportId uint
 ---@field target string
 ---@field targetPlayer LuaPlayer
 ---@field targetPlayer_surface LuaSurface
 ---@field targetPlayer_force LuaForce
----@field targetPlayerPlacementEntity LuaEntity @ A player character or teleportable vehicle.
+---@field targetPlayerPlacementEntity LuaEntity # A player character or teleportable vehicle.
 ---@field arrivalRadius double
 ---@field minDistance double
 ---@field maxDistance double
@@ -58,8 +58,8 @@ local MaxDistancePositionAroundTarget = 10
 ---@field targetAttempt uint
 ---@field backupTeleportSettings? Teleport_CommandDetails|nil
 ---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
----@field thisAttemptPosition? MapPosition|nil @ The map position of the current teleport attempt.
----@field spawnerDistances table<uint, Teleport_TargetPlayerSpawnerDistanceDetails> @ If destinationType is biterNest then populated when looking for a spawner to target, otherwise empty. Key'd as a gappy numerical order. The enemy spawners found on this surface from our spawner list and the distance they are from the player's current position.
+---@field thisAttemptPosition? MapPosition|nil # The map position of the current teleport attempt.
+---@field spawnerDistances table<uint, Teleport_TargetPlayerSpawnerDistanceDetails> # If destinationType is biterNest then populated when looking for a spawner to target, otherwise empty. Key'd as a gappy numerical order. The enemy spawners found on this surface from our spawner list and the distance they are from the player's current position.
 
 ---@class Teleport_TargetPlayerSpawnerDistanceDetails
 ---@field distance double
@@ -71,14 +71,14 @@ local MaxDistancePositionAroundTarget = 10
 ---@field position MapPosition
 ---@field forceName string
 
----@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> @ A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then batch ignoring of non-enemy spawners.
+---@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> # A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then batch ignoring of non-enemy spawners.
 
 local commandName = "muppet_streamer_teleport"
 
 Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
     global.teleport.nextId = global.teleport.nextId or 0 ---@type uint
-    global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<uint, Teleport_TeleportDetails> @ The path request Id to its teleport details for when the path request completes.
+    global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<uint, Teleport_TeleportDetails> # The path request Id to its teleport details for when the path request completes.
     global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSpawnersOnAllSurfaces() ---@type surfaceForceBiterNests
     global.teleport.chunkGeneratedId = global.teleport.chunkGeneratedId or 0 ---@type uint
 end
@@ -113,10 +113,10 @@ Teleport.TeleportCommand = function(command)
 end
 
 --- Validates the data from an RCON commands's arguments in to a table of details.
----@param commandData table<string, any> @ Table of arguments passed in to the RCON command.
----@param depth uint @ Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
----@param commandStringText string @ The raw command text sent via RCON.
----@return Teleport_CommandDetails|nil commandDetails @ Command details are returned if no errors hit, otherwise nil is returned.
+---@param commandData table<string, any> # Table of arguments passed in to the RCON command.
+---@param depth uint # Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
+---@param commandStringText string # The raw command text sent via RCON.
+---@return Teleport_CommandDetails|nil commandDetails # Command details are returned if no errors hit, otherwise nil is returned.
 Teleport.GetCommandData = function(commandData, depth, commandStringText)
     local depthErrorMessage = ""
     if depth > 0 then
@@ -325,7 +325,7 @@ Teleport.PlanTeleportTarget = function(eventData)
                         --spawnerDistance = PositionUtils.GetDistance(targetPlayer_position, spawnerDetails.position)
 
                         if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
-                            table.insert(data.spawnerDistances, { distance = spawnerDistance, spawnerDetails = spawnerDetails }--[[@as Teleport_TargetPlayerSpawnerDistanceDetails @ While this is inserted as consistent key ID's it can be manipulated later to be gappy.]] )
+                            table.insert(data.spawnerDistances, { distance = spawnerDistance, spawnerDetails = spawnerDetails }--[[@as Teleport_TargetPlayerSpawnerDistanceDetails # While this is inserted as consistent key ID's it can be manipulated later to be gappy.]] )
                         end
                     end
                 end
@@ -588,7 +588,7 @@ Teleport.SpawnerCreated = function(spawner)
     local spawner_surface_index = spawner.surface.index
     global.teleport.surfaceBiterNests[spawner_surface_index] = global.teleport.surfaceBiterNests[spawner_surface_index] or {}
     -- Record the spawner.
-    local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name ---@cast spawner_unitNumber -nil @ Spawner entities always have a unit_number field.
+    local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name ---@cast spawner_unitNumber -nil # Spawner entities always have a unit_number field.
     global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name] = global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name] or {}
     global.teleport.surfaceBiterNests[spawner_surface_index][spawner_force_name][spawner_unitNumber] = { unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position }
 end
@@ -606,7 +606,7 @@ Teleport.SpawnerRemoved = function(spawner)
         -- No records for this force on this surface so nothing to remove. Shouldn't be possible to reach, but is safer.
         return
     end
-    thisSurfaceForceBiterNests[spawner.unit_number--[[@as uint @ Spawner entity always has a unit_number.]] ] = nil
+    thisSurfaceForceBiterNests[spawner.unit_number--[[@as uint # Spawner entity always has a unit_number.]] ] = nil
 end
 
 --- Find all existing spawners on all surfaces and record them. For use at mods initial load to handle being added to a map mid game.
@@ -618,7 +618,7 @@ Teleport.FindExistingSpawnersOnAllSurfaces = function()
         surfacesSpawners[surface_index] = {}
         local spawners = surface.find_entities_filtered { type = "unit-spawner" }
         for _, spawner in pairs(spawners) do
-            local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name ---@cast spawner_unitNumber -nil @ Spawner entities always have a unit_number field.
+            local spawner_unitNumber, spawner_force_name = spawner.unit_number, spawner.force.name ---@cast spawner_unitNumber -nil # Spawner entities always have a unit_number field.
             surfacesSpawners[surface_index][spawner_force_name] = surfacesSpawners[surface_index][spawner_force_name] or {}
             surfacesSpawners[surface_index][spawner_force_name][spawner_unitNumber] = { unitNumber = spawner_unitNumber, entity = spawner, forceName = spawner_force_name, position = spawner.position }
         end

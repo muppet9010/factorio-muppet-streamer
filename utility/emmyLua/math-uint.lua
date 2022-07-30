@@ -1,5 +1,5 @@
 ---@meta
--- cSpell:disable @ Just ignore whole file while is conceptual.
+-- cSpell:disable # Just ignore whole file while is conceptual.
 
 -- Experimental. not used at present and is an extra to the standard mathlib.
 

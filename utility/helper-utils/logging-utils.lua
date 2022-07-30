@@ -33,7 +33,7 @@ end
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
----@param recordToModLog? boolean|nil @ Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
+---@param recordToModLog? boolean|nil # Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
 LoggingUtils.LogPrintError = function(text, recordToModLog)
     if game ~= nil then
         game.print(tostring(text), Colors.errorMessage)
@@ -48,7 +48,7 @@ end
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
----@param recordToModLog? boolean|nil @ Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
+---@param recordToModLog? boolean|nil # Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
 LoggingUtils.LogPrintWarning = function(text, recordToModLog)
     if game ~= nil then
         game.print(tostring(text), Colors.warningMessage)
@@ -63,9 +63,9 @@ end
 --- For use in bespoke situations (and pre LogPrintError).
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
----@param enabled? boolean|nil @ Defaults to True. Allows code to not require lots of `if` in calling functions.
----@param textColor? Color|nil @ Defaults to Factorio white.
----@param recordToModLog? boolean|nil @ Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
+---@param enabled? boolean|nil # Defaults to True. Allows code to not require lots of `if` in calling functions.
+---@param textColor? Color|nil # Defaults to Factorio white.
+---@param recordToModLog? boolean|nil # Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
 LoggingUtils.LogPrint = function(text, enabled, textColor, recordToModLog)
     if enabled ~= nil and not enabled then
         return
@@ -84,7 +84,7 @@ end
 --- If in data stage can't write to mod's custom log file.
 ---@param text string
 ---@param writeToScreen boolean
----@param enabled? boolean|nil @ Defaults to True.
+---@param enabled? boolean|nil # Defaults to True.
 LoggingUtils.ModLog = function(text, writeToScreen, enabled)
     if enabled ~= nil and not enabled then
         return
@@ -178,8 +178,8 @@ LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
 end
 
 -- Used to make a text object of something's attributes that can be stringified. Supports LuaObjects with handling for specific ones.
----@param thing any @ can be a simple data type, table, or LuaObject.
----@param _tablesLogged? table<any, string>|nil @ don't pass in, only used internally when self referencing the function for looping.
+---@param thing any # can be a simple data type, table, or LuaObject.
+---@param _tablesLogged? table<any, string>|nil # don't pass in, only used internally when self referencing the function for looping.
 ---@return table
 LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
     _tablesLogged = _tablesLogged or {} -- Internal variable passed when self referencing to avoid loops.

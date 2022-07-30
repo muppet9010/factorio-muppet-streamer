@@ -23,26 +23,26 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 
 ---@class CallForHelp_DelayedCommandDetails
 ---@field callForHelpId uint
----@field target string @ Player's name.
+---@field target string # Player's name.
 ---@field arrivalRadius double
 ---@field callRadius? double|nil
 ---@field sameTeamOnly boolean
 ---@field sameSurfaceOnly boolean
----@field blacklistedPlayerNames table<string, true>|nil @ Table of player names as the key.
----@field whitelistedPlayerNames table<string, true>|nil @ Table of player names as the key.
+---@field blacklistedPlayerNames table<string, true>|nil # Table of player names as the key.
+---@field whitelistedPlayerNames table<string, true>|nil # Table of player names as the key.
 ---@field callSelection CallForHelp_CallSelection
 ---@field number uint
 ---@field activePercentage double
 
 ---@class CallForHelp_CallForHelpObject
 ---@field callForHelpId uint
----@field pendingPathRequests table<uint, CallForHelp_PathRequestObject> @ Key'd to the path request Id.
+---@field pendingPathRequests table<uint, CallForHelp_PathRequestObject> # Key'd to the path request Id.
 
----@class CallForHelp_PathRequestObject @ Details on a path request so that when it completes its results can be handled and back traced to the Call For Help it relates too.
+---@class CallForHelp_PathRequestObject # Details on a path request so that when it completes its results can be handled and back traced to the Call For Help it relates too.
 ---@field callForHelpId uint
 ---@field pathRequestId uint
 ---@field helpPlayer LuaPlayer
----@field helpPlayerPlacementEntity LuaEntity @ The helping player's character or teleportable vehicle.
+---@field helpPlayerPlacementEntity LuaEntity # The helping player's character or teleportable vehicle.
 ---@field helpPlayerForce LuaForce
 ---@field helpPlayerSurface LuaSurface
 ---@field targetPlayer LuaPlayer
@@ -64,8 +64,8 @@ local commandName = "muppet_streamer_call_for_help"
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
     global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type uint
-    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<uint, CallForHelp_PathRequestObject> @ Key'd to the pathing request Ids,
-    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<uint, CallForHelp_CallForHelpObject> @ Key'd to the callForHelp Ids.
+    global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<uint, CallForHelp_PathRequestObject> # Key'd to the pathing request Ids,
+    global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<uint, CallForHelp_CallForHelpObject> # Key'd to the callForHelp Ids.
 end
 
 CallForHelp.OnLoad = function()
@@ -337,7 +337,7 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
             pathRequestId = pathRequestId,
             helpPlayer = helpPlayer,
             helpPlayerPlacementEntity = teleportResponse.targetPlayerTeleportEntity,
-            helpPlayerForce = helpPlayer.force --[[@as LuaForce @ read/write work around]] ,
+            helpPlayerForce = helpPlayer.force --[[@as LuaForce # read/write work around]] ,
             helpPlayerSurface = helpPlayer.surface,
             targetPlayer = targetPlayer,
             targetPlayerPosition = targetPlayerPosition,

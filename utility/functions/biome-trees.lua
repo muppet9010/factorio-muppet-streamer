@@ -43,12 +43,12 @@ local LogTags = false -- @Enable with other logging options to include details a
 ---@field min? double|nil
 ---@field max? double|nil
 
----@alias UtilityBiomeTrees_TreesMetaData table<string, UtilityBiomeTrees_TreeMetaData> @ Key'd by tree name.
+---@alias UtilityBiomeTrees_TreesMetaData table<string, UtilityBiomeTrees_TreeMetaData> # Key'd by tree name.
 ---@class UtilityBiomeTrees_TreeMetaData
----@field [1] table<string, string> @ Tag color string as key and value.
----@field [2] table<string, string> @ The names of tiles that the tree can only go on, tile name is the key and value in table.
+---@field [1] table<string, string> # Tag color string as key and value.
+---@field [2] table<string, string> # The names of tiles that the tree can only go on, tile name is the key and value in table.
 
----@alias UtilityBiomeTrees_TilesDetails table<string, UtilityBiomeTrees_TileDetails> @ Key'd by tile name.
+---@alias UtilityBiomeTrees_TilesDetails table<string, UtilityBiomeTrees_TileDetails> # Key'd by tile name.
 
 ---@class UtilityBiomeTrees_TileDetails
 ---@field name string
@@ -59,21 +59,21 @@ local LogTags = false -- @Enable with other logging options to include details a
 
 ---@class UtilityBiomeTrees_RawTileData
 ---@field [1] UtilityBiomeTrees_TileType
----@field [2] UtilityBiomeTrees_valueRange[]|nil @ tempRanges
----@field [3] UtilityBiomeTrees_valueRange[]|nil @ moistureRanges
----@field [4] string|nil @ tag
+---@field [2] UtilityBiomeTrees_valueRange[]|nil # tempRanges
+---@field [3] UtilityBiomeTrees_valueRange[]|nil # moistureRanges
+---@field [4] string|nil # tag
 
 ---@class UtilityBiomeTrees_valueRange
----@field [1] double @ Min in this range.
----@field [2] double @ Max in this range.
+---@field [1] double # Min in this range.
+---@field [2] double # Max in this range.
 
 ---@class UtilityBiomeTrees_TreeDetails
 ---@field name string
 ---@field tempRange UtilityBiomeTrees_valueRange
 ---@field moistureRange UtilityBiomeTrees_valueRange
 ---@field probability double
----@field tags table<string, string>|nil @ Tag color string as key and value.
----@field exclusivelyOnNamedTiles table<string, string>|nil @ The names of tiles that the tree can only go on, tile name is the key and value in table.
+---@field tags table<string, string>|nil # Tag color string as key and value.
+---@field exclusivelyOnNamedTiles table<string, string>|nil # The names of tiles that the tree can only go on, tile name is the key and value in table.
 
 ---@class UtilityBiomeTrees_suitableTree
 ---@field chanceStart double
@@ -110,7 +110,7 @@ end
 ---@return string|nil treeName
 BiomeTrees.GetBiomeTreeName = function(surface, position)
     -- Returns the tree name or nil if tile isn't land type
-    local tile = surface.get_tile(position--[[@as TilePosition @ handled equally by Factorio in this API function.]] )
+    local tile = surface.get_tile(position--[[@as TilePosition # handled equally by Factorio in this API function.]] )
     local tileData = global.UTILITYBIOMETREES.tileData[tile.name]
     if tileData == nil then
         local tileName = tile.hidden_tile

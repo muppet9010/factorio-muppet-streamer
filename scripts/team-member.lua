@@ -9,7 +9,7 @@ local LoggingUtils = require("utility.helper-utils.logging-utils")
 TeamMember.CreateGlobals = function()
     global.teamMember = global.teamMember or {}
     global.teamMember.recruitedMaxCount = global.teamMember.recruitedMaxCount or 0 ---@type uint
-    global.teamMember.playerGuiOpened = global.teamMember.playerGuiOpened or {} ---@type table<uint, boolean> @ Key'd by player_index.
+    global.teamMember.playerGuiOpened = global.teamMember.playerGuiOpened or {} ---@type table<uint, boolean> # Key'd by player_index.
     global.teamMember.recruitTeamMemberTitle = global.teamMember.recruitTeamMemberTitle or "" ---@type string
 end
 

@@ -7,11 +7,11 @@ local Constants = require("constants")
 MOD = MOD or {} ---@class MOD
 MOD.guiCheckedActions = MOD.guiCheckedActions or {} ---@type table<string, function>
 
----@class UtilityGuiActionsChecked_ActionData @ The response object passed to the callback function when the GUI element is checked/unchecked. Registered with GuiActionsChecked.RegisterGuiForCheckedStateChange().
----@field actionName string @ The action name registered to this GUI element being checked.
----@field playerIndex uint @ The player_index of the player who checked the GUI.
----@field data any @ The data argument passed in when registering this function action name.
----@field eventData on_gui_checked_state_changed @ The raw Factorio event data for the on_gui_checked_state_changed event.
+---@class UtilityGuiActionsChecked_ActionData # The response object passed to the callback function when the GUI element is checked/unchecked. Registered with GuiActionsChecked.RegisterGuiForCheckedStateChange().
+---@field actionName string # The action name registered to this GUI element being checked.
+---@field playerIndex uint # The player_index of the player who checked the GUI.
+---@field data any # The data argument passed in when registering this function action name.
+---@field eventData on_gui_checked_state_changed # The raw Factorio event data for the on_gui_checked_state_changed event.
 
 --------------------------------------------------------------------------------------------
 --                                    Public Functions
@@ -25,8 +25,8 @@ GuiActionsChecked.MonitorGuiCheckedActions = function()
 end
 
 --- Called from OnLoad() from each script file.
----@param actionName string @ A unique name for this function to be registered with.
----@param actionFunction fun(callbackData: UtilityGuiActionsChecked_ActionData) @ The callback function for when the actionName linked GUI element is checked.
+---@param actionName string # A unique name for this function to be registered with.
+---@param actionFunction fun(callbackData: UtilityGuiActionsChecked_ActionData) # The callback function for when the actionName linked GUI element is checked.
 GuiActionsChecked.LinkGuiCheckedActionNameToFunction = function(actionName, actionFunction)
     if actionName == nil or actionFunction == nil then
         error("GuiActions.LinkGuiCheckedActionNameToFunction called with missing arguments")
@@ -37,11 +37,11 @@ end
 --- Generally called from the GuiUtil library now, but can be called manually from OnLoad().
 ---
 --- Called to register a checkbox's name and type to a specific GUI checked action name and optional standard data (global to all players). Only needs to be run once per mod.
----@param elementName string @ The name of the element. Must be unique within mod once elementName and elementType arguments are combined together.
----@param elementType string @ The type of the element. Must be unique within mod once elementName and elementType arguments are combined together.
----@param actionName string @ The actionName of the registered function to be called when the GUI element is checked.
----@param data? any|nil @ Any provided data will be passed through to the actionName's registered function upon the GUI element being checked.
----@param disabled? boolean|nil @ If TRUE then checked not registered (for use with GUI templating). Otherwise FALSE or nil will registered normally.
+---@param elementName string # The name of the element. Must be unique within mod once elementName and elementType arguments are combined together.
+---@param elementType string # The type of the element. Must be unique within mod once elementName and elementType arguments are combined together.
+---@param actionName string # The actionName of the registered function to be called when the GUI element is checked.
+---@param data? any|nil # Any provided data will be passed through to the actionName's registered function upon the GUI element being checked.
+---@param disabled? boolean|nil # If TRUE then checked not registered (for use with GUI templating). Otherwise FALSE or nil will registered normally.
 GuiActionsChecked.RegisterGuiForCheckedStateChange = function(elementName, elementType, actionName, data, disabled)
     if elementName == nil or elementType == nil or actionName == nil then
         error("GuiActions.RegisterGuiForCheckedStateChange called with missing arguments")
@@ -58,8 +58,8 @@ end
 --- Called when desired to remove a specific checkbox from triggering its action.
 ---
 --- Should be called to remove links for checkboxes when their elements are removed to stop global data lingering. But newly registered functions will overwrite them so not critical to remove.
----@param elementName string @ Corresponds to the same argument name on GuiActionsChecked.RegisterGuiForCheckedStateChange().
----@param elementType string @ Corresponds to the same argument name on GuiActionsChecked.RegisterGuiForCheckedStateChange().
+---@param elementName string # Corresponds to the same argument name on GuiActionsChecked.RegisterGuiForCheckedStateChange().
+---@param elementType string # Corresponds to the same argument name on GuiActionsChecked.RegisterGuiForCheckedStateChange().
 GuiActionsChecked.RemoveGuiForCheckedStateChange = function(elementName, elementType)
     if elementName == nil then
         error("GuiActions.RemoveButtonName called with missing arguments")
@@ -110,7 +110,7 @@ GuiActionsChecked._GenerateGuiElementName = function(elementName, elementType)
     end
 end
 
----@alias UtilityGuiActionsChecked_GuiElementName string @ A single unique string made by combining an elements name and type with mod name.
+---@alias UtilityGuiActionsChecked_GuiElementName string # A single unique string made by combining an elements name and type with mod name.
 
 ---@class UtilityGuiActionsChecked_GuiCheckedDetails
 ---@field actionName string

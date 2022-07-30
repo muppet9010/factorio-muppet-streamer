@@ -188,12 +188,12 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     salvoDelayTicks = salvoDelayTicks or 0
 
     -- If this is a multi salvo wave we need to cache the target position from the first delivery for the subsequent deliveries of that wave. So setup the salvoWaveId for later population.
-    local maxBatchNumber = 0 ---@type uint @ Batch 0 is the first batch.
+    local maxBatchNumber = 0 ---@type uint # Batch 0 is the first batch.
     local salvoWaveId ---@type uint|nil
     if explosiveCount > salvoSize then
         global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId + 1
         salvoWaveId = global.explosiveDelivery.nextSalvoWaveId
-        maxBatchNumber = math.floor(explosiveCount / salvoSize) --[[@as uint @ Both inputs are verified uints and with the math.floor() it can't go below 0]]
+        maxBatchNumber = math.floor(explosiveCount / salvoSize) --[[@as uint # Both inputs are verified uints and with the math.floor() it can't go below 0]]
         -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
     end
 

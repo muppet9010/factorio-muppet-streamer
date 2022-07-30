@@ -8,8 +8,8 @@ local MathUtils = require("utility.helper-utils.math-utils")
 
 local math_random, math_min, math_max, math_floor = math.random, math.min, math.max, math.floor
 
-local StorageInventorySizeIncrements = 1000 ---@type uint16 @ The starting size of the shared storage inventory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
-local StorageInventoryMaxGrowthSize = (65535) --[[@as uint16]] - StorageInventorySizeIncrements ---@type uint16 @ Max size when the inventory can still grow by another increment.
+local StorageInventorySizeIncrements = 1000 ---@type uint16 # The starting size of the shared storage inventory and how much it grows each time. Vanilla players only have 160~ max inventory space across all their inventories.
+local StorageInventoryMaxGrowthSize = (65535) --[[@as uint16]] - StorageInventorySizeIncrements ---@type uint16 # Max size when the inventory can still grow by another increment.
 
 --[[----------------------------------------------------------------------------------------
                                         CODE DEV NOTES
@@ -184,8 +184,8 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
 
     -- Get the active players to shuffle.
     local players = {} ---@type LuaPlayer[]
-    local playerNamesAddedByForce = {} ---@type table<string, string> @ Key and value both player name.
-    local playerNamesAddedByName = {} ---@type table<string, string> @ Key and value both player name.
+    local playerNamesAddedByForce = {} ---@type table<string, string> # Key and value both player name.
+    local playerNamesAddedByName = {} ---@type table<string, string> # Key and value both player name.
     if requestData.includeAllPlayersOnServer == true then
         -- Just include everyone.
         for _, player in pairs(game.connected_players) do
@@ -262,7 +262,7 @@ end
 ---@param players LuaPlayer[]
 ---@param requestData PlayerInventoryShuffle_RequestData
 ---@return LuaInventory storageInventory
----@return table<string, uint> itemSources @ A table of item name to source player count.
+---@return table<string, uint> itemSources # A table of item name to source player count.
 PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     -- Work out what inventories we will be emptying based on settings.
     -- CODE NOTE: Empty main inventory before armor so no oddness with main inventory size changes.
@@ -274,7 +274,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     end
 
     -- We will track the number of player sources for each item type when moving the items in to the shared inventory.
-    local itemSources = {} ---@type table<string, uint> @ Item name to count of players who had the item.
+    local itemSources = {} ---@type table<string, uint> # Item name to count of players who had the item.
 
     -- Create a single storage inventory (limited size). Track the maximum number of stacks that have gone in to it in a very simple way i.e. it doesn't account for stacks that merge together. It's used just to give a warning at present if the shared storageInventory may have filled up.
     local storageInventorySize = StorageInventorySizeIncrements ---@type uint16 -- Starting storage inventory size is 1 increment.
@@ -289,7 +289,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
         player.clear_cursor()
 
         -- A list of the item names (key) this player has already been found to have. To avoid double counting the same player for an item across different inventories.
-        playersItemSources = {} ---@type table<string, true> @ Item name this player has already been found to have.
+        playersItemSources = {} ---@type table<string, true> # Item name this player has already been found to have.
 
         -- Move each inventory for this player.
         for _, inventoryName in pairs(inventoryNamesToCheck) do
@@ -454,7 +454,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
 
         -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random +/- of the greatest between the ItemDestinationPlayerCountRange and destinationPlayersMinimumVariance.
         destinationCountVariance = math_max(requestData.destinationPlayersMinimumVariance, math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor)))
-        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance--[[@as integer @ needed due to expected type in math.random().]] , destinationCountVariance), 1), playersCount) --[[@as uint @ The min and max values are uints.]]
+        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance--[[@as integer # needed due to expected type in math.random().]] , destinationCountVariance), 1), playersCount) --[[@as uint # The min and max values are uints.]]
 
         -- Work out the raw ratios of items each destination will get.
         totalAssignedRatio, destinationRatios = 0, {}
@@ -467,7 +467,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
 
         -- Work out how many items each destination will get and assign them to a specific players list index.
         itemsLeftToAssign = itemCount
-        playersAvailableToReceiveThisItem = {} ---@type table<uint, uint> @ A list of the players list indexes that is trimmed once assigned this item.
+        playersAvailableToReceiveThisItem = {} ---@type table<uint, uint> # A list of the players list indexes that is trimmed once assigned this item.
         for i = 1, playersCount do ---@type uint
             playersAvailableToReceiveThisItem[i] = i
         end
@@ -484,7 +484,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
                 itemCountForPlayerIndex = itemsLeftToAssign
             else
                 -- Round down the initial number and then keep it below the number of items left. Never try to use more than are left to assign.
-                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint @ The min and max values are uints.]]
+                itemCountForPlayerIndex = math_min(math_max(math_floor(destinationRatios[i] * standardisedPercentageModifier * itemsLeftToAssign), 1), itemsLeftToAssign) --[[@as uint # The min and max values are uints.]]
             end
             itemsLeftToAssign = itemsLeftToAssign - itemCountForPlayerIndex
             table.insert(playersItemCounts[playerIndex], { name = itemName, count = itemCountForPlayerIndex })

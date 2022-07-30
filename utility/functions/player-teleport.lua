@@ -13,14 +13,14 @@ local PlayerTeleport = {} ---@class Utility_PlayerTeleport
 ----------------------------------------------------------------------------------
 
 --- Request a teleport for a player with the provided settings. If everything is good it will teleport the player if no reachablePosition is provided now, otherwise it will return the pathfinder request Id for monitoring by the calling mod. In failure scenario an error object is returned with details of the failures cause.
----@param targetPlayer LuaPlayer @ The player to teleport.
----@param targetSurface LuaSurface @ The surface to teleport them too.
----@param destinationTargetPosition MapPosition @ The position on the map to teleport them near.
----@param inaccuracyToTargetPosition double @ How inaccurate the desired random placement of the player to the target position should be up too. Used to give intentional inaccuracy to the placement attempt position.
----@param placementAttempts uint @ How many times we should try random placement attempts within the inaccuracy of the target.
----@param placementAccuracy double @ Max range from the placement attempt position to look for a valid position for the player within. Code will try and place as close to the placement attempt position as possible.
----@param reachablePosition? MapPosition|nil @ If the player needs to be able to walk from where they are teleported too, to this position. Commonly used to check they can walk from their teleport target back to where they were, to avoid teleports on to islands. If provided then the path request Id will be returned in the responseDetails for monitoring by the calling mod. As the state of the player and target should be re-verified by the mod based on its exact usage scenario upon this pathing request completing; As the game world will likely have changed in between and so it may not be appropriate for the teleport to be completed.
----@return UtilityPlayerTeleport_TeleportRequestResponseDetails responseDetails? @ A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occurred.
+---@param targetPlayer LuaPlayer # The player to teleport.
+---@param targetSurface LuaSurface # The surface to teleport them too.
+---@param destinationTargetPosition MapPosition # The position on the map to teleport them near.
+---@param inaccuracyToTargetPosition double # How inaccurate the desired random placement of the player to the target position should be up too. Used to give intentional inaccuracy to the placement attempt position.
+---@param placementAttempts uint # How many times we should try random placement attempts within the inaccuracy of the target.
+---@param placementAccuracy double # Max range from the placement attempt position to look for a valid position for the player within. Code will try and place as close to the placement attempt position as possible.
+---@param reachablePosition? MapPosition|nil # If the player needs to be able to walk from where they are teleported too, to this position. Commonly used to check they can walk from their teleport target back to where they were, to avoid teleports on to islands. If provided then the path request Id will be returned in the responseDetails for monitoring by the calling mod. As the state of the player and target should be re-verified by the mod based on its exact usage scenario upon this pathing request completing; As the game world will likely have changed in between and so it may not be appropriate for the teleport to be completed.
+---@return UtilityPlayerTeleport_TeleportRequestResponseDetails responseDetails? # A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occurred.
 PlayerTeleport.RequestTeleportToNearPosition = function(targetPlayer, targetSurface, destinationTargetPosition, inaccuracyToTargetPosition, placementAttempts, placementAccuracy, reachablePosition)
     -- The response object with the result in it.
     ---@type UtilityPlayerTeleport_TeleportRequestResponseDetails
@@ -110,10 +110,10 @@ end
 --- Do the actual teleport of the target player to the specified location. Will handle taking the players vehicle with them or removing them from a non teleportable vehicle (train) as required.
 --- For calling in known good conditions or in response to a successful pathing request response and post state validation.
 --- If the teleport action fails the player is left in a good state; returned to any vehicle they left.
----@param targetPlayer LuaPlayer @ The player to teleport.
----@param targetSurface LuaSurface @ The surface to teleport them too.
----@param targetPosition MapPosition @ The exact position on the map to teleport them to.
----@return boolean teleportSucceeded @ If the actual teleport command to the player/vehicle failed.
+---@param targetPlayer LuaPlayer # The player to teleport.
+---@param targetSurface LuaSurface # The surface to teleport them too.
+---@param targetPosition MapPosition # The exact position on the map to teleport them to.
+---@return boolean teleportSucceeded # If the actual teleport command to the player/vehicle failed.
 PlayerTeleport.TeleportToSpecificPosition = function(targetPlayer, targetSurface, targetPosition)
     local teleportSucceeded, wasDriving, wasPassengerIn
     local targetPlayer_vehicle = targetPlayer.vehicle
@@ -163,8 +163,8 @@ end
 
 --- Get the entity that will be placed when the teleport is done, either a teleportable vehicle or the players character.
 ---@param targetPlayer LuaPlayer
----@param targetPlayer_character? LuaEntity|nil @ If nil is passed in and the player's character entity is needed it will be obtained.
----@return LuaEntity|nil placementEntity @ Can be nil if player doesn't have a vehicle or character.
+---@param targetPlayer_character? LuaEntity|nil # If nil is passed in and the player's character entity is needed it will be obtained.
+---@return LuaEntity|nil placementEntity # Can be nil if player doesn't have a vehicle or character.
 ---@return boolean isVehicle
 PlayerTeleport.GetPlayerTeleportPlacementEntity = function(targetPlayer, targetPlayer_character)
     local targetPlayer_vehicle = targetPlayer.vehicle
@@ -179,12 +179,12 @@ end
 --                          PRIVATE FUNCTIONS
 ----------------------------------------------------------------------------------
 
----@class UtilityPlayerTeleport_TeleportRequestResponseDetails @ A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occurred.
----@field targetPlayerTeleportEntity LuaEntity|nil @ The entity we did the teleport request for.
----@field targetPosition? MapPosition|nil @ The exact position the teleport was attempted to, if one was found.
----@field teleportSucceeded boolean @ If the teleport was completed. Will be false if a pathing request was made as part of a reachablePosition option.
----@field pathRequestId? uint|nil @ If a reachablePosition was given then the path request Id to monitor for is returned. The state of the player and target should be re-verified upon this pathing request result as the game world will likely have changed in between and so it may not be appropriate for the teleport to be completed.
----@field errorNoValidPositionFound boolean @ If the teleport failed as there was no valid position found near the target position (prior to any walkability check if enabled).
----@field errorTeleportFailed boolean @ If the actual teleport command to the player/vehicle failed.
+---@class UtilityPlayerTeleport_TeleportRequestResponseDetails # A table with details of the teleport request, including if the teleport was succeeded, if a pathing request was made its Id, any error if one occurred.
+---@field targetPlayerTeleportEntity LuaEntity|nil # The entity we did the teleport request for.
+---@field targetPosition? MapPosition|nil # The exact position the teleport was attempted to, if one was found.
+---@field teleportSucceeded boolean # If the teleport was completed. Will be false if a pathing request was made as part of a reachablePosition option.
+---@field pathRequestId? uint|nil # If a reachablePosition was given then the path request Id to monitor for is returned. The state of the player and target should be re-verified upon this pathing request result as the game world will likely have changed in between and so it may not be appropriate for the teleport to be completed.
+---@field errorNoValidPositionFound boolean # If the teleport failed as there was no valid position found near the target position (prior to any walkability check if enabled).
+---@field errorTeleportFailed boolean # If the actual teleport command to the player/vehicle failed.
 
 return PlayerTeleport

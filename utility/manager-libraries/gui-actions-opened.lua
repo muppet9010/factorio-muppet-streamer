@@ -6,12 +6,12 @@ local GuiActionsOpened = {} ---@class Utility_GuiActionsOpened
 MOD = MOD or {} ---@class MOD
 MOD.guiOpenedActions = MOD.guiOpenedActions or {} ---@type table<string, function>
 
----@class UtilityGuiActionsOpened_ActionData @ The response object passed to the callback function when the GUI element is opened. Registered with GuiActionsOpened.LinkGuiOpenedActionNameToFunction().
----@field actionName string @ The action name registered to this GUI element being opened.
----@field playerIndex uint @ The player_index of the player who opened the GUI.
----@field entity LuaEntity|nil @ The entity that was clicked to open the GUI, if one was.
----@field data any @ The data argument passed in when registering this function action name.
----@field eventData on_gui_opened @ The raw Factorio event data for the on_gui_opened event.
+---@class UtilityGuiActionsOpened_ActionData # The response object passed to the callback function when the GUI element is opened. Registered with GuiActionsOpened.LinkGuiOpenedActionNameToFunction().
+---@field actionName string # The action name registered to this GUI element being opened.
+---@field playerIndex uint # The player_index of the player who opened the GUI.
+---@field entity LuaEntity|nil # The entity that was clicked to open the GUI, if one was.
+---@field data any # The data argument passed in when registering this function action name.
+---@field eventData on_gui_opened # The raw Factorio event data for the on_gui_opened event.
 
 --------------------------------------------------------------------------------------------
 --                                    Public Functions
@@ -23,8 +23,8 @@ GuiActionsOpened.MonitorGuiOpenedActions = function()
 end
 
 --- Called from OnLoad() from each script file.
----@param actionName string @ A unique name for this function to be registered with.
----@param actionFunction fun(callbackData: UtilityGuiActionsOpened_ActionData) @ The callback function for when the actionName linked GUI element is opened.
+---@param actionName string # A unique name for this function to be registered with.
+---@param actionFunction fun(callbackData: UtilityGuiActionsOpened_ActionData) # The callback function for when the actionName linked GUI element is opened.
 GuiActionsOpened.LinkGuiOpenedActionNameToFunction = function(actionName, actionFunction)
     if actionName == nil or actionFunction == nil then
         error("GuiActions.LinkGuiOpenedActionNameToFunction called with missing arguments")
@@ -33,9 +33,9 @@ GuiActionsOpened.LinkGuiOpenedActionNameToFunction = function(actionName, action
 end
 
 -- Called to register a specific entities GUI being opened to a named action.
----@param entity LuaEntity @ The entity to react to having a GUI opened on it.
----@param actionName string @ The actionName of the registered function to be called when the GUI element is opened.
----@param data? table|nil @ Any provided data will be passed through to the actionName's registered function upon the GUI element being opened.
+---@param entity LuaEntity # The entity to react to having a GUI opened on it.
+---@param actionName string # The actionName of the registered function to be called when the GUI element is opened.
+---@param data? table|nil # Any provided data will be passed through to the actionName's registered function upon the GUI element being opened.
 GuiActionsOpened.RegisterEntityForGuiOpenedAction = function(entity, actionName, data)
     if entity == nil or actionName == nil then
         error("GuiActions.RegisterEntityForGuiOpenedAction called with missing arguments")
@@ -53,8 +53,8 @@ end
 --- Called when desired to remove a specific entities GUI being opened from triggering its action.
 ---
 --- Should be called to remove links for buttons when their elements are removed to stop global data lingering. But newly registered functions will overwrite them so not critical to remove.
----@param entity LuaEntity  @ Corresponds to the same argument name on GuiActionsOpened.RegisterEntityForGuiOpenedAction().
----@param actionName string @ Corresponds to the same argument name on GuiActionsOpened.RegisterEntityForGuiOpenedAction().
+---@param entity LuaEntity  # Corresponds to the same argument name on GuiActionsOpened.RegisterEntityForGuiOpenedAction().
+---@param actionName string # Corresponds to the same argument name on GuiActionsOpened.RegisterEntityForGuiOpenedAction().
 GuiActionsOpened.RemoveEntityForGuiOpenedAction = function(entity, actionName)
     if entity == nil or actionName == nil then
         error("GuiActions.RemoveEntityForGuiOpenedAction called with missing arguments")
@@ -70,9 +70,9 @@ GuiActionsOpened.RemoveEntityForGuiOpenedAction = function(entity, actionName)
 end
 
 -- Called to register a specific GUI type being opened to a named action.
----@param guiType defines.gui_type|'all' @ the gui type to react to or `all` types.
----@param actionName string @ The actionName of the registered function to be called when the GUI element is opened.
----@param data? table|nil @ Any provided data will be passed through to the actionName's registered function upon the GUI element being opened.
+---@param guiType defines.gui_type|'all' # the gui type to react to or `all` types.
+---@param actionName string # The actionName of the registered function to be called when the GUI element is opened.
+---@param data? table|nil # Any provided data will be passed through to the actionName's registered function upon the GUI element being opened.
 GuiActionsOpened.RegisterActionNameForGuiTypeOpened = function(guiType, actionName, data)
     if guiType == nil or actionName == nil then
         error("GuiActions.RegisterActionNameForGuiTypeOpened called with missing arguments")
@@ -86,8 +86,8 @@ end
 -- Called when desired to remove a specific GUI type opening from triggering its action.
 ---
 --- Should be called to remove links for buttons when their elements are removed to stop global data lingering. But newly registered functions will overwrite them so not critical to remove.
----@param guiType defines.gui_type|'all' @ Corresponds to the same argument name on GuiActionsOpened.RegisterActionNameForGuiTypeOpened().
----@param actionName string @ Corresponds to the same argument name on GuiActionsOpened.RegisterActionNameForGuiTypeOpened().
+---@param guiType defines.gui_type|'all' # Corresponds to the same argument name on GuiActionsOpened.RegisterActionNameForGuiTypeOpened().
+---@param actionName string # Corresponds to the same argument name on GuiActionsOpened.RegisterActionNameForGuiTypeOpened().
 GuiActionsOpened.RemoveActionNameForGuiTypeOpened = function(guiType, actionName)
     if guiType == nil or actionName == nil then
         error("GuiActions.RemoveActionNameForGuiTypeOpened called with missing arguments")

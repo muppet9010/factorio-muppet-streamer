@@ -229,7 +229,7 @@ StyleData.GeneratePrototypes = function()
                 padding = 0
             }
             for k, v in pairs(attributes[2]--[[@as table<string, table>]] ) do
-                if type(k) == "number" then ---@cast k uint @ It's really a uint value if its a number type.
+                if type(k) == "number" then ---@cast k uint # It's really a uint value if its a number type.
                     defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                 else
                     defaultStyle[styleNameVersion][k] = v
@@ -268,7 +268,7 @@ StyleData.GeneratePrototypes = function()
                         minimal_height = 0
                     }
                     for k, v in pairs(attributes[2]--[[@as table<string, table>]] ) do
-                        if type(k) == "number" then ---@cast k uint @ It's really a uint value if its a number type.
+                        if type(k) == "number" then ---@cast k uint # It's really a uint value if its a number type.
                             defaultStyle[styleNameVersion][k] = (defaultStyle[styleNameVersion][k] or 0) + v
                         else
                             defaultStyle[styleNameVersion][k] = v
@@ -417,7 +417,7 @@ StyleData.GeneratePrototypes = function()
 end
 
 --- Traverse the variable nesting layers of the muppet styles and make a Lua object string for them.
----@param styleChildren table<string, string|table> @ A dictionary of the current style children.
+---@param styleChildren table<string, string|table> # A dictionary of the current style children.
 StyleData._TraverseStyleChildrenToString = function(styleChildren)
     local text = ""
     for styleDetailsName, styleFullName in pairs(styleChildren) do

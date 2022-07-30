@@ -10,21 +10,21 @@ local PlayerWeapon = {} ---@class Utility_PlayerWeapon
 ----------------------------------------------------------------------------------
 
 ---@class UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
----@field gunInventoryIndex uint @ The index in the gun and ammo inventory where the weapon was removed.
----@field weaponItemName? string|nil @ Nil if no weapon was in the slot.
----@field weaponFilterName? string|nil @ Nil if no weapon filter was set on the slot.
----@field ammoItemName? string|nil @ Nil if no ammo was in the slot.
----@field ammoFilterName? string|nil @ Nil if no ammo filter was set on the slot.
----@field beforeSelectedWeaponGunIndex uint @ The weapon slot that the player had selected before the weapon was removed.
+---@field gunInventoryIndex uint # The index in the gun and ammo inventory where the weapon was removed.
+---@field weaponItemName? string|nil # Nil if no weapon was in the slot.
+---@field weaponFilterName? string|nil # Nil if no weapon filter was set on the slot.
+---@field ammoItemName? string|nil # Nil if no ammo was in the slot.
+---@field ammoFilterName? string|nil # Nil if no ammo filter was set on the slot.
+---@field beforeSelectedWeaponGunIndex uint # The weapon slot that the player had selected before the weapon was removed.
 
 --- Ensure the player has the specified weapon, clearing any weapon filters if needed. Includes options to ensure compatibility with a specific ammo type, otherwise will ensure the ammo slot setup allows the gun to be placed even if the ammo filter is incompatible.
----@param player LuaPlayer @ Requires the player to be in a position to receive the weapon, has character and in character controller.
+---@param player LuaPlayer # Requires the player to be in a position to receive the weapon, has character and in character controller.
 ---@param weaponName string
----@param forceWeaponToWeaponInventorySlot boolean @ If the weapon should be forced to be equipped, otherwise it may end up in their inventory.
+---@param forceWeaponToWeaponInventorySlot boolean # If the weapon should be forced to be equipped, otherwise it may end up in their inventory.
 ---@param selectWeapon boolean
----@param ammoTypePlanned? string|nil @ The name of the ammo planned to be put in this weapon. Handles removing the ammo from the weapon slot and any filters if needed. Doesn't actually give any ammo.
----@return boolean|nil weaponGiven @ If the weapon item had to be given to the player, compared to them already having it and it possibly just being moved between their inventories. Returns nil for invalid situations, i.e. called on a player with no gun inventory.
----@return UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon|nil removedWeaponDetails @ Details on the weapon that was removed to add the new weapon. Is nil if no active weapon was set/found, i.e. weapon was found/put in to the players main inventory and not as an equipped weapon.
+---@param ammoTypePlanned? string|nil # The name of the ammo planned to be put in this weapon. Handles removing the ammo from the weapon slot and any filters if needed. Doesn't actually give any ammo.
+---@return boolean|nil weaponGiven # If the weapon item had to be given to the player, compared to them already having it and it possibly just being moved between their inventories. Returns nil for invalid situations, i.e. called on a player with no gun inventory.
+---@return UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon|nil removedWeaponDetails # Details on the weapon that was removed to add the new weapon. Is nil if no active weapon was set/found, i.e. weapon was found/put in to the players main inventory and not as an equipped weapon.
 PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponInventorySlot, selectWeapon, ammoTypePlanned)
     if player == nil or not player.valid then
         return nil, nil
@@ -66,7 +66,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
 
     -- Handle if the player doesn't already have the gun equipped.
     local needsGunGiving = false
-    local characterInventory ---@type LuaInventory|nil @ Only populated if needsGunGiving is true.
+    local characterInventory ---@type LuaInventory|nil # Only populated if needsGunGiving is true.
     if weaponFoundIndex == nil then
         needsGunGiving = true
         characterInventory = player.get_main_inventory()
@@ -117,7 +117,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                     return false, nil
                 end
             end
-        end ---@cast weaponFoundIndex - nil @ All logic paths either ensure its populated or return.
+        end ---@cast weaponFoundIndex - nil # All logic paths either ensure its populated or return.
     end
 
     -- Get the ammo slot for the equipped gun.
@@ -176,7 +176,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
 
     -- Give the gun if needed. We had to handle ammo first for both when needing a gun giving and not.
     if needsGunGiving then
-        ---@cast characterInventory - nil @ Inventory was cached already if needsGunGiving was set to true.
+        ---@cast characterInventory - nil # Inventory was cached already if needsGunGiving was set to true.
         -- Remove 1 item of the weapon type from the players inventory if they had one, to simulate equipping the weapon. Otherwise we will flag this as giving the player a weapon.
         if characterInventory.get_item_count(weaponName) == 0 then
             -- No instance of the weapon in the player's inventory.
@@ -297,7 +297,7 @@ end
 ---@return float maxRange
 ---@return float cooldown
 PlayerWeapon.GetWeaponAmmoDetails = function(ammoType, weaponItemPrototype)
-    local weapon_attackParameters = weaponItemPrototype.attack_parameters --[[@as AttackParameters @ Assume only sane ItemPrototypes are passed in.]]
+    local weapon_attackParameters = weaponItemPrototype.attack_parameters --[[@as AttackParameters # Assume only sane ItemPrototypes are passed in.]]
 
     local minRange = weapon_attackParameters.min_range
 

@@ -27,7 +27,7 @@ end
 ---@param playerName string
 ---@param commandName string
 ---@param settingName string
----@param commandString? string|nil @ If provided it will be included in error messages. Not needed for operational use.
+---@param commandString? string|nil # If provided it will be included in error messages. Not needed for operational use.
 ---@return boolean isValid
 Common.CheckPlayerNameSettingValue = function(playerName, commandName, settingName, commandString)
     -- Check its a valid populated string first, then that it's a player's name.
@@ -55,8 +55,8 @@ Common.CommandNames = {
 }
 
 --- Allows calling a command via a remote interface.
----@param commandName Common_CommandNames @ The command to be run.
----@param options string|table @ The options being passed in.
+---@param commandName Common_CommandNames # The command to be run.
+---@param options string|table # The options being passed in.
 Common.CallCommandFromRemote = function(commandName, options)
     -- Check the command name is valid.
     if not CommandsUtils.CheckStringArgument(commandName, true, "Remote Interface", "commandName", Common.CommandNames, commandName) then
@@ -119,11 +119,11 @@ end
 ---@param itemName string
 ---@param itemType string
 ---@param mandatory boolean
----@param commandName string @ Used for error messages.
----@param argumentName? string|nil @ Used for error messages.
----@param commandString? string|nil @ Used for error messages.
+---@param commandName string # Used for error messages.
+---@param argumentName? string|nil # Used for error messages.
+---@param commandString? string|nil # Used for error messages.
 ---@return LuaItemPrototype|nil itemPrototype
----@return boolean validArgument @ If false the argument is invalid for the command and it should probably stop execution.
+---@return boolean validArgument # If false the argument is invalid for the command and it should probably stop execution.
 Common.GetItemPrototypeFromCommandArgument = function(itemName, itemType, mandatory, commandName, argumentName, commandString)
     if not CommandsUtils.CheckStringArgument(itemName, mandatory, commandName, argumentName, nil, commandString) then
         return nil, false
@@ -143,11 +143,11 @@ end
 ---@param entityName string
 ---@param entityType string
 ---@param mandatory boolean
----@param commandName string @ Used for error messages.
----@param argumentName? string|nil @ Used for error messages.
----@param commandString? string|nil @ Used for error messages.
+---@param commandName string # Used for error messages.
+---@param argumentName? string|nil # Used for error messages.
+---@param commandString? string|nil # Used for error messages.
 ---@return LuaEntityPrototype|nil entityPrototype
----@return boolean validArgument @ If false the argument is invalid for the command and it should probably stop execution.
+---@return boolean validArgument # If false the argument is invalid for the command and it should probably stop execution.
 Common.GetEntityPrototypeFromCommandArgument = function(entityName, entityType, mandatory, commandName, argumentName, commandString)
     if not CommandsUtils.CheckStringArgument(entityName, mandatory, commandName, argumentName, nil, commandString) then
         return nil, false

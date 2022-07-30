@@ -8,10 +8,10 @@
 local PlayerAlerts = {} ---@class Utility_PlayerAlerts
 local Events = require("utility.manager-libraries.events")
 
----@class UtilityPlayerAlerts_ForceAlertObject @ The cached details of an alert applied to all players on a force. Used to track the alerts and remove them, but also to allow adding/removing from players as they join/leave a force.
----@field id UtilityPlayerAlerts_AlertId @ Id of the alert object.
----@field force LuaForce @ The force that this alert applies to.
----@field alertEntity LuaEntity @ The entity the alert targets.
+---@class UtilityPlayerAlerts_ForceAlertObject # The cached details of an alert applied to all players on a force. Used to track the alerts and remove them, but also to allow adding/removing from players as they join/leave a force.
+---@field id UtilityPlayerAlerts_AlertId # Id of the alert object.
+---@field force LuaForce # The force that this alert applies to.
+---@field alertEntity LuaEntity # The entity the alert targets.
 ---@field alertPrototypeName string
 ---@field alertPosition MapPosition
 ---@field alertSurface LuaSurface
@@ -40,12 +40,12 @@ end
 
 --- Add a custom alert to all players on the specific force.
 ---@param force LuaForce
----@param alertId? UtilityPlayerAlerts_AlertId|nil @ A globally unique Id that we will use to track duplicate requests for the same alert. If nil is provided a sequential number shall be affixed to "auto" as the Id.
+---@param alertId? UtilityPlayerAlerts_AlertId|nil # A globally unique Id that we will use to track duplicate requests for the same alert. If nil is provided a sequential number shall be affixed to "auto" as the Id.
 ---@param alertEntity LuaEntity
 ---@param alertSignalId SignalID
 ---@param alertMessage LocalisedString
 ---@param showOnMap boolean
----@return UtilityPlayerAlerts_AlertId alertId @ The Id of the created alert.
+---@return UtilityPlayerAlerts_AlertId alertId # The Id of the created alert.
 ---@deprecated An alert only lasts for 5-10 (?) seconds and then auto finishes. We need to have an option for a continuous alert that auto adds a new one just before the hard coded timer runs out.
 PlayerAlerts.AddCustomAlertToForce = function(force, alertId, alertEntity, alertSignalId, alertMessage, showOnMap)
     local forceId = force.index
@@ -86,7 +86,7 @@ end
 
 --- Remove a custom alert from all players on the force and delete it from the force's alert global table.
 ---@param force LuaForce
----@param alertId UtilityPlayerAlerts_AlertId @ The unique Id of the alert.
+---@param alertId UtilityPlayerAlerts_AlertId # The unique Id of the alert.
 PlayerAlerts.RemoveCustomAlertFromForce = function(force, alertId)
     local forceIndex = force.index
 
@@ -149,7 +149,7 @@ PlayerAlerts._RemoveAlertFromPlayer = function(forceAlert, player)
 end
 
 --- Creates (if needed) and returns a force's alerts Factorio global table.
----@param forceIndex uint @ the index of the LuaForce.
+---@param forceIndex uint # the index of the LuaForce.
 ---@return table<UtilityPlayerAlerts_AlertId, UtilityPlayerAlerts_ForceAlertObject> forceAlerts
 PlayerAlerts._GetCreateForceAlertsGlobalObject = function(forceIndex)
     if global.UTILITYPLAYERALERTS == nil then
@@ -177,8 +177,8 @@ PlayerAlerts._GetCreateForceAlertsGlobalObject = function(forceIndex)
 end
 
 --- Returns a force's alerts Factorio global table if it exists.
----@param forceIndex uint @ the index of the LuaForce.
----@return table<uint, UtilityPlayerAlerts_ForceAlertObject>|nil forceAlerts @ nil if no alerts for this force.
+---@param forceIndex uint # the index of the LuaForce.
+---@return table<uint, UtilityPlayerAlerts_ForceAlertObject>|nil forceAlerts # nil if no alerts for this force.
 PlayerAlerts._GetForceAlerts = function(forceIndex)
     if global.UTILITYPLAYERALERTS == nil or global.UTILITYPLAYERALERTS.forceAlertsByForce == nil then
         return nil

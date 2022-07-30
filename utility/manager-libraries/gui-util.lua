@@ -10,8 +10,8 @@ local LoggingUtils = require("utility.helper-utils.logging-utils")
 local Constants = require("constants")
 local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 
----@alias UtilityGuiUtil_StoreName string @ A named container that GUI elements have their references saved within under the GUI elements name and type. Used to provide logical separation of GUI elements stored. Typically used for different GUis or major sections of a GUI, as the destroy GUI element functions can handle whole StoreNames automatically.
----@alias UtilityGuiUtil_GuiElementName string @ A generally unique string made by combining an elements name and type with mod name. However if storing references to the created elements within the libraries player element reference storage we need never obtain the GUI element by name and thus it doesn't have to be unique. Does need to be unique within the StoreName however. Format is: ModName-ElementName-ElementType ,i.e. "my_mod-topHeading-label".
+---@alias UtilityGuiUtil_StoreName string # A named container that GUI elements have their references saved within under the GUI elements name and type. Used to provide logical separation of GUI elements stored. Typically used for different GUis or major sections of a GUI, as the destroy GUI element functions can handle whole StoreNames automatically.
+---@alias UtilityGuiUtil_GuiElementName string # A generally unique string made by combining an elements name and type with mod name. However if storing references to the created elements within the libraries player element reference storage we need never obtain the GUI element by name and thus it doesn't have to be unique. Does need to be unique within the StoreName however. Format is: ModName-ElementName-ElementType ,i.e. "my_mod-topHeading-label".
 
 --- Takes generally everything that GuiElement.add() accepts in Factorio API with the below key differences:
 --- - Compulsory "parent" argument of who to create the GUI element under if it isn't a child element itself.
@@ -40,14 +40,14 @@ local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 ---@field exclude? boolean|nil
 ---@field attributes? UtilityGuiUtil_ElementDetails_attributes|nil
 
----@class UtilityGuiUtil_ElementDetails_RegisterClickOption @ Option of ElementDetails for calling GuiActionsClick.RegisterGuiForClick() as part of the Gui element creation.
----@field actionName string @ The actionName of the registered function to be called when the GUI element is clicked.
----@field data table @ Any provided data will be passed through to the actionName's registered function upon the GUI element being clicked.
+---@class UtilityGuiUtil_ElementDetails_RegisterClickOption # Option of ElementDetails for calling GuiActionsClick.RegisterGuiForClick() as part of the Gui element creation.
+---@field actionName string # The actionName of the registered function to be called when the GUI element is clicked.
+---@field data table # Any provided data will be passed through to the actionName's registered function upon the GUI element being clicked.
 ---@field disabled boolean If TRUE then click not registered (for use with GUI templating). Otherwise FALSE or nil will register normally.
 
----@class UtilityGuiUtil_ElementDetails_RegisterCheckedOption @ Option of ElementDetails for calling GuiActionsChecked.RegisterGuiForCheckedStateChange() as part of the Gui element creation.
----@field actionName string @ The actionName of the registered function to be called when the GUI element is checked/unchecked.
----@field data table @ Any provided data will be passed through to the actionName's registered function upon the GUI element being checked/unchecked.
+---@class UtilityGuiUtil_ElementDetails_RegisterCheckedOption # Option of ElementDetails for calling GuiActionsChecked.RegisterGuiForCheckedStateChange() as part of the Gui element creation.
+---@field actionName string # The actionName of the registered function to be called when the GUI element is checked/unchecked.
+---@field data table # Any provided data will be passed through to the actionName's registered function upon the GUI element being checked/unchecked.
 ---@field disabled boolean If TRUE then checked state change not registered (for use with GUI templating). Otherwise FALSE or nil will register normally.
 
 --- Limited subset of UtilityGuiUtil_ElementDetails_Add options that can be updated on an existing Gui Element, plus the writeable LuaGuiElement attributes.
@@ -68,7 +68,7 @@ local StyleDataStyleVersion = require("utility.lists.style-data").styleVersion
 
 --- Add Gui Elements in a manner supporting short-hand features, nested GUI structures and templating features. See the param type for detailed information on its features and usage.
 ---@param elementDetails UtilityGuiUtil_ElementDetails_Add
----@return table<string, LuaGuiElement>|nil returnElements? @ Provided if returnElement option is TRUE. Table of UtilityGuiUtil_GuiElementName keys to LuaGuiElement values.
+---@return table<string, LuaGuiElement>|nil returnElements? # Provided if returnElement option is TRUE. Table of UtilityGuiUtil_GuiElementName keys to LuaGuiElement values.
 GuiUtil.AddElement = function(elementDetails)
     -- Reference the "name" key by this indirect way to avoid EmmyLua picking it up. Have to use new reference and type as we set it.
     ---@type table
@@ -84,7 +84,7 @@ GuiUtil.AddElement = function(elementDetails)
     if elementDetails.style ~= nil and type(elementDetails.style) ~= "string" then
         error("GuiUtil.AddElement() had a style attribute set other than a string. Common causes are a table being passed in as MuppetStyles hasn't been qualified to a final style string.")
     end
-    -- cSpell:ignore styleing @ Just allow here, but don't autocomplete for it.
+    -- cSpell:ignore styleing # Just allow here, but don't autocomplete for it.
     if elementDetails["styleing"] ~= nil then
         error("GuiUtil.AddElement() had a 'styleing' attribute, this is a typo for 'styling'.")
     end
@@ -143,7 +143,7 @@ GuiUtil.AddElement = function(elementDetails)
     if attributes ~= nil then
         for k, v in pairs(attributes) do
             if type(v) == "function" then
-                v = v() --[[@as any @ A function will return something, even if nil.]]
+                v = v() --[[@as any # A function will return something, even if nil.]]
             end
             element[k] = v
         end
@@ -194,9 +194,9 @@ end
 ---@param storeName UtilityGuiUtil_StoreName
 ---@param elementName string
 ---@param elementType string
----@param changes UtilityGuiUtil_ElementDetails_Update @ See the UtilityGuiUtil_ElementDetails_Update type for what can be updated with this function.
----@param ignoreMissingElement boolean @ If TRUE and the GUI element doesn't exist it won't error. If FALSE or nil and the GUI element doesn't exist an error will be raised.
----@return LuaGuiElement|nil UpdatedGuiElement? @ The Lua Gui Element that was updated if one was found, otherwise nil.
+---@param changes UtilityGuiUtil_ElementDetails_Update # See the UtilityGuiUtil_ElementDetails_Update type for what can be updated with this function.
+---@param ignoreMissingElement boolean # If TRUE and the GUI element doesn't exist it won't error. If FALSE or nil and the GUI element doesn't exist an error will be raised.
+---@return LuaGuiElement|nil UpdatedGuiElement? # The Lua Gui Element that was updated if one was found, otherwise nil.
 GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeName, elementName, elementType, changes, ignoreMissingElement)
     ignoreMissingElement = ignoreMissingElement or false
     local element = GuiUtil.GetElementFromPlayersReferenceStorage(playerIndex, storeName, elementName, elementType)
@@ -243,7 +243,7 @@ GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeNa
     if changes.attributes ~= nil then
         for k, v in pairs(changes.attributes) do
             if type(v) == "function" then
-                v = v() --[[@as any @ A function will return something, even if nil.]]
+                v = v() --[[@as any # A function will return something, even if nil.]]
             end
             element[k] = v
         end
@@ -254,7 +254,7 @@ GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeNa
         if argName == "caption" or argName == "tooltip" then
             argValue = GuiUtil._ReplaceLocaleNameSelfWithGeneratedName({ name = generatedName, [argName] = argValue }, argName)
         end
-        element[argName] = argValue --[[@as LuaGuiElement @ Short term fix for bug in debugger]]
+        element[argName] = argValue --[[@as LuaGuiElement # Short term fix for bug in debugger]]
     end
 
     return element
@@ -277,7 +277,7 @@ end
 
 --- Destroys all GUI elements within a players reference storage and removes the reference storage space for them.
 ---@param playerIndex uint
----@param storeName? UtilityGuiUtil_StoreName|nil @ If provided filters the removal to that storeName, otherwise does all storeNames for this player.
+---@param storeName? UtilityGuiUtil_StoreName|nil # If provided filters the removal to that storeName, otherwise does all storeNames for this player.
 GuiUtil.DestroyPlayersReferenceStorage = function(playerIndex, storeName)
     if global.GUIUtilPlayerElementReferenceStorage == nil or global.GUIUtilPlayerElementReferenceStorage[playerIndex] == nil then
         return
@@ -317,9 +317,9 @@ end
 --                                    Internal Functions
 --------------------------------------------------------------------------------------------
 
----@alias UtilityGuiUtil_PlayerElementReferenceStorage_PlayerList table<uint, UtilityGuiUtil_PlayerElementReferenceStorage_StoreList> @ Key'd by player_index.
----@alias UtilityGuiUtil_PlayerElementReferenceStorage_StoreList table<UtilityGuiUtil_StoreName, UtilityGuiUtil_PlayerElementReferenceStorage_GuiElementList> @ Key'd by store name.
----@alias UtilityGuiUtil_PlayerElementReferenceStorage_GuiElementList table<UtilityGuiUtil_GuiElementName, LuaGuiElement> @ Key'd by generated Gui element name.
+---@alias UtilityGuiUtil_PlayerElementReferenceStorage_PlayerList table<uint, UtilityGuiUtil_PlayerElementReferenceStorage_StoreList> # Key'd by player_index.
+---@alias UtilityGuiUtil_PlayerElementReferenceStorage_StoreList table<UtilityGuiUtil_StoreName, UtilityGuiUtil_PlayerElementReferenceStorage_GuiElementList> # Key'd by store name.
+---@alias UtilityGuiUtil_PlayerElementReferenceStorage_GuiElementList table<UtilityGuiUtil_GuiElementName, LuaGuiElement> # Key'd by generated Gui element name.
 
 --- Create a global state store for this player's GUI elements within the scope of this mod.
 ---@param playerIndex uint
@@ -332,7 +332,7 @@ end
 
 --- Applies an array of styling options to an existing Gui element.
 ---@param element LuaGuiElement
----@param stylingArgs UtilityGuiUtil_ElementDetails_styling @ A table of LuaStyle options to be applied. Table key is the style name, with the table value as the styles value to set.
+---@param stylingArgs UtilityGuiUtil_ElementDetails_styling # A table of LuaStyle options to be applied. Table key is the style name, with the table value as the styles value to set.
 GuiUtil._ApplyStylingArgumentsToElement = function(element, stylingArgs)
     if element == nil or (not element.valid) then
         return
@@ -343,7 +343,7 @@ GuiUtil._ApplyStylingArgumentsToElement = function(element, stylingArgs)
         end
         stylingArgs.column_alignments = nil
     end
-    local elementStyle = element.style --[[@as table<string, any> @ As we are just blindly writing key values to it.]]
+    local elementStyle = element.style --[[@as table<string, any> # As we are just blindly writing key values to it.]]
     for k, v in pairs(stylingArgs) do
         elementStyle[k] = v
     end
@@ -1164,4 +1164,4 @@ end
 
 return GuiUtil
 
--- cSpell:ignore dont @ Used in some of the GuiElement definitions, but don't want as a real word and I've never used it so no need for it in global dictionaries/lists.
+-- cSpell:ignore dont # Used in some of the GuiElement definitions, but don't want as a real word and I've never used it so no need for it in global dictionaries/lists.

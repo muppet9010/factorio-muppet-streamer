@@ -1,5 +1,5 @@
 ---@meta
--- cSpell:disable @ Just ignore whole file while is conceptual.
+-- cSpell:disable # Just ignore whole file while is conceptual.
 
 -- Experimental. not used at present.
 -- Allows for better (not perfect) math_generic.random() input to output typing via generics.

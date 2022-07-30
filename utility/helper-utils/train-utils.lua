@@ -14,7 +14,7 @@ local math_min, math_max, math_ceil, math_sqrt = math.min, math.max, math.ceil, 
 ---
 --- Should be done locally if called frequently.
 ---@param train LuaTrain
----@param isFrontStockLeading boolean @ If the trains speed is > 0 then pass in true, if speed < 0 then pass in false.
+---@param isFrontStockLeading boolean # If the trains speed is > 0 then pass in true, if speed < 0 then pass in false.
 ---@return LuaEntity
 TrainUtils.GetLeadingCarriageOfTrain = function(train, isFrontStockLeading)
     if isFrontStockLeading then
@@ -44,22 +44,22 @@ TrainUtils.GetRailEntityLength = function(entityType, entityDirection)
     end
 end
 
----@class TrainUtils_TrainSpeedCalculationData @ Data the Utils functions need to calculate and estimate its future speed, time to cover distance, etc.
----@field trainWeight double @ The total weight of the train.
----@field trainFrictionForce double @ The total friction force of the train.
----@field trainWeightedFrictionForce double @ The train's friction force divided by train weight.
----@field locomotiveFuelAccelerationPower double @ The max acceleration power per tick the train can add for the fuel type on last data update.
----@field locomotiveAccelerationPower double @ The max raw acceleration power per tick the train can add (ignoring fuel bonus).
----@field trainAirResistanceReductionMultiplier double @ The air resistance of the train (lead carriage in current direction).
----@field maxSpeed double @ The max speed the train can achieve on current fuel type.
----@field trainRawBrakingForce double @ The total braking force of the train ignoring any force bonus percentage from LuaForce.train_braking_force_bonus.
----@field forwardFacingLocoCount uint @ The number of locomotives facing forwards. Used when recalculating locomotiveFuelAccelerationPower.
+---@class TrainUtils_TrainSpeedCalculationData # Data the Utils functions need to calculate and estimate its future speed, time to cover distance, etc.
+---@field trainWeight double # The total weight of the train.
+---@field trainFrictionForce double # The total friction force of the train.
+---@field trainWeightedFrictionForce double # The train's friction force divided by train weight.
+---@field locomotiveFuelAccelerationPower double # The max acceleration power per tick the train can add for the fuel type on last data update.
+---@field locomotiveAccelerationPower double # The max raw acceleration power per tick the train can add (ignoring fuel bonus).
+---@field trainAirResistanceReductionMultiplier double # The air resistance of the train (lead carriage in current direction).
+---@field maxSpeed double # The max speed the train can achieve on current fuel type.
+---@field trainRawBrakingForce double # The total braking force of the train ignoring any force bonus percentage from LuaForce.train_braking_force_bonus.
+---@field forwardFacingLocoCount uint # The number of locomotives facing forwards. Used when recalculating locomotiveFuelAccelerationPower.
 
----@class TrainUtils_TrainCarriageData @ Data array of cached details on a train's carriages. Allows only obtaining required data once per carriage. Only populate carriage data when required.
----@field entity LuaEntity @ Minimum this must be populated and the functions will populate other details if they are required during each function's operation.
+---@class TrainUtils_TrainCarriageData # Data array of cached details on a train's carriages. Allows only obtaining required data once per carriage. Only populate carriage data when required.
+---@field entity LuaEntity # Minimum this must be populated and the functions will populate other details if they are required during each function's operation.
 ---@field prototypeType? string|nil
 ---@field prototypeName? string|nil
----@field facingFrontOfTrain? boolean|nil @ If the carriage is facing the front of the train. If true then carriage speed and orientation is the same as the train's.
+---@field facingFrontOfTrain? boolean|nil # If the carriage is facing the front of the train. If true then carriage speed and orientation is the same as the train's.
 
 --- Get the data other Utils functions need for calculating and estimating; a trains future speed, time to cover distance, etc.
 ---
@@ -69,11 +69,11 @@ end
 ---
 --- Either trainCarriagesDataArray or train_carriages needs to be provided.
 ---@param train LuaTrain
----@param train_speed double @ Must not be 0 (stationary train).
----@param trainCarriagesDataArray? TrainUtils_TrainCarriageData[]|nil @ An array of carriage data for this train in the TrainUtils_TrainCarriageData format in the same order as the train's internal carriage order. If provided and it doesn't include the required attribute data on the carriages it will be obtained and added in to the cache table.
----@param train_carriages? LuaEntity[]|nil @ If trainCarriagesDataArray isn't provided then the train's carriage array will need to be provided. The required attribute data on each carriage will have to be obtained, but not cached or passed out.
+---@param train_speed double # Must not be 0 (stationary train).
+---@param trainCarriagesDataArray? TrainUtils_TrainCarriageData[]|nil # An array of carriage data for this train in the TrainUtils_TrainCarriageData format in the same order as the train's internal carriage order. If provided and it doesn't include the required attribute data on the carriages it will be obtained and added in to the cache table.
+---@param train_carriages? LuaEntity[]|nil # If trainCarriagesDataArray isn't provided then the train's carriage array will need to be provided. The required attribute data on each carriage will have to be obtained, but not cached or passed out.
 ---@return TrainUtils_TrainSpeedCalculationData trainSpeedCalculationData
----@return boolean noFuelFound @ TRUE if no fuel was found in any forward moving locomotive. Generally FALSE is returned when all is normal.
+---@return boolean noFuelFound # TRUE if no fuel was found in any forward moving locomotive. Generally FALSE is returned when all is normal.
 TrainUtils.GetTrainSpeedCalculationData = function(train, train_speed, trainCarriagesDataArray, train_carriages)
     if train_speed == 0 then
         -- We can't work out what way is forward for counting locomotives that can assist with acceleration.
@@ -170,9 +170,9 @@ end
 --- Updates a train speed calculation data object (TrainUtils_TrainSpeedCalculationData) for the current fuel the train is utilising to power it. Updates max achievable speed and the acceleration data.
 ---@param trainSpeedCalculationData TrainUtils_TrainSpeedCalculationData
 ---@param trainCarriagesDataArray TrainUtils_TrainCarriageData[]
----@param trainMovingForwardsToCacheData boolean @ If the train is moving forwards in relation to the facing of the cached carriage data.
+---@param trainMovingForwardsToCacheData boolean # If the train is moving forwards in relation to the facing of the cached carriage data.
 ---@param train LuaTrain
----@return boolean noFuelFound @ TRUE if no fuel was found in any forward moving locomotive. Generally FALSE is returned when all is normal.
+---@return boolean noFuelFound # TRUE if no fuel was found in any forward moving locomotive. Generally FALSE is returned when all is normal.
 TrainUtils.UpdateTrainSpeedCalculationDataForCurrentFuel = function(trainSpeedCalculationData, trainCarriagesDataArray, trainMovingForwardsToCacheData, train)
     -- Get a current fuel for the forwards movement of the train.
     local fuelPrototype ---@type LuaItemPrototype|nil
@@ -233,7 +233,7 @@ end
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param initialSpeedAbsolute double
 ---@param distance double
----@return uint ticks @ Rounded up.
+---@return uint ticks # Rounded up.
 ---@return double absoluteFinalSpeed
 TrainUtils.EstimateAcceleratingTrainTicksAndFinalSpeedToCoverDistance = function(trainData, initialSpeedAbsolute, distance)
     -- Work out how long it will take to accelerate over the distance. This doesn't (can't) limit the train to its max speed.
@@ -283,7 +283,7 @@ end
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param initialSpeedAbsolute double
 ---@param requiredSpeedAbsolute double
----@return uint ticksTaken @ Rounded up.
+---@return uint ticksTaken # Rounded up.
 ---@return double distanceCovered
 TrainUtils.EstimateAcceleratingTrainTicksAndDistanceFromInitialToFinalSpeed = function(trainData, initialSpeedAbsolute, requiredSpeedAbsolute)
     local initialSpeedAirResistance = (1 - trainData.trainAirResistanceReductionMultiplier) * initialSpeedAbsolute
@@ -299,8 +299,8 @@ end
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param targetSpeedAbsolute double
 ---@param distance double
----@param forcesBrakingForceBonus double @ The force's train_braking_force_bonus.
----@return uint ticks @ Rounded up.
+---@param forcesBrakingForceBonus double # The force's train_braking_force_bonus.
+---@return uint ticks # Rounded up.
 TrainUtils.EstimateTrainTicksToCoverDistanceWithSameStartAndEndSpeed = function(trainData, targetSpeedAbsolute, distance, forcesBrakingForceBonus)
     -- Get the acceleration and braking force per tick.
     local initialSpeedAirResistance = (1 - trainData.trainAirResistanceReductionMultiplier) * targetSpeedAbsolute
@@ -348,8 +348,8 @@ end
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param initialSpeedAbsolute double
 ---@param requiredSpeedAbsolute double
----@param forcesBrakingForceBonus double @ The force's train_braking_force_bonus.
----@return uint ticksToStop @ Rounded up.
+---@param forcesBrakingForceBonus double # The force's train_braking_force_bonus.
+---@return uint ticksToStop # Rounded up.
 ---@return double brakingDistance
 TrainUtils.CalculateBrakingTrainTimeAndDistanceFromInitialToFinalSpeed = function(trainData, initialSpeedAbsolute, requiredSpeedAbsolute, forcesBrakingForceBonus)
     local speedToDropAbsolute = initialSpeedAbsolute - requiredSpeedAbsolute
@@ -362,7 +362,7 @@ end
 --- Calculates the final train speed and distance covered if it brakes for a time period.
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param currentSpeedAbsolute double
----@param forcesBrakingForceBonus double @ The force's train_braking_force_bonus.
+---@param forcesBrakingForceBonus double # The force's train_braking_force_bonus.
 ---@param ticksToBrake uint
 ---@return double newSpeedAbsolute
 ---@return double distanceCovered
@@ -381,8 +381,8 @@ end
 ---@param trainData TrainUtils_TrainSpeedCalculationData
 ---@param distance double
 ---@param finalSpeedAbsolute double
----@param forcesBrakingForceBonus double @ The force's train_braking_force_bonus.
----@return uint ticksToBrakeOverDistance @ Rounded up.
+---@param forcesBrakingForceBonus double # The force's train_braking_force_bonus.
+---@return uint ticksToBrakeOverDistance # Rounded up.
 ---@return double initialAbsoluteSpeed
 TrainUtils.CalculateBrakingTrainsTimeAndStartingSpeedToBrakeToFinalSpeedOverDistance = function(trainData, distance, finalSpeedAbsolute, forcesBrakingForceBonus)
     local trainForceBrakingForce = trainData.trainRawBrakingForce + (trainData.trainRawBrakingForce * forcesBrakingForceBonus)
@@ -446,9 +446,9 @@ end
 --- Mines any carriages that would prevent the rail from being removed.
 ---@param railEntity LuaEntity
 ---@param surface LuaSurface
----@param ignoreMinableEntityFlag boolean @ If TRUE an entities "minable" attribute will be ignored and the entity mined. If FALSE then the entities "minable" attribute will be honoured.
+---@param ignoreMinableEntityFlag boolean # If TRUE an entities "minable" attribute will be ignored and the entity mined. If FALSE then the entities "minable" attribute will be honoured.
 ---@param destinationInventory LuaInventory
----@param stopTrain boolean @ If TRUE stops the train that it will try and mine.
+---@param stopTrain boolean # If TRUE stops the train that it will try and mine.
 TrainUtils.MineCarriagesOnRailEntity = function(railEntity, surface, ignoreMinableEntityFlag, destinationInventory, stopTrain)
     -- Check if any carriage prevents the rail from being removed before just killing all carriages within the rails collision boxes as this is more like vanilla behaviour.
     if not railEntity.can_be_destroyed() then

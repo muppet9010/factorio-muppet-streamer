@@ -15,9 +15,9 @@ local EffectEndStatus = {
 }
 
 ---@class MalfunctioningWeapon_ScheduledEventDetails
----@field target string @ Target player's name.
+---@field target string # Target player's name.
 ---@field ammoCount uint
----@field reloadTicks uint @ >=1
+---@field reloadTicks uint # >=1
 ---@field weaponPrototype LuaItemPrototype
 ---@field ammoPrototype LuaItemPrototype
 
@@ -29,18 +29,18 @@ local EffectEndStatus = {
 ---@field currentBurstTicks uint
 ---@field burstsDone uint
 ---@field maxBursts uint
----@field usedSomeAmmo boolean @ If the player has actually used some of their ammo, otherwise the player's weapons are still on cooldown.
----@field startingAmmoItemStacksCount uint @ How many item stacks of ammo the player had when we start trying to fire the weapon.
----@field startingAmmoItemStackAmmo uint @ The "ammo" property of the ammo item stack the player had when we start trying to fire the weapon.
+---@field usedSomeAmmo boolean # If the player has actually used some of their ammo, otherwise the player's weapons are still on cooldown.
+---@field startingAmmoItemStacksCount uint # How many item stacks of ammo the player had when we start trying to fire the weapon.
+---@field startingAmmoItemStackAmmo uint # The "ammo" property of the ammo item stack the player had when we start trying to fire the weapon.
 ---@field weaponPrototype LuaItemPrototype
 ---@field ammoPrototype LuaItemPrototype
 ---@field minRange float
 ---@field maxRange float
----@field cooldownTicks uint @ >= 1
----@field reloadTicks uint @ >=1
+---@field cooldownTicks uint # >= 1
+---@field reloadTicks uint # >=1
 
 ---@class MalfunctioningWeapon_AffectedPlayersDetails
----@field flamethrowerGiven boolean @ If a flamethrower weapon had to be given to the player or if they already had one.
+---@field flamethrowerGiven boolean # If a flamethrower weapon had to be given to the player or if they already had one.
 ---@field burstsLeft uint
 ---@field removedWeaponDetails UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
 ---@field weaponPrototype LuaItemPrototype
@@ -50,7 +50,7 @@ local commandName = "muppet_streamer_malfunctioning_weapon"
 
 MalfunctioningWeapon.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
-    global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<uint, MalfunctioningWeapon_AffectedPlayersDetails> @ Key'd by player_index.
+    global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<uint, MalfunctioningWeapon_AffectedPlayersDetails> # Key'd by player_index.
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId or 0 ---@type uint
 end
 
@@ -94,7 +94,7 @@ MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(reloadSeconds, "double", false, commandName, "reloadTime", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast reloadSeconds double|nil
-    local reloadTicks = math.max(math.floor((reloadSeconds or 3) * 60), 1) --[[@as uint @ Reload was validated as not exceeding a uint during input validation.]]
+    local reloadTicks = math.max(math.floor((reloadSeconds or 3) * 60), 1) --[[@as uint # Reload was validated as not exceeding a uint during input validation.]]
 
     local weaponPrototype, valid = Common.GetItemPrototypeFromCommandArgument(commandData.weaponType, "gun", false, commandName, "weaponType", command.parameter)
     if not valid then return end
@@ -119,7 +119,7 @@ MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
     end
 
     --Check that the ammo is suitable for our needs.
-    local ammoType = ammoPrototype.get_ammo_type("player") --[[@as AmmoType @ We've already validated this is of type ammo.]]
+    local ammoType = ammoPrototype.get_ammo_type("player") --[[@as AmmoType # We've already validated this is of type ammo.]]
     if not PlayerWeapon.IsAmmoCompatibleWithWeapon(ammoType, weaponPrototype) then
         CommandsUtils.LogPrintError(commandName, nil, "ammo isn't compatible with the weapon.", command.parameter)
         return
@@ -133,7 +133,7 @@ MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
     -- Some modded weapons may have a reload time greater than the delay setting and so we must wait for this otherwise we can't start shooting when we expect.
     reloadTicks = math.max(reloadTicks, ammoPrototype.reload_time)
 
-    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 ---@type uint @ Needed for weird bug reason, maybe in Sumneko or maybe the plugin with its fake global.
+    global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 ---@type uint # Needed for weird bug reason, maybe in Sumneko or maybe the plugin with its fake global.
     ---@type MalfunctioningWeapon_ScheduledEventDetails
     local scheduledEventDetails = { target = target, ammoCount = ammoCount, reloadTicks = reloadTicks, weaponPrototype = weaponPrototype, ammoPrototype = ammoPrototype }
     EventScheduler.ScheduleEventOnce(scheduleTick, "MalfunctioningWeapon.ApplyToPlayer", global.leakyFlamethrower.nextId, scheduledEventDetails)
@@ -170,7 +170,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
     end
 
     targetPlayer.driving = false
-    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponPrototype.name, true, true, data.ammoPrototype.name) ---@cast removedWeaponDetails - nil @ removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equipped (not allowing it to go in to the player's inventory).
+    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponPrototype.name, true, true, data.ammoPrototype.name) ---@cast removedWeaponDetails - nil # removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equipped (not allowing it to go in to the player's inventory).
 
     if flamethrowerGiven == nil then
         CommandsUtils.LogPrintError(commandName, nil, "target player can't be given a flamethrower for some odd reason: " .. data.target, nil)
@@ -218,7 +218,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
 
     local startingAngle = math.random(0, 360)
 
-    local ammoType = data.ammoPrototype.get_ammo_type("player") --[[@as AmmoType @ We've already validated this is of type ammo.]]
+    local ammoType = data.ammoPrototype.get_ammo_type("player") --[[@as AmmoType # We've already validated this is of type ammo.]]
     local minRange, maxRange, cooldown = PlayerWeapon.GetWeaponAmmoDetails(ammoType, data.weaponPrototype)
     local startingDistance = MathUtils.GetRandomDoubleInRange(minRange, maxRange)
     local cooldownTicks = math.max(MathUtils.RoundNumberToDecimalPlaces(cooldown, 0), 1) --[[@as uint]]
@@ -354,7 +354,7 @@ end
 --- Called when the effect has been stopped and the effects state and weapon changes should be undone.
 --- Called when the player is alive or if they have died before their character has been affected.
 ---@param playerIndex uint
----@param player LuaPlayer|nil @ Obtained if needed and not provided.
+---@param player LuaPlayer|nil # Obtained if needed and not provided.
 ---@param status MalfunctioningWeapon_EffectEndStatus
 MalfunctioningWeapon.StopEffectOnPlayer = function(playerIndex, player, status)
     local affectedPlayer = global.leakyFlamethrower.affectedPlayers[playerIndex]
@@ -405,7 +405,7 @@ end
 --- Gets the permission group for this feature. Will create it if needed.
 ---@return LuaPermissionGroup
 MalfunctioningWeapon.GetOrCreatePermissionGroup = function()
-    local group = game.permissions.get_group("MalfunctioningWeapon") or game.permissions.create_group("MalfunctioningWeapon") ---@cast group - nil @ Script always has permission to create groups.
+    local group = game.permissions.get_group("MalfunctioningWeapon") or game.permissions.create_group("MalfunctioningWeapon") ---@cast group - nil # Script always has permission to create groups.
     group.set_allows_action(defines.input_action.select_next_valid_gun, false)
     group.set_allows_action(defines.input_action.toggle_driving, false)
     group.set_allows_action(defines.input_action.change_shooting_state, false)
