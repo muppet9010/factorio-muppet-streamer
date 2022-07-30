@@ -85,12 +85,12 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         end
         local customExplosivePrototype = game.entity_prototypes[customExplosiveType_string]
         if customExplosivePrototype == nil then
-            CommandsUtils.LogPrintError(commandName, "customExplosiveType", "customExplosiveType wasn't a valid entity name", command.parameter)
+            CommandsUtils.LogPrintError(commandName, "customExplosiveType", "entity '" .. customExplosiveType_string .. "' wasn't a valid entity name", command.parameter)
             return
         end
         local customExplosivePrototype_type = customExplosivePrototype.type
         if customExplosivePrototype_type ~= 'projectile' and customExplosivePrototype_type ~= 'stream' then
-            CommandsUtils.LogPrintError(commandName, "customExplosiveType", "customExplosiveType wasn't a projectile or stream entity type, instead it was a type: " .. tostring(customExplosivePrototype_type), command.parameter)
+            CommandsUtils.LogPrintError(commandName, "customExplosiveType", "entity '" .. customExplosiveType_string .. "' wasn't a projectile or stream entity type, instead it was a type: " .. tostring(customExplosivePrototype_type), command.parameter)
             return
         end
         explosivePrototype_name = customExplosiveType_string
@@ -110,9 +110,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             }
         end
     end
-    local explosivePrototype = game.entity_prototypes[explosivePrototype_name]
-    if explosivePrototype == nil or explosivePrototype.type ~= explosiveType.type then
-        CommandsUtils.LogPrintError(commandName, nil, "tried to use explosive type '" .. tostring(explosiveType_string) .. "', but entity name '" .. tostring(explosivePrototype_name) .. "' doesn't exist in this save.", command.parameter)
+    local explosivePrototype = Common.GetBaseGameEntityByName(explosivePrototype_name, explosiveType.type, commandName, command.parameter)
+    if explosivePrototype == nil then
         return
     end
 

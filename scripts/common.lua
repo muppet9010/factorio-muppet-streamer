@@ -163,4 +163,80 @@ Common.GetEntityPrototypeFromCommandArgument = function(entityName, entityType, 
     return entityPrototype, true
 end
 
+--- Gets a LuaEntity by name and checks it is the right type. Raises any error messages required.
+---@param entityName string # The entity to get by name
+---@param expectedEntityType? string|string[]|nil # The type this entity must be, singular or a list (by value).
+---@param commandName string # Used for error messages.
+---@param commandString? string|nil # Used for error messages.
+---@return LuaEntityPrototype|nil entityPrototype # nil return means its invalid.
+Common.GetBaseGameEntityByName = function(entityName, expectedEntityType, commandName, commandString)
+    local entityPrototype = game.entity_prototypes[entityName]
+    if entityPrototype == nil then
+        CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. entityName .. "' entity, but it doesn't exist in this save.", commandString)
+        return nil
+    end
+
+    if expectedEntityType ~= nil then
+        if type(expectedEntityType) == "string" then
+            if entityPrototype.type ~= expectedEntityType then
+                CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. entityName .. "' entity, but it isn't type '" .. expectedEntityType .. "'.", commandString)
+                return nil
+            end
+        elseif type(expectedEntityType) == "table" then
+            local entityPrototype_type = entityPrototype.type
+            local aValidType = false
+            for _, thisExpectedEntityType in pairs(expectedEntityType) do
+                if entityPrototype_type ~= thisExpectedEntityType then
+                    aValidType = true
+                    break
+                end
+            end
+            if not aValidType then
+                CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. entityName .. "' entity, but it isn't type '" .. expectedEntityType .. "'.", commandString)
+                return nil
+            end
+        end
+    end
+
+    return entityPrototype
+end
+
+--- Gets a LuaItem by name and checks it is the right type. Raises any error messages required.
+---@param itemName string # The item to get by name
+---@param expectedItemType? string|string[]|nil # The type this item must be, singular or a list (by value).
+---@param commandName string # Used for error messages.
+---@param commandString? string|nil # Used for error messages.
+---@return LuaItemPrototype|nil itemPrototype # nil return means its invalid.
+Common.GetBaseGameItemByName = function(itemName, expectedItemType, commandName, commandString)
+    local itemPrototype = game.item_prototypes[itemName]
+    if itemPrototype == nil then
+        CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. itemName .. "' item, but it doesn't exist in this save.", commandString)
+        return nil
+    end
+
+    if expectedItemType ~= nil then
+        if type(expectedItemType) == "string" then
+            if itemPrototype.type ~= expectedItemType then
+                CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. itemName .. "' item, but it isn't type '" .. expectedItemType .. "'.", commandString)
+                return nil
+            end
+        elseif type(expectedItemType) == "table" then
+            local itemPrototype_type = itemPrototype.type
+            local aValidType = false
+            for _, thisExpectedItemType in pairs(expectedItemType) do
+                if itemPrototype_type ~= thisExpectedItemType then
+                    aValidType = true
+                    break
+                end
+            end
+            if not aValidType then
+                CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. itemName .. "' item, but it isn't type '" .. expectedItemType .. "'.", commandString)
+                return nil
+            end
+        end
+    end
+
+    return itemPrototype
+end
+
 return Common

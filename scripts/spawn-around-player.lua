@@ -14,7 +14,7 @@ local ExistingEntitiesTypes = {
 
 ---@class SpawnAroundPlayer_ScheduledDetails
 ---@field target string
----@field entityName string
+---@field entityTypeDetails SpawnAroundPlayer_EntityTypeDetails
 ---@field radiusMax uint
 ---@field radiusMin uint
 ---@field existingEntities SpawnAroundPlayer_ExistingEntities
@@ -27,7 +27,8 @@ local ExistingEntitiesTypes = {
 ---@alias SpawnAroundPlayer_EntityTypes table<string, SpawnAroundPlayer_EntityTypeDetails>
 
 ---@class SpawnAroundPlayer_EntityTypeDetails
----@field GetEntityName fun(surface: LuaSurface, position: MapPosition): string
+---@field ValidateEntityPrototypes fun(commandString?: string|nil): boolean # Checks that the LuaEntity for the entityName is as we expect; exists and correct type.
+---@field GetEntityName fun(surface: LuaSurface, position: MapPosition): string|nil # Should normally return something, but some advanced features may not, i.e. getting tree for void tiles.
 ---@field GetEntityAlignedPosition fun(position: MapPosition): MapPosition
 ---@field FindValidPlacementPosition fun(surface: LuaSurface, entityName: string, position: MapPosition, searchRadius, double): MapPosition|nil
 ---@field PlaceEntity fun(data: SpawnAroundPlayer_PlaceEntityDetails) # No return or indication if it worked, its a try and forget.
@@ -94,10 +95,14 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         end
     end
 
-    local entityName = commandData.entityName
-    if not CommandsUtils.CheckStringArgument(entityName, true, commandName, "entityName", SpawnAroundPlayer.EntityTypeDetails, command.parameter) then
+    local creationName = commandData.entityName
+    if not CommandsUtils.CheckStringArgument(creationName, true, commandName, "entityName", SpawnAroundPlayer.EntityTypeDetails, command.parameter) then
         return
-    end ---@cast entityName string
+    end ---@cast creationName string
+    local entityTypeDetails = SpawnAroundPlayer.EntityTypeDetails[creationName]
+    if not entityTypeDetails.ValidateEntityPrototypes(command.parameter) then
+        return
+    end
 
     local radiusMax = commandData.radiusMax
     if not CommandsUtils.CheckNumberArgument(radiusMax, "int", true, commandName, "radiusMax", 0, MathUtils.uintMax, command.parameter) then
@@ -145,7 +150,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1
     ---@type SpawnAroundPlayer_ScheduledDetails
-    local scheduledDetails = { target = target, entityName = entityName, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString }
+    local scheduledDetails = { target = target, entityTypeDetails = entityTypeDetails, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString }
     EventScheduler.ScheduleEventOnce(scheduleTick, "SpawnAroundPlayer.SpawnAroundPlayerScheduled", global.spawnAroundPlayer.nextId, scheduledDetails)
 end
 
@@ -158,8 +163,10 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
         CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
-    local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0
-    local entityTypeDetails = SpawnAroundPlayer.EntityTypeDetails[data.entityName]
+    local targetPos, surface, followsLeft, entityTypeDetails = targetPlayer.position, targetPlayer.surface, 0, data.entityTypeDetails
+    if not entityTypeDetails.ValidateEntityPrototypes() then
+        return
+    end
     if data.followPlayer and entityTypeDetails.GetPlayersMaxBotFollowers ~= nil then
         followsLeft = entityTypeDetails.GetPlayersMaxBotFollowers(targetPlayer)
     end
@@ -282,6 +289,12 @@ end
 SpawnAroundPlayer.CombatBotEntityTypeDetails = function(setEntityName, canFollow)
     ---@type SpawnAroundPlayer_EntityTypeDetails
     local entityTypeDetails = {
+        ValidateEntityPrototypes = function(commandString)
+            if Common.GetBaseGameEntityByName(setEntityName, "combat-robot", commandName, commandString) == nil then
+                return false
+            end
+            return true
+        end,
         GetEntityName = function()
             return setEntityName
         end,
@@ -315,6 +328,15 @@ end
 SpawnAroundPlayer.AmmoGunTurretEntityTypeDetails = function(ammoName)
     ---@type SpawnAroundPlayer_EntityTypeDetails
     local entityTypeDetails = {
+        ValidateEntityPrototypes = function(commandString)
+            if Common.GetBaseGameEntityByName("gun-turret", "ammo-turret", commandName, commandString) == nil then
+                return false
+            end
+            if Common.GetBaseGameItemByName(ammoName, "ammo", commandName, commandString) == nil then
+                return false
+            end
+            return true
+        end,
         GetEntityName = function()
             return "gun-turret"
         end,
@@ -340,6 +362,10 @@ end
 ---@type SpawnAroundPlayer_EntityTypes
 SpawnAroundPlayer.EntityTypeDetails = {
     tree = {
+        ValidateEntityPrototypes = function()
+            -- The BiomeTrees ensures it only returns valid trees and it will always find something, so nothing needs checking.
+            return true
+        end,
         GetEntityName = function(surface, position)
             return BiomeTrees.GetBiomeTreeName(surface, position)
         end,
@@ -356,6 +382,18 @@ SpawnAroundPlayer.EntityTypeDetails = {
         end
     },
     rock = {
+        ValidateEntityPrototypes = function(commandString)
+            if Common.GetBaseGameEntityByName("rock-huge", "simple-entity", commandName, commandString) == nil then
+                return false
+            end
+            if Common.GetBaseGameEntityByName("rock-big", "simple-entity", commandName, commandString) == nil then
+                return false
+            end
+            if Common.GetBaseGameEntityByName("sand-rock-big", "simple-entity", commandName, commandString) == nil then
+                return false
+            end
+            return true
+        end,
         GetEntityName = function()
             local random = math.random()
             if random < 0.2 then
@@ -379,6 +417,12 @@ SpawnAroundPlayer.EntityTypeDetails = {
         end
     },
     laserTurret = {
+        ValidateEntityPrototypes = function(commandString)
+            if Common.GetBaseGameEntityByName("laser-turret", "electric-turret", commandName, commandString) == nil then
+                return false
+            end
+            return true
+        end,
         GetEntityName = function()
             return "laser-turret"
         end,
@@ -398,6 +442,12 @@ SpawnAroundPlayer.EntityTypeDetails = {
     gunTurretPiercingAmmo = SpawnAroundPlayer.AmmoGunTurretEntityTypeDetails("piercing-rounds-magazine"),
     gunTurretUraniumAmmo = SpawnAroundPlayer.AmmoGunTurretEntityTypeDetails("uranium-rounds-magazine"),
     wall = {
+        ValidateEntityPrototypes = function(commandString)
+            if Common.GetBaseGameEntityByName("stone-wall", "wall", commandName, commandString) == nil then
+                return false
+            end
+            return true
+        end,
         GetEntityName = function()
             return "stone-wall"
         end,
@@ -414,6 +464,12 @@ SpawnAroundPlayer.EntityTypeDetails = {
         end
     },
     landmine = {
+        ValidateEntityPrototypes = function(commandString)
+            if Common.GetBaseGameEntityByName("land-mine", "land-mine", commandName, commandString) == nil then
+                return false
+            end
+            return true
+        end,
         GetEntityName = function()
             return "land-mine"
         end,
@@ -430,6 +486,12 @@ SpawnAroundPlayer.EntityTypeDetails = {
         end
     },
     fire = {
+        ValidateEntityPrototypes = function(commandString)
+            if Common.GetBaseGameEntityByName("fire-flame", "fire", commandName, commandString) == nil then
+                return false
+            end
+            return true
+        end,
         GetEntityName = function()
             return "fire-flame"
         end,

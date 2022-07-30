@@ -59,7 +59,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
     - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
     - salvoDelay: INTEGER - Optional: use with salvoSize. Sets the delay between salvo deliveries in game ticks (60 ticks = 1 second). Each salvo will target the same player position and not re-target the player's new position.
 - Example command atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
-- Example command grenades: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
+- Example command grenades around player: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
 - Example command offset grenade: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"grenade", "target":"muppet9010", "targetOffset":{"x":10,"y":10}}`
 - Example command large count of atomic rockets using salvo and delay: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":50, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50, "salvoSize":10, "salvoDelay":300}`
 - Example command for custom type: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":5, "explosiveType":"custom", "target":"muppet9010", "customExplosiveType":"cannon-projectile", "customExplosiveSpeed":1, "accuracyRadiusMax":10}`
@@ -143,9 +143,9 @@ Spawns entities in the game around the named player on their side. Includes both
 	- density: DECIMAL - Mandatory Special: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities. Either `quantity` or `density` must be supplied.
     - ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets it's the ammo count and ammo over the turrets max storage is ignored. For fire it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
     - followPlayer: BOOLEAN - Optional: if true the entities that are able to follow the player will do. If false they will be unmanaged. Some entities like defender combat bots have a maximum follower number, and so those beyond this limit will just be placed in the desired area.
-- Example command tree ring: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.7}`
+- Example command tree ring: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.5}`
 - Example command gun turrets with small delay: `/muppet_streamer_spawn_around_player {"delay":1, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount":10}`
-- Example command fires spread out: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density": 0.05, "ammoCount": 100}`
+- Example command spread out fires: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density": 0.05, "ammoCount": 100}`
 - Example command combat robots: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"defenderBot", "radiusMax":10, "radiusMin":10, "existingEntities":"overlap", "quantity": 20, "followPlayer": true}`
 
 Notes:

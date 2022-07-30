@@ -113,9 +113,8 @@ PantsOnFire.PantsOnFireCommand = function(command)
     if not valid then return end
     if firePrototype == nil then
         -- No custom weapon set, so use the base game weapon and confirm its valid.
-        firePrototype = game.entity_prototypes["fire-flame"]
-        if firePrototype == nil or firePrototype.type ~= "fire" then
-            CommandsUtils.LogPrintError(commandName, nil, "tried to use base game 'fire-flame' fire entity, but it doesn't exist in this save.", command.parameter)
+        firePrototype = Common.GetBaseGameEntityByName("fire-flame", "fire", commandName, command.parameter)
+        if firePrototype == nil then
             return
         end
     end
