@@ -33,7 +33,7 @@ end
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
----@param recordToModLog? boolean|nil @ Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
+---@param recordToModLog? boolean|nil # Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
 LoggingUtils.LogPrintError = function(text, recordToModLog)
     if game ~= nil then
         game.print(tostring(text), Colors.errorMessage)
@@ -48,7 +48,7 @@ end
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
----@param recordToModLog? boolean|nil @ Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
+---@param recordToModLog? boolean|nil # Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
 LoggingUtils.LogPrintWarning = function(text, recordToModLog)
     if game ~= nil then
         game.print(tostring(text), Colors.warningMessage)
@@ -63,9 +63,9 @@ end
 --- For use in bespoke situations (and pre LogPrintError).
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
----@param enabled? boolean|nil @ Defaults to True. Allows code to not require lots of `if` in calling functions.
----@param textColor? Color|nil @ Defaults to Factorio white.
----@param recordToModLog? boolean|nil @ Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
+---@param enabled? boolean|nil # Defaults to True. Allows code to not require lots of `if` in calling functions.
+---@param textColor? Color|nil # Defaults to Factorio white.
+---@param recordToModLog? boolean|nil # Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
 LoggingUtils.LogPrint = function(text, enabled, textColor, recordToModLog)
     if enabled ~= nil and not enabled then
         return
@@ -84,7 +84,7 @@ end
 --- If in data stage can't write to mod's custom log file.
 ---@param text string
 ---@param writeToScreen boolean
----@param enabled? boolean|nil @ Defaults to True.
+---@param enabled? boolean|nil # Defaults to True.
 LoggingUtils.ModLog = function(text, writeToScreen, enabled)
     if enabled ~= nil and not enabled then
         return
@@ -114,7 +114,7 @@ LoggingUtils._RecordToModsLog = function(text)
     game.write_file(Constants.LogFileName, tostring(text) .. "\r\n", true)
 end
 
--- Runs the function in a wrapper that will log detailed infromation should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.
+-- Runs the function in a wrapper that will log detailed information should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.
 -- CODE NOTE: JustARandomGeek doesn't believe that the ".instrument" check is needed for the control hook and the presence of the __DebugAdapter variable is enough. Check if this function is used ever again.
 ---@param functionRef function,
 ---@param ... any
@@ -128,7 +128,7 @@ LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
         return
     end
 
-    local args = {...} ---@type any[]
+    local args = { ... } ---@type any[]
 
     -- Is in debug mode so catch any errors and log state data.
     -- Only produces correct stack traces in regular Factorio, not in debugger as this adds extra lines to the stacktrace.
@@ -178,15 +178,15 @@ LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
 end
 
 -- Used to make a text object of something's attributes that can be stringified. Supports LuaObjects with handling for specific ones.
----@param thing any @ can be a simple data type, table, or LuaObject.
----@param _tablesLogged? table<any, string>|nil @ don't pass in, only used internally when self referencing the function for looping.
+---@param thing any # can be a simple data type, table, or LuaObject.
+---@param _tablesLogged? table<any, string>|nil # don't pass in, only used internally when self referencing the function for looping.
 ---@return table
 LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
     _tablesLogged = _tablesLogged or {} -- Internal variable passed when self referencing to avoid loops.
 
     -- Simple values just get returned.
     if type(thing) ~= "table" then
-        return {LITERAL_VALUE = thing}
+        return { LITERAL_VALUE = thing }
     end ---@cast thing table
 
     -- Handle specific Factorio Lua objects
@@ -272,7 +272,7 @@ LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
     return returnedSafeTable
 end
 
---- Writes out sequential numbers at the set position. Used as a visial debugging tool.
+--- Writes out sequential numbers at the set position. Used as a visual debugging tool.
 ---@param targetSurfaceIdentification SurfaceIdentification
 ---@param targetPosition LuaEntity|MapPosition
 LoggingUtils.WriteOutNumberedMarker = function(targetSurfaceIdentification, targetPosition)
@@ -281,7 +281,7 @@ LoggingUtils.WriteOutNumberedMarker = function(targetSurfaceIdentification, targ
         text = global.UtilityLogging_NumberedCount,
         surface = targetSurfaceIdentification,
         target = targetPosition,
-        color = {r = 1.0, g = 0.0, b = 0.0, a = 1.0},
+        color = { r = 1.0, g = 0.0, b = 0.0, a = 1.0 },
         scale_with_zoom = true,
         alignment = "center",
         vertical_alignment = "bottom"
@@ -289,7 +289,7 @@ LoggingUtils.WriteOutNumberedMarker = function(targetSurfaceIdentification, targ
     global.UtilityLogging_NumberedCount = global.UtilityLogging_NumberedCount + 1
 end
 
---- Writes out sequential numbers at the SurfacePositionString. Used as a visial debugging tool.
+--- Writes out sequential numbers at the SurfacePositionString. Used as a visual debugging tool.
 ---@param targetSurfacePositionString SurfacePositionString
 LoggingUtils.WriteOutNumberedMarkerForSurfacePositionString = function(targetSurfacePositionString)
     local tempSurfaceId, tempPos = StringUtils.SurfacePositionStringToSurfaceAndPosition(targetSurfacePositionString)
@@ -306,7 +306,7 @@ end
 
 ---@param errorMessage string
 LoggingUtils._RunFunctionAndCatchErrors_ErrorHandlerFunction = function(errorMessage)
-    local errorObject = {message = errorMessage, stacktrace = debug.traceback()}
+    local errorObject = { message = errorMessage, stacktrace = debug.traceback() }
     return errorObject
 end
 

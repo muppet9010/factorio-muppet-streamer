@@ -1,6 +1,6 @@
 {
     "name": "muppet_streamer",
-    "version": "20.1.25",
+    "version": "20.1.26",
     "title": "Muppet Streamer",
     "author": "Muppet9010",
     "contact": "",
@@ -9,5 +9,5 @@
     "dependencies": [
         "base >= 1.1.57"
     ],
-    "description": "Adds actions that a streamer can let chat activate to make their games more dynamic and interactive."
+    "description": "Features that a streamer can let chat activate to make their games more dynamic and interactive."
 }

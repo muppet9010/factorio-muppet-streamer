@@ -25,7 +25,7 @@ DirectionUtils.RotateDirectionByDirection = function(directionToRotate, referenc
     end
 end
 
---- Takes an orientation (0-1) and returns the nerest direction (int 0-7).
+--- Takes an orientation (0-1) and returns the nearest direction (int 0-7).
 ---
 --- Should be done locally if called frequently.
 ---@param orientation RealOrientation
@@ -42,7 +42,7 @@ DirectionUtils.OrientationToNearestDirection = function(orientation)
     end
 end
 
---- Takes an orientation (0-1) and returns the nerest cardinal direction (int 0,2,4,6).
+--- Takes an orientation (0-1) and returns the nearest cardinal direction (int 0,2,4,6).
 ---
 --- Should be done locally if called frequently.
 ---@param orientation RealOrientation
@@ -65,7 +65,7 @@ end
 ---@param directionValue defines.direction
 ---@return RealOrientation
 DirectionUtils.DirectionToOrientation = function(directionValue)
-    return directionValue / 8
+    return directionValue / 8 --[[@as RealOrientation]]
 end
 
 --- A dictionary of directionValue key's (0-7) to their direction name (label's of defines.direction).
@@ -81,7 +81,7 @@ DirectionUtils.DirectionValueToName = {
 }
 
 --- Takes a direction input value and if it's greater/less than the allowed orientation range it loops it back within the range.
----@param directionValue defines.direction @ A number from 0-7.
+---@param directionValue defines.direction # A number from 0-7.
 ---@return defines.direction
 DirectionUtils.LoopDirectionValue = function(directionValue)
     -- Hard coded copy of MathUtils.LoopIntValueWithinRange().
@@ -102,9 +102,9 @@ end
 DirectionUtils.LoopOrientationValue = function(orientationValue)
     -- Hard coded copy of MathUtils.LoopFloatValueWithinRangeMaxExclusive().
     if orientationValue >= 1 then
-        return -1 + orientationValue
+        return orientationValue - math.floor(orientationValue) --[[@as RealOrientation]]
     elseif orientationValue < 0 then
-        return 1 + orientationValue
+        return orientationValue - math.ceil(orientationValue) --[[@as RealOrientation]]
     else
         return orientationValue
     end
@@ -113,7 +113,7 @@ end
 --- Get a direction heading from a start point to an end point that is a on an exact cardinal direction.
 ---@param startPos MapPosition
 ---@param endPos MapPosition
----@return defines.direction|-1|-2 @ Returns -1 if the startPos and endPos are the same. Returns -2 if the positions not on a cardinal direction difference.
+---@return defines.direction|-1|-2 # Returns -1 if the startPos and endPos are the same. Returns -2 if the positions not on a cardinal direction difference.
 DirectionUtils.GetCardinalDirectionHeadingToPosition = function(startPos, endPos)
     if startPos.x == endPos.x then
         if startPos.y > endPos.y then

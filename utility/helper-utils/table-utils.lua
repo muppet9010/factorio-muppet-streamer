@@ -6,16 +6,18 @@
 local TableUtils = {} ---@class Utility_TableUtils
 local string_rep = string.rep
 
+-- csSpell:ignore deepcopy # Ignore in this file, but don't add as shouldn't be seen outside theis reference.
+
 --- Copies a table and all of its children all the way down.
 --- Based on code from Factorio "__core__.lualib.util.lua", table.deepcopy().
----@param object table @ The object to copy.
+---@param object table # The object to copy.
 ---@return table
 TableUtils.DeepCopy = function(object)
     local lookup_table = {} ---@type table<any, any>
     return TableUtils._DeepCopy_InnerCopy(object, lookup_table)
 end
 
---- Takes an array of tables and returns a new table with copies of their contents. Merges children when they are tables togeather, but non table data types will have the latest value as the result.
+--- Takes an array of tables and returns a new table with copies of their contents. Merges children when they are tables together, but non table data types will have the latest value as the result.
 --- Based on code from Factorio "__core__.lualib.util.lua", util.merge().
 ---@param tables table<any, any>[]
 ---@return table mergedTable
@@ -25,7 +27,7 @@ TableUtils.TableMergeCopies = function(tables)
         for k, v in pairs(table) do
             if (type(v) == "table") then
                 if (type(ret[k] or false) == "table") then
-                    ret[k] = TableUtils.TableMergeCopies {ret[k], v}
+                    ret[k] = TableUtils.TableMergeCopies { ret[k], v }
                 else
                     ret[k] = TableUtils.DeepCopy(v)
                 end
@@ -40,7 +42,7 @@ end
 --- Takes an array of tables and returns a new table with references to their top level contents. Does a shallow merge, so just the top level key/values. Last duplicate key's value processed will be the final result.
 ---@param sourceTables table<any,any>[]
 ---@return table mergedTable
-TableUtils.TableMergeOrigionalsShallow = function(sourceTables)
+TableUtils.TableMergeOriginalsShallow = function(sourceTables)
     local mergedTable = {} ---@type table<any, any>
     for _, sourceTable in pairs(sourceTables) do
         for k in pairs(sourceTable) do
@@ -124,8 +126,8 @@ TableUtils.TableKeyToArray = function(aTable)
     return newArray
 end
 
---- Makes a comma seperated text string from a table's keys. Includes spaces after each comma.
----@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.
+--- Makes a comma separated text string from a table's keys. Includes spaces after each comma.
+---@param aTable table<any,any> # doesn't support commas in values or nested tables. Really for logging.
 ---@return string
 TableUtils.TableKeyToCommaString = function(aTable)
     local newString
@@ -142,8 +144,8 @@ TableUtils.TableKeyToCommaString = function(aTable)
     return newString
 end
 
---- Makes a comma seperated text string from a table's values. Includes spaces after each comma.
----@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.
+--- Makes a comma separated text string from a table's values. Includes spaces after each comma.
+---@param aTable table<any,any> # doesn't support commas in values or nested tables. Really for logging.
 ---@return string
 TableUtils.TableValueToCommaString = function(aTable)
     local newString
@@ -163,7 +165,7 @@ end
 --- Makes a numbered text string from a table's keys with the keys wrapped in single quotes.
 ---
 --- i.e. 1: 'firstKey', 2: 'secondKey'
----@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.t
+---@param aTable table<any,any> # doesn't support commas in values or nested tables. Really for logging.t
 ---@return string
 TableUtils.TableKeyToNumberedListString = function(aTable)
     local newString
@@ -185,7 +187,7 @@ end
 --- Makes a numbered text string from a table's values with the values wrapped in single quotes.
 ---
 --- i.e. 1: 'firstValue', 2: 'secondValue'
----@param aTable table<any,any> @ doesn't support commas in values or nested tables. Really for logging.t
+---@param aTable table<any,any> # doesn't support commas in values or nested tables. Really for logging.t
 ---@return string
 TableUtils.TableValueToNumberedListString = function(aTable)
     local newString
@@ -205,8 +207,8 @@ end
 
 -- Stringify a table in to a JSON text string. Options to make it pretty printable.
 ---@param targetTable table
----@param name? string|nil @ If provided will appear as a "name:JSONData" output.
----@param singleLineOutput? boolean|nil @ If provided and true removes all lines and spacing from the output.
+---@param name? string|nil # If provided will appear as a "name:JSONData" output.
+---@param singleLineOutput? boolean|nil # If provided and true removes all lines and spacing from the output.
 ---@return string
 TableUtils.TableContentsToJSON = function(targetTable, name, singleLineOutput)
     singleLineOutput = singleLineOutput or false
@@ -216,9 +218,9 @@ end
 
 --- Searches a table of values for a specific value and returns the key(s) of that entry.
 ---@param theTable table<any,any>
----@param value string|number|string|number[] @ Either a single value or an array of possible values.
----@param returnMultipleResults? boolean|nil @ Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
----@return string|number[] @ table of keys.
+---@param value string|number|string|number[] # Either a single value or an array of possible values.
+---@param returnMultipleResults? boolean|nil # Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
+---@return string|number[] # table of keys.
 TableUtils.GetTableKeyWithValue = function(theTable, value, returnMultipleResults)
     local keysFound = {}
     for k, v in pairs(theTable) do
@@ -246,9 +248,9 @@ end
 --- Searches a table of tables and looks inside the inner table at a specific key for a specific value and returns the key(s) of the outer table entry.
 ---@param theTable table<any,any>
 ---@param innerKey string|number
----@param innerValue string|number|string|number[] @ Either a single value or an array of possible values.
----@param returnMultipleResults? boolean|nil @ Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
----@return string|number[] @ table of keys.
+---@param innerValue string|number|string|number[] # Either a single value or an array of possible values.
+---@param returnMultipleResults? boolean|nil # Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
+---@return string|number[] # table of keys.
 TableUtils.GetTableKeyWithInnerKeyValue = function(theTable, innerKey, innerValue, returnMultipleResults)
     local keysFound = {}
     for k, innerTable in pairs(theTable) do
@@ -276,9 +278,9 @@ end
 --- Searches a table of tables and looks inside the inner table at a specific key for a specific value(s) and returns the value(s) of the outer table entry.
 ---@param theTable table<any,any>
 ---@param innerKey string|number
----@param innerValue string|number|string|number[] @ Either a single value or an array of possible values.
----@param returnMultipleResults? boolean|nil @ Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
----@return table[] @ table of values, which must be a table to have an inner key/value.
+---@param innerValue string|number|string|number[] # Either a single value or an array of possible values.
+---@param returnMultipleResults? boolean|nil # Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
+---@return table[] # table of values, which must be a table to have an inner key/value.
 TableUtils.GetTableValueWithInnerKeyValue = function(theTable, innerKey, innerValue, returnMultipleResults)
     local valuesFound = {}
     for _, innerTable in pairs(theTable) do
@@ -307,7 +309,7 @@ end
 ---
 --- Useful for converting a list in to dictionary of the list items.
 ---@param tableWithValues table<any,any>|nil
----@return table|nil tableOfKeys @ Returns nil when nil is passed in.
+---@return table|nil tableOfKeys # Returns nil when nil is passed in.
 TableUtils.TableValuesToKey = function(tableWithValues)
     if tableWithValues == nil then
         return nil
@@ -340,7 +342,7 @@ end
 --                          PRIVATE FUNCTIONS
 ----------------------------------------------------------------------------------
 
---- Inner looping of DeepCopy. Kept as seperate function as then its a copy of Factorio core utils.
+--- Inner looping of DeepCopy. Kept as separate function as then its a copy of Factorio core utils.
 ---@param object any
 ---@param lookup_table table<any, any>
 ---@return any
@@ -363,18 +365,18 @@ end
 
 --- Inner looping of TableContentsToJSON.
 ---@param targetTable table<any, any>
----@param name? string|nil @ If provided will appear as a "name:JSONData" output.
+---@param name? string|nil # If provided will appear as a "name:JSONData" output.
 ---@param singleLineOutput boolean
 ---@param tablesLogged table<any, any>
----@param indent uint @ Pass a default of 1 on initial calling.
----@param stopTraversing boolean @ Pass a default of false on initial calling.
+---@param indent uint # Pass a default of 1 on initial calling.
+---@param stopTraversing boolean # Pass a default of false on initial calling.
 ---@return string
 TableUtils._TableContentsToJSON = function(targetTable, name, singleLineOutput, tablesLogged, indent, stopTraversing)
     local newLineCharacter = "\r\n"
-    local indentstring = string_rep(" ", (indent * 4))
+    local indentString = string_rep(" ", (indent * 4))
     if singleLineOutput then
         newLineCharacter = ""
-        indentstring = ""
+        indentString = ""
     end
     tablesLogged[targetTable] = "logged"
     local table_contents = ""
@@ -393,7 +395,7 @@ TableUtils._TableContentsToJSON = function(targetTable, name, singleLineOutput, 
                     if tablesLogged[k] ~= nil then
                         subStopTraversing = true
                     end
-                    key = "{" .. newLineCharacter .. TableUtils._TableContentsToJSON(k, name, singleLineOutput, tablesLogged, indent + 1, subStopTraversing) .. newLineCharacter .. indentstring .. "}"
+                    key = "{" .. newLineCharacter .. TableUtils._TableContentsToJSON(k, name, singleLineOutput, tablesLogged, indent + 1, subStopTraversing) .. newLineCharacter .. indentString .. "}"
                 end
             elseif type(k) == "function" then
                 key = '"' .. tostring(k) .. '"'
@@ -414,7 +416,7 @@ TableUtils._TableContentsToJSON = function(targetTable, name, singleLineOutput, 
                     if tablesLogged[v] ~= nil then
                         subStopTraversing = true
                     end
-                    value = "{" .. newLineCharacter .. TableUtils._TableContentsToJSON(v, name, singleLineOutput, tablesLogged, indent + 1, subStopTraversing) .. newLineCharacter .. indentstring .. "}"
+                    value = "{" .. newLineCharacter .. TableUtils._TableContentsToJSON(v, name, singleLineOutput, tablesLogged, indent + 1, subStopTraversing) .. newLineCharacter .. indentString .. "}"
                 end
             elseif type(v) == "function" then
                 value = '"' .. tostring(v) .. '"'
@@ -424,10 +426,10 @@ TableUtils._TableContentsToJSON = function(targetTable, name, singleLineOutput, 
             if table_contents ~= "" then
                 table_contents = table_contents .. "," .. newLineCharacter
             end
-            table_contents = table_contents .. indentstring .. tostring(key) .. ":" .. tostring(value)
+            table_contents = table_contents .. indentString .. tostring(key) .. ":" .. tostring(value)
         end
     else
-        table_contents = indentstring .. ""
+        table_contents = indentString .. ""
     end
     if indent == 1 then
         local resultString = ""

@@ -4,23 +4,19 @@
 --
 
 local MathUtils = {} ---@class Utility_MathUtils
-local math_min, math_max, math_floor, math_random, math_exp = math.min, math.max, math.floor, math.random, math.exp
+local math_min, math_max, math_floor, math_random = math.min, math.max, math.floor, math.random
 
-MathUtils.LogisticEquation = function(index, height, steepness)
-    return height / (1 + math_exp(steepness * (index - 0)))
-end
-
-MathUtils.ExponentialDecayEquation = function(index, multiplier, scale)
-    return multiplier * math_exp(-index * scale)
-end
-
-MathUtils.RoundNumberToDecimalPlaces = function(num, numDecimalPlaces)
+--- Round the value to the given number of decimal places.
+---@param value double
+---@param numberOfDecimalPlaces uint
+---@return double
+MathUtils.RoundNumberToDecimalPlaces = function(value, numberOfDecimalPlaces)
     local result
-    if numDecimalPlaces ~= nil and numDecimalPlaces > 0 then
-        local mult = 10 ^ numDecimalPlaces
-        result = math_floor(num * mult + 0.5) / mult
+    if numberOfDecimalPlaces ~= nil and numberOfDecimalPlaces > 0 then
+        local multiplier = 10 ^ numberOfDecimalPlaces
+        result = math_floor((value * multiplier) + 0.5) / multiplier
     else
-        result = math_floor(num + 0.5)
+        result = math_floor(value + 0.5)
     end
     if result ~= result then
         -- Result is NaN so set it to 0.
@@ -42,7 +38,7 @@ MathUtils.IsNumberNan = function(value)
     end
 end
 
---- This steps through the ints with min and max being seperatee steps.
+--- This steps through the ints with min and max being separate steps.
 ---@param value int
 ---@param min int
 ---@param max int
@@ -72,7 +68,7 @@ MathUtils.LoopFloatValueWithinRange = function(value, min, max)
     end
 end
 
---- This treats the min and max values as equal when looping: max - 0.1, max/min, min + 0.1. But maxExclusive will give the minInclusive value. So maxExclsuive can never be returned.
+--- This treats the min and max values as equal when looping: max - 0.1, max/min, min + 0.1. But maxExclusive will give the minInclusive value. So maxExclusive can never be returned.
 ---
 --- Should be done locally if called frequently.
 ---@param value double
@@ -159,8 +155,8 @@ end
 
 --- Returns the passed in number clamped to within the range of an uint 64 (min 0), with optional additional min and max's applied.
 ---@param value int
----@param min? uint|nil
----@param max? uint|nil
+---@param min? uint64|nil
+---@param max? uint64|nil
 ---@return uint64 clampedValue
 ---@return boolean valueWasOutsideRange
 MathUtils.ClampToUInt64 = function(value, min, max)
@@ -176,8 +172,8 @@ end
 
 --- Returns the passed in number clamped to within the range of an uint 16 (min 0), with optional additional min and max's applied.
 ---@param value int
----@param min? uint|nil
----@param max? uint|nil
+---@param min? uint16|nil
+---@param max? uint16|nil
 ---@return uint16 clampedValue
 ---@return boolean valueWasOutsideRange
 MathUtils.ClampToUInt16 = function(value, min, max)
@@ -193,8 +189,8 @@ end
 
 --- Returns the passed in number clamped to within the range of an uint 8 (min 0), with optional additional min and max's applied.
 ---@param value int
----@param min? uint|nil
----@param max? uint|nil
+---@param min? uint8|nil
+---@param max? uint8|nil
 ---@return uint8 clampedValue
 ---@return boolean valueWasOutsideRange
 MathUtils.ClampToUInt8 = function(value, min, max)
@@ -225,46 +221,52 @@ MathUtils.ClampToFloat = function(value, min, max)
     end
 end
 
--- This doesn't guarentee correct on some of the edge cases, but is as close as possible assuming that 1/256 is the variance for the same number (Bilka, Dev on Discord)
-MathUtils.FuzzyCompareDoubles = function(num1, logic, num2)
-    local numDif = num1 - num2
+--- This doesn't guarantee correct on some of the edge cases, but is as close as possible assuming that 1/256 is the variance for the same number (Bilka, Dev on Discord)
+---@param value1 double
+---@param logic '='|'!='|'<'|'<='|'>'|'>='
+---@param value2 double
+---@return boolean
+MathUtils.FuzzyCompareDoubles = function(value1, logic, value2)
+    local valueDif = value1 - value2
     local variance = 1 / 256
     if logic == "=" then
-        if numDif < variance and numDif > -variance then
+        if valueDif < variance and valueDif > -variance then
             return true
         else
             return false
         end
     elseif logic == "!=" then
-        if numDif < variance and numDif > -variance then
+        if valueDif < variance and valueDif > -variance then
             return false
         else
             return true
         end
     elseif logic == ">" then
-        if numDif > variance then
+        if valueDif > variance then
             return true
         else
             return false
         end
     elseif logic == ">=" then
-        if numDif > -variance then
+        if valueDif > -variance then
             return true
         else
             return false
         end
     elseif logic == "<" then
-        if numDif < -variance then
+        if valueDif < -variance then
             return true
         else
             return false
         end
     elseif logic == "<=" then
-        if numDif < variance then
+        if valueDif < variance then
             return true
         else
             return false
         end
+    else
+        error("unsupported logic operator: " .. tostring(logic))
     end
 end
 
@@ -276,20 +278,20 @@ MathUtils.GetRandomDoubleInRange = function(lower, upper)
     return lower + math_random() * (upper - lower)
 end
 
-MathUtils.intMin = -2147483648 ---@type int @ 32bit -2,147,483,648
-MathUtils.intMax = 2147483647 ---@type int @ 32bit 2,147,483,647
-MathUtils.uintMax = 4294967295 ---@type uint @ 32bit 4,294,967,295
+MathUtils.intMin = -2147483648 ---@type int # 32bit -2,147,483,648
+MathUtils.intMax = 2147483647 ---@type int # 32bit 2,147,483,647
+MathUtils.uintMax = 4294967295 ---@type uint # 32bit 4,294,967,295
 MathUtils.floatMin = 1.17549e-038 ---@type float
 MathUtils.floatMax = 3.40282e+038 ---@type float
 MathUtils.doubleMin = 2.22507e-308 ---@type double
 MathUtils.doubleMax = 1.79769e+308 ---@type double
 MathUtils.int8Min = -128 ---@type int
 MathUtils.int8Max = 127 ---@type int
-MathUtils.int32Min = -2147483648 ---@type int @ -2,147,483,648
-MathUtils.int32Max = 2147483647 ---@type int @ 2,147,483,647
-MathUtils.uint64Max = 18446744073709551615 ---@type uint64 @ 18,446,744,073,709,551,615
-MathUtils.uint32Max = 4294967295 ---@type uint @ 4,294,967,295
-MathUtils.uint16Max = 65535 ---@type uint16 @ 65,535
+MathUtils.int32Min = -2147483648 ---@type int # -2,147,483,648
+MathUtils.int32Max = 2147483647 ---@type int # 2,147,483,647
+MathUtils.uint64Max = 18446744073709551615 ---@type uint64 # 18,446,744,073,709,551,615
+MathUtils.uint32Max = 4294967295 ---@type uint # 4,294,967,295
+MathUtils.uint16Max = 65535 ---@type uint16 # 65,535
 MathUtils.uint8Max = 255 ---@type uint8
 
 return MathUtils

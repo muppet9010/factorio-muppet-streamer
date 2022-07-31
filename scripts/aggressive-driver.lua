@@ -21,34 +21,36 @@ local EffectEndStatus = {
 }
 
 ---@class AggressiveDriver_DelayedCommandDetails
----@field target string @ Player's name.
----@field duration uint @ Ticks
+---@field target string # Player's name.
+---@field duration uint # Ticks
 ---@field control AggressiveDriver_ControlTypes
 ---@field teleportDistance double
 
 ---@class AggressiveDriver_DriveEachTickDetails
 ---@field player_index uint
 ---@field player LuaPlayer
----@field duration uint @ Ticks
+---@field duration uint # Ticks
 ---@field control AggressiveDriver_ControlTypes
----@field accelerationTicks uint @ How many ticks the vehicle has been trying to move in its current direction (forwards or backwards).
----@field accelerationState defines.riding.acceleration @ Should only ever be either accelerating or reversing.
----@field directionDurationTicks uint @ How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
----@field ridingDirection defines.riding.direction @ For if in a car or train vehicle.
----@field spiderDirection defines.direction @ Just for if in a spider vehicle.
+---@field accelerationTicks uint # How many ticks the vehicle has been trying to move in its current direction (forwards or backwards).
+---@field accelerationState defines.riding.acceleration # Should only ever be either accelerating or reversing.
+---@field directionDurationTicks uint # How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
+---@field ridingDirection defines.riding.direction # For if in a car or train vehicle.
+---@field spiderDirection defines.direction # Just for if in a spider vehicle.
 
 ---@class AggressiveDriver_SortedVehicleEntry
 ---@field distance double
 ---@field vehicle LuaEntity
 
+local commandName = "muppet_streamer_aggressive_driver"
+
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type uint
-    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, true> @ Key'd by player_index.
+    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, true> # Key'd by player_index.
 end
 
 AggressiveDriver.OnLoad = function()
-    CommandsUtils.Register("muppet_streamer_aggressive_driver", {"api-description.muppet_streamer_aggressive_driver"}, AggressiveDriver.AggressiveDriverCommand, true)
+    CommandsUtils.Register("muppet_streamer_aggressive_driver", { "api-description.muppet_streamer_aggressive_driver" }, AggressiveDriver.AggressiveDriverCommand, true)
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "AggressiveDriver.OnPrePlayerDied", AggressiveDriver.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.Drive", AggressiveDriver.Drive)
     EventScheduler.RegisterScheduledEventType("AggressiveDriver.ApplyToPlayer", AggressiveDriver.ApplyToPlayer)
@@ -56,15 +58,13 @@ AggressiveDriver.OnLoad = function()
 end
 
 AggressiveDriver.OnStartup = function()
-    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver")
-    group.set_allows_action(defines.input_action.toggle_driving, false)
+    AggressiveDriver.GetOrCreatePermissionGroup()
 end
 
 ---@param command CustomCommandData
 AggressiveDriver.AggressiveDriverCommand = function(command)
-    local commandName = "muppet_streamer_aggressive_driver"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "duration", "control", "teleportDistance"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "control", "teleportDistance" })
     if commandData == nil then
         return
     end
@@ -84,7 +84,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast durationSeconds double
-    local duration = math.floor(durationSeconds * 60) --[[@as uint @ Duration was validated as not exceeding a uint during input validation.]]
+    local duration = math.floor(durationSeconds * 60) --[[@as uint # Duration was validated as not exceeding a uint during input validation.]]
 
     local control = commandData.control
     if not CommandsUtils.CheckStringArgument(control, false, commandName, "control", ControlTypes, command.parameter) then
@@ -104,7 +104,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
 
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
     ---@type AggressiveDriver_DelayedCommandDetails
-    local delayedCommandDetails = {target = target, duration = duration, control = control, teleportDistance = teleportDistance}
+    local delayedCommandDetails = { target = target, duration = duration, control = control, teleportDistance = teleportDistance }
     EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, delayedCommandDetails)
 end
 
@@ -113,8 +113,12 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     local data = eventData.data ---@type AggressiveDriver_DelayedCommandDetails
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
+        return
+    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
-        game.print({"message.muppet_streamer_aggressive_driver_not_character_controller", data.target})
+        game.print({ "message.muppet_streamer_aggressive_driver_not_character_controller", data.target })
         return
     end
 
@@ -125,7 +129,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
 
     local inVehicle = targetPlayer.vehicle ~= nil
     if not inVehicle and data.teleportDistance > 0 then
-        local vehicles = targetPlayer.surface.find_entities_filtered {position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = {"car", "locomotive", "spider-vehicle"}}
+        local vehicles = targetPlayer.surface.find_entities_filtered { position = targetPlayer.position, radius = data.teleportDistance, force = targetPlayer.force, type = { "car", "locomotive", "spider-vehicle" } }
         local distanceSortedVehicles = {} ---@type AggressiveDriver_SortedVehicleEntry[]
         for _, vehicle in pairs(vehicles) do
             -- If the vehicle has an empty drivers seat and isn't lacking fuel then include it in the suitable vehicles list.
@@ -133,7 +137,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                 local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(vehicle)
                 if currentFuel ~= nil then
                     local distance = PositionUtils.GetDistance(targetPlayer.position, vehicle.position)
-                    table.insert(distanceSortedVehicles, {distance = distance, vehicle = vehicle})
+                    table.insert(distanceSortedVehicles, { distance = distance, vehicle = vehicle })
                 end
             end
         end
@@ -149,23 +153,23 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         end
     end
     if not inVehicle then
-        game.print({"message.muppet_streamer_aggressive_driver_no_vehicle", data.target})
+        game.print({ "message.muppet_streamer_aggressive_driver_no_vehicle", data.target })
         return
     end
 
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
-    global.origionalPlayersPermissionGroup[targetPlayer.index] = global.origionalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
+    global.originalPlayersPermissionGroup[targetPlayer.index] = global.originalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
 
-    targetPlayer.permission_group = game.permissions.get_group("AggressiveDriver")
+    targetPlayer.permission_group = AggressiveDriver.GetOrCreatePermissionGroup()
     global.aggressiveDriver.affectedPlayers[targetPlayer.index] = true
 
-    game.print({"message.muppet_streamer_aggressive_driver_start", targetPlayer.name})
+    game.print({ "message.muppet_streamer_aggressive_driver_start", targetPlayer.name })
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
 
     ---@type AggressiveDriver_DriveEachTickDetails
-    local driveEachTickDetails = {player_index = targetPlayer.index, player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0}
+    local driveEachTickDetails = { player_index = targetPlayer.index, player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0 }
     ---@type UtilityScheduledEvent_CallbackObject
-    local driveCallbackObject = {tick = game.tick, instanceId = driveEachTickDetails.player_index, data = driveEachTickDetails}
+    local driveCallbackObject = { tick = game.tick, instanceId = driveEachTickDetails.player_index, data = driveEachTickDetails }
     AggressiveDriver.Drive(driveCallbackObject)
 end
 
@@ -193,7 +197,7 @@ AggressiveDriver.Drive = function(eventData)
                 data.accelerationTicks = 1
             else
                 -- Walk in the current direction.
-                player.walking_state = {walking = true, direction = player.walking_state.direction}
+                player.walking_state = { walking = true, direction = player.walking_state.direction }
             end
         else
             -- Player has no control so we will set both acceleration and direction.
@@ -206,24 +210,24 @@ AggressiveDriver.Drive = function(eventData)
                 data.directionDurationTicks = data.directionDurationTicks - 1
             end
 
-            player.walking_state = {walking = true, direction = data.spiderDirection}
+            player.walking_state = { walking = true, direction = data.spiderDirection }
         end
     else
         -- Cars and trains.
 
         -- Train carriages need special handling.
         if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
-            local train = vehicle.train
+            local train = vehicle.train ---@cast train -nil # A rolling_stock entity always has a train field.
 
-            -- If the train isn't in manual mode then set it. We do this every tick if needed so that other palyers setting it to automatic gets overridden.
+            -- If the train isn't in manual mode then set it. We do this every tick if needed so that other players setting it to automatic gets overridden.
             if train.manual_mode ~= true then
                 -- Don't set every tick blindly as it resets the players key directions on that tick to be forced to straight forwards.
                 train.manual_mode = true
             end
 
             -- If the train is already moving work out if accelerating or reversing the players carriage keeps the train moving in its current direction.
-            -- If the train isn't moving then later in the function the standand flip movement detection will start moving the train in the other direction.
-            -- For a train just starting its scripted control this will also avoid flipping the trains direction, so it continues in its current travel direction. As it would loose the feel of an out of control train and would take a while to stop and build up reversing speed. If the train starts with no speed then the standard direction start logic will make the train move "forwards" in direct relation to the player's carriage facing, not the train's, as theres no known "good" start direction here.
+            -- If the train isn't moving then later in the function the standard flip movement detection will start moving the train in the other direction.
+            -- For a train just starting its scripted control this will also avoid flipping the trains direction, so it continues in its current travel direction. As it would loose the feel of an out of control train and would take a while to stop and build up reversing speed. If the train starts with no speed then the standard direction start logic will make the train move "forwards" in direct relation to the player's carriage facing, not the train's, as there's no known "good" start direction here.
             local vehicle_speed = vehicle.speed
             if vehicle_speed ~= 0 then
                 local train_speed = train.speed
@@ -288,7 +292,7 @@ AggressiveDriver.Drive = function(eventData)
     end
 end
 
---- Called when a player has died, but before thier character is turned in to a corpse.
+--- Called when a player has died, but before their character is turned in to a corpse.
 ---@param event on_pre_player_died
 AggressiveDriver.OnPrePlayerDied = function(event)
     AggressiveDriver.StopEffectOnPlayer(event.player_index, nil, EffectEndStatus.died)
@@ -297,7 +301,7 @@ end
 --- Called when the effect has been stopped and the effects state and weapon changes should be undone.
 --- Called when the player is alive or if they have died before their character has been affected.
 ---@param playerIndex uint
----@param player? LuaPlayer|nil @ Obtains player if needed from playerIndex.
+---@param player? LuaPlayer|nil # Obtains player if needed from playerIndex.
 ---@param status AggressiveDriver_EffectEndStatus
 AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
     local affectedPlayer = global.aggressiveDriver.affectedPlayers[playerIndex]
@@ -305,17 +309,21 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
         return
     end
 
+    -- Remove the flag against this player as being currently affected by the malfunctioning weapon.
+    global.aggressiveDriver.affectedPlayers[playerIndex] = nil
+
     player = player or game.get_player(playerIndex)
+    if player == nil then
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted while the effect was running.", nil)
+        return
+    end
 
     -- Return the player to their initial permission group.
     if player.permission_group.name == "AggressiveDriver" then
         -- If the permission group has been changed by something else don't set it back to the last non modded one.
-        player.permission_group = global.origionalPlayersPermissionGroup[playerIndex]
-        global.origionalPlayersPermissionGroup[playerIndex] = nil
+        player.permission_group = global.originalPlayersPermissionGroup[playerIndex]
+        global.originalPlayersPermissionGroup[playerIndex] = nil
     end
-
-    -- Remove the flag aginst this player as being currently affected by the leaky flamethrower.
-    global.aggressiveDriver.affectedPlayers[playerIndex] = nil
 
     -- Set the final state of the train to braking and straight as this ticks input. As soon as any player in the train tries to control it they will get control.
     player.riding_state = {
@@ -325,8 +333,16 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Print a message based on ending status.
     if status == EffectEndStatus.completed then
-        game.print({"message.muppet_streamer_aggressive_driver_stop", player.name})
+        game.print({ "message.muppet_streamer_aggressive_driver_stop", player.name })
     end
+end
+
+--- Gets the permission group for this feature. Will create it if needed.
+---@return LuaPermissionGroup
+AggressiveDriver.GetOrCreatePermissionGroup = function()
+    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast group -nil # Script always has permission to create groups.
+    group.set_allows_action(defines.input_action.toggle_driving, false)
+    return group
 end
 
 return AggressiveDriver

@@ -6,12 +6,14 @@ local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 
 ---@class GiveItems_GiveWeaponAmmoScheduled
----@field target string @ Target player's name.
----@field ammoType? LuaItemPrototype|nil @ Nil if no ammo is being given.
----@field ammoCount? uint|nil @ Nil if no ammo is being given.
----@field weaponType? LuaItemPrototype|nil
+---@field target string # Target player's name.
+---@field ammoPrototype? LuaItemPrototype|nil # Nil if no ammo is being given.
+---@field ammoCount? uint|nil # Nil if no ammo is being given.
+---@field weaponPrototype? LuaItemPrototype|nil
 ---@field forceWeaponToSlot boolean
 ---@field selectWeapon boolean
+
+local commandName = "muppet_streamer_give_player_weapon_ammo"
 
 GiveItems.CreateGlobals = function()
     global.giveItems = global.giveItems or {}
@@ -19,16 +21,15 @@ GiveItems.CreateGlobals = function()
 end
 
 GiveItems.OnLoad = function()
-    CommandsUtils.Register("muppet_streamer_give_player_weapon_ammo", {"api-description.muppet_streamer_give_player_weapon_ammo"}, GiveItems.GivePlayerWeaponAmmoCommand, true)
+    CommandsUtils.Register("muppet_streamer_give_player_weapon_ammo", { "api-description.muppet_streamer_give_player_weapon_ammo" }, GiveItems.GivePlayerWeaponAmmoCommand, true)
     EventScheduler.RegisterScheduledEventType("GiveItems.GiveWeaponAmmoScheduled", GiveItems.GiveWeaponAmmoScheduled)
     MOD.Interfaces.Commands.GiveItems = GiveItems.GivePlayerWeaponAmmoCommand
 end
 
 ---@param command CustomCommandData
 GiveItems.GivePlayerWeaponAmmoCommand = function(command)
-    local commandName = "muppet_streamer_give_player_weapon_ammo"
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount" })
     if commandData == nil then
         return
     end
@@ -44,18 +45,8 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         return
     end ---@cast target string
 
-    local weaponTypeString = commandData.weaponType
-    if not CommandsUtils.CheckStringArgument(weaponTypeString, false, commandName, "weaponType", nil, command.parameter) then
-        return
-    end
-    local weaponType  ---@type LuaItemPrototype|nil
-    if weaponTypeString ~= nil and weaponTypeString ~= "" then
-        weaponType = game.item_prototypes[weaponTypeString]
-        if weaponType == nil or weaponType.type ~= "gun" then
-            CommandsUtils.LogPrintError(commandName, "weaponType", "isn't a valid weapon type: " .. tostring(weaponTypeString), command.parameter)
-            return
-        end
-    end
+    local weaponPrototype, valid = Common.GetItemPrototypeFromCommandArgument(commandData.weaponType, "gun", false, commandName, "weaponType", command.parameter)
+    if not valid then return end
 
     local forceWeaponToSlot = commandData.forceWeaponToSlot
     if not CommandsUtils.CheckBooleanArgument(forceWeaponToSlot, false, commandName, "forceWeaponToSlot", command.parameter) then
@@ -73,18 +64,8 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         selectWeapon = false
     end
 
-    local ammoTypeString = commandData.ammoType
-    if not CommandsUtils.CheckStringArgument(ammoTypeString, false, commandName, "ammoType", nil, command.parameter) then
-        return
-    end
-    local ammoType  ---@type LuaItemPrototype|nil
-    if ammoTypeString ~= nil and ammoTypeString ~= "" then
-        ammoType = game.item_prototypes[ammoTypeString]
-        if ammoType == nil or ammoType.type ~= "ammo" then
-            CommandsUtils.LogPrintError(commandName, "ammoType", "isn't a valid ammo type: " .. tostring(ammoTypeString), command.parameter)
-            return
-        end
-    end
+    local ammoPrototype, valid = Common.GetItemPrototypeFromCommandArgument(commandData.ammoType, "ammo", false, commandName, "ammoType", command.parameter)
+    if not valid then return end
 
     local ammoCount = commandData.ammoCount
     if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, commandName, "ammoCount", 1, MathUtils.uintMax, command.parameter) then
@@ -93,7 +74,7 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
 
     global.giveItems.nextId = global.giveItems.nextId + 1
     ---@type GiveItems_GiveWeaponAmmoScheduled
-    local giveWeaponAmmoScheduled = {target = target, ammoType = ammoType, ammoCount = ammoCount, weaponType = weaponType, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon}
+    local giveWeaponAmmoScheduled = { target = target, ammoPrototype = ammoPrototype, ammoCount = ammoCount, weaponPrototype = weaponPrototype, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon }
     EventScheduler.ScheduleEventOnce(scheduleTick, "GiveItems.GiveWeaponAmmoScheduled", global.giveItems.nextId, giveWeaponAmmoScheduled)
 end
 
@@ -102,22 +83,37 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
     local data = eventData.data ---@type GiveItems_GiveWeaponAmmoScheduled
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
+        return
+    end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
-        game.print({"message.muppet_streamer_give_player_weapon_ammo_not_character_controller", data.target})
+        game.print({ "message.muppet_streamer_give_player_weapon_ammo_not_character_controller", data.target })
         return
     end
 
-    local ammoName  ---@type string|nil
-    if data.ammoType ~= nil and data.ammoType.valid and data.ammoCount > 0 then
-        ammoName = data.ammoType.name
+
+    -- Check the weapon and ammo are still valid (unchanged).
+    if not data.weaponPrototype.valid then
+        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game weapon prototype has been changed/removed since the command was run.", nil)
+        return
     end
-    if data.weaponType ~= nil and data.weaponType.valid then
-        PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponType.name, data.forceWeaponToSlot, data.selectWeapon, ammoName)
+    if not data.ammoPrototype.valid then
+        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game ammo prototype has been changed/removed since the command was run.", nil)
+        return
+    end
+
+    local ammoName ---@type string|nil
+    if data.ammoPrototype ~= nil and data.ammoPrototype.valid and data.ammoCount > 0 then
+        ammoName = data.ammoPrototype.name
+    end
+    if data.weaponPrototype ~= nil and data.weaponPrototype.valid then
+        PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponPrototype.name, data.forceWeaponToSlot, data.selectWeapon, ammoName)
     end
     if ammoName ~= nil then
-        local inserted = targetPlayer.insert({name = ammoName, count = data.ammoCount})
+        local inserted = targetPlayer.insert({ name = ammoName, count = data.ammoCount })
         if inserted < data.ammoCount then
-            targetPlayer.surface.spill_item_stack(targetPlayer.position, {name = ammoName, count = data.ammoCount - inserted}, true, nil, false)
+            targetPlayer.surface.spill_item_stack(targetPlayer.position, { name = ammoName, count = data.ammoCount - inserted }, true, nil, false)
         end
     end
 end

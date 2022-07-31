@@ -1,10 +1,13 @@
 ---@meta
+-- cSpell:disable # Just ignore whole file while is conceptual.
 
--- Experiemental. not used at present.
+-- Experimental. not used at present.
 -- Allows for better (not perfect) math_generic.random() input to output typing via generics.
 -- Also allows for @as typed to work, but these don't do it natively as the defines objects have no actual values in VSCode in the current API emyLua files: math_generic.random((0) --[[@as defines.riding.direction]], (2) --[[@as defines.riding.direction]])
 
 -- Taken from Sumneko 3.5.0 - tree/master/meta/template/math_generic.lua
+
+
 
 ---#DES 'math'
 ---@class mathlib_generic
@@ -38,6 +41,7 @@ end
 ---@nodiscard
 function math_generic.atan(y)
 end
+
 ---#else
 ---#DES 'math_generic.atan>5.3'
 ---@param y  number
@@ -46,6 +50,7 @@ end
 ---@nodiscard
 function math_generic.atan(y, x)
 end
+
 ---#end
 
 ---@version <5.2
@@ -133,6 +138,7 @@ end
 ---@nodiscard
 function math_generic.log(x)
 end
+
 ---#else
 ---#DES 'math_generic.log>5.2'
 ---@param x     number
@@ -141,6 +147,7 @@ end
 ---@nodiscard
 function math_generic.log(x, base)
 end
+
 ---#end
 
 ---@version <5.1
@@ -220,11 +227,13 @@ end
 ---@param y? integer
 function math_generic.randomseed(x, y)
 end
+
 ---#else
 ---#DES 'math_generic.randomseed<5.3'
 ---@param x integer
 function math_generic.randomseed(x)
 end
+
 ---#end
 
 ---#DES 'math_generic.sin'

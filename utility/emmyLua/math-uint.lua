@@ -1,6 +1,7 @@
 ---@meta
+-- cSpell:disable # Just ignore whole file while is conceptual.
 
--- Experiemental. not used at present and is an extra to the standard mathlib.
+-- Experimental. not used at present and is an extra to the standard mathlib.
 
 -- Taken from Sumneko 3.5.0 - tree/master/meta/template/math_generic.lua
 
@@ -36,6 +37,7 @@ end
 ---@nodiscard
 function math_uint.atan(y)
 end
+
 ---#else
 ---#DES 'math.atan>5.3'
 ---@param y  number
@@ -44,6 +46,7 @@ end
 ---@nodiscard
 function math_uint.atan(y, x)
 end
+
 ---#end
 
 ---@version <5.2
@@ -131,6 +134,7 @@ end
 ---@nodiscard
 function math_uint.log(x)
 end
+
 ---#else
 ---#DES 'math.log>5.2'
 ---@param x     number
@@ -139,6 +143,7 @@ end
 ---@nodiscard
 function math_uint.log(x, base)
 end
+
 ---#end
 
 ---@version <5.1
@@ -205,11 +210,13 @@ end
 ---@param y? integer
 function math_uint.randomseed(x, y)
 end
+
 ---#else
 ---#DES 'math.randomseed<5.3'
 ---@param x integer
 function math_uint.randomseed(x)
 end
+
 ---#end
 
 ---#DES 'math.sin'

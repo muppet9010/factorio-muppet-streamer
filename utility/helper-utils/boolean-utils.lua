@@ -7,8 +7,8 @@ local BooleanUtils = {} ---@class Utility_BooleanUtils
 local string_lower = string.lower
 
 --- Tries to converts a non boolean to a boolean value.
----@param text string|int|boolean @ The input to check.
----@return boolean|nil @ If successful converted then the boolean of the value, or nil if not a convertable input.
+---@param text string|int|boolean|nil # The input to check.
+---@return boolean|nil # If successful converted then the boolean of the value, or nil if not a convertible input.
 BooleanUtils.ToBoolean = function(text)
     if text == nil then
         return nil

@@ -8,10 +8,10 @@
 local PlayerAlerts = {} ---@class Utility_PlayerAlerts
 local Events = require("utility.manager-libraries.events")
 
----@class UtilityPlayerAlerts_ForceAlertObject @ The cached details of an alert applied to all players on a force. Used to track the alerts and remove them, but also to allow adding/removing from players as they join/leave a force.
----@field id UtilityPlayerAlerts_AlertId @ Id of the alert object.
----@field force LuaForce @ The force that this alert applies to.
----@field alertEntity LuaEntity @ The entity the alert targets.
+---@class UtilityPlayerAlerts_ForceAlertObject # The cached details of an alert applied to all players on a force. Used to track the alerts and remove them, but also to allow adding/removing from players as they join/leave a force.
+---@field id UtilityPlayerAlerts_AlertId # Id of the alert object.
+---@field force LuaForce # The force that this alert applies to.
+---@field alertEntity LuaEntity # The entity the alert targets.
 ---@field alertPrototypeName string
 ---@field alertPosition MapPosition
 ---@field alertSurface LuaSurface
@@ -40,13 +40,13 @@ end
 
 --- Add a custom alert to all players on the specific force.
 ---@param force LuaForce
----@param alertId? UtilityPlayerAlerts_AlertId|nil @ A globally unique Id that we will use to track duplicate requests for the same alert. If nil is provided a sequential number shall be affixed to "auto" as the Id.
+---@param alertId? UtilityPlayerAlerts_AlertId|nil # A globally unique Id that we will use to track duplicate requests for the same alert. If nil is provided a sequential number shall be affixed to "auto" as the Id.
 ---@param alertEntity LuaEntity
 ---@param alertSignalId SignalID
 ---@param alertMessage LocalisedString
 ---@param showOnMap boolean
----@return UtilityPlayerAlerts_AlertId alertId @ The Id of the created alert.
----@deprecated An alert only lasts for 5-10 (?) seconds and then auto finishes. We need to have an option for a continous alert that auto adds a new one just before the hard coded timer runs out.
+---@return UtilityPlayerAlerts_AlertId alertId # The Id of the created alert.
+---@deprecated An alert only lasts for 5-10 (?) seconds and then auto finishes. We need to have an option for a continuous alert that auto adds a new one just before the hard coded timer runs out.
 PlayerAlerts.AddCustomAlertToForce = function(force, alertId, alertEntity, alertSignalId, alertMessage, showOnMap)
     local forceId = force.index
     local forceAlerts = PlayerAlerts._GetCreateForceAlertsGlobalObject(forceId)
@@ -86,7 +86,7 @@ end
 
 --- Remove a custom alert from all players on the force and delete it from the force's alert global table.
 ---@param force LuaForce
----@param alertId UtilityPlayerAlerts_AlertId @ The unique Id of the alert.
+---@param alertId UtilityPlayerAlerts_AlertId # The unique Id of the alert.
 PlayerAlerts.RemoveCustomAlertFromForce = function(force, alertId)
     local forceIndex = force.index
 
@@ -138,7 +138,7 @@ PlayerAlerts._RemoveAlertFromPlayer = function(forceAlert, player)
         }
     else
         player.remove_alert {
-            prototype = forceAlert.alertPrototypeName --[[@as LuaEntityPrototype]], -- Force typed work around for bug: https://forums.factorio.com/viewtopic.php?f=7&t=102860 -- TODO: this should be the prototype not the name now as per 1.1.62. Need to test before just doing it thought.
+            prototype = forceAlert.alertPrototypeName --[[@as LuaEntityPrototype]] , -- Force typed work around for bug: https://forums.factorio.com/viewtopic.php?f=7&t=102860 -- TODO: this should be the prototype not the name now as per 1.1.62. Although name seems to still work (undocumented legacy reasons?) Need to test before updating to use the prototype though and check the prototype is still valid before use.
             position = forceAlert.alertPosition,
             surface = forceAlert.alertSurface,
             type = defines.alert_type.custom,
@@ -149,7 +149,7 @@ PlayerAlerts._RemoveAlertFromPlayer = function(forceAlert, player)
 end
 
 --- Creates (if needed) and returns a force's alerts Factorio global table.
----@param forceIndex uint @ the index of the LuaForce.
+---@param forceIndex uint # the index of the LuaForce.
 ---@return table<UtilityPlayerAlerts_AlertId, UtilityPlayerAlerts_ForceAlertObject> forceAlerts
 PlayerAlerts._GetCreateForceAlertsGlobalObject = function(forceIndex)
     if global.UTILITYPLAYERALERTS == nil then
@@ -177,8 +177,8 @@ PlayerAlerts._GetCreateForceAlertsGlobalObject = function(forceIndex)
 end
 
 --- Returns a force's alerts Factorio global table if it exists.
----@param forceIndex uint @ the index of the LuaForce.
----@return table<uint, UtilityPlayerAlerts_ForceAlertObject>|nil forceAlerts @ nil if no alerts for this force.
+---@param forceIndex uint # the index of the LuaForce.
+---@return table<uint, UtilityPlayerAlerts_ForceAlertObject>|nil forceAlerts # nil if no alerts for this force.
 PlayerAlerts._GetForceAlerts = function(forceIndex)
     if global.UTILITYPLAYERALERTS == nil or global.UTILITYPLAYERALERTS.forceAlertsByForce == nil then
         return nil
@@ -202,6 +202,10 @@ end
 ---@param event on_player_joined_game
 PlayerAlerts._OnPlayerJoinedGame = function(event)
     local player = game.get_player(event.player_index)
+    if player == nil then
+        -- Player was deleted upon joining, so just ignore.
+        return
+    end
 
     -- Get the alerts for this player's force if there are any.
     local forceAlerts = PlayerAlerts._GetForceAlerts(player.force.index)
@@ -219,6 +223,10 @@ end
 ---@param event on_player_changed_force
 PlayerAlerts._OnPlayerChangedForce = function(event)
     local player = game.get_player(event.player_index)
+    if player == nil then
+        -- Player was deleted upon changing force, so just ignore.
+        return
+    end
     local newForce, oldForce = player.force, event.force
 
     -- Get the alerts for this player's old force and if there are any remove them from the player.
@@ -238,7 +246,7 @@ PlayerAlerts._OnPlayerChangedForce = function(event)
     end
 end
 
---- Called when 2 forces are merging togeather. Is triggered before each player on the old force has PlayerAlerts._OnPlayerChangedForce() triggered.
+--- Called when 2 forces are merging together. Is triggered before each player on the old force has PlayerAlerts._OnPlayerChangedForce() triggered.
 ---@param event on_forces_merging
 PlayerAlerts._OnForcesMerging = function(event)
     local removedForce_index, mergedForce, mergedForce_index = event.source.index, event.destination, event.destination.index

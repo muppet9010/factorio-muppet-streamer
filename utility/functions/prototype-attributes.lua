@@ -1,4 +1,4 @@
--- Returns and caches prototype attributes as requested to save future API calls. Values stored in Lua global varaible and populated as requested, as doesn't need persisting. Gets auto refreshed on game load and thus accounts for any change of attributes from mods.
+-- Returns and caches prototype attributes as requested to save future API calls. Values stored in Lua global variable and populated as requested, as doesn't need persisting. Gets auto refreshed on game load and thus accounts for any change of attributes from mods.
 local PrototypeAttributes = {} ---@class Utility_PrototypeAttributes
 
 MOD = MOD or {} ---@class MOD
@@ -10,7 +10,7 @@ MOD.UTILITYPrototypeAttributes = MOD.UTILITYPrototypeAttributes or {} ---@type U
 ---@param prototypeType UtilityPrototypeAttributes_PrototypeType
 ---@param prototypeName string
 ---@param attributeName string
----@return any @ attribute value, can include nil.
+---@return any # attribute value, can include nil.
 PrototypeAttributes.GetAttribute = function(prototypeType, prototypeName, attributeName)
     local utilityPrototypeAttributes = MOD.UTILITYPrototypeAttributes
 
@@ -51,12 +51,12 @@ PrototypeAttributes.GetAttribute = function(prototypeType, prototypeName, attrib
             resultPrototype = game.technology_prototypes[prototypeName]
         end
         local resultValue = resultPrototype[attributeName] ---@type any
-        prototypeCache[attributeName] = {value = resultValue}
+        prototypeCache[attributeName] = { value = resultValue }
         return resultValue
     end
 end
 
----@enum UtilityPrototypeAttributes_PrototypeType @ not all prototype types are supported at present as not needed before.
+---@enum UtilityPrototypeAttributes_PrototypeType # not all prototype types are supported at present as not needed before.
 PrototypeAttributes.PrototypeTypes = {
     entity = "entity",
     item = "item",
@@ -67,10 +67,10 @@ PrototypeAttributes.PrototypeTypes = {
     technology = "technology"
 }
 
----@alias UtilityPrototypeAttributes_CachedTypes table<string, UtilityPrototypeAttributes_CachedPrototypes> @ a table of each prototype type name (key) and the prototypes it has of that type.
----@alias UtilityPrototypeAttributes_CachedPrototypes table<string, UtilityPrototypeAttributes_CachedAttributes> @ a table of each prototype name (key) and the attributes if has of that prototype.
----@alias UtilityPrototypeAttributes_CachedAttributes table<string, UtilityPrototypeAttributes_CachedAttribute> @ a table of each attribute name (key) and their cached values stored in the container.
----@class UtilityPrototypeAttributes_CachedAttribute @ Container for the cached value. If it exists the value is cached. An empty table signifies that the cached value is nil.
----@field value any @ the value of the attribute. May be nil if thats the attributes real value.
+---@alias UtilityPrototypeAttributes_CachedTypes table<string, UtilityPrototypeAttributes_CachedPrototypes> # a table of each prototype type name (key) and the prototypes it has of that type.
+---@alias UtilityPrototypeAttributes_CachedPrototypes table<string, UtilityPrototypeAttributes_CachedAttributes> # a table of each prototype name (key) and the attributes if has of that prototype.
+---@alias UtilityPrototypeAttributes_CachedAttributes table<string, UtilityPrototypeAttributes_CachedAttribute> # a table of each attribute name (key) and their cached values stored in the container.
+---@class UtilityPrototypeAttributes_CachedAttribute # Container for the cached value. If it exists the value is cached. An empty table signifies that the cached value is nil.
+---@field value any # the value of the attribute. May be nil if that's the attributes real value.
 
 return PrototypeAttributes

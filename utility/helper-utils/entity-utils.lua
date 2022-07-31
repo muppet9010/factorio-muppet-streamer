@@ -81,7 +81,7 @@ EntityUtils.KillAllObjectsInArea = function(surface, positionedBoundingBox, kill
                 entity.die(killerForce)
             end
         else
-            entity.destroy {do_cliff_correction = true, raise_destroy = true}
+            entity.destroy { do_cliff_correction = true, raise_destroy = true }
         end
     end
 end
@@ -93,7 +93,7 @@ end
 ---@param entitiesExcluded? LuaEntity[]|nil
 EntityUtils.DestroyAllKillableObjectsInArea = function(surface, positionedBoundingBox, collisionBoxOnlyEntities, onlyForceAffected, entitiesExcluded)
     for k, entity in pairs(EntityUtils.ReturnAllObjectsInArea(surface, positionedBoundingBox, collisionBoxOnlyEntities, onlyForceAffected, true, true, entitiesExcluded)) do
-        entity.destroy {do_cliff_correction = true, raise_destroy = true}
+        entity.destroy { do_cliff_correction = true, raise_destroy = true }
     end
 end
 
@@ -103,11 +103,11 @@ end
 ---@param entitiesExcluded? LuaEntity[]|nil
 EntityUtils.DestroyAllObjectsInArea = function(surface, positionedBoundingBox, onlyForceAffected, entitiesExcluded)
     for k, entity in pairs(EntityUtils.ReturnAllObjectsInArea(surface, positionedBoundingBox, false, onlyForceAffected, false, false, entitiesExcluded)) do
-        entity.destroy {do_cliff_correction = true, raise_destroy = true}
+        entity.destroy { do_cliff_correction = true, raise_destroy = true }
     end
 end
 
--- Kills an entity and handles the optional arguments as Facotrio API doesn't accept nil arguments.
+-- Kills an entity and handles the optional arguments as Factorio API doesn't accept nil arguments.
 ---@param entity LuaEntity
 ---@param killerForce LuaForce
 ---@param killerCauseEntity? LuaEntity|nil

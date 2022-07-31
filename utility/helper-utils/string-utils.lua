@@ -59,7 +59,7 @@ StringUtils.FormatPositionToString = function(position)
     return position.x .. "," .. position.y
 end
 
----@class SurfacePositionString : string @ A surface and position as a string: "surfaceId_x,y"
+---@class SurfacePositionString : string # A surface and position as a string: "surfaceId_x,y"
 
 --- Makes a string of the surface Id and position to allow easy table lookup.
 ---@param surfaceId uint
@@ -69,17 +69,18 @@ StringUtils.FormatSurfacePositionToString = function(surfaceId, positionTable)
     return surfaceId .. "_" .. positionTable.x .. "," .. positionTable.y --[[@as SurfacePositionString]]
 end
 
---- Backwards converts a SurfacePositionString to usable data. This is ineffecient and should only be used for debugging.
+--- Backwards converts a SurfacePositionString to usable data. This is inefficient and should only be used for debugging.
 ---@param surfacePositionString SurfacePositionString
 ---@return uint surfaceIndex
 ---@return MapPosition position
 StringUtils.SurfacePositionStringToSurfaceAndPosition = function(surfacePositionString)
     local underscoreIndex = string_find(surfacePositionString, "_")
-    local surfaceId = tonumber(string_sub(surfacePositionString, 1, underscoreIndex - 1)) --[[@as uint]] -- It went in from a uint, so must come out as one.
+    local surfaceId = tonumber(string_sub(surfacePositionString, 1, underscoreIndex - 1)) --[[@as uint]]
+    -- It went in from a uint, so must come out as one.
     local commaIndex = string_find(surfacePositionString, ",")
     local positionX = tonumber(string_sub(surfacePositionString, underscoreIndex + 1, commaIndex - 1))
     local positionY = tonumber(string_sub(surfacePositionString, commaIndex + 1, string_len(surfacePositionString)))
-    return surfaceId, {x = positionX, y = positionY}
+    return surfaceId, { x = positionX, y = positionY }
 end
 
 --- Pad a number with leading 0's up to the required length and return as a string.
@@ -154,7 +155,7 @@ StringUtils.DisplayTimeOfTicks = function(inputTicks, displayLargestTimeUnit, di
         error("unrecognised displaySmallestTimeUnit argument in Utils.MakeLocalisedStringDisplayOfTime")
     end
 
-    local timeUnitIndex = {second = 1, minute = 2, hour = 3}
+    local timeUnitIndex = { second = 1, minute = 2, hour = 3 }
     local displayLargestTimeUnitIndex = timeUnitIndex[displayLargestTimeUnit]
     local displaySmallestTimeUnitIndex = timeUnitIndex[displaySmallestTimeUnit]
     local timeUnitRange = displayLargestTimeUnitIndex - displaySmallestTimeUnitIndex
@@ -180,7 +181,7 @@ StringUtils.DisplayTimeOfTicks = function(inputTicks, displayLargestTimeUnit, di
     end
 end
 
---- Seperates out the number and unit from when they combined in a single string, i.e. 5Kwh
+--- Separates out the number and unit from when they combined in a single string, i.e. 5Kwh
 ---@param text string
 ---@return double number
 ---@return string unit

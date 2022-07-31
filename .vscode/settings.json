@@ -32,9 +32,9 @@
     ],
     "Lua.runtime.version": "Lua 5.2",
     "Lua.workspace.library": [
+        "c:\\FactorioModding\\factorio-api",
         "c:\\FactorioModding\\data",
         "c:\\FactorioModding\\data\\core\\lualib",
-        "c:\\FactorioModding\\runtime-api",
-        "c:\\FactorioModding\\factorio-api"
-    ]
+        "c:\\FactorioModding\\runtime-api"
+    ],
 }

@@ -1,5 +1,5 @@
 --[[
-    Event related utility functions. Seperate to the Events library for registering event handlers.
+    Event related utility functions. Separate to the Events library for registering event handlers.
 ]]
 --
 
@@ -13,11 +13,11 @@ EventUtils.WasCreativeModeInstantDeconstructionUsed = function(event)
     end
 end
 
----@alias EntityActioner LuaPlayer|LuaEntity @ The placer of a built entity, either player or construction robot. A script will have a nil value.
+---@alias EntityActioner LuaPlayer|LuaEntity # The placer of a built entity, either player or construction robot. A script will have a nil value.
 
 --- Get the thing that did the building/mining from an event.
 ---@param event on_built_entity|on_robot_built_entity|script_raised_built|script_raised_revive|on_pre_player_mined_item|on_robot_pre_mined
----@return EntityActioner|nil placer @ Player, construction robot or nil if script done.
+---@return EntityActioner|nil placer # Player, construction robot or nil if script done.
 EventUtils.GetActionerFromEvent = function(event)
     if event.robot ~= nil then
         -- Construction robots
@@ -31,7 +31,7 @@ EventUtils.GetActionerFromEvent = function(event)
     end
 end
 
---- Returns either tha player or force for robots from the EntityActioner.
+--- Returns either the player or force for robots from the EntityActioner.
 ---
 --- Useful for passing in to rendering player/force filters or for returning items to them.
 ---@param actioner EntityActioner
@@ -40,7 +40,7 @@ end
 EventUtils.GetPlayerOrForceFromEventActioner = function(actioner)
     if actioner.is_player() then
         -- Is a player.
-        return actioner --[[@as LuaPlayer]], nil
+        return actioner--[[@as LuaPlayer]] , nil
     else
         -- Is construction bot.
         return nil, actioner.force --[[@as LuaForce]]

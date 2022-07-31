@@ -1,5 +1,5 @@
 --[[
-    Generic EmmyLua classes. You don't need to require this file anywhere, EmyyLua will discover it within the workspace.
+    Generic EmmyLua classes. You don't need to require this file anywhere, EmmyLua will discover it within the workspace.
 --]]
 --
 ---@meta

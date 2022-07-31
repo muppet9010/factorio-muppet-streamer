@@ -17,34 +17,34 @@ local QuantityType = {
 ---@field quantityType PlayerDropInventory_QuantityType
 ---@field quantityValue uint
 ---@field dropOnBelts boolean
----@field gap uint @ Must be > 0.
+---@field gap uint # Must be > 0.
 ---@field occurrences uint
 ---@field dropEquipment boolean
 
 ---@class PlayerDropInventory_ScheduledDropItemsData
 ---@field player_index uint
 ---@field player LuaPlayer
----@field gap uint @ Must be > 0.
----@field totaloccurrences uint
+---@field gap uint # Must be > 0.
+---@field totalOccurrences uint
 ---@field dropOnBelts boolean
 ---@field dropEquipment boolean
 ---@field staticItemCount uint|nil
 ---@field dynamicPercentageItemCount uint|nil
----@field currentoccurrences uint
+---@field currentOccurrences uint
 
----@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|'cursorStack', uint> @ Dictionary of each inventory to a cached total count across all items (count of each item all added togeather) were in that inventory.
----@alias PlayerDropInventory_InventoryContents table<defines.inventory|'cursorStack', table<string, uint>> @ Dictionary of each inventory to a cached list of item name and counts in that inventory.
+---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|'cursorStack', uint> # Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
+---@alias PlayerDropInventory_InventoryContents table<defines.inventory|'cursorStack', table<string, uint>> # Dictionary of each inventory to a cached list of item name and counts in that inventory.
 
 local commandName = "muppet_streamer_player_drop_inventory"
 
 PlayerDropInventory.CreateGlobals = function()
     global.playerDropInventory = global.playerDropInventory or {}
-    global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {} ---@type table<uint, true> @ A dictionary of player indexs that have the effect active on them currently.
+    global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {} ---@type table<uint, true> # A dictionary of player indexes that have the effect active on them currently.
     global.playerDropInventory.nextId = global.playerDropInventory.nextId or 0 ---@type uint
 end
 
 PlayerDropInventory.OnLoad = function()
-    CommandsUtils.Register("muppet_streamer_player_drop_inventory", {"api-description.muppet_streamer_player_drop_inventory"}, PlayerDropInventory.PlayerDropInventoryCommand, true)
+    CommandsUtils.Register("muppet_streamer_player_drop_inventory", { "api-description.muppet_streamer_player_drop_inventory" }, PlayerDropInventory.PlayerDropInventoryCommand, true)
     EventScheduler.RegisterScheduledEventType("PlayerDropInventory.PlayerDropItems_Scheduled", PlayerDropInventory.PlayerDropItems_Scheduled)
     Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "PlayerDropInventory.OnPrePlayerDied", PlayerDropInventory.OnPrePlayerDied)
     EventScheduler.RegisterScheduledEventType("PlayerDropInventory.ApplyToPlayer", PlayerDropInventory.ApplyToPlayer)
@@ -53,7 +53,7 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParamaterString(command.parameter, true, commandName, {"delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment"})
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment" })
     if commandData == nil then
         return
     end
@@ -92,7 +92,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     if not CommandsUtils.CheckNumberArgument(gapSeconds, "double", true, commandName, "gap", 1 / 60, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast gapSeconds double
-    local gap = math.floor(gapSeconds * 60) --[[@as uint @ gapSeconds was validated as not exceeding a uint during input validation.]]
+    local gap = math.floor(gapSeconds * 60) --[[@as uint # gapSeconds was validated as not exceeding a uint during input validation.]]
 
     local occurrences = commandData.occurrences
     if not CommandsUtils.CheckNumberArgument(occurrences, "int", true, commandName, "occurrences", 1, MathUtils.uintMax, command.parameter) then
@@ -126,10 +126,14 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     local data = event.data ---@type PlayerDropInventory_ApplyDropItemsData
 
     local targetPlayer = game.get_player(data.target)
+    if targetPlayer == nil then
+        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
+        return
+    end
     local targetPlayer_index = targetPlayer.index
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         -- Player not alive or in non playing mode.
-        game.print({"message.muppet_streamer_player_drop_inventory_not_character_controller", data.target})
+        game.print({ "message.muppet_streamer_player_drop_inventory_not_character_controller", data.target })
         return
     end
 
@@ -145,7 +149,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         staticItemCount = data.quantityValue
     elseif data.quantityType == QuantityType.startingPercentage then
         local totalItemCount = PlayerDropInventory.GetPlayersItemCount(targetPlayer, data.dropEquipment)
-        staticItemCount = math.max(1, math.floor(totalItemCount / (100 / data.quantityValue))) -- Output will always be a uint based on the input values prior valdiation.
+        staticItemCount = math.max(1, math.floor(totalItemCount / (100 / data.quantityValue))) -- Output will always be a uint based on the input values prior validation.
     elseif data.quantityType == QuantityType.realtimePercentage then
         dynamicPercentageItemCount = data.quantityValue
     end
@@ -154,20 +158,20 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     global.playerDropInventory.affectedPlayers[targetPlayer_index] = true
 
     -- Do the first effect now.
-    game.print({"message.muppet_streamer_player_drop_inventory_start", targetPlayer.name})
+    game.print({ "message.muppet_streamer_player_drop_inventory_start", targetPlayer.name })
     ---@type PlayerDropInventory_ScheduledDropItemsData
     local scheduledDropItemsData = {
         player_index = targetPlayer_index,
         player = targetPlayer,
         gap = data.gap,
-        totaloccurrences = data.occurrences,
+        totalOccurrences = data.occurrences,
         dropOnBelts = data.dropOnBelts,
         dropEquipment = data.dropEquipment,
         staticItemCount = staticItemCount,
         dynamicPercentageItemCount = dynamicPercentageItemCount,
-        currentoccurrences = 0
+        currentOccurrences = 0
     }
-    PlayerDropInventory.PlayerDropItems_Scheduled({tick = event.tick, instanceId = scheduledDropItemsData.player_index, data = scheduledDropItemsData})
+    PlayerDropInventory.PlayerDropItems_Scheduled({ tick = event.tick, instanceId = scheduledDropItemsData.player_index, data = scheduledDropItemsData })
 end
 
 --- Apply the drop item effect to the player.
@@ -193,16 +197,16 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     if data.staticItemCount ~= nil then
         itemCountToDrop = data.staticItemCount
     else
-        itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint @ End value will always end up as a uint from the validated input values.]]
-    end ---@cast itemCountToDrop - nil
+        itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint # End value will always end up as a uint from the validated input values.]]
+    end ---@cast itemCountToDrop -nil
 
-    -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurence count has completed.
+    -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurrence count has completed.
     if totalItemCount > 0 then
         local itemCountDropped = 0
         local surface, position = player.surface, player.position
 
         -- Drop a single random item from across the range of inventories at a time until the required number of items have been dropped.
-        -- CODE NOTE: This is quite Lua code inefficient, but does ensure truely random items are dropped.
+        -- CODE NOTE: This is quite Lua code inefficient, but does ensure truly random items are dropped.
         while itemCountDropped < itemCountToDrop do
             -- Select the single random item number to be dropped from across the total item count.
             local itemNumberToDrop = math.random(1, totalItemCount)
@@ -241,13 +245,21 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             end
 
             -- Drop the specific item.
-            local itemStackToDropFrom  ---@type LuaItemStack
+            local itemStackToDropFrom ---@type LuaItemStack|nil
             if inventoryNameOfItemNumberToDrop == "cursorStack" then
                 -- Special case as not a real inventory.
-                itemStackToDropFrom = player.cursor_stack
+                itemStackToDropFrom = player.cursor_stack ---@cast itemStackToDropFrom -nil # We know the cursor_stack is populated if its gone down this logic path.
             else
                 local inventory = player.get_inventory(inventoryNameOfItemNumberToDrop)
+                if inventory == nil then
+                    CommandsUtils.LogPrintError(commandName, nil, "didn't find inventory id " .. inventoryNameOfItemNumberToDrop .. "' for " .. player.name, nil)
+                    return
+                end
                 itemStackToDropFrom = inventory.find_item_stack(itemNameToDrop)
+                if itemStackToDropFrom == nil then
+                    CommandsUtils.LogPrintError(commandName, nil, "didn't find item stack for item '" .. itemNameToDrop .. "' in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop, nil)
+                    return
+                end
             end
             local itemStackToDropFrom_count = itemStackToDropFrom.count
             if itemStackToDropFrom_count == 1 then
@@ -259,7 +271,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
                 -- CODE NOTE: ItemStacks have a single durability and ammo stat which effectively is for the first item in the itemStack, with the other items in the itemStack all being full.
                 -- CODE NOTE: when the itemStack's count is reduced by 1 the itemStacks durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
-                local itemToDrop = {name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability}
+                local itemToDrop = { name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability }
                 if itemStackToDropFrom.type == "ammo" then
                     itemToDrop.ammo = itemStackToDropFrom.ammo
                 end
@@ -281,13 +293,13 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         end
     end
 
-    -- Schedule the next occurence if we haven't completed them all yet.
-    data.currentoccurrences = data.currentoccurrences + 1
-    if data.currentoccurrences < data.totaloccurrences then
+    -- Schedule the next occurrence if we haven't completed them all yet.
+    data.currentOccurrences = data.currentOccurrences + 1
+    if data.currentOccurrences < data.totalOccurrences then
         EventScheduler.ScheduleEventOnce(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
-        game.print({"message.muppet_streamer_player_drop_inventory_stop", player.name})
+        game.print({ "message.muppet_streamer_player_drop_inventory_stop", player.name })
     end
 end
 
@@ -296,7 +308,7 @@ PlayerDropInventory.OnPrePlayerDied = function(event)
     PlayerDropInventory.StopEffectOnPlayer(event.player_index)
 end
 
----@parm playerIndex uint
+---@param playerIndex uint
 PlayerDropInventory.StopEffectOnPlayer = function(playerIndex)
     if global.playerDropInventory.affectedPlayers[playerIndex] == nil then
         return
@@ -311,18 +323,18 @@ end
 ---@return uint totalItemsCount
 PlayerDropInventory.GetPlayersItemCount = function(player, includeEquipment)
     local totalItemsCount = 0 ---@type uint
-    for _, inventoryName in pairs({defines.inventory.character_main, defines.inventory.character_trash}) do
+    for _, inventoryName in pairs({ defines.inventory.character_main, defines.inventory.character_trash }) do
         for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
             totalItemsCount = totalItemsCount + count
         end
     end
     local cursorStack = player.cursor_stack
-    if cursorStack.valid_for_read then
+    if cursorStack ~= nil and cursorStack.valid_for_read then
         totalItemsCount = totalItemsCount + cursorStack.count
     end
 
     if includeEquipment then
-        for _, inventoryName in pairs({defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo}) do
+        for _, inventoryName in pairs({ defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo }) do
             for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
                 totalItemsCount = totalItemsCount + count
             end
@@ -341,7 +353,7 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
     local totalItemsCount = 0 ---@type uint
     local inventoryItemCounts = {} ---@type PlayerDropInventory_InventoryItemCounts
     local inventoryContents = {} ---@type PlayerDropInventory_InventoryContents
-    for _, inventoryName in pairs({defines.inventory.character_main, defines.inventory.character_trash}) do
+    for _, inventoryName in pairs({ defines.inventory.character_main, defines.inventory.character_trash }) do
         local contents = player.get_inventory(inventoryName).get_contents()
         inventoryContents[inventoryName] = contents
         local inventoryTotalCount = 0 ---@type uint
@@ -352,15 +364,15 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
         inventoryItemCounts[inventoryName] = inventoryTotalCount
     end
     local cursorStack = player.cursor_stack
-    if cursorStack.valid_for_read then
+    if cursorStack ~= nil and cursorStack.valid_for_read then
         local count = cursorStack.count
         totalItemsCount = totalItemsCount + count
         inventoryItemCounts["cursorStack"] = count
-        inventoryContents["cursorStack"] = {[cursorStack.name] = count}
+        inventoryContents["cursorStack"] = { [cursorStack.name] = count }
     end
 
     if includeEquipment then
-        for _, inventoryName in pairs({defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo}) do
+        for _, inventoryName in pairs({ defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo }) do
             local contents = player.get_inventory(inventoryName).get_contents()
             inventoryContents[inventoryName] = contents
             local inventoryTotalCount = 0 ---@type uint
