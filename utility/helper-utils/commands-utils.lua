@@ -148,6 +148,8 @@ CommandsUtils.LogPrintWarning = function(commandName, argumentName, errorText, c
 end
 
 --- Gets the commands parameter string as a table of values. Used when a command only takes a single argument object and that is a table of options.
+---
+--- Calling function needs to abort if the result is nil and `mandatory` was true. Limit of Sumneko generics/function return types.
 ---@param commandParameterString string|nil # The text string passed in on the command.
 ---@param mandatory boolean # If false then passing in nothing won't flag an error message, but will still error on malformed text string.
 ---@param commandName string # The in-game command name. Used in error messages.
@@ -209,6 +211,8 @@ CommandsUtils.GetSettingsTableFromCommandParameterString = function(commandParam
 end
 
 --- Check a command's argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName. Does not convert strings to numbers.
+---
+--- Calling function needs to cast input value variable based on if `mandatory` was true or not. Limit of Sumneko generics/function return types.
 ---@param value any # Will accept any data type and validate it.
 ---@param requiredType "'double'"|"'int'" # The specific number type we want.
 ---@param mandatory boolean
@@ -227,7 +231,7 @@ CommandsUtils.CheckNumberArgument = function(value, requiredType, mandatory, com
     -- If value is nil and it passed the generic requirements which checks mandatory if needed, then end this parse successfully.
     if value == nil then
         return true
-    end ---@cast value double
+    end
 
     -- If there's a specific fake type check that first.
     -- There's no check for a double as that can be anything.
@@ -265,6 +269,8 @@ CommandsUtils.CheckNumberArgument = function(value, requiredType, mandatory, com
 end
 
 --- Check a command's string argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
+---
+--- Calling function needs to cast input value variable based on if `mandatory` was true or not. Limit of Sumneko generics/function return types.
 ---@param value any # Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string # The in-game command name. Used in error messages.
@@ -286,7 +292,7 @@ CommandsUtils.CheckStringArgument = function(value, mandatory, commandName, argu
     -- If value is nil and it passed the generic requirements which handles mandatory then end this parse successfully.
     if value == nil then
         return true
-    end ---@cast value string
+    end
 
     -- Check the value is in the allowed strings requirement if provided.
     if allowedStrings ~= nil then
@@ -308,6 +314,8 @@ CommandsUtils.CheckStringArgument = function(value, mandatory, commandName, argu
 end
 
 --- Check a command's boolean argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
+---
+--- Calling function needs to cast input value variable based on if `mandatory` was true or not. Limit of Sumneko generics/function return types.
 ---@param value any # Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string # The in-game command name. Used in error messages.
@@ -323,12 +331,14 @@ CommandsUtils.CheckBooleanArgument = function(value, mandatory, commandName, arg
     -- If value is nil and it passed the generic requirements which handles mandatory then end this parse successfully.
     if value == nil then
         return true
-    end ---@cast value boolean
+    end
 
     return true
 end
 
 --- Check a command's table argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
+---
+--- Calling function needs to cast input value variable based on if `mandatory` was true or not. Limit of Sumneko generics/function return types.
 ---@param value any # Will accept any data type and validate it.
 ---@param mandatory boolean
 ---@param commandName string # The in-game command name. Used in error messages.
@@ -340,12 +350,12 @@ CommandsUtils.CheckTableArgument = function(value, mandatory, commandName, argum
     -- Check its valid for generic requirements first.
     if not CommandsUtils.CheckGenericArgument(value, "table", mandatory, commandName, argumentName, commandString) then
         return false
-    end ---@cast value table|nil
+    end ---@cast value table<any, any>|nil
 
     -- If value is nil and it passed the generic requirements which handles mandatory then end this parse successfully.
     if value == nil then
         return true
-    end ---@cast value table<any, any>
+    end
 
     -- Check the value's keys are in the allowed key requirement if provided.
     if allowedKeys ~= nil then
@@ -376,6 +386,8 @@ CommandsUtils.CheckTableArgument = function(value, mandatory, commandName, argum
 end
 
 --- Check a command's generic argument value is the required type and is provided if mandatory. Gets the mod name from Constants.ModFriendlyName.
+---
+--- Calling function needs to cast input value variable based on if `mandatory` was true or not. Limit of Sumneko generics/function return types.
 ---@param value any # Will accept any data type and validate it.
 ---@param requiredType table|boolean|string|number # The type of value we want.
 ---@param mandatory boolean

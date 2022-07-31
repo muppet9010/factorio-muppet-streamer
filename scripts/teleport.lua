@@ -273,7 +273,7 @@ Teleport.PlanTeleportTarget = function(eventData)
 
     -- Get the key data about the players current situation.
     local targetPlayer_surface = targetPlayer.surface
-    local targetPlayer_force = targetPlayer.force --[[@as LuaForce]]
+    local targetPlayer_force = targetPlayer.force --[[@as LuaForce # Work around for R/W limitation]]
     -- Sumneko limitation workaround on R/W types.
     local targetPlayer_position = targetPlayer.position
 
@@ -325,7 +325,10 @@ Teleport.PlanTeleportTarget = function(eventData)
                         --spawnerDistance = PositionUtils.GetDistance(targetPlayer_position, spawnerDetails.position)
 
                         if spawnerDistance <= data.maxDistance and spawnerDistance >= data.minDistance then
-                            table.insert(data.spawnerDistances, { distance = spawnerDistance, spawnerDetails = spawnerDetails }--[[@as Teleport_TargetPlayerSpawnerDistanceDetails # While this is inserted as consistent key ID's it can be manipulated later to be gappy.]] )
+                            ---@type Teleport_TargetPlayerSpawnerDistanceDetails
+                            local spawnerDistanceDetails = { distance = spawnerDistance, spawnerDetails = spawnerDetails }
+                            -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
+                            table.insert(data.spawnerDistances, spawnerDistanceDetails)
                         end
                     end
                 end

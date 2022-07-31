@@ -119,7 +119,7 @@ MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
     end
 
     --Check that the ammo is suitable for our needs.
-    local ammoType = ammoPrototype.get_ammo_type("player") --[[@as AmmoType # We've already validated this is of type ammo.]]
+    local ammoType = ammoPrototype.get_ammo_type("player") ---@cast ammoType -nil # We've already validated this is of type ammo.
     if not PlayerWeapon.IsAmmoCompatibleWithWeapon(ammoType, weaponPrototype) then
         CommandsUtils.LogPrintError(commandName, nil, "ammo isn't compatible with the weapon.", command.parameter)
         return
@@ -170,7 +170,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
     end
 
     targetPlayer.driving = false
-    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponPrototype.name, true, true, data.ammoPrototype.name) ---@cast removedWeaponDetails - nil # removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equipped (not allowing it to go in to the player's inventory).
+    local flamethrowerGiven, removedWeaponDetails = PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponPrototype.name, true, true, data.ammoPrototype.name) ---@cast removedWeaponDetails -nil # removedWeaponDetails is always populated in our use case as we are forcing the weapon to be equipped (not allowing it to go in to the player's inventory).
 
     if flamethrowerGiven == nil then
         CommandsUtils.LogPrintError(commandName, nil, "target player can't be given a flamethrower for some odd reason: " .. data.target, nil)
@@ -218,7 +218,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
 
     local startingAngle = math.random(0, 360)
 
-    local ammoType = data.ammoPrototype.get_ammo_type("player") --[[@as AmmoType # We've already validated this is of type ammo.]]
+    local ammoType = data.ammoPrototype.get_ammo_type("player") ---@cast ammoType -nil # We've already validated this is of type ammo.
     local minRange, maxRange, cooldown = PlayerWeapon.GetWeaponAmmoDetails(ammoType, data.weaponPrototype)
     local startingDistance = MathUtils.GetRandomDoubleInRange(minRange, maxRange)
     local cooldownTicks = math.max(MathUtils.RoundNumberToDecimalPlaces(cooldown, 0), 1) --[[@as uint]]
@@ -405,7 +405,7 @@ end
 --- Gets the permission group for this feature. Will create it if needed.
 ---@return LuaPermissionGroup
 MalfunctioningWeapon.GetOrCreatePermissionGroup = function()
-    local group = game.permissions.get_group("MalfunctioningWeapon") or game.permissions.create_group("MalfunctioningWeapon") ---@cast group - nil # Script always has permission to create groups.
+    local group = game.permissions.get_group("MalfunctioningWeapon") or game.permissions.create_group("MalfunctioningWeapon") ---@cast group -nil # Script always has permission to create groups.
     group.set_allows_action(defines.input_action.select_next_valid_gun, false)
     group.set_allows_action(defines.input_action.toggle_driving, false)
     group.set_allows_action(defines.input_action.change_shooting_state, false)

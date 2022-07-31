@@ -143,7 +143,8 @@ GuiUtil.AddElement = function(elementDetails)
     if attributes ~= nil then
         for k, v in pairs(attributes) do
             if type(v) == "function" then
-                v = v() --[[@as any # A function will return something, even if nil.]]
+                ---@cast v fun():any # A function will return something, even if nil.
+                v = v()
             end
             element[k] = v
         end
@@ -243,18 +244,21 @@ GuiUtil.UpdateElementFromPlayersReferenceStorage = function(playerIndex, storeNa
     if changes.attributes ~= nil then
         for k, v in pairs(changes.attributes) do
             if type(v) == "function" then
-                v = v() --[[@as any # A function will return something, even if nil.]]
+                ---@cast v fun():any # A function will return something, even if nil.
+                v = v()
             end
             element[k] = v
         end
         changes.attributes = nil
     end
 
-    for argName, argValue in pairs(changes--[[@as table<string, any>]] ) do
+    -- Deal with any changes left over
+    ---@cast changes table<string, any>
+    for argName, argValue in pairs(changes) do
         if argName == "caption" or argName == "tooltip" then
             argValue = GuiUtil._ReplaceLocaleNameSelfWithGeneratedName({ name = generatedName, [argName] = argValue }, argName)
         end
-        element[argName] = argValue --[[@as LuaGuiElement # Short term fix for bug in debugger]]
+        element[argName] = argValue --[[@as LuaGuiElement # Short term fix for bug in Debugger generated TypeDefs]]
     end
 
     return element
@@ -343,7 +347,7 @@ GuiUtil._ApplyStylingArgumentsToElement = function(element, stylingArgs)
         end
         stylingArgs.column_alignments = nil
     end
-    local elementStyle = element.style --[[@as table<string, any> # As we are just blindly writing key values to it.]]
+    local elementStyle = element.style ---@cast elementStyle table<string, any> # As we are just blindly writing key values to it.
     for k, v in pairs(stylingArgs) do
         elementStyle[k] = v
     end

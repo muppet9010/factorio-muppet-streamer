@@ -117,7 +117,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
                     return false, nil
                 end
             end
-        end ---@cast weaponFoundIndex - nil # All logic paths either ensure its populated or return.
+        end ---@cast weaponFoundIndex -nil # All logic paths either ensure its populated or return.
     end
 
     -- Get the ammo slot for the equipped gun.
@@ -160,7 +160,8 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
             -- Ammo in the slot so need to check its compatible with the gun.
 
             -- Clear the current ammo stack ready for the the planned ammo if not compatible with the gun.
-            local ammoIsCompatibleWithGun = PlayerWeapon.IsAmmoCompatibleWithWeapon(ammoItemStack.prototype.get_ammo_type("player")--[[@as AmmoType]] , game.item_prototypes[weaponName])
+            local ammoType = ammoItemStack.prototype.get_ammo_type("player") ---@cast ammoType -nil
+            local ammoIsCompatibleWithGun = PlayerWeapon.IsAmmoCompatibleWithWeapon(ammoType, game.item_prototypes[weaponName])
             if not ammoIsCompatibleWithGun then
                 -- Move it to the players inventory, or the floor.
                 local currentAmmoName, currentAmmoCount = ammoItemStack.name, ammoItemStack.count
@@ -176,7 +177,7 @@ PlayerWeapon.EnsureHasWeapon = function(player, weaponName, forceWeaponToWeaponI
 
     -- Give the gun if needed. We had to handle ammo first for both when needing a gun giving and not.
     if needsGunGiving then
-        ---@cast characterInventory - nil # Inventory was cached already if needsGunGiving was set to true.
+        ---@cast characterInventory -nil # Inventory was cached already if needsGunGiving was set to true.
         -- Remove 1 item of the weapon type from the players inventory if they had one, to simulate equipping the weapon. Otherwise we will flag this as giving the player a weapon.
         if characterInventory.get_item_count(weaponName) == 0 then
             -- No instance of the weapon in the player's inventory.

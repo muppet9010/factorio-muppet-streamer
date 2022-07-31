@@ -340,7 +340,7 @@ end
 --- Gets the permission group for this feature. Will create it if needed.
 ---@return LuaPermissionGroup
 AggressiveDriver.GetOrCreatePermissionGroup = function()
-    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast group - nil # Script always has permission to create groups.
+    local group = game.permissions.get_group("AggressiveDriver") or game.permissions.create_group("AggressiveDriver") ---@cast group -nil # Script always has permission to create groups.
     group.set_allows_action(defines.input_action.toggle_driving, false)
     return group
 end

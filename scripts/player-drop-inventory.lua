@@ -198,7 +198,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         itemCountToDrop = data.staticItemCount
     else
         itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint # End value will always end up as a uint from the validated input values.]]
-    end ---@cast itemCountToDrop - nil
+    end ---@cast itemCountToDrop -nil
 
     -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurrence count has completed.
     if totalItemCount > 0 then

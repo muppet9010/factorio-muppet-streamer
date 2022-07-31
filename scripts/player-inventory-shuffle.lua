@@ -454,7 +454,7 @@ PlayerInventoryShuffle.CalculateItemDistribution = function(storageInventory, it
 
         -- Destination count is the number of sources clamped between 1 and number of players. It's the source player count and a random +/- of the greatest between the ItemDestinationPlayerCountRange and destinationPlayersMinimumVariance.
         destinationCountVariance = math_max(requestData.destinationPlayersMinimumVariance, math_floor((sourcesCount * requestData.destinationPlayersVarianceFactor)))
-        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance--[[@as integer # needed due to expected type in math.random().]] , destinationCountVariance), 1), playersCount) --[[@as uint # The min and max values are uints.]]
+        destinationCount = math_min(math_max(sourcesCount + math_random(-destinationCountVariance, destinationCountVariance), 1), playersCount) --[[@as uint # The min and max values are uints.]]
 
         -- Work out the raw ratios of items each destination will get.
         totalAssignedRatio, destinationRatios = 0, {}

@@ -138,7 +138,7 @@ InventoryUtils.TryInsertInventoryContents = function(contents, targetInventory, 
     end
 
     -- Clamp ratio to between 0 and 1.
-    ratioToMove = math_min(math_max(ratioToMove, 0), 1) --[[@as double]]
+    ratioToMove = math_min(math_max(ratioToMove, 0), 1)
 
     -- Handle simple returns that don't require item moving.
     if TableUtils.IsTableEmpty(contents) then
@@ -192,7 +192,7 @@ InventoryUtils.TryInsertSimpleItems = function(simpleItemStacks, targetInventory
     end
 
     -- Clamp ratio to between 0 and 1.
-    ratioToMove = math_min(math_max(ratioToMove, 0), 1) --[[@as double]]
+    ratioToMove = math_min(math_max(ratioToMove, 0), 1)
 
     -- Handle simple returns that don't require item moving.
     if simpleItemStacks == nil or #simpleItemStacks == 0 then
