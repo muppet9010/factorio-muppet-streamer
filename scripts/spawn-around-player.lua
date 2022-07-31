@@ -1,7 +1,3 @@
---[[
-    This has grown rather messy in trying to implement factory type function collections for the different entity types. While it's fully functional it is a victim of iterative changes and enhancements, without a full refactor.
-]]
-
 local SpawnAroundPlayer = {} ---@class SpawnAroundPlayer
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
@@ -81,11 +77,6 @@ SpawnAroundPlayer.OnLoad = function()
     CommandsUtils.Register("muppet_streamer_spawn_around_player", { "api-description.muppet_streamer_spawn_around_player" }, SpawnAroundPlayer.SpawnAroundPlayerCommand, true)
     EventScheduler.RegisterScheduledEventType("SpawnAroundPlayer.SpawnAroundPlayerScheduled", SpawnAroundPlayer.SpawnAroundPlayerScheduled)
     MOD.Interfaces.Commands.SpawnAroundPlayer = SpawnAroundPlayer.SpawnAroundPlayerCommand
-
-    -- Make the functions for the different entity types. We need game to be populated for this and while it is from the true OnLoad Factorio event, it isn't from the OnStartup type Factorio events.
-    if game ~= nil then
-        SpawnAroundPlayer.PopulateEntityTypeDetailsFunctions()
-    end
 end
 
 SpawnAroundPlayer.OnStartup = function()
@@ -137,9 +128,27 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end ---@cast creationName string
     local entityTypeName = EntityTypeNames[creationName]
-    local entityTypeDetails = SpawnAroundPlayer.EntityTypeDetails[entityTypeName]
-    if entityTypeName == EntityTypeNames.custom then
-        -- Populate a standard details from the custom settings to make it look "normal" to later code. Lots of validation needed for this.
+
+    -- Populate the entityTypeDetails functions based on the entity type and command settings.
+    local entityTypeDetails
+    if entityTypeName ~= EntityTypeNames.custom then
+        -- Lookup the predefined EntityTypeDetails.
+        entityTypeDetails = SpawnAroundPlayer.GetBuiltinEntityTypeDetails(entityTypeName)
+
+        -- Check the expected prototypes are present and roughly the right details.
+        if not entityTypeDetails.ValidateEntityPrototypes(command.parameter) then
+            return
+        end
+
+        -- Check no ignored custom settings for a non custom entityName.
+        if customEntityName ~= nil then
+            CommandsUtils.LogPrintWarning(commandName, "customEntityName", "customEntityName was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
+        end
+        if customSecondaryDetail ~= nil then
+            CommandsUtils.LogPrintWarning(commandName, "customSecondaryDetail", "customSecondaryDetail was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
+        end
+    else
+        -- Populate a standard details from the custom settings to make it look "normal" to later code. Lots of validation needed for this as no post validation can be done given its dynamic nature.
         if customEntityName == nil then
             CommandsUtils.LogPrintError(commandName, "customEntityName", "customEntityName wasn't provided, but is required as the entityName is 'custom'.", command.parameter)
             return
@@ -154,8 +163,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         if customEntityPrototype_type == "fire" then
             entityTypeDetails = SpawnAroundPlayer.GenerateFireEntityTypeDetails(customEntityName)
         elseif customEntityPrototype_type == "combat-robot" then
-            local canFollowPlayer = true -- Hard coded as no API way to get it at present. https://forums.factorio.com/viewtopic.php?f=28&t=103027
-            entityTypeDetails = SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails(customEntityName, canFollowPlayer)
+            entityTypeDetails = SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails(customEntityName)
         elseif customEntityPrototype_type == "ammo-turret" then
             usedSecondaryData = true
             if customSecondaryDetail ~= nil then
@@ -179,17 +187,6 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         if not usedSecondaryData and customSecondaryDetail ~= nil then
             CommandsUtils.LogPrintWarning(commandName, "customSecondaryDetail", "customSecondaryDetail was provided, but being ignored as the customEntityName didn't require it.", command.parameter)
         end
-    else
-        -- Check no ignored custom settings for a non custom entityName.
-        if customEntityName ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customEntityName", "customEntityName was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
-        end
-        if customSecondaryDetail ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customSecondaryDetail", "customSecondaryDetail was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
-        end
-    end
-    if not entityTypeDetails.ValidateEntityPrototypes(command.parameter) then
-        return
     end
 
     local radiusMax = commandData.radiusMax
@@ -373,95 +370,106 @@ SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position
     end
 end
 
---- Populate the functions for the different entity types we support creating.
----
---- Do during features OnLoad so its always populated, but we as we need `game` to be populated to run this its falling needs to filter out the OnStartup events calling OnLoad. It will overwrite itself safely and no random generation or anything during its population.
-SpawnAroundPlayer.PopulateEntityTypeDetailsFunctions = function()
-    -- CODE NOTE: the inner functions don't know their data types (same in the sub generator functions). Raised as enhancement request with Sumneko: https://github.com/sumneko/lua-language-server/issues/1332. At present just copying params from the class for the functions that complain.
-    ---@type SpawnAroundPlayer_EntityTypes
-    SpawnAroundPlayer.EntityTypeDetails = {
-        [EntityTypeNames.tree] = {
-            ValidateEntityPrototypes = function()
-                -- The BiomeTrees ensures it only returns valid trees and it will always find something, so nothing needs checking.
-                return true
-            end,
-            GetDefaultForce = function()
-                return game.forces["neutral"]
-            end,
-            GetEntityName = function(surface, position)
-                return BiomeTrees.GetBiomeTreeName(surface, position)
-            end,
-            GetEntityAlignedPosition = function(position)
-                return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offGridPlacementJitter)
-            end,
-            gridPlacementSize = 1,
-            FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
-                return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
-            end,
-            ---@param data SpawnAroundPlayer_PlaceEntityDetails
-            PlaceEntity = function(data)
-                data.surface.create_entity { name = data.entityName, position = data.position, force = data.force }
-            end
-        },
-        [EntityTypeNames.rock] = {
-            ValidateEntityPrototypes = function(commandString)
-                if Common.GetBaseGameEntityByName("rock-huge", "simple-entity", commandName, commandString) == nil then
-                    return false
-                end
-                if Common.GetBaseGameEntityByName("rock-big", "simple-entity", commandName, commandString) == nil then
-                    return false
-                end
-                if Common.GetBaseGameEntityByName("sand-rock-big", "simple-entity", commandName, commandString) == nil then
-                    return false
-                end
-                return true
-            end,
-            GetDefaultForce = function()
-                return game.forces["neutral"]
-            end,
-            GetEntityName = function()
-                local random = math.random()
-                if random < 0.2 then
-                    return "rock-huge"
-                elseif random < 0.6 then
-                    return "rock-big"
-                else
-                    return "sand-rock-big"
-                end
-            end,
-            GetEntityAlignedPosition = function(position)
-                return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offGridPlacementJitter)
-            end,
-            gridPlacementSize = 2,
-            FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
-                return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
-            end,
-            ---@param data SpawnAroundPlayer_PlaceEntityDetails
-            PlaceEntity = function(data)
-                data.surface.create_entity { name = data.entityName, position = data.position, force = data.force }
-            end
-        },
-        [EntityTypeNames.laserTurret] = SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails("laser-turret", "electric-turret"),
-        [EntityTypeNames.gunTurretRegularAmmo] = SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails("gun-turret", "firearm-magazine"),
-        [EntityTypeNames.gunTurretPiercingAmmo] = SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails("gun-turret", "piercing-rounds-magazine"),
-        [EntityTypeNames.gunTurretUraniumAmmo] = SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails("gun-turret", "uranium-rounds-magazine"),
-        [EntityTypeNames.wall] = SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails("stone-wall", "wall"),
-        [EntityTypeNames.landmine] = SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails("land-mine", "land-mine"),
-        [EntityTypeNames.fire] = SpawnAroundPlayer.GenerateFireEntityTypeDetails("fire-flame"),
-        [EntityTypeNames.defenderBot] = SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails("defender", true),
-        [EntityTypeNames.distractorBot] = SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails("distractor", false),
-        [EntityTypeNames.destroyerBot] = SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails("destroyer", true),
-        [EntityTypeNames.custom] = {
-            -- Intentionally blank. Will be populated upon receiving the custom entity name and discerning its type.
-        }
+--- Get the details of a pre-defined entity type.
+---@param entityTypeName SpawnAroundPlayer_EntityTypeNames
+---@return SpawnAroundPlayer_EntityTypeDetails entityTypeDetails
+SpawnAroundPlayer.GetBuiltinEntityTypeDetails = function(entityTypeName)
+    if entityTypeName == EntityTypeNames.tree then return SpawnAroundPlayer.GenerateRandomTreeTypeDetails()
+    elseif entityTypeName == EntityTypeNames.rock then return SpawnAroundPlayer.GenerateRandomRockTypeDetails()
+    elseif entityTypeName == EntityTypeNames.laserTurret then return SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails("laser-turret", "electric-turret")
+    elseif entityTypeName == EntityTypeNames.gunTurretRegularAmmo then return SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails("gun-turret", "firearm-magazine")
+    elseif entityTypeName == EntityTypeNames.gunTurretPiercingAmmo then return SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails("gun-turret", "piercing-rounds-magazine")
+    elseif entityTypeName == EntityTypeNames.gunTurretUraniumAmmo then return SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails("gun-turret", "uranium-rounds-magazine")
+    elseif entityTypeName == EntityTypeNames.wall then return SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails("stone-wall", "wall")
+    elseif entityTypeName == EntityTypeNames.landmine then return SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails("land-mine", "land-mine")
+    elseif entityTypeName == EntityTypeNames.fire then return SpawnAroundPlayer.GenerateFireEntityTypeDetails("fire-flame")
+    elseif entityTypeName == EntityTypeNames.defenderBot then return SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails("defender")
+    elseif entityTypeName == EntityTypeNames.distractorBot then return SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails("distractor")
+    elseif entityTypeName == EntityTypeNames.destroyerBot then return SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails("destroyer")
+    else error("invalid entityTypeName provided to SpawnAroundPlayer.GetBuiltinEntityTypeDetails().")
+    end
+end
+
+--- Handler for the random tree option.
+---@return SpawnAroundPlayer_EntityTypeDetails
+SpawnAroundPlayer.GenerateRandomTreeTypeDetails = function()
+    ---@type SpawnAroundPlayer_EntityTypeDetails
+    local entityTypeDetails = {
+        ValidateEntityPrototypes = function()
+            -- The BiomeTrees ensures it only returns valid trees and it will always find something, so nothing needs checking.
+            return true
+        end,
+        GetDefaultForce = function()
+            return game.forces["neutral"]
+        end,
+        GetEntityName = function(surface, position)
+            return BiomeTrees.GetBiomeTreeName(surface, position)
+        end,
+        GetEntityAlignedPosition = function(position)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offGridPlacementJitter)
+        end,
+        gridPlacementSize = 1,
+        FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
+            return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
+        end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
+        PlaceEntity = function(data)
+            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force }
+        end
     }
+    return entityTypeDetails
+end
+
+
+--- Handler for the random minable rock option.
+---@return SpawnAroundPlayer_EntityTypeDetails
+SpawnAroundPlayer.GenerateRandomRockTypeDetails = function()
+    ---@type SpawnAroundPlayer_EntityTypeDetails
+    local entityTypeDetails = {
+        ValidateEntityPrototypes = function(commandString)
+            if Common.GetBaseGameEntityByName("rock-huge", "simple-entity", commandName, commandString) == nil then
+                return false
+            end
+            if Common.GetBaseGameEntityByName("rock-big", "simple-entity", commandName, commandString) == nil then
+                return false
+            end
+            if Common.GetBaseGameEntityByName("sand-rock-big", "simple-entity", commandName, commandString) == nil then
+                return false
+            end
+            return true
+        end,
+        GetDefaultForce = function()
+            return game.forces["neutral"]
+        end,
+        GetEntityName = function()
+            local random = math.random()
+            if random < 0.2 then
+                return "rock-huge"
+            elseif random < 0.6 then
+                return "rock-big"
+            else
+                return "sand-rock-big"
+            end
+        end,
+        GetEntityAlignedPosition = function(position)
+            return PositionUtils.RandomLocationInRadius(position, SpawnAroundPlayer.offGridPlacementJitter)
+        end,
+        gridPlacementSize = 2,
+        FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
+            return surface.find_non_colliding_position(entityName, position, searchRadius, 0.2)
+        end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
+        PlaceEntity = function(data)
+            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force }
+        end
+    }
+    return entityTypeDetails
 end
 
 --- Handler for the generic combat robot types.
 ---@param setEntityName string # Prototype entity name
----@param canFollow boolean # If the robots should be set to follow the player.
 ---@return SpawnAroundPlayer_EntityTypeDetails
-SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails = function(setEntityName, canFollow)
+SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails = function(setEntityName)
     local gridSize, searchOnlyInTileCenter = SpawnAroundPlayer.GetEntityTypeFunctionPlacementDetails(setEntityName)
 
     ---@type SpawnAroundPlayer_EntityTypeDetails
@@ -488,7 +496,7 @@ SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails = function(setEntityName, c
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
             local target
-            if canFollow and data.followPlayer then
+            if data.followPlayer then
                 target = data.targetPlayer.character
             end
             data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, target = target }

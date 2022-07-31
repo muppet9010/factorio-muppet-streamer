@@ -8,12 +8,12 @@ Date: 2022-XXXXXX
     - Schedule Explosive Delivery - added support for custom projectile/stream types.
     - Spawn Around Player - added support for custom entity types.
   Changes:
-    - Leaky Flamethrower - feature renamed to Malfunctioning Weapon as it supports much wider weapon range now. Command name changed with this to `muppet_streamer_malfunctioning_weapon`.
-    - Pants On Fire - fireGaps and fireHeadStarts is now where the player was X time ago, before the furthest bad position it tracked was when the last fire entity was created. This should make the effect follow a players previous path more accurately, rather than just being "somewhere" behind them. Only really apparent with high fireGaps values.
+    - Leaky Flamethrower - feature renamed to Malfunctioning Weapon as it supports a much wider weapon range now. Command name changed with this to `muppet_streamer_malfunctioning_weapon`.
+    - Pants On Fire - fireGaps and fireHeadStarts is now where the player was X time ago, before the furthest bad position it tracked was when the last fire entity was created. This should make the effect follow a player's previous path more accurately, rather than just being "somewhere" behind them. Only really apparent with high fireGaps values.
     - Spawn Around Player - the default for fire type entities will now be the `muppet_streamer_enemy` which is hostile to every force. This means custom fire entities will hurt biters.
     - Spawn Around Player - a force set for a type of tree, rock or fire is now honoured and not forced to be `neutral`. It is still the default for trees and rocks if the name of a force isn't explicitly set however. Fire defaults to `muppet_streamer_enemy`.
   Bugfixes:
-    - Various extreme edge case handling across features identified by improved developement tools.
+    - Various extreme edge case handling across features identified by improved development tools.
     - All features should be compatible/safe with mods that change base game things now. They will safely warn if the thing doesn't exist rather than error.
     - Pants On Fire - doesn't error on a fireHeadStart or 0 or 1 any more.
   Info:
