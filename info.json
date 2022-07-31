@@ -9,5 +9,5 @@
     "dependencies": [
         "base >= 1.1.57"
     ],
-    "description": "Adds actions that a streamer can let chat activate to make their games more dynamic and interactive."
+    "description": "Features that a streamer can let chat activate to make their games more dynamic and interactive."
 }

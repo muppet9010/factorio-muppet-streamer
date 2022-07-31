@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.26
-Date: 2022-XXXXXX
+Date: 2022-07-31
   Features:
     - Malfunctioning Weapon - supports custom weapon and ammo names as options for modded playthroughs.
     - Malfunctioning Weapon - added reloadTime to set delay between firing each magazine.

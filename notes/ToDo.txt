@@ -5,7 +5,6 @@ BUGS:
 
 
 DO NEAR FUTURE:
-    - Aggressive Driver - Add option to place a vehicle if none is found. Would take the name of a vehicle, the name and quantity of fuel to put in the placed vehicle, and the radius to try and place it within of the player. Direction would be as random as we can currently do with the placement searching. Option to remove the vehicle at the end of the effect. Actually do this as a separate feature to give player a vehicle. Support cars, spiders and locomotive vehicle types being placed in valid spots within a random distance from the player. Have this feature support checking if a nearby vehicle is drivable first. As then these can be chained together via use of remotes or sequential commands.
 
 
 Future Confirmed (bigger things):
@@ -20,7 +19,6 @@ Future Concepts:
     - Call for Help - add:
         - If player is in a vehicle try to put the called player in the vehicle with them first. If they are in a train try and put the players in other carriages in the train first.
         - An option to weight the player selection by time online. - this may be multiple options, see discussion: https://mods.factorio.com/mod/muppet_streamer/discussion/5f7b1102057852611e5817c6
-    - Aggressive driver to control a spidertron with similar effects to how it does cars.
     - Spider's brain fish is on a fish-ion:
         - spiders need a fish as their brain, sometimes they gain control.
         - for set time period
@@ -43,5 +41,8 @@ Future Concepts:
                 - Distance of spread
             - Nuke:
                 - not requested, but would need max blast area and damage settable?
-        - Callable from the Explosive Delivery.
-    - Leaky flamethrower doesn't support non vanilla flamethrower weapons or ammos. It relies upon the vanilla shooting speed and ammo count per item.
+    - A New feature to ensure a player has a vehicle.
+        - Support cars, spiders and locomotive vehicle types being placed in valid spots within a random distance from the player. Ideally have it find and use a larger clear area within the radius.
+        - Support settings for ammo and fuel, types and quantities being in the vehicle.
+        - Have this feature support checking if a nearby vehicle is drivable first, option to use the vehicle if its driver is free and top it up to the fuel and ammo standard.
+        - Have it take an optional duration before removing the vehicle.
