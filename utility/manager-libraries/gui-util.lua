@@ -79,7 +79,7 @@ GuiUtil.AddElement = function(elementDetails)
         error("GuiUtil.AddElement() doesn't support the 'name' attribute being provided, use 'descriptiveName' instead.")
     end
     if elementDetails[1] ~= nil then
-        error("GuiUtil.AddElement() received a non-key'd value. This is a syntax mistake in the ElementDetails as something is outside of a list.")
+        error("GuiUtil.AddElement() received a non-keyed value. This is a syntax mistake in the ElementDetails as something is outside of a list.")
     end
     if elementDetails.style ~= nil and type(elementDetails.style) ~= "string" then
         error("GuiUtil.AddElement() had a style attribute set other than a string. Common causes are a table being passed in as MuppetStyles hasn't been qualified to a final style string.")

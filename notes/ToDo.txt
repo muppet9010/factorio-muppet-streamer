@@ -6,8 +6,7 @@ BUGS:
 
 DO NEAR FUTURE:
     - Aggressive Driver - Add option to place a vehicle if none is found. Would take the name of a vehicle, the name and quantity of fuel to put in the placed vehicle, and the radius to try and place it within of the player. Direction would be as random as we can currently do with the placement searching. Option to remove the vehicle at the end of the effect. Actually do this as a separate feature to give player a vehicle. Support cars, spiders and locomotive vehicle types being placed in valid spots within a random distance from the player. Have this feature support checking if a nearby vehicle is drivable first. As then these can be chained together via use of remotes or sequential commands.
-    - Support modded entities across commands:
-        - Spawn Around Player - entityName should have "custom" as supported string and then you can provide the thing to be spawned and name of ammo to be inserted in to it. Need to check any vanilla items exist if try to be used.
+    - Sumneko - As all lua array key's should be uint can I change Sumneko to return this as the type as a test.
 
 
 Future Confirmed (bigger things):

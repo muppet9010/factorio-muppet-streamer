@@ -308,7 +308,7 @@ PlayerDropInventory.OnPrePlayerDied = function(event)
     PlayerDropInventory.StopEffectOnPlayer(event.player_index)
 end
 
----@parm playerIndex uint
+---@param playerIndex uint
 PlayerDropInventory.StopEffectOnPlayer = function(playerIndex)
     if global.playerDropInventory.affectedPlayers[playerIndex] == nil then
         return

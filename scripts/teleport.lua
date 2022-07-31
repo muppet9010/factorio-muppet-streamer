@@ -71,7 +71,7 @@ local MaxDistancePositionAroundTarget = 10
 ---@field position MapPosition
 ---@field forceName string
 
----@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> # A table of surface index numbers, to tables of force names, to spawner's details key'd by their unit number. Allows easy filtering to current surface and then batch ignoring of non-enemy spawners.
+---@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> # A table of surface index numbers, to tables of force names, to spawner's details keyed by their unit number. Allows easy filtering to current surface and then batch ignoring of non-enemy spawners.
 
 local commandName = "muppet_streamer_teleport"
 

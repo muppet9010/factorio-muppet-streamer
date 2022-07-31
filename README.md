@@ -48,12 +48,12 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds the creation of the explosives will be delayed for. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay. This doesn't include the in-flight time.
     - explosiveCount: INTEGER - Mandatory: the quantity of explosives to be delivered.
-    - explosiveType: STRING - Mandatory: the type of explosive, can be any one of the base game built-in options: `grenade`, `clusterGrenade`, `slowdownCapsule`, `poisonCapsule`, `artilleryShell`, `explosiveRocket`, `atomicRocket`, `smallSpit`, `mediumSpit`, `largeSpit`, or `custom`. Is case sensitive. Custom requires the additional options `customExplosiveType` and `customExplosiveSpeed` options to be set/considered.
+    - explosiveType: STRING - Mandatory: the type of explosive, can be any one of the vanilla Factorio built-in options: `grenade`, `clusterGrenade`, `slowdownCapsule`, `poisonCapsule`, `artilleryShell`, `explosiveRocket`, `atomicRocket`, `smallSpit`, `mediumSpit`, `largeSpit`, or `custom`. Is case sensitive. Custom requires the additional options `customExplosiveType` and `customExplosiveSpeed` options to be set/considered.
     - customExplosiveType: STRING - Mandatory Special: only required/supported if `explosiveType` is set to `custom`. Sets the name of the explosive to be used. Must be either a `projectile` or `stream` entity type.
     - customExplosiveSpeed: DECIMAL - Mandatory Special: only required/supported if `explosiveType` is set to `custom`. Sets the speed of the custom explosive type in the air. Only applies to `projectile` entity type. Default is 0.3 if not specified, same as most built in options.
     - target: STRING - Mandatory: a player name to target the position and surface of (case sensitive).
     - targetPosition: OBJECT - Optional: a position to target instead of the player's position. Will still come on to the target players map (surface). See notes for syntax examples.
-    - targetOffset: OBJECT - Optional: an offset position that's applied to the target/targetPosition value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offset set. See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
+    - targetOffset: OBJECT - Optional: an offset position that's applied to the `target`/`targetPosition` value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offset set. See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
     - accuracyRadiusMin: DECIMAL - Optional: the minimum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
     - accuracyRadiusMax: DECIMAL - Optional: the maximum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
     - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
@@ -67,8 +67,8 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 Notes:
 
 - Explosives will fly in from off screen to random locations around the target player within the accuracy settings. They may take a few seconds to complete their delivery as they fly in using their native throwing/shooting/spitting speed. Any explosive that collides with things (i.e. tank cannon shells) may complete their damage before they reach the player.
-- Weapons are on a special enemy force so that they will hurt everything on the map, 'muppet_streamer_enemy'. This also means that player damage upgrades don't affect these effects.
-- targetPosition and targetOffset expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
+- Weapons are on a special enemy force so that they will hurt everything on the map, `muppet_streamer_enemy`. This also means that player damage upgrades don't affect these effects.
+- `targetPosition` and `targetOffset` expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 
 
 
@@ -113,8 +113,8 @@ Ensures the target player has a specific weapon and can give ammo and force thei
     - delay: DECIMAL - Optional: how many seconds before the items are given. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target (case sensitive).
     - weaponType: STRING - Optional: the name of a weapon to ensure the player has 1 of. Can be either in their weapon inventory or in their character inventory. If not provided no weapon is given or selected. The weapon name is Factorio's internal name of the gun type and is case sensitive.
-    - forceWeaponToSlot: BOOLEAN - Optional: if True the weaponType will be placed/moved to the players weapon inventory. If there's no room a current weapon will be placed in the character inventory to make room. If False then the weapon will be placed in a free slot, otherwise the character inventory. Defaults to False
-    - selectWeapon: BOOLEAN - Optional: if True the player will have this weaponType selected as active if it's equipped in the weapon inventory. If not provided or the weaponType isn't in the weapon inventory then no weapon change is done.
+    - forceWeaponToSlot: BOOLEAN - Optional: if True the `weaponType` will be placed/moved to the players weapon inventory. If there's no room a current weapon will be placed in the character inventory to make room. If False then the weapon will be placed in a free slot, otherwise the character inventory. Defaults to False
+    - selectWeapon: BOOLEAN - Optional: if True the player will have this `weaponType` selected as active if it's equipped in the weapon inventory. If not provided or the `weaponType` isn't in the weapon inventory then no weapon change is done.
     - ammoType: STRING - Optional: the name of the ammo type to be given to the player. The ammo name is Factorio's internal name of the ammo type and is case sensitive. If an ammo amount is also set greater than 0 then this ammo type and amount will be forced into the weapon if equipped.
     - ammoCount: INTEGER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
 - Example command: `/muppet_streamer_give_player_weapon_ammo {"target":"muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "ammoType":"piercing-shotgun-shell", "ammoCount":30}`
@@ -134,24 +134,30 @@ Spawns entities in the game around the named player on their side. Includes both
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds before the spawning occurs. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to center upon (case sensitive).
-    - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player`), or left blank for the force of the targeted player. Certain entity types are hardcoded like trees, rocks and fire to be the `neutral` force. Value is case sensitive to Factorio's internal force name.
-	- entityName: STRING - Mandatory: the type of entity to be placed: tree, rock, laserTurret, gunTurretRegularAmmo, gunTurretPiercingAmmo, gunTurretUraniumAmmo, wall, fire, defenderBot, distractorBot, destroyerBot.
+    - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player`), or left blank for the default for the entity type. See notes for this list. Value is case sensitive to Factorio's internal force name.
+	- entityName: STRING - Mandatory: the type of entity to be placed: `tree`, `rock`, `laserTurret`, `gunTurretRegularAmmo`, `gunTurretPiercingAmmo`, `gunTurretUraniumAmmo`, `wall`, `landmine`, `fire`, `defenderBot`, `distractorBot`, `destroyerBot`, or `custom`. Is case sensitive. Custom requires the additional options `customEntityName` and `customSecondaryDetail` options to be set/considered.
+    - customEntityName: STRING - Mandatory Special: only required/supported if `entityName` is set to `custom`. Sets the name of the entity to be used. Supports any entity type, with the behaviours matching the included entityTypes.
+    - customSecondaryDetail: DECIMAL - Mandatory Special: only required/supported if `entityName` is set to `custom`. Sets the name of any secondary item/entity used with the main customEntityName. The `customSecondaryDetail` is use when the `customEntityName` is: `ammo-turret` it stores the ammo name.
 	- radiusMax: INTEGER - Mandatory: the max radius of the placement area from the target player.
 	- radiusMin: INTEGER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then 0 is used.
     - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
 	- quantity: INTEGER - Mandatory Special: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities. Either `quantity` or `density` must be supplied.
 	- density: DECIMAL - Mandatory Special: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities. Either `quantity` or `density` must be supplied.
-    - ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For GunTurrets it's the ammo count and ammo over the turrets max storage is ignored. For fire it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
+    - ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For ammo gun turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
     - followPlayer: BOOLEAN - Optional: if true the entities that are able to follow the player will do. If false they will be unmanaged. Some entities like defender combat bots have a maximum follower number, and so those beyond this limit will just be placed in the desired area.
 - Example command tree ring: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.5}`
 - Example command gun turrets with small delay: `/muppet_streamer_spawn_around_player {"delay":1, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount":10}`
 - Example command spread out fires: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density": 0.05, "ammoCount": 100}`
 - Example command combat robots: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"defenderBot", "radiusMax":10, "radiusMin":10, "existingEntities":"overlap", "quantity": 20, "followPlayer": true}`
+- Example command custom entity name: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName": "stone-furnace", "radiusMax":3, "radiusMin":7, "existingEntities":"avoid", "quantity":10}`
+- Example command custom entity ammo in gun turret: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"gun-turret", "customSecondaryDetail":"firearm-magazine", "radiusMax":3, "radiusMin":7, "existingEntities":"avoid", "quantity":10}`
 
 Notes:
 
-- For entityType of tree, if placed on a vanilla game tile or with Alien Biomes mod a biome specific tree will be selected, otherwise the tree will be random on other modded tiles. Should support and handle fully defined custom tree types, otherwise they will be ignored.
-- There is a special force included in the mod that is hostile to every other force which can be used if desired for the `forceString` option: muppet_streamer_enemy. The `enemy` force is the one the default biters are on, with players by default on the `player` force.
+- For `entityType` of `tree`, if placed on a vanilla Factorio tile or with Alien Biomes mod a biome specific tree will be selected, otherwise the tree will be random on other modded tiles. Should support and handle fully defined custom tree types, otherwise they will be ignored.
+- There is a special force included in the mod that is hostile to every other force which can be used if desired for the `forceString` option: `muppet_streamer_enemy`. The `enemy` force is the one the default biters are on, with players by default on the `player` force.
+- The default `force` used is based on the entity type if not specified as part of the command. The default is for the force of the targeted player, with the following exceptions: Trees and rocks will be the `neutral` force. Fire will be the `muppet_streamer_enemy` force which will hurt everything on the map.
+- For the `customEntityName` of a type of `combat-robot` the `followPlayer` option will be blindly followed. This will lead to excess robots beyond the players limit being destroyed. I am awaiting a modding interface request to make this information available so the mod can handle this smartly like it does for vanilla Factorio combat robots.
 
 
 
@@ -230,11 +236,11 @@ Teleports the player to the nearest type of thing.
 
 Notes:
 
-- destinationType of position expects an object of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
-- destinationType of enemyUnit and biterNests does a search for the nearest opposing force (not friend or cease-fire) unit/nest within the maxDistance. If this is a very large area (3000+) this may cause a small UPS spike.
-- All teleports will try 10 random locations around their targeted position within the arrivalRadius setting to try and find a valid spot. If there is no success they will try with a different target 5 times before giving up for the `random` and `biterNest` destinationType.
-- The reachableOnly option will give up on a valid random location for a target if it gets a failed pathfinder request and try another target. For biterNests this means it may not end up being the closest biter nest you are teleported to in all cases, based on walkable check. This may also lead to no valid target being found in some cases, so enable with care and expectations. The backupTeleportSettings can provide assistance here.
-- The backupTeleportSettings is intended for use if you have a more risky main destinationType. For example your main destinationType may be a biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the backupTeleportSettings must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
+- `destinationType` of `position` expects an object of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
+- `destinationType` of `enemyUnit` and `biterNests` does a search for the nearest opposing force (not friend or cease-fire) unit/nest within the maxDistance. If this is a very large area (3000+) this may cause a small UPS spike.
+- All teleports will try 10 random locations around their targeted position within the `arrivalRadius` setting to try and find a valid spot. If there is no success they will try with a different target 5 times before giving up for the `random` and `biterNest` `destinationType`.
+- The `reachableOnly` option will give up on a valid random location for a target if it gets a failed pathfinder request and try another target. For `biterNests` this means it may not end up being the closest biter nest you are teleported to in all cases, based on walkable check. This may also lead to no valid target being found in some cases, so enable with care and expectations. The `backupTeleportSettings` can provide assistance here.
+- The `backupTeleportSettings` is intended for use if you have a more risky main `destinationType`. For example your main `destinationType` may be a biter nest within 100 tiles, with a backup being a random location within 1000 tiles. All settings in the `backupTeleportSettings` must be provided just like the main command details. It will be queued to action at the end of the previous teleport attempt failing.
 - A player teleported comes with their vehicle if they have one (excludes trains). Anyone else in the vehicle comes with it. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
 
 
@@ -254,12 +260,12 @@ Sets the ground on fire behind a player forcing them to run.
     - flameCount: INTEGER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire. Max is 255.
     - fireType: STRING - Optional: the name of the specific `fire` type entity you want to have. This is the internal name within Factorio. Defaults to the vanilla Factorio fire entity, `fire-flame`.
 - Example command continuous fire at players heels: `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30}`
-- Example command sporadic worm acid spit (low damage type of fire entity): `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireType":"acid-splash-fire-worm-behemoth", "fireGap": 30, "flameCount": 3, "fireHeadStart": 1}`
+- Example command sporadic worm acid spit (low damage type of fire entity): `/muppet_streamer_pants_on_fire {"target":"muppet9010", "duration": 30, "fireGap": 30, "flameCount": 3, "fireHeadStart": 1, "fireType":"acid-splash-fire-worm-behemoth"}`
 
 Notes:
 
 - If a player is in a vehicle while the effect is active they take increasing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armored vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
-- Fire effects are on a special enemy force so that they will hurt everything on the map, 'muppet_streamer_enemy'. This also means that player damage upgrades don't affect these effects.
+- Fire effects are on a special enemy force so that they will hurt everything on the map, `muppet_streamer_enemy`. This also means that player damage upgrades don't affect these effects.
 
 
 Player Drop Inventory
@@ -271,7 +277,7 @@ Schedules the targeted player to drop their inventory on the ground over time.
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
     - target: STRING - Mandatory: the player name to target (case sensitive).
-    - quantityType: STRING - Mandatory: the way quantity value is interpreted to calculate the number of items to drop per drop event, either `constant`, `startingPercentage` or `realtimePercentage`. Constant uses quantityValue as a static number of items. StartingPercentage means a percentage of the item count at the start of the effect is dropped from the player every drop event. RealtimePercentage means that every time a drop event occurs the player's current inventory item count is used to calculate how many items to drop this event.
+    - quantityType: STRING - Mandatory: the way quantity value is interpreted to calculate the number of items to drop per drop event, either `constant`, `startingPercentage` or `realtimePercentage`. Constant uses `quantityValue` as a static number of items. StartingPercentage means a percentage of the item count at the start of the effect is dropped from the player every drop event. RealtimePercentage means that every time a drop event occurs the player's current inventory item count is used to calculate how many items to drop this event.
     - quantityValue: INTEGER - Mandatory: the number of items to drop. When quantityType is `startingPercentage`, or `realtimePercentage` this number is used as the percentage (0-100).
     - dropOnBelts: BOOLEAN - Optional: if the dropped items should be placed on belts or not. Defaults to False.
     - gap: DECIMAL - Mandatory: how many seconds between each drop event.
@@ -296,8 +302,8 @@ Takes all the inventory items from the target players, shuffles them and then di
 - Command syntax: `/muppet_streamer_player_inventory_shuffle [DETAILS JSON STRING]`
 - Details in JSON string supports the arguments:
     - delay: DECIMAL - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
-    - includedPlayers: STRING_LIST/STRING -  Mandatory Special: either blank, a comma separated list of the player names to include (assuming they are online at the time), or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's in-game name. At least one of includedPlayers or includedForces settings must be provided.
-    - includedForces: STRING_LIST/STRING -  Mandatory Special: a comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's in-game name. At least one of includedPlayers or includedForces settings must be provided.
+    - includedPlayers: STRING_LIST/STRING -  Mandatory Special: either blank, a comma separated list of the player names to include (assuming they are online at the time), or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's in-game name. At least one of `includedPlayers` or `includedForces` settings must be provided.
+    - includedForces: STRING_LIST/STRING -  Mandatory Special: a comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's in-game name. At least one of `includedPlayers` or `includedForces` settings must be provided.
     - includeEquipment: BOOLEAN - Optional: if the player's armor and weapons are included for shuffling or not. Defaults to True.
     - includeHandCrafting: BOOLEAN - Optional: if the player's hand crafting should be cancelled and the ingredients shuffled. Defaults to True.
     - destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to receive an item type compared to the number of source inventories. A value of 0 will allow the for the same number of players to receive an item as lost it, greater than 1 ensures a wider distribution away from the source number of inventories. Defaults to 1 to ensure some uneven spreading of items. See notes for logic on item distribution and how this setting interacts with other settings.
@@ -343,7 +349,7 @@ Start with building's ghost on death unlocked
 
 A mod setting that can make all forces start with ghosts being placed upon entity deaths. Ideal if your chat blows up your base often early game and you freehand build, so don't have a blueprint to just paste down again.
 
-This is the same as if the force had researched the vanilla construction robot technology to unlock it, by giving entity ghosts a long life time. The mod setting can be safely disabled post technology research if desired without it undoing any researched ghost life timer.
+This is the same as if the force had researched the vanilla Factorio construction robot technology to unlock it, by giving entity ghosts a long life time. The mod setting can be safely disabled post technology research if desired without it undoing any researched ghost life timer.
 
 
 

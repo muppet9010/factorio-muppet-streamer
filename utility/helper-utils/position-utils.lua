@@ -40,7 +40,7 @@ end
 
 -- Returns the table as an x|y table rather than an [1]|[2] table.
 ---@param thing table
----@return MapPosition|nil position? # x,y key'd table or nil if not a valid MapPosition.
+---@return MapPosition|nil position? # x,y keyed table or nil if not a valid MapPosition.
 PositionUtils.TableToProperPosition = function(thing)
     if thing.x ~= nil and thing.y ~= nil then
         if type(thing.x) == "number" and type(thing.y) == "number" then

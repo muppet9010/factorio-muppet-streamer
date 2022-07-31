@@ -57,7 +57,7 @@ end
 ---@param command CustomCommandData
 PantsOnFire.PantsOnFireCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount" }) --TODO: fireType
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount", "fireType" })
     if commandData == nil then
         return
     end
