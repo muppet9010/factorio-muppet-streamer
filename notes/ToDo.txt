@@ -2,6 +2,7 @@ DOING NOW:
 
 
 BUGS:
+    - Suspect Aggressive Driver ignores vehicles that don't burn any fuel. As it just checks if there is currently fuel and ignores if it needs fuel.
 
 
 DO NEAR FUTURE:

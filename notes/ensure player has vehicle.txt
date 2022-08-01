@@ -1,0 +1,44 @@
+Rough code for Eurorapter - concept of what an Ensure Player Has Vehcile feature could be, but with much smarter placement logic and better handling current vehicles, etc.
+
+
+
+/sc
+local playerName, maxTeleportRange, defaultVehicleName, defaultFuelStackType = "muppet9010", 100, "car", "coal" --[[ All inputs used within script defined on this line. ]]
+local player = game.get_player(playerName); if player == nil then game.print("named player not on server"); return; end
+local DoesVehicleHaveFuel = function(entity)
+	local burner = entity.burner; if burner == nil then return false; end
+	if burner.currently_burning ~= nil then return true; end
+	for i = 1, #burner.inventory do currentFuelStack = burner.inventory[i]; if currentFuelStack ~= nil and currentFuelStack.valid_for_read then return true; end end
+	return false
+end
+if player.vehicle == nil then
+	--[[ If player isn't in a vehicle we need to check for one nearby to grab. ]]
+	local vehicleAvailable, vehicleThatNeedsFuel
+	for _, vehicle in pairs(player.surface.find_entities_filtered { position = player.position, radius = maxTeleportRange, force = player.force, type = { "car", "locomotive", "spider-vehicle" } }) do
+		--[[ Look for a single suitable vehicle and if one isn't found then one missing fuel is better than nothing. ]]
+		if vehicle.get_driver() == nil then
+			if DoesVehicleHaveFuel(vehicle) then
+				--[[ Player has suitable vehicle within teleport range so Aggressive Driver will just work. ]]
+				vehicleAvailable = vehicle; break;
+			else
+				--[[ Player has an available vehicle within teleport range, but we will need to add fuel so then Aggressive Driver will just work. Just track the last vehicle found that needs fuel. ]]
+				vehicleThatNeedsFuel = vehicle
+			end
+		end
+	end
+	if vehicleAvailable == nil and vehicleThatNeedsFuel ~= nil then
+		--[[ No suitable vehicle found, but one did just need fuel so give it some so Aggressive Driver will be happy. ]]
+		vehicleThatNeedsFuel.insert(defaultFuelStackType)
+	elseif vehicleAvailable == nil and vehicleThatNeedsFuel == nil then
+		--[[ No suitable vehicle found at all, so add one so Aggressive Driver will be happy. Try to find a more open place with a rocket silo first, then use a smaller area if needed. ]]
+		local positionFound = player.surface.find_non_colliding_position("rocket-silo", player.position, maxTeleportRange, 1, true) or player.surface.find_non_colliding_position(defaultVehicleName, player.position, maxTeleportRange, 0.5, false)
+		if positionFound == nil then game.print("no where found to place car"); return; end
+		local vehicle = player.surface.create_entity({name = defaultVehicleName, position = positionFound, force = player.force})
+		if vehicle == nil then game.print("placing car at found location failed"); return; end
+		vehicle.insert(defaultFuelStackType)
+	end	
+else
+	--[[ Player in a vehicle so check it has fuel and add some if not. ]]
+	if not DoesVehicleHaveFuel(player.vehicle) then player.vehicle.insert(defaultFuelStackType); end
+end
+remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target=playerName, duration=30, control="random", teleportDistance=maxTeleportRange})
