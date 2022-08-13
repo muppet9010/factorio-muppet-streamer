@@ -1,0 +1,6 @@
+The souce videos where recorded at 2.50 Mb/s. So need to set the export to the same to avoid inflating the file size.
+Advanced > Video Settings
+
+
+
+OneShot can export to gif, but it just makes massive files and I can't find how to make them be sensibly sized.
