@@ -69,54 +69,67 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         return
     end ---@cast explosiveType_string string
     local explosiveType = ExplosiveDelivery.Types[explosiveType_string] ---@type ExplosiveDelivery_Type
-    local explosivePrototype_name
+    local explosivePrototype, explosivePrototype_name
     local explosiveTypeWasCustom = false
-    if explosiveType.type == 'projectile' then
+    if explosiveType.type == "projectile" then
         ---@cast explosiveType ExplosiveDelivery_Type_Projectile
         explosivePrototype_name = explosiveType.projectileName
-    elseif explosiveType.type == 'stream' then
+    elseif explosiveType.type == "stream" then
         ---@cast explosiveType ExplosiveDelivery_Type_Stream
         explosivePrototype_name = explosiveType.streamName
-    elseif explosiveType.type == 'custom' then
+    elseif explosiveType.type == "custom" then
         -- Populate a standard details from the custom settings to make it look "normal" to later code. Lots of validation needed for this.
         if customExplosiveType_string == nil then
             CommandsUtils.LogPrintError(commandName, "customExplosiveType", "customExplosiveType wasn't provided, but is required as the explosiveType is 'custom'.", command.parameter)
             return
         end
-        local customExplosivePrototype = game.entity_prototypes[customExplosiveType_string]
-        if customExplosivePrototype == nil then
+        explosivePrototype = game.entity_prototypes[customExplosiveType_string]
+        if explosivePrototype == nil then
             CommandsUtils.LogPrintError(commandName, "customExplosiveType", "entity '" .. customExplosiveType_string .. "' wasn't a valid entity name", command.parameter)
             return
         end
-        local customExplosivePrototype_type = customExplosivePrototype.type
-        if customExplosivePrototype_type ~= 'projectile' and customExplosivePrototype_type ~= 'stream' then
-            CommandsUtils.LogPrintError(commandName, "customExplosiveType", "entity '" .. customExplosiveType_string .. "' wasn't a projectile or stream entity type, instead it was a type: " .. tostring(customExplosivePrototype_type), command.parameter)
-            return
-        end
+        local explosivePrototype_type = explosivePrototype.type
         explosivePrototype_name = customExplosiveType_string
         explosiveTypeWasCustom = true
-        if customExplosivePrototype_type == 'projectile' then
+        if explosivePrototype_type == "projectile" or explosivePrototype_type == "artillery-projectile" then
+            -- The projectile and artillery-projectile are treated equally as they have the same creation options.
             ---@type ExplosiveDelivery_Type_Projectile
             explosiveType = {
-                type = 'projectile',
+                type = "projectile",
                 projectileName = explosivePrototype_name,
                 speed = customExplosiveSpeed or 0.3
             }
-        elseif customExplosivePrototype_type == 'stream' then
+        elseif explosivePrototype_type == "stream" then
             ---@type ExplosiveDelivery_Type_Stream
             explosiveType = {
-                type = 'stream',
+                type = "stream",
                 streamName = explosivePrototype_name
             }
+        else
+            CommandsUtils.LogPrintError(commandName, "customExplosiveType", "entity '" .. customExplosiveType_string .. "' wasn't a projectile, artillery-projectile or stream entity type, instead it was a type: " .. tostring(explosivePrototype_type), command.parameter)
+            return
         end
     end
-    local explosivePrototype = Common.GetBaseGameEntityByName(explosivePrototype_name, explosiveType.type, commandName, command.parameter)
-    if explosivePrototype == nil then
-        return
+
+    -- Check non custom explosive type's names match their expected type, in case a mod has changed something odd.
+    if not explosiveTypeWasCustom then
+        local validPrototypeTypes
+        if explosiveType.type == "projectile" then
+            validPrototypeTypes = { "projectile", "artillery-projectile" }
+        elseif explosiveType.type == "stream" then
+            validPrototypeTypes = "stream"
+        else
+            error("unsupported explosiveType.type: " .. tostring(explosiveType.type))
+        end
+        explosivePrototype = Common.GetBaseGameEntityByName(explosivePrototype_name, validPrototypeTypes, commandName, command.parameter)
+        if explosivePrototype == nil then
+            return
+        end
     end
 
     -- Check no ignored custom explosive related settings.
     if not explosiveTypeWasCustom then
+        -- Was a built-in option and so these should never be populated.
         if customExplosiveType_string ~= nil then
             CommandsUtils.LogPrintWarning(commandName, "customExplosiveType", "customExplosiveType was provided, but being ignored as the explosiveType wasn't 'custom'.", command.parameter)
         end
@@ -124,8 +137,9 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             CommandsUtils.LogPrintWarning(commandName, "customExplosiveSpeed", "customExplosiveSpeed was provided, but being ignored as the explosiveType wasn't 'custom'.", command.parameter)
         end
     else
-        if explosiveType.type == 'stream' and customExplosiveSpeed ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customExplosiveSpeed", "customExplosiveSpeed was provided, but being ignored as the custom explosive type isn't a projectile.", command.parameter)
+        -- Was a custom explosive type, so check if speed was populated and valid for this type.
+        if customExplosiveSpeed ~= nil and explosiveType.type == "stream" then
+            CommandsUtils.LogPrintWarning(commandName, "customExplosiveSpeed", "customExplosiveSpeed was provided, but being ignored as the custom explosive type isn't a 'projectile' or 'artillery-projectile'.", command.parameter)
         end
     end
 
@@ -306,10 +320,10 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         local explosiveCreateDistance = math.max(100, data.accuracyRadiusMax * 2)
         local explosiveCreatePos = PositionUtils.RandomLocationInRadius(targetPos, explosiveCreateDistance, explosiveCreateDistance)
 
-        if explosiveType.type == 'projectile' then
+        if explosiveType.type == "projectile" then
             ---@cast explosiveType ExplosiveDelivery_Type_Projectile
             surface.create_entity { name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed, force = global.Forces.muppet_streamer_enemy }
-        elseif explosiveType.type == 'stream' then
+        elseif explosiveType.type == "stream" then
             ---@cast explosiveType ExplosiveDelivery_Type_Stream
             surface.create_entity { name = explosiveType.streamName, position = explosiveCreatePos, target = targetEntity, source_position = explosiveCreatePos, force = global.Forces.muppet_streamer_enemy }
         end
@@ -322,9 +336,9 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
 end
 
 ---@class ExplosiveDelivery_Type
----@field type 'projectile'|'stream'|'custom'
+---@field type "projectile"|"stream"|"custom"
 
----@class ExplosiveDelivery_Type_Projectile : ExplosiveDelivery_Type
+---@class ExplosiveDelivery_Type_Projectile : ExplosiveDelivery_Type # Includes both projectile and artillery-projectile as they have the same attributes.
 ---@field projectileName string
 ---@field speed double
 
@@ -333,69 +347,68 @@ end
 
 ---@class ExplosiveDelivery_Type_Custom_Generic : ExplosiveDelivery_Type
 
-
 ---@class ExplosiveDelivery_Types
 ExplosiveDelivery.Types = {
     ---@class ExplosiveDelivery_Type_Projectile
     grenade = {
-        type = 'projectile',
+        type = "projectile",
         projectileName = "grenade",
         speed = 0.3
     },
     ---@class ExplosiveDelivery_Type_Projectile
     clusterGrenade = {
-        type = 'projectile',
+        type = "projectile",
         projectileName = "cluster-grenade",
         speed = 0.3
     },
     ---@class ExplosiveDelivery_Type_Projectile
     slowdownCapsule = {
-        type = 'projectile',
+        type = "projectile",
         projectileName = "slowdown-capsule",
         speed = 0.3
     },
     ---@class ExplosiveDelivery_Type_Projectile
     poisonCapsule = {
-        type = 'projectile',
+        type = "projectile",
         projectileName = "poison-capsule",
         speed = 0.3
     },
     ---@class ExplosiveDelivery_Type_Projectile
     artilleryShell = {
-        type = 'projectile',
+        type = "projectile",
         projectileName = "artillery-projectile",
-        speed = 1.0
+        speed = 1
     },
     ---@class ExplosiveDelivery_Type_Projectile
     explosiveRocket = {
-        type = 'projectile',
+        type = "projectile",
         projectileName = "explosive-rocket",
         speed = 0.3
     },
     ---@class ExplosiveDelivery_Type_Projectile
     atomicRocket = {
-        type = 'projectile',
+        type = "projectile",
         projectileName = "atomic-rocket",
         speed = 0.3
     },
     ---@class ExplosiveDelivery_Type_Stream
     smallSpit = {
-        type = 'stream',
+        type = "stream",
         streamName = "acid-stream-spitter-small"
     },
     ---@class ExplosiveDelivery_Type_Stream
     mediumSpit = {
-        type = 'stream',
+        type = "stream",
         streamName = "acid-stream-worm-medium"
     },
     ---@class ExplosiveDelivery_Type_Stream
     largeSpit = {
-        type = 'stream',
+        type = "stream",
         streamName = "acid-stream-worm-behemoth"
     },
     ---@class ExplosiveDelivery_Type_Custom_Generic
     custom = {
-        type = 'custom'
+        type = "custom"
     }
 }
 

@@ -192,7 +192,7 @@ Common.GetBaseGameEntityByName = function(entityName, expectedEntityType, comman
                 end
             end
             if not aValidType then
-                CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. entityName .. "' entity, but it isn't type '" .. expectedEntityType .. "'.", commandString)
+                CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. entityName .. "' entity, but it isn't one of the types: " .. TableUtils.TableValueToCommaString(expectedEntityType) .. ".", commandString)
                 return nil
             end
         end
@@ -230,7 +230,7 @@ Common.GetBaseGameItemByName = function(itemName, expectedItemType, commandName,
                 end
             end
             if not aValidType then
-                CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. itemName .. "' item, but it isn't type '" .. expectedItemType .. "'.", commandString)
+                CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. itemName .. "' item, but it isn't one of the types: " .. TableUtils.TableValueToCommaString(expectedItemType) .. ".", commandString)
                 return nil
             end
         end

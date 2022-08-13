@@ -32,8 +32,8 @@ local QuantityType = {
 ---@field dynamicPercentageItemCount uint|nil
 ---@field currentOccurrences uint
 
----@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|'cursorStack', uint> # Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
----@alias PlayerDropInventory_InventoryContents table<defines.inventory|'cursorStack', table<string, uint>> # Dictionary of each inventory to a cached list of item name and counts in that inventory.
+---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|"cursorStack", uint> # Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
+---@alias PlayerDropInventory_InventoryContents table<defines.inventory|"cursorStack", table<string, uint>> # Dictionary of each inventory to a cached list of item name and counts in that inventory.
 
 local commandName = "muppet_streamer_player_drop_inventory"
 
