@@ -106,7 +106,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         return
     end ---@cast flameCount uint8|nil
     if flameCount == nil then
-        flameCount = 20
+        flameCount = 30
     end
 
     local firePrototype, valid = Common.GetEntityPrototypeFromCommandArgument(commandData.fireType, "fire", false, commandName, "fireType", command.parameter)
@@ -200,7 +200,7 @@ PantsOnFire.WalkCheck = function(eventData)
         if step.surface.valid then
             -- Factorio auto deletes the fire-flame entity for us.
             -- 20 flames seems the minimum to set a tree on fire.
-            local fireEntity = step.surface.create_entity({ name = data.firePrototype.name, position = step.position, initial_ground_flame_count = data.flameCount, force = global.Forces.muppet_streamer_enemy })
+            local fireEntity = step.surface.create_entity({ name = data.firePrototype.name, position = step.position, initial_ground_flame_count = data.flameCount, force = global.Forces.muppet_streamer_enemy, create_build_effect_smoke = false, raise_built = true })
 
             -- If the player is in a vehicle do direct health damage to stop them hiding from the effects in armored vehicles.
             if player.vehicle then

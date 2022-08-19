@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.28
+Date: 2022-08-19
+  Features:
+  Changes:
+    - Spawn Around Player - providing a minimum radius above the maximum radius will now be blocked, as its a bad request. Previously it did work for some usage situations and not others.
+    - Pants On Fire - default flame count upped from 20 to 30 to make sure they safely allways trees on fire.
+  Bugfixes:
+    - Spawn Around Player - didn't raise the built event so other mods weren't notified about what it created.
+    - Pants On Fire - didn't raise the built event so other mods weren't notified about the fire entities it created.
+    - Explosive Delivery - didn't raise the built event so other mods weren't notified about the projectiles and stream entities it created.
+    - Explosive Delivery - Fixed the position type arguments had stopped accepting array syntaxed data since v20.1.24.
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.1.27
 Date: 2022-08-13
   Features:

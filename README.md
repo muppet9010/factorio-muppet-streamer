@@ -9,49 +9,51 @@ Features
 
 #### Streamer Events
 
-- Schedule the delivery of some explosives to the player at speed.
-- A malfunctioning weapon (leaky flamethrower) that shoots wildly for short bursts intermittently.
-- Give a player a weapon and ammo, plus options to force it as an active weapon.
-- Spawn entities around the player with various placement options.
-- Make the player an aggressive driver.
-- Call other players to help by teleporting them in.
-- Teleport the player to a range of possible target types.
-- Sets the ground on fire behind a player.
-- Drop a player's inventory on the ground over time.
-- Mix up players' inventories between them.
+- Schedule the delivery of some hostile explosives to the player at speed. = `Schedule Explosive Delivery`
+- A malfunctioning weapon (leaky flamethrower) that shoots wildly for short bursts intermittently. = `Malfunctioning Weapon`
+- Give the player a weapon and ammo, plus options to force it as an active weapon. = `Give Weapon & Ammo`
+- Spawn entities around the player with various placement options. = `Spawn Around Player`
+- Make the player an aggressive driver who has no or limited control of their vehicle. = `Aggressive Driver`
+- Call other players to help by teleporting them in. = `Call For Help`
+- Teleport the player to a range of possible target types. = `Teleport`
+- Sets the ground on fire behind a player. = `Pants On Fire`
+- Drop a player's inventory on the ground over time. = `Player Drop Inventory`
+- Mix up multiple players' inventories between them. = `Player Inventory Shuffle`
 
 All are done via highly configurable RCON commands as detailed below for each feature. Each can also be triggered via a remote interface call from a Lua script, details on this are at the end of this document.
 
-Examples of some of the single player features can be seen here in a YouTube video: 
+Examples of some of the single player features can be seen here in a YouTube video:
 [![single player features](https://i.ytimg.com/vi/_X8gfOKxSJI/hqdefault.jpg)](https://youtu.be/_X8gfOKxSJI)
 
 #### Multiplayer Features
 
-- Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
+- Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands. = `Team Member Limit`
 
 #### Map Helper Features (mod options)
 
-- Building's start with ghosts on death unlocked, rather than having to wait for a technology to unlock it (construction robotics).
+- Start the game with ghosts appearing when buildings die, rather than having to wait for a technology to unlock it (construction robotics). = `Dead Building Ghosts`
 - Disable introduction message in freeplay.
 - Disable rocket win condition in freeplay.
 - Set a custom area of the map revealed at game start.
 
 #### General Usage Notes
 
-See the end of the file for descriptions of the data types and other wordings used in this explanation document.
+See the end of the file for descriptions of the data types and other wordings used in this explanation document. Also includes details on the Remote Interface of the mod, and mod upgrading advice.
 
 
 
-Schedule Explosive Delivery to player
------------------
+---------------------------------------
+
+Schedule Explosive Delivery
+============
 
 Can deliver a highly customisable explosive delivery to the player. The explosives are created off the target player's screen and so take a few seconds to fly to their destinations.
 
 #### Command syntax
 
-`/muppet_streamer_schedule_explosive_delivery [OPTIONS JSON STRING]`
+`/muppet_streamer_schedule_explosive_delivery [OPTIONS TABLE AS JSON STRING]`
 
-#### OPTIONS JSON STRING supports the arguments
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds the creation of the explosives will be delayed for. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay. This doesn't include the in-flight time.
 - explosiveCount: INTEGER - Mandatory: the quantity of explosives to be delivered.
@@ -59,8 +61,8 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - customExplosiveType: STRING - Mandatory Special: only required/supported if `explosiveType` is set to `custom`. Sets the name of the explosive to be used. Must be either a `projectile`, `artillery-projectile` or `stream` entity type.
 - customExplosiveSpeed: DECIMAL - Mandatory Special: only required/supported if `explosiveType` is set to `custom`. Sets the speed of the custom explosive type in the air. Only applies to `projectile` and `artillery-projectile` entity types. Default is 0.3 if not specified. See notes for the values of built-in options.
 - target: STRING - Mandatory: a player name to target the position and surface of (case sensitive).
-- targetPosition: OBJECT - Optional: a position to target instead of the player's position. Will still come on to the target players map (surface). See notes for syntax examples.
-- targetOffset: OBJECT - Optional: an offset position that's applied to the `target`/`targetPosition` value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offset set. See notes for syntax examples. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
+- targetPosition: POSITION_OBJECT - Optional: a position to target instead of the player's position. Will still come on to the target players map (surface). See Argument Data Types for syntax examples of a POSITION_OBJECT.
+- targetOffset: POSITION_OBJECT - Optional: an offset position that's applied to the `target`/`targetPosition` value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offset set. See Argument Data Types for syntax examples of a POSITION_OBJECT. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
 - accuracyRadiusMin: DECIMAL - Optional: the minimum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
 - accuracyRadiusMax: DECIMAL - Optional: the maximum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
 - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
@@ -70,7 +72,8 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 
 - atomic rocket: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"atomicRocket", "target":"muppet9010", "accuracyRadiusMax":50}`
 - grenades around player: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
-- offset artillery: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"artilleryShell", "target":"muppet9010", "targetOffset":{"x":10,"y":10}}`
+- offset artillery: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"artilleryShell", "target":"muppet9010", "targetOffset":[10, 10]}`
+- poison capsules in large area around spawn: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":200, "explosiveType":"poisonCapsule", "target":"muppet9010", "targetPosition":{"x":0,"y":0}, "accuracyRadiusMax":200}`
 - large count of explosive rockets using salvo and delay: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":30, "explosiveType":"explosiveRocket", "target":"muppet9010", "accuracyRadiusMax":30, "salvoSize":10, "salvoDelay":300}`
 - custom type: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":5, "explosiveType":"custom", "target":"muppet9010", "customExplosiveType":"cannon-projectile", "customExplosiveSpeed":1, "accuracyRadiusMax":10}`
 
@@ -78,21 +81,22 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 
 - Explosives will fly in from off screen to random locations around the target player within the accuracy options. They may take a few seconds to complete their delivery as they fly in using their native throwing/shooting/spitting speed. Any explosive that collides with things (i.e. tank cannon shells) may complete their damage before they reach the player.
 - Weapons are on a special enemy force so that they will hurt everything on the map, `muppet_streamer_enemy`. This also means that player damage upgrades don't affect these effects.
-- `targetPosition` and `targetOffset` expects a table of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 - Default projectile speeds for the built-in options: the thrown grenade & capsule, plus rocket options has a value of 0.3. The artillery shell option has a value of 1.
 
 
 
-Malfunctioning Weapon (Leaky Flamethrower)NS
-------------------
+---------------------------------------
+
+Malfunctioning Weapon (Leaky Flamethrower)
+============
 
 Forces the targeted player to wield a weapon that shoots in random directions. Shoots a full ammo item, then briefly pauses before firing the next full ammo item. This is a Time Duration Event.
 
 #### Command syntax
 
-`/muppet_streamer_malfunctioning_weapon [OPTIONS JSON STRING]`
+`/muppet_streamer_malfunctioning_weapon [OPTIONS TABLE AS JSON STRING]`
 
-#### OPTIONS JSON STRING supports the arguments
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds the flamethrower and effects are delayed before starting. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - target: STRING - Mandatory: the player name to target (case sensitive).
@@ -121,16 +125,18 @@ Forces the targeted player to wield a weapon that shoots in random directions. S
 
 
 
+---------------------------------------
+
 Give Weapon & Ammo
------------------
+============
 
 Ensures the target player has a specific weapon and can give ammo and force their selection of the weapon.
 
 #### Command syntax
 
-`/muppet_streamer_give_player_weapon_ammo [OPTIONS JSON STRING]`
+`/muppet_streamer_give_player_weapon_ammo [OPTIONS TABLE AS JSON STRING]`
 
-#### OPTIONS JSON STRING supports the arguments
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds before the items are given. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - target: STRING - Mandatory: the player name to target (case sensitive).
@@ -150,29 +156,31 @@ Ensures the target player has a specific weapon and can give ammo and force thei
 
 
 
+---------------------------------------
+
 Spawn Around Player
-------------
+============
 
 Spawns entities in the game around the named player on their side. Includes both helpful and damaging entities and creation process options.
 
 #### Command syntax
 
-`/muppet_streamer_spawn_around_player [OPTIONS JSON STRING]`
+`/muppet_streamer_spawn_around_player [OPTIONS TABLE AS JSON STRING]`
 
-#### OPTIONS JSON STRING supports the arguments
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds before the spawning occurs. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - target: STRING - Mandatory: the player name to center upon (case sensitive).
 - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player`), or left blank for the default for the entity type. See notes for this list. Value is case sensitive to Factorio's internal force name.
 - entityName: STRING - Mandatory: the type of entity to be placed: `tree`, `rock`, `laserTurret`, `gunTurretRegularAmmo`, `gunTurretPiercingAmmo`, `gunTurretUraniumAmmo`, `wall`, `landmine`, `fire`, `defenderBot`, `distractorBot`, `destroyerBot`, or `custom`. Is case sensitive. Custom requires the additional options `customEntityName` and `customSecondaryDetail` options to be set/considered.
 - customEntityName: STRING - Mandatory Special: only required/supported if `entityName` is set to `custom`. Sets the name of the entity to be used. Supports any entity type, with the behaviours matching the included entityTypes.
-- customSecondaryDetail: DECIMAL - Mandatory Special: only required/supported if `entityName` is set to `custom`. Sets the name of any secondary item/entity used with the main customEntityName. The `customSecondaryDetail` is used when the `customEntityName` is: `ammo-turret` it stores the ammo name.
+- customSecondaryDetail: STRING - Optional Special: only required/supported if `entityName` is set to `custom`. Sets the name of any secondary item/entity used with the main customEntityName. The `customSecondaryDetail` is used when the `customEntityName` is: `ammo-turret` it stores the ammo name.
 - radiusMax: INTEGER - Mandatory: the max radius of the placement area from the target player.
 - radiusMin: INTEGER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then 0 is used.
 - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
 - quantity: INTEGER - Mandatory Special: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities. Either `quantity` or `density` must be supplied.
 - density: DECIMAL - Mandatory Special: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities. Either `quantity` or `density` must be supplied.
-- ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For ammo gun turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
+- ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For ammo gun turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect, with 20 or more needed to set trees on fire. This setting applies to both appropriate entityName options and appropriate customEntityName entity types; ammo-turret and fire for both.
 - followPlayer: BOOLEAN - Optional: if true the entities that are able to follow the player will do. If false they will be unmanaged. Some entities like defender combat bots have a maximum follower number, and so those beyond this limit will just be placed in the desired area.
 
 #### Examples
@@ -181,8 +189,8 @@ Spawns entities in the game around the named player on their side. Includes both
 - gun turrets with small delay: `/muppet_streamer_spawn_around_player {"delay":1, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount":10}`
 - spread out fires: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density": 0.05, "ammoCount": 100}`
 - combat robots: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"defenderBot", "radiusMax":10, "radiusMin":10, "existingEntities":"overlap", "quantity": 20, "followPlayer": true}`
-- custom entity name: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName": "stone-furnace", "radiusMax":3, "radiusMin":7, "existingEntities":"avoid", "quantity":10}`
-- named ammo in a named gun turret: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"gun-turret", "customSecondaryDetail":"firearm-magazine", "radiusMax":3, "radiusMin":7, "existingEntities":"avoid", "quantity":10}`
+- custom entity name: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName": "stone-furnace", "radiusMax":7, "radiusMin":3, "existingEntities":"avoid", "quantity":10}`
+- named ammo in a named gun turret: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"gun-turret", "customSecondaryDetail":"firearm-magazine", "radiusMax":7, "radiusMin":3, "existingEntities":"avoid", "quantity":10, "ammoCount": 50}`
 
 #### Notes
 
@@ -194,16 +202,19 @@ Spawns entities in the game around the named player on their side. Includes both
 - `Density` is done based on each tile having a random chance of getting an entity added. This means very low density values can be supported. However, it also means that in unlikely random outcomes quite a few of something could be created even with low values.
 
 
+
+---------------------------------------
+
 Aggressive Driver
----------------
+============
 
 The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering. This is a Time Duration Event.
 
 #### Command syntax
 
-`/muppet_streamer_aggressive_driver [OPTIONS JSON STRING]`
+`/muppet_streamer_aggressive_driver [OPTIONS TABLE AS JSON STRING]`
 
-#### OPTIONS JSON STRING supports the arguments
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - target: STRING - Mandatory: the player name to target (case sensitive).
@@ -225,15 +236,17 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 
 
 
+---------------------------------------
+
 Call For Help
-------------
+============
 
 Teleports other players on the server to near your position.
 
 #### Command syntax
 
-`/muppet_streamer_call_for_help [OPTIONS JSON STRING]`
-#### OPTIONS JSON STRING supports the arguments
+`/muppet_streamer_call_for_help [OPTIONS TABLE AS JSON STRING]`
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - target: STRING - Mandatory: the player name to target (case sensitive).
@@ -261,19 +274,21 @@ Teleports other players on the server to near your position.
 
 
 
+---------------------------------------
+
 Teleport
--------------
+============
 
 Teleports the player to the nearest type of thing.
 
 #### Command syntax
 
-`/muppet_streamer_teleport [OPTIONS JSON STRING]`
-#### OPTIONS JSON STRING supports the arguments
+`/muppet_streamer_teleport [OPTIONS TABLE AS JSON STRING]`
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - target: STRING - Mandatory: the player name to target (case sensitive).
-- destinationType: STRING/OBJECT - Mandatory: the type of teleport to do, either the text string of `random`, `biterNest`, `enemyUnit`, `spawn` or a specific position as an object. For biterNest and enemyUnit it will be the nearest one found within range.
+- destinationType: STRING/POSITION_OBJECT - Mandatory: the type of teleport to do, either the text string of `random`, `biterNest`, `enemyUnit`, `spawn` or a specific position in the map as a POSITION_OBJECT. For biterNest and enemyUnit it will be the nearest one found within range. See Argument Data Types for syntax examples of a POSITION_OBJECT.
 - arrivalRadius - DECIMAL - Optional: the max distance the player will be teleported to from the targeted destinationType. Defaults to 10.
 - minDistance: DECIMAL - Optional: the minimum distance to teleport. If not provided then the value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `enemyUnit`.
 - maxDistance: DECIMAL - Mandatory Special: the maximum distance to teleport. Is not mandatory and ignored for destinationType of `spawn` or a specific position.
@@ -289,7 +304,6 @@ Teleports the player to the nearest type of thing.
 
 #### Notes
 
-- `destinationType` of `position` expects an object of the x, y coordinates. This can be in any of the following valid JSON formats (object or array): `{"x": 10, "y": 5}` or `[10, 5]`.
 - `destinationType` of `enemyUnit` and `biterNests` does a search for the nearest opposing force (not friend or cease-fire) unit/nest within the maxDistance. If this is a very large area (3000+) this may cause a small UPS spike.
 - All teleports will try 10 random locations around their targeted position within the `arrivalRadius` option to try and find a valid spot. If there is no success they will try with a different target 5 times before giving up for the `random` and `biterNest` `destinationType`.
 - The `reachableOnly` option will give up on a valid random location for a target if it gets a failed pathfinder request and try another target. For `biterNests` this means it may not end up being the closest biter nest you are teleported to in all cases, based on walkable checks. This may also lead to no valid target being found in some cases, so enable with care and expectations. The `backupTeleportSettings` can provide assistance here.
@@ -298,22 +312,24 @@ Teleports the player to the nearest type of thing.
 
 
 
+---------------------------------------
+
 Pants On Fire
-------------
+============
 
 Sets the ground on fire behind a player forcing them to run.
 
 #### Command syntax
 
-`/muppet_streamer_pants_on_fire [OPTIONS JSON STRING]`
-#### OPTIONS JSON STRING supports the arguments
+`/muppet_streamer_pants_on_fire [OPTIONS TABLE AS JSON STRING]`
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds before the effect starts. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - target: STRING - Mandatory: the player name to target (case sensitive).
 - duration: DECIMAL - Mandatory: how many seconds the effect lasts on the player.
 - fireGap: INTEGER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
 - fireHeadStart: INTEGER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continuous running with default `fireGap`.
-- flameCount: INTEGER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 20, which is the minimum to set a tree on fire. Max is 255.
+- flameCount: INTEGER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 30, which is above the minimum required to set a tree on fire (20). Max is 255, with greater than 50 seeming to have little impact.
 - fireType: STRING - Optional: the name of the specific `fire` type entity you want to have. This is the internal name within Factorio. Defaults to the vanilla Factorio fire entity, `fire-flame`.
 
 #### Examples
@@ -327,15 +343,17 @@ Sets the ground on fire behind a player forcing them to run.
 - Fire effects are on a special enemy force so that they will hurt everything on the map, `muppet_streamer_enemy`. This also means that player damage upgrades don't affect these effects.
 
 
+---------------------------------------
+
 Player Drop Inventory
----------------------
+============
 
 Schedules the targeted player to drop their inventory on the ground over time.
 
 #### Command syntax
 
-`/muppet_streamer_player_drop_inventory [OPTIONS JSON STRING]`
-#### OPTIONS JSON STRING supports the arguments
+`/muppet_streamer_player_drop_inventory [OPTIONS TABLE AS JSON STRING]`
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - target: STRING - Mandatory: the player name to target (case sensitive).
@@ -359,15 +377,17 @@ Schedules the targeted player to drop their inventory on the ground over time.
 
 
 
+---------------------------------------
+
 Player Inventory Shuffle
-------------------------
+============
 
 Takes all the inventory items from the target players, shuffles them and then distributes the items back between those players. Will keep the different types of items in roughly the same number of players inventories as they started, and will spread the quantities in a random distribution between them (not evenly).
 
 #### Command syntax
 
-`/muppet_streamer_player_inventory_shuffle [OPTIONS JSON STRING]`
-#### OPTIONS JSON STRING supports the arguments
+`/muppet_streamer_player_inventory_shuffle [OPTIONS TABLE AS JSON STRING]`
+#### OPTIONS TABLE AS JSON STRING supports the arguments
 
 - delay: DECIMAL - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - includedPlayers: STRING_LIST/STRING -  Mandatory Special: either blank, a comma separated list of the player names to include (assuming they are online at the time), or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's in-game name. At least one of `includedPlayers` or `includedForces` options must be provided.
@@ -399,8 +419,10 @@ Takes all the inventory items from the target players, shuffles them and then di
 
 
 
+---------------------------------------
+
 Team Member Limit
-------------
+============
 
 A way to soft limit the number of players on the map and options to use either Factorio research or RCON commands to increase it.
 
@@ -434,8 +456,10 @@ Remote Interface:
 
 
 
-Start with building's ghost on death unlocked
-------------
+---------------------------------------
+
+Dead Building Ghosts
+============
 
 A mod setting that can make all forces start with ghosts being placed upon entity deaths. Ideal if your chat blows up your base often early game and you freehand build, so don't have a blueprint to just paste down again.
 
@@ -443,12 +467,12 @@ This is the same as if the force had researched the vanilla Factorio constructio
 
 
 
-General Usage Notes
----------------
+---------------------------------------
 
-#### Time Duration Event
+Command Syntax
+============
 
-At present a Time Duration Event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Concurrent uses of the same time duration events will mean the later ones are ignored.
+All of the commands take a table of options as a JSON string when they are called to provide the configuration of the command. All of the command examples include this format and so can be copy/pasted straight into the game.
 
 #### Argument Data Types
 
@@ -456,7 +480,8 @@ At present a Time Duration Event will interrupt a different type of time duratio
 - DECIMAL = can take a fraction, i.e `0.25` or `54.28437`. In some usage cases the final result will be rounded to a degree when processed, i.e. 0.4 seconds will have to be rounded to a single tick accuracy to be timed within the game. Decimals are not wrapped in double quotes.
 - STRING = a text string wrapped in double quotes, i.e. `"some text"`
 - STRING_LIST = a comma separated list of things in a single string, i.e. `"Player1,player2, Player3  "`. Any leading or trailing spaces will be removed from each entry in the list. The casing (capitalisation) of things must match the case within factorio exactly, i.e. player names must have the same case as within Factorio. This can be a single thing in a string, i.e. `"Player1"`.
-- OBJECT = some features accept an object as an argument. These are detailed in the notes for those functions. i.e. a position as an object with x and y coordinates: `{"x": 5, "y":23}`
+- POSITION_OBJECT = Arguments that accept a position will accept either a table or an array for the positional data. Both formats are recording 2 coordinates, an x and y value. They can be provided as either a table JSON string `{"x": 10, "y": 5}` or as a shorter array JSON string `[10, 5]`.
+- OBJECT = some features accept an object as an argument. These are detailed in the notes for those functions. This is a dictionary of keys and values in JSON format (a table). The arguments each command accepts is an example of this.
 
 #### Argument Requirements
 
@@ -469,14 +494,27 @@ At present a Time Duration Event will interrupt a different type of time duratio
 - Many options will have non-documented common sense minimum number requirements. i.e. you can't have a leaky flamethrower activated for 0 or less bursts. These will raise a warning on screen and the command won't run.
 - Many options will have non-documented maximum values at extremes. The known ones will be capped to the maximum allowed, i.e. number of seconds to delay an event for. However, so will be unknown about and are generally Factorio internal limits, so will not be prevented and may cause crashes. For this reason experimenting with ridiculously large numbers isn't advised.
 
+
+
+---------------------------------------
+
+General Usage Notes
+============
+
+#### Time Duration Event
+
+At present a Time Duration Event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Concurrent uses of the same time duration events will mean the later ones are ignored.
+
 #### Updating the mod
 
 When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
 
 
 
+---------------------------------------
+
 Remote Interface - Calling from Lua script
--------------------
+============
 
 You can trigger all of the features via a remote interface call as well as the standard commands detailed above. This is useful for triggering the features from other mods, from viewer integrations when you need to use a Lua script for some maths, or if you want multiple features to be applied simultaneously.
 
