@@ -22,7 +22,7 @@ Features
 
 All are done via highly configurable RCON commands as detailed below for each feature. Each can also be triggered via a remote interface call from a Lua script, details on this are at the end of this document.
 
-Examples of some of the single player features can be seen here in a YouTube video: 
+Examples of some of the single player features can be seen here in a YouTube video:
 [![single player features](https://i.ytimg.com/vi/_X8gfOKxSJI/hqdefault.jpg)](https://youtu.be/_X8gfOKxSJI)
 
 #### Multiplayer Features
@@ -166,13 +166,13 @@ Spawns entities in the game around the named player on their side. Includes both
 - force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player`), or left blank for the default for the entity type. See notes for this list. Value is case sensitive to Factorio's internal force name.
 - entityName: STRING - Mandatory: the type of entity to be placed: `tree`, `rock`, `laserTurret`, `gunTurretRegularAmmo`, `gunTurretPiercingAmmo`, `gunTurretUraniumAmmo`, `wall`, `landmine`, `fire`, `defenderBot`, `distractorBot`, `destroyerBot`, or `custom`. Is case sensitive. Custom requires the additional options `customEntityName` and `customSecondaryDetail` options to be set/considered.
 - customEntityName: STRING - Mandatory Special: only required/supported if `entityName` is set to `custom`. Sets the name of the entity to be used. Supports any entity type, with the behaviours matching the included entityTypes.
-- customSecondaryDetail: DECIMAL - Mandatory Special: only required/supported if `entityName` is set to `custom`. Sets the name of any secondary item/entity used with the main customEntityName. The `customSecondaryDetail` is used when the `customEntityName` is: `ammo-turret` it stores the ammo name.
+- customSecondaryDetail: STRING - Optional Special: only required/supported if `entityName` is set to `custom`. Sets the name of any secondary item/entity used with the main customEntityName. The `customSecondaryDetail` is used when the `customEntityName` is: `ammo-turret` it stores the ammo name.
 - radiusMax: INTEGER - Mandatory: the max radius of the placement area from the target player.
 - radiusMin: INTEGER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then 0 is used.
 - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
 - quantity: INTEGER - Mandatory Special: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities. Either `quantity` or `density` must be supplied.
 - density: DECIMAL - Mandatory Special: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities. Either `quantity` or `density` must be supplied.
-- ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For ammo gun turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect.
+- ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For ammo gun turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect. This setting applies to both appropriate entityName options and appropriate customEntityName entity types; ammo-turret and fire for both.
 - followPlayer: BOOLEAN - Optional: if true the entities that are able to follow the player will do. If false they will be unmanaged. Some entities like defender combat bots have a maximum follower number, and so those beyond this limit will just be placed in the desired area.
 
 #### Examples
@@ -182,7 +182,7 @@ Spawns entities in the game around the named player on their side. Includes both
 - spread out fires: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density": 0.05, "ammoCount": 100}`
 - combat robots: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"defenderBot", "radiusMax":10, "radiusMin":10, "existingEntities":"overlap", "quantity": 20, "followPlayer": true}`
 - custom entity name: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName": "stone-furnace", "radiusMax":3, "radiusMin":7, "existingEntities":"avoid", "quantity":10}`
-- named ammo in a named gun turret: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"gun-turret", "customSecondaryDetail":"firearm-magazine", "radiusMax":3, "radiusMin":7, "existingEntities":"avoid", "quantity":10}`
+- named ammo in a named gun turret: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"gun-turret", "customSecondaryDetail":"firearm-magazine", "radiusMax":3, "radiusMin":7, "existingEntities":"avoid", "quantity":10, "ammoCount": 50}`
 
 #### Notes
 
@@ -192,6 +192,7 @@ Spawns entities in the game around the named player on their side. Includes both
 - The default `force` used is based on the entity type if not specified as part of the command. The default is for the force of the targeted player, with the following exceptions: Trees and rocks will be the `neutral` force. Fire will be the `muppet_streamer_enemy` force which will hurt everything on the map.
 - Most entity types will be placed no closer than 1 per tile. With the exception of the pre-defined `entityType` of `tree` and `rock`, plus any `entityType` and `customEntityName` that is a `combat-robot` or `fire` entity type. These exceptions are allowed to be placed much closer together.
 - `Density` is done based on each tile having a random chance of getting an entity added. This means very low density values can be supported. However, it also means that in unlikely random outcomes quite a few of something could be created even with low values.
+
 
 
 Aggressive Driver

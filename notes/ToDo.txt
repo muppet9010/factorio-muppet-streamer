@@ -1,11 +1,14 @@
 DOING NOW:
+    - Add to Spawn Around Player a min and max remain time. Both optional. If set added entities will vanish after a random time between them.
+    - Add to allow other items to be inserted in to custom entities created. Let customSecondaryDetail be used for any item type when the main entity type can have it "inserted" : container/chests, furnace, assembling-machine, vehicles. The ammoCount can still set the number of things. Include an example of spawning a tank with some fuel in it. This will be enough for the fireplace modded entity to be used.
+
 
 
 BUGS:
 	- Position of no keys in [] doesn't work any more. Either fix it or remove it. muppet_streamer_schedule_explosive_delivery > targetOffset > [1,1]
-	
+
     - Suspect Aggressive Driver ignores vehicles that don't burn any fuel. As it just checks if there is currently fuel and ignores if it needs fuel. Probably need the utility function that gets fuel to also return if the entity needs fuel (has a burner).
-	
+
 	- Set default flame count above 20 to try and make sure trees burn always.
 
 
