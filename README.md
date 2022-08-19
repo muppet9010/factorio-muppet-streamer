@@ -9,16 +9,16 @@ Features
 
 #### Streamer Events
 
-- Schedule the delivery of some explosives to the player at speed.
-- A malfunctioning weapon (leaky flamethrower) that shoots wildly for short bursts intermittently.
-- Give a player a weapon and ammo, plus options to force it as an active weapon.
-- Spawn entities around the player with various placement options.
-- Make the player an aggressive driver.
-- Call other players to help by teleporting them in.
-- Teleport the player to a range of possible target types.
-- Sets the ground on fire behind a player.
-- Drop a player's inventory on the ground over time.
-- Mix up players' inventories between them.
+- Schedule the delivery of some hostile explosives to the player at speed. = `Schedule Explosive Delivery`
+- A malfunctioning weapon (leaky flamethrower) that shoots wildly for short bursts intermittently. = `Malfunctioning Weapon`
+- Give the player a weapon and ammo, plus options to force it as an active weapon. = `Give Weapon & Ammo`
+- Spawn entities around the player with various placement options. = `Spawn Around Player`
+- Make the player an aggressive driver who has no or limited control of their vehicle. = `Aggressive Driver`
+- Call other players to help by teleporting them in. = `Call For Help`
+- Teleport the player to a range of possible target types. = `Teleport`
+- Sets the ground on fire behind a player. = `Pants On Fire`
+- Drop a player's inventory on the ground over time. = `Player Drop Inventory`
+- Mix up multiple players' inventories between them. = `Player Inventory Shuffle`
 
 All are done via highly configurable RCON commands as detailed below for each feature. Each can also be triggered via a remote interface call from a Lua script, details on this are at the end of this document.
 
@@ -27,23 +27,25 @@ Examples of some of the single player features can be seen here in a YouTube vid
 
 #### Multiplayer Features
 
-- Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands.
+- Can add a team member limit GUI & research for use in Multiplayer by streamers. Supports commands. = `Team Member Limit`
 
 #### Map Helper Features (mod options)
 
-- Building's start with ghosts on death unlocked, rather than having to wait for a technology to unlock it (construction robotics).
+- Start the game with ghosts appearing when buildings die, rather than having to wait for a technology to unlock it (construction robotics). = `Dead Building Ghosts`
 - Disable introduction message in freeplay.
 - Disable rocket win condition in freeplay.
 - Set a custom area of the map revealed at game start.
 
 #### General Usage Notes
 
-See the end of the file for descriptions of the data types and other wordings used in this explanation document.
+See the end of the file for descriptions of the data types and other wordings used in this explanation document. Also includes details on the Remote Interface of the mod, and mod upgrading advice.
 
 
 
-Schedule Explosive Delivery to player
------------------
+---------------------------------------
+
+Schedule Explosive Delivery
+============
 
 Can deliver a highly customisable explosive delivery to the player. The explosives are created off the target player's screen and so take a few seconds to fly to their destinations.
 
@@ -83,8 +85,10 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 
 
 
-Malfunctioning Weapon (Leaky Flamethrower)NS
-------------------
+---------------------------------------
+
+Malfunctioning Weapon (Leaky Flamethrower)
+============
 
 Forces the targeted player to wield a weapon that shoots in random directions. Shoots a full ammo item, then briefly pauses before firing the next full ammo item. This is a Time Duration Event.
 
@@ -121,8 +125,10 @@ Forces the targeted player to wield a weapon that shoots in random directions. S
 
 
 
+---------------------------------------
+
 Give Weapon & Ammo
------------------
+============
 
 Ensures the target player has a specific weapon and can give ammo and force their selection of the weapon.
 
@@ -150,8 +156,10 @@ Ensures the target player has a specific weapon and can give ammo and force thei
 
 
 
+---------------------------------------
+
 Spawn Around Player
-------------
+============
 
 Spawns entities in the game around the named player on their side. Includes both helpful and damaging entities and creation process options.
 
@@ -195,8 +203,10 @@ Spawns entities in the game around the named player on their side. Includes both
 
 
 
+---------------------------------------
+
 Aggressive Driver
----------------
+============
 
 The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering. This is a Time Duration Event.
 
@@ -226,8 +236,10 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 
 
 
+---------------------------------------
+
 Call For Help
-------------
+============
 
 Teleports other players on the server to near your position.
 
@@ -262,8 +274,10 @@ Teleports other players on the server to near your position.
 
 
 
+---------------------------------------
+
 Teleport
--------------
+============
 
 Teleports the player to the nearest type of thing.
 
@@ -298,8 +312,10 @@ Teleports the player to the nearest type of thing.
 
 
 
+---------------------------------------
+
 Pants On Fire
-------------
+============
 
 Sets the ground on fire behind a player forcing them to run.
 
@@ -327,8 +343,10 @@ Sets the ground on fire behind a player forcing them to run.
 - Fire effects are on a special enemy force so that they will hurt everything on the map, `muppet_streamer_enemy`. This also means that player damage upgrades don't affect these effects.
 
 
+---------------------------------------
+
 Player Drop Inventory
----------------------
+============
 
 Schedules the targeted player to drop their inventory on the ground over time.
 
@@ -359,8 +377,10 @@ Schedules the targeted player to drop their inventory on the ground over time.
 
 
 
+---------------------------------------
+
 Player Inventory Shuffle
-------------------------
+============
 
 Takes all the inventory items from the target players, shuffles them and then distributes the items back between those players. Will keep the different types of items in roughly the same number of players inventories as they started, and will spread the quantities in a random distribution between them (not evenly).
 
@@ -399,8 +419,10 @@ Takes all the inventory items from the target players, shuffles them and then di
 
 
 
+---------------------------------------
+
 Team Member Limit
-------------
+============
 
 A way to soft limit the number of players on the map and options to use either Factorio research or RCON commands to increase it.
 
@@ -434,8 +456,10 @@ Remote Interface:
 
 
 
-Start with building's ghost on death unlocked
-------------
+---------------------------------------
+
+Dead Building Ghosts
+============
 
 A mod setting that can make all forces start with ghosts being placed upon entity deaths. Ideal if your chat blows up your base often early game and you freehand build, so don't have a blueprint to just paste down again.
 
@@ -443,10 +467,12 @@ This is the same as if the force had researched the vanilla Factorio constructio
 
 
 
-Command Syntax
----------------
+---------------------------------------
 
-All of the commands take a table of options as a JSON string when they are called to provide the configuration of the command. All of the command examples include this format and so can be copy/pasted straight in to the game.
+Command Syntax
+============
+
+All of the commands take a table of options as a JSON string when they are called to provide the configuration of the command. All of the command examples include this format and so can be copy/pasted straight into the game.
 
 #### Argument Data Types
 
@@ -470,8 +496,10 @@ All of the commands take a table of options as a JSON string when they are calle
 
 
 
+---------------------------------------
+
 General Usage Notes
----------------
+============
 
 #### Time Duration Event
 
@@ -483,8 +511,10 @@ When updating the mod make sure there aren't any effects active or queued for ac
 
 
 
+---------------------------------------
+
 Remote Interface - Calling from Lua script
--------------------
+============
 
 You can trigger all of the features via a remote interface call as well as the standard commands detailed above. This is useful for triggering the features from other mods, from viewer integrations when you need to use a Lua script for some maths, or if you want multiple features to be applied simultaneously.
 
