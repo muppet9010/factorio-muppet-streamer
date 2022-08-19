@@ -106,7 +106,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
         return
     end ---@cast flameCount uint8|nil
     if flameCount == nil then
-        flameCount = 20
+        flameCount = 30
     end
 
     local firePrototype, valid = Common.GetEntityPrototypeFromCommandArgument(commandData.fireType, "fire", false, commandName, "fireType", command.parameter)
