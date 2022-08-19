@@ -200,7 +200,14 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end ---@cast radiusMin uint|nil
     if radiusMin == nil then
         radiusMin = 0
+    else
+        if radiusMin > radiusMax then
+            CommandsUtils.LogPrintError(commandName, "radiusMin", "can't be set larger than the maximum radius", command.parameter)
+            return
+        end
     end
+
+
 
     local existingEntitiesString = commandData.existingEntities
     if not CommandsUtils.CheckStringArgument(existingEntitiesString, true, commandName, "existingEntities", ExistingEntitiesTypes, command.parameter) then
@@ -358,12 +365,13 @@ SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position
     if data.existingEntities == "avoid" then
         entityAlignedPosition = entityTypeDetails.FindValidPlacementPosition(surface, entityName, entityAlignedPosition--[[@as MapPosition]] , SpawnAroundPlayer.densitySearchRadius)
     end
-    local thisOneFollows = false
-    if groupPlacementDetails.followsLeft > 0 then
-        thisOneFollows = true
-        groupPlacementDetails.followsLeft = groupPlacementDetails.followsLeft - 1
-    end
     if entityAlignedPosition ~= nil then
+        local thisOneFollows = false
+        if groupPlacementDetails.followsLeft > 0 then
+            thisOneFollows = true
+            groupPlacementDetails.followsLeft = groupPlacementDetails.followsLeft - 1
+        end
+
         ---@type SpawnAroundPlayer_PlaceEntityDetails
         local placeEntityDetails = { surface = surface, entityName = entityName, position = entityAlignedPosition, targetPlayer = targetPlayer, ammoCount = data.ammoCount, followPlayer = thisOneFollows, force = force }
         entityTypeDetails.PlaceEntity(placeEntityDetails)
@@ -414,7 +422,7 @@ SpawnAroundPlayer.GenerateRandomTreeTypeDetails = function()
         end,
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force }
+            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
         end
     }
     return entityTypeDetails
@@ -460,7 +468,7 @@ SpawnAroundPlayer.GenerateRandomRockTypeDetails = function()
         end,
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force }
+            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
         end
     }
     return entityTypeDetails
@@ -499,7 +507,7 @@ SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails = function(setEntityName)
             if data.followPlayer then
                 target = data.targetPlayer.character
             end
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, target = target }
+            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, target = target, create_build_effect_smoke = false, raise_built = true }
         end,
         GetPlayersMaxBotFollowers = function(targetPlayer)
             return SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer(targetPlayer)
@@ -541,7 +549,7 @@ SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails = function(turretName, 
         end,
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
-            local turret = data.surface.create_entity { name = data.entityName, position = data.position, force = data.force }
+            local turret = data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
             if turret ~= nil and ammoName ~= nil then
                 turret.insert({ name = ammoName, count = data.ammoCount })
             end
@@ -583,7 +591,7 @@ SpawnAroundPlayer.GenerateFireEntityTypeDetails = function(setEntityName)
             if data.ammoCount ~= nil then
                 flameCount = MathUtils.ClampToUInt8(data.ammoCount)
             end
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, initial_ground_flame_count = flameCount }
+            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, initial_ground_flame_count = flameCount, create_build_effect_smoke = false, raise_built = true }
         end
     }
     return entityTypeDetails
@@ -616,7 +624,7 @@ SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails = function(entityName, e
         end,
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force }
+            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
         end
     }
 

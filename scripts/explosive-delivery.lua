@@ -322,10 +322,10 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
 
         if explosiveType.type == "projectile" then
             ---@cast explosiveType ExplosiveDelivery_Type_Projectile
-            surface.create_entity { name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed, force = global.Forces.muppet_streamer_enemy }
+            surface.create_entity { name = explosiveType.projectileName, position = explosiveCreatePos, target = targetEntity, speed = explosiveType.speed, force = global.Forces.muppet_streamer_enemy, create_build_effect_smoke = false, raise_built = true }
         elseif explosiveType.type == "stream" then
             ---@cast explosiveType ExplosiveDelivery_Type_Stream
-            surface.create_entity { name = explosiveType.streamName, position = explosiveCreatePos, target = targetEntity, source_position = explosiveCreatePos, force = global.Forces.muppet_streamer_enemy }
+            surface.create_entity { name = explosiveType.streamName, position = explosiveCreatePos, target = targetEntity, source_position = explosiveCreatePos, force = global.Forces.muppet_streamer_enemy, create_build_effect_smoke = false, raise_built = true }
         end
 
         -- Remove the temporary dummy target entity.

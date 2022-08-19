@@ -1,6 +1,4 @@
 DOING NOW:
-    - Add to Spawn Around Player a min and max remain time. Both optional. If set added entities will vanish after a random time between them.
-    - Add to allow other items to be inserted in to custom entities created. Let customSecondaryDetail be used for any item type when the main entity type can have it "inserted" : container/chests, furnace, assembling-machine, vehicles. The ammoCount can still set the number of things. Include an example of spawning a tank with some fuel in it. This will be enough for the fireplace modded entity to be used.
 
 
 
@@ -13,6 +11,8 @@ BUGS:
 
 
 DO NEAR FUTURE:
+    - Add to Spawn Around Player a min and max remain time. Both optional. If set added entities will vanish after a random time between them.
+    - Add to allow other items to be inserted in to custom entities created. Let customSecondaryDetail be used for any item type when the main entity type can have it "inserted" : container/chests, furnace, assembling-machine, vehicles. The ammoCount can still set the number of things. Include an example of spawning a tank with some fuel in it. This will be enough for the fireplace modded entity to be used.
 
 
 Future Confirmed (bigger things):
