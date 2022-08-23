@@ -180,8 +180,8 @@ Spawns entities in the game around the named player on their side. Includes both
 - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
 - quantity: INTEGER - Mandatory Special: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities. Either `quantity` or `density` must be supplied.
 - density: DECIMAL - Mandatory Special: specifies the approximate density of the placed entities. 1 is fully dense, close to 0 is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities. Either `quantity` or `density` must be supplied.
-- ammoCount: INTEGER - Optional: specifies the amount of ammo in applicable entityTypes. For ammo gun turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the stacked fire count meaning longer burn time and more damage, game max is 250, but numbers above 50 seem to have no greater effect, with 20 or more needed to set trees on fire. This setting applies to both appropriate entityName options and appropriate customEntityName entity types; ammo-turret and fire for both.
-- followPlayer: BOOLEAN - Optional: if true the entities that are able to follow the player will do. If false they will be unmanaged. Some entities like defender combat bots have a maximum follower number, and so those beyond this limit will just be placed in the desired area.
+- ammoCount: INTEGER - Optional: specifies the amount of "ammo" in applicable entityTypes. For ammo gun turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the flame count, see notes for more details. This setting applies to both appropriate entityName options and appropriate customEntityName entity types; ammo-turret and fire for both.
+- followPlayer: BOOLEAN - Optional: if true the combat robot types that are able to follow the player will do. If false they will be unmanaged. Some entities like defender combat bots have a maximum follower number, and so those beyond this limit will just be placed in the desired area.
 
 #### Examples
 
@@ -197,6 +197,7 @@ Spawns entities in the game around the named player on their side. Includes both
 - For `entityType` of `tree`, if placed on a vanilla Factorio tile or with Alien Biomes mod a biome specific tree will be selected, otherwise the tree will be random on other modded tiles. Should support and handle fully defined custom tree types, otherwise they will be ignored.
 - For `entityType` of `rock` a random selection between the larger 3 minable vanilla Factorio rocks will be used.
 - There is a special force included in the mod that is hostile to every other force which can be used if desired for the `forceString` option: `muppet_streamer_enemy`. The `enemy` force is the one the default biters are on, with players by default on the `player` force.
+- For `entityType` of `fire`, generally the more flames the greater the damage, burn time (internal Factorio logic) and will make a slightly wider fire area. Values at the higher end seem to have a diminishing effect in-game. Suggested is 50, with the max of 250. It takes 20 fire count to set a tree on fire, but at this level the player will have to run right next to a tree to set it on fire. A suggested value is 50, which generally sets trees very close to the player on fire without requiring the player to actually touch them. Max is 250, but greater numbers seeming to have a diminishing effect in-game. Value capped at 250, as the gaems maxiumum of 255 can behave oddly.
 - The default `force` used is based on the entity type if not specified as part of the command. The default is for the force of the targeted player, with the following exceptions: Trees and rocks will be the `neutral` force. Fire will be the `muppet_streamer_enemy` force which will hurt everything on the map.
 - Most entity types will be placed no closer than 1 per tile. With the exception of the pre-defined `entityType` of `tree` and `rock`, plus any `entityType` and `customEntityName` that is a `combat-robot` or `fire` entity type. These exceptions are allowed to be placed much closer together.
 - `Density` is done based on each tile having a random chance of getting an entity added. This means very low density values can be supported. However, it also means that in unlikely random outcomes quite a few of something could be created even with low values.
@@ -329,7 +330,7 @@ Sets the ground on fire behind a player forcing them to run.
 - duration: DECIMAL - Mandatory: how many seconds the effect lasts on the player.
 - fireGap: INTEGER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
 - fireHeadStart: INTEGER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continuous running with default `fireGap`.
-- flameCount: INTEGER - Optional: how many flames each fire entity will have. More does greater damage and burns for longer (internal Factorio logic). Defaults to 30, which is above the minimum required to set a tree on fire (20). Max is 255, with greater than 50 seeming to have little impact.
+- flameCount: INTEGER - Optional: how many flames each fire entity will have. Generally the more flames the greater the damage, burn time (internal Factorio logic) and will make a slightly wider fire area. Values at the higher end seem to have a diminishing effect in-game. Default is 50 (intended for fire-flame), with the max of 250.
 - fireType: STRING - Optional: the name of the specific `fire` type entity you want to have. This is the internal name within Factorio. Defaults to the vanilla Factorio fire entity, `fire-flame`.
 
 #### Examples
@@ -341,6 +342,7 @@ Sets the ground on fire behind a player forcing them to run.
 
 - If a player is in a vehicle while the effect is active they take increasing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armored vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
 - Fire effects are on a special enemy force so that they will hurt everything on the map, `muppet_streamer_enemy`. This also means that player damage upgrades don't affect these effects.
+- It takes 20 fire count to set a tree on fire, but at this level the player will have to run right next to a tree to set it on fire. The command defaults to a value of 50 which generally sets trees very close to the player on fire without requiring the player to actually touch them. Value capped at 250, as the gaems maxiumum of 255 can behave oddly.
 
 
 ---------------------------------------
@@ -525,22 +527,28 @@ All features are called with the `muppet_streamer` interface and the `run_comman
 
 #### Calling the Aggressive Driver feature with options as a JSON string
 
-```/c remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', '{"target":"muppet9010", "duration":30, "control": "random", "teleportDistance": 100}')```
-
 This option string is identical to the command's, with the string defined by single quotes to avoid needing to escape the double quotes within the JSON text.
+If you want to dynamically insert values in to this options JSON string you will have to ensure the correct JSON syntax is maintained. Often this is when using a Lua object (detailed below) is easier.
+```/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', '{"target":"muppet9010", "duration":30, "control": "random", "teleportDistance": 100}')```
 
 #### Calling the Aggressive Driver feature with options as a Lua object
 
-```/c remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=30, control="random", teleportDistance=100})```
-
-This option object has the same options as the command, with the syntax being for a Lua object.
+This option object has the same options as the command, with the syntax being for a Lua object. This makes adding dynamic content in much more natural.
+```/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=30, control="random", teleportDistance=100})```
 
 #### Lua script value manipulation
 
 Using remote interface calls instead of RCON commands also allows for any required value manipulation from whichever viewer integration you are using, for example the below is assuming your integration tool is replacing VALUE with a scalable number from your viewer integration and want to limit the result to no greater than 30.
 ```
-/c local drivingTime = math.min(VALUE, 30)
+/sc local drivingTime = math.min(VALUE, 30)
 remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=drivingTime, control="random", teleportDistance=100})
+```
+
+You can also use this to affect multiple players with the same effect at once. You are responsible for ensuring the settings you apply to the effect are suitable for this. In the below example we create 3 hostile worms near every player. Note that if multiple players are togeather then many more worms will appear around them collectively.
+```
+/sc for _, player in pairs(game.connected_players) do
+	remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target=player.name, entityName="custom", customEntityName="big-worm-turret", force="muppet_streamer_enemy", radiusMax=15, radiusMin=10, existingEntities="avoid", quantity=3})
+end
 ```
 
 #### Multiple simultaneous feature calling
@@ -549,7 +557,7 @@ Running features via remote interface calls within a Lua script and not as a com
 
 An example of this is below, with making a ring of turrets around the player, with a short barrage of grenades outside this. If done via command and the player was moving fast the grenades would likely hit the turrets, with a single Lua script calling both features via remote interface this friendly fire won't occur.
 ```
-/c
+/sc
 remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', '{"target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":3, "radiusMin":3, "existingEntities":"avoid", "quantity":5, "ammoCount":10}')
 remote.call('muppet_streamer', 'run_command', 'muppet_streamer_schedule_explosive_delivery', '{"explosiveCount":60, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":15, "accuracyRadiusMax":15, "salvoSize": 20, "salvoDelay": 120}')
 ```

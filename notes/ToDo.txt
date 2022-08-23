@@ -1,9 +1,13 @@
 DOING NOW:
-
+	- Up the pants on fire to 50 flames as this makes trees catch on fire much easier as you run past. Readme already updated.
+	- Cap the pants on fire and spawn around player fire values at 250, as 255 seems to be buggy within Factorio. https://forums.factorio.com/viewtopic.php?f=7&t=103227
+	- Teleport "Depth" wraning/error message missing spacing:     COMMAND - argument 'reachableOnly at depth 1 - ' reachableOnly setting is populated ....
 
 
 BUGS:
     - Suspect Aggressive Driver ignores vehicles that don't burn any fuel. As it just checks if there is currently fuel and ignores if it needs fuel. Probably need the utility function that gets fuel to also return if the entity needs fuel (has a burner).
+	- Make Remote Interface calls return the things they create if approperiate. Means you can chain them togeather in a Lua script.
+	- Invalid player name warning, should include that the player isn't currently on the server or has never been on the server. Appplies to all commands.
 
 
 
