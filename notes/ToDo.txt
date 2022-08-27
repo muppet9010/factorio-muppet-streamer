@@ -1,19 +1,22 @@
 DOING NOW:
+    - SpawnAroundPlayer - entityTypeDetails should be stored as a name of the object of functions and not the object of functions itself. As its not save/load safe to store the object of functions. This is what caused the error for me and Fox, but no one else. As we joined at the wrong moment.
+
 	- Up the pants on fire to 50 flames as this makes trees catch on fire much easier as you run past. Readme already updated.
 	- Cap the pants on fire and spawn around player fire values at 250, as 255 seems to be buggy within Factorio. https://forums.factorio.com/viewtopic.php?f=7&t=103227
-	- Teleport "Depth" wraning/error message missing spacing:     COMMAND - argument 'reachableOnly at depth 1 - ' reachableOnly setting is populated ....
+	- Teleport "Depth" warning/error message missing spacing:     COMMAND - argument 'reachableOnly at depth 1 - ' reachableOnly setting is populated ....
 
 
 BUGS:
     - Suspect Aggressive Driver ignores vehicles that don't burn any fuel. As it just checks if there is currently fuel and ignores if it needs fuel. Probably need the utility function that gets fuel to also return if the entity needs fuel (has a burner).
-	- Make Remote Interface calls return the things they create if approperiate. Means you can chain them togeather in a Lua script.
-	- Invalid player name warning, should include that the player isn't currently on the server or has never been on the server. Appplies to all commands.
+	- Make Remote Interface calls return the things they create if appropriate. Means you can chain them together in a Lua script. This should just need the odd entry in a features "notes" and an entry in the generic Remote Interface section to check each command. For affected players it should return the players who were/are affected, i.e. if a player isn't affected by aggressive driver then nil is return, rather than the LuaPlayer object.
+	- Invalid player name warning, should include that the player isn't currently on the server or has never been on the server. Applies to all commands.
 
 
 
 DO NEAR FUTURE:
     - Add to Spawn Around Player a min and max remain time. Both optional. If set added entities will vanish after a random time between them.
-    - Add to allow other items to be inserted in to custom entities created. Let customSecondaryDetail be used for any item type when the main entity type can have it "inserted" : container/chests, furnace, assembling-machine, vehicles. The ammoCount can still set the number of things. Include an example of spawning a tank with some fuel in it. This will be enough for the fireplace modded entity to be used.
+    - Add to allow other items to be inserted in to custom entities created. Let customSecondaryDetail be used for any item type when the main entity type can have it "inserted" : container/chests, furnace, assembling-machine, vehicles. The ammoCount can still set the number of things. Include an example of spawning a tank with some fuel in it. This will be enough for the fireplace modded entity to be used. This should also support electricity in to energy turrets and fluids in to fluid-turrets.
+	- Allow the messages to be turned off per command. Good for when being used on many players at once.
 
 
 

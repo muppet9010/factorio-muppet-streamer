@@ -207,8 +207,6 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         end
     end
 
-
-
     local existingEntitiesString = commandData.existingEntities
     if not CommandsUtils.CheckStringArgument(existingEntitiesString, true, commandName, "existingEntities", ExistingEntitiesTypes, command.parameter) then
         return
