@@ -14,7 +14,9 @@ local ExistingEntitiesTypes = {
 
 ---@class SpawnAroundPlayer_ScheduledDetails
 ---@field target string
----@field entityTypeDetails SpawnAroundPlayer_EntityTypeDetails
+---@field entityTypeName SpawnAroundPlayer_EntityTypeNames
+---@field customEntityName? string
+---@field customSecondaryDetail? string
 ---@field radiusMax uint
 ---@field radiusMin uint
 ---@field existingEntities SpawnAroundPlayer_ExistingEntities
@@ -40,8 +42,6 @@ local EntityTypeNames = {
     destroyerBot = "destroyerBot",
     custom = "custom"
 }
-
----@alias SpawnAroundPlayer_EntityTypes table<SpawnAroundPlayer_EntityTypeNames, SpawnAroundPlayer_EntityTypeDetails>
 
 ---@class SpawnAroundPlayer_EntityTypeDetails
 ---@field ValidateEntityPrototypes fun(commandString?: string|nil): boolean # Checks that the LuaEntity for the entityName is as we expect; exists and correct type.
@@ -142,15 +142,15 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
         -- Check no ignored custom settings for a non custom entityName.
         if customEntityName ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customEntityName", "customEntityName was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
+            CommandsUtils.LogPrintWarning(commandName, "customEntityName", "value was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
         end
         if customSecondaryDetail ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customSecondaryDetail", "customSecondaryDetail was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
+            CommandsUtils.LogPrintWarning(commandName, "customSecondaryDetail", "value was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
         end
     else
-        -- Populate a standard details from the custom settings to make it look "normal" to later code. Lots of validation needed for this as no post validation can be done given its dynamic nature.
+        -- Check just whats needed from the custom settings for the validation needed for this as no post validation can be done given its dynamic nature. Upon usage minimal validation will be done, but the creation details will be generated as not needed at this point.
         if customEntityName == nil then
-            CommandsUtils.LogPrintError(commandName, "customEntityName", "customEntityName wasn't provided, but is required as the entityName is 'custom'.", command.parameter)
+            CommandsUtils.LogPrintError(commandName, "customEntityName", "value wasn't provided, but is required as the entityName is 'custom'.", command.parameter)
             return
         end
         local customEntityPrototype = game.entity_prototypes[customEntityName]
@@ -158,13 +158,10 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
             CommandsUtils.LogPrintError(commandName, "customEntityName", "entity '" .. customEntityName .. "' wasn't a valid entity name", command.parameter)
             return
         end
+
         local customEntityPrototype_type = customEntityPrototype.type
         local usedSecondaryData = false
-        if customEntityPrototype_type == "fire" then
-            entityTypeDetails = SpawnAroundPlayer.GenerateFireEntityTypeDetails(customEntityName)
-        elseif customEntityPrototype_type == "combat-robot" then
-            entityTypeDetails = SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails(customEntityName)
-        elseif customEntityPrototype_type == "ammo-turret" then
+        if customEntityPrototype_type == "ammo-turret" then
             usedSecondaryData = true
             if customSecondaryDetail ~= nil then
                 local ammoItemPrototype = game.item_prototypes[customSecondaryDetail]
@@ -178,14 +175,11 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
                     return
                 end
             end
-            entityTypeDetails = SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails(customEntityName, customSecondaryDetail)
-        else
-            entityTypeDetails = SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails(customEntityName, customEntityPrototype_type)
         end
 
         -- Check that customSecondaryDetail setting wasn't populated if it wasn't used.
         if not usedSecondaryData and customSecondaryDetail ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customSecondaryDetail", "customSecondaryDetail was provided, but being ignored as the customEntityName didn't require it.", command.parameter)
+            CommandsUtils.LogPrintWarning(commandName, "customSecondaryDetail", "value was provided, but being ignored as the type of customEntityName didn't require it.", command.parameter)
         end
     end
 
@@ -239,8 +233,9 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end ---@cast followPlayer boolean|nil
 
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1
+    -- Can't transfer the object with functions as it goes in to `global` for when there is a delay.
     ---@type SpawnAroundPlayer_ScheduledDetails
-    local scheduledDetails = { target = target, entityTypeDetails = entityTypeDetails, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString }
+    local scheduledDetails = { target = target, entityTypeName = entityTypeName, customEntityName = customEntityName, customSecondaryDetail = customSecondaryDetail, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString }
     EventScheduler.ScheduleEventOnce(scheduleTick, "SpawnAroundPlayer.SpawnAroundPlayerScheduled", global.spawnAroundPlayer.nextId, scheduledDetails)
 end
 
@@ -253,10 +248,48 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
         CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
-    local targetPos, surface, followsLeft, entityTypeDetails = targetPlayer.position, targetPlayer.surface, 0, data.entityTypeDetails
-    if not entityTypeDetails.ValidateEntityPrototypes() then
-        return
+    local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0
+
+    -- Check and generate the creation function object. Can;t be transferred from before as it may sit in `global`.
+    local entityTypeDetails
+    if data.entityTypeName ~= EntityTypeNames.custom then
+        -- Lookup the predefined EntityTypeDetails.
+        entityTypeDetails = SpawnAroundPlayer.GetBuiltinEntityTypeDetails(data.entityTypeName)
+
+        -- Check the expected prototypes are present and roughly the right details.
+        if not entityTypeDetails.ValidateEntityPrototypes(nil) then
+            return
+        end
+    else
+        local customEntityPrototype = game.entity_prototypes[data.customEntityName--[[@as string]] ]
+        if customEntityPrototype == nil then
+            CommandsUtils.LogPrintError(commandName, "customEntityName", "entity '" .. data.customEntityName .. "' wasn't valid at run time", nil)
+            return
+        end
+        local customEntityPrototype_type = customEntityPrototype.type
+        if customEntityPrototype_type == "fire" then
+            entityTypeDetails = SpawnAroundPlayer.GenerateFireEntityTypeDetails(data.customEntityName)
+        elseif customEntityPrototype_type == "combat-robot" then
+            entityTypeDetails = SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails(data.customEntityName)
+        elseif customEntityPrototype_type == "ammo-turret" then
+            if data.customSecondaryDetail ~= nil then
+                local ammoItemPrototype = game.item_prototypes[data.customSecondaryDetail--[[@as string]] ]
+                if ammoItemPrototype == nil then
+                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "item '" .. data.customSecondaryDetail .. "' wasn't a valid item type at run time", nil)
+                    return
+                end
+                local ammoItemPrototype_type = ammoItemPrototype.type
+                if ammoItemPrototype_type ~= 'ammo' then
+                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "item '" .. data.customSecondaryDetail .. "' wasn't an ammo item type at run time, instead it was a type: " .. tostring(ammoItemPrototype_type), nil)
+                    return
+                end
+            end
+            entityTypeDetails = SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails(data.customEntityName, data.customSecondaryDetail)
+        else
+            entityTypeDetails = SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails(data.customEntityName, customEntityPrototype_type)
+        end
     end
+
     if data.followPlayer and entityTypeDetails.GetPlayersMaxBotFollowers ~= nil then
         followsLeft = entityTypeDetails.GetPlayersMaxBotFollowers(targetPlayer)
     end
@@ -264,7 +297,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     if data.forceString ~= nil then
         force = game.forces[data.forceString--[[@as string # Filtered nil out.]] ]
     else
-        force = data.entityTypeDetails.GetDefaultForce(targetPlayer)
+        force = entityTypeDetails.GetDefaultForce(targetPlayer)
     end
 
     if data.quantity ~= nil then
@@ -376,7 +409,7 @@ SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position
     end
 end
 
---- Get the details of a pre-defined entity type.
+--- Get the details of a pre-defined entity type. So doesn't support `custom` type.
 ---@param entityTypeName SpawnAroundPlayer_EntityTypeNames
 ---@return SpawnAroundPlayer_EntityTypeDetails entityTypeDetails
 SpawnAroundPlayer.GetBuiltinEntityTypeDetails = function(entityTypeName)

@@ -1,6 +1,4 @@
 DOING NOW:
-    - SpawnAroundPlayer - entityTypeDetails should be stored as a name of the object of functions and not the object of functions itself. As its not save/load safe to store the object of functions. This is what caused the error for me and Fox, but no one else. As we joined at the wrong moment.
-
 	- Up the pants on fire to 50 flames as this makes trees catch on fire much easier as you run past. Readme already updated.
 	- Cap the pants on fire and spawn around player fire values at 250, as 255 seems to be buggy within Factorio. https://forums.factorio.com/viewtopic.php?f=7&t=103227
 	- Teleport "Depth" warning/error message missing spacing:     COMMAND - argument 'reachableOnly at depth 1 - ' reachableOnly setting is populated ....

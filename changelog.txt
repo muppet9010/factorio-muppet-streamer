@@ -4,7 +4,9 @@ Date: 2022-08-xxx
   Features:
   Changes:
   Bugfixes:
+    - Spawn Around Player - previously it stored functions in Factorio global. If a save/load was done between the command being called and the action occuring (delay setting) the command then it would error. This could cause server or per player script errors, and possibly desyncs ? (hyperthically).
   Info:
+    - Spawn Around Player - tweaked some error messages so should be slightly clearer.
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.28
 Date: 2022-08-19
