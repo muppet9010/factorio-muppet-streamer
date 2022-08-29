@@ -618,9 +618,13 @@ SpawnAroundPlayer.GenerateFireEntityTypeDetails = function(setEntityName)
         end,
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
-            local flameCount ---@type uint8|nil
+            ---@type uint8|nil, boolean
+            local flameCount, valueWasClamped
             if data.ammoCount ~= nil then
-                flameCount = MathUtils.ClampToUInt8(data.ammoCount)
+                flameCount, valueWasClamped = MathUtils.ClampToUInt8(data.ammoCount, 0, 250)
+                if valueWasClamped then
+                    CommandsUtils.LogPrintWarning(commandName, "ammoCount", "value was above the maximum of 250 for a fire type entity, so clamped to 250", nil)
+                end
             end
             data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, initial_ground_flame_count = flameCount, create_build_effect_smoke = false, raise_built = true }
         end

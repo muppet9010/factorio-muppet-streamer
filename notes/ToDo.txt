@@ -1,7 +1,6 @@
 DOING NOW:
-	- Up the pants on fire to 50 flames as this makes trees catch on fire much easier as you run past. Readme already updated.
-	- Cap the pants on fire and spawn around player fire values at 250, as 255 seems to be buggy within Factorio. https://forums.factorio.com/viewtopic.php?f=7&t=103227
 	- Teleport "Depth" warning/error message missing spacing:     COMMAND - argument 'reachableOnly at depth 1 - ' reachableOnly setting is populated ....
+    - Add clear message if an active malfunctioning weapon prevents another 1 from starting.
 
 
 BUGS:

@@ -3,6 +3,9 @@ Version: 20.1.29
 Date: 2022-08-xxx
   Features:
   Changes:
+    - Pants On Fire - capped the max `flameCount` to 250 as above this Factorio behaves oddly. Rasied as bug: https://forums.factorio.com/viewtopic.php?f=7&t=103227
+    - Spawn Around Player - for an entity of type `fire` capped the max `ammoCount` setting to 250, as a flame count above this makes Factorio behave oddly. Rasied as bug: https://forums.factorio.com/viewtopic.php?f=7&t=103227
+    - Pants On Fire - upped the default value from 30 to 50 so that it more easily sets near by trees on fire.
   Bugfixes:
     - Spawn Around Player - previously it stored functions in Factorio global. If a save/load was done between the command being called and the action occuring (delay setting) the command then it would error. This could cause server or per player script errors, and possibly desyncs ? (hyperthically).
   Info:

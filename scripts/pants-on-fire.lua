@@ -102,11 +102,12 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end
 
     local flameCount = commandData.flameCount
-    if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, MathUtils.uint8Max, command.parameter) then
+    -- Flame count above 250 gives odd results.
+    if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, 250, command.parameter) then
         return
     end ---@cast flameCount uint8|nil
     if flameCount == nil then
-        flameCount = 30
+        flameCount = 50
     end
 
     local firePrototype, valid = Common.GetEntityPrototypeFromCommandArgument(commandData.fireType, "fire", false, commandName, "fireType", command.parameter)
