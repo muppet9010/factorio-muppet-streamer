@@ -90,7 +90,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 Malfunctioning Weapon (Leaky Flamethrower)
 ============
 
-Forces the targeted player to wield a weapon that shoots in random directions. Shoots a full ammo item, then briefly pauses before firing the next full ammo item. This is a Time Duration Event.
+Forces the targeted player to wield a weapon that shoots in random directions. Shoots a full ammo item, then briefly pauses before firing the next full ammo item. This is a Time Duration Event and so may cut short other Time Duration events, see General Notes for details.
 
 #### Command syntax
 
@@ -209,7 +209,7 @@ Spawns entities in the game around the named player on their side. Includes both
 Aggressive Driver
 ============
 
-The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering. This is a Time Duration Event.
+The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering. This is a Time Duration Event and so may cut short other Time Duration events, see General Notes for details.
 
 #### Command syntax
 
@@ -318,7 +318,7 @@ Teleports the player to the nearest type of thing.
 Pants On Fire
 ============
 
-Sets the ground on fire behind a player forcing them to run.
+Sets the ground on fire behind a player forcing them to run. This is a Time Duration Event and so may cut short other Time Duration events, see General Notes for details.
 
 #### Command syntax
 
@@ -350,7 +350,7 @@ Sets the ground on fire behind a player forcing them to run.
 Player Drop Inventory
 ============
 
-Schedules the targeted player to drop their inventory on the ground over time.
+Schedules the targeted player to drop their inventory on the ground over time. This is a Time Duration Event and so may cut short other Time Duration events, see General Notes for details.
 
 #### Command syntax
 
@@ -505,7 +505,9 @@ General Usage Notes
 
 #### Time Duration Event
 
-At present a Time Duration Event will interrupt a different type of time duration event, i.e. aggressive driver will cut short a leaky flame thrower. Concurrent uses of the same time duration events will mean the later ones are ignored.
+At present a Time Duration Event may interrupt a different type of time duration event, depending upon each events action and requirements. i.e. Aggressive Driver will cut short a Malfunctioning Weapon, but a Player Drop Inventory will not affect an Aggressive Driver.
+
+Any repeated running of the same event will have the subsequent event requests ignored, with the first event continuing until its original completion.
 
 #### Updating the mod
 

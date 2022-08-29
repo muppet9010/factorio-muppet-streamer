@@ -166,6 +166,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
 
     -- If this player already has the effect active then terminate this new instance.
     if global.leakyFlamethrower.affectedPlayers[targetPlayer_index] ~= nil then
+        game.print({ "message.muppet_streamer_duplicate_command_ignored", "Malfunctioning Weapon", data.target })
         return
     end
 

@@ -1,6 +1,4 @@
 DOING NOW:
-	- Teleport "Depth" warning/error message missing spacing:     COMMAND - argument 'reachableOnly at depth 1 - ' reachableOnly setting is populated ....
-    - Add clear message if an active malfunctioning weapon prevents another 1 from starting.
 
 
 BUGS:

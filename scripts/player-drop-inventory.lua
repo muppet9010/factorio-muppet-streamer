@@ -139,6 +139,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
 
     -- If the effect is always set on this player don't start a new one.
     if global.playerDropInventory.affectedPlayers[targetPlayer_index] ~= nil then
+        game.print({ "message.muppet_streamer_duplicate_command_ignored", "Player Drop Inventory", data.target })
         return
     end
 

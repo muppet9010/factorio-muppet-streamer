@@ -124,6 +124,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
 
     if global.aggressiveDriver.affectedPlayers[targetPlayer.index] ~= nil then
         -- Player already being affected by this effect so just silently ignore it.
+        game.print({ "message.muppet_streamer_duplicate_command_ignored", "Aggressive Driver", data.target })
         return
     end
 

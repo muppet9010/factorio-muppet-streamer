@@ -149,6 +149,7 @@ PantsOnFire.ApplyToPlayer = function(eventData)
 
     -- Effect is already applied to player so don't start a new one.
     if global.PantsOnFire.playersSteps[targetPlayer_index] ~= nil then
+        game.print({ "message.muppet_streamer_duplicate_command_ignored", "Pants On Fire", data.target })
         return
     end
 

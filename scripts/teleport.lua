@@ -120,7 +120,7 @@ end
 Teleport.GetCommandData = function(commandData, depth, commandStringText)
     local depthErrorMessage = ""
     if depth > 0 then
-        depthErrorMessage = "at depth " .. depth .. " - "
+        depthErrorMessage = " at depth " .. depth .. " - "
     end
 
     -- Any errors raised need to include the depth message so we know how many backups it has got in to when it errored. So we add it to the end of the passed command name as this gets it to the right place in the produced error messages.
