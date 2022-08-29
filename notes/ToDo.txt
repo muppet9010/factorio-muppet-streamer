@@ -1,10 +1,10 @@
 DOING NOW:
 
 
+
 BUGS:
     - Suspect Aggressive Driver ignores vehicles that don't burn any fuel. As it just checks if there is currently fuel and ignores if it needs fuel. Probably need the utility function that gets fuel to also return if the entity needs fuel (has a burner).
 	- Make Remote Interface calls return the things they create if appropriate. Means you can chain them together in a Lua script. This should just need the odd entry in a features "notes" and an entry in the generic Remote Interface section to check each command. For affected players it should return the players who were/are affected, i.e. if a player isn't affected by aggressive driver then nil is return, rather than the LuaPlayer object.
-	- Invalid player name warning, should include that the player isn't currently on the server or has never been on the server. Applies to all commands.
 
 
 

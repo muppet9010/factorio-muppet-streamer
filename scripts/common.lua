@@ -34,7 +34,7 @@ Common.CheckPlayerNameSettingValue = function(playerName, commandName, settingNa
     if not CommandsUtils.CheckStringArgument(playerName, true, commandName, settingName, nil, commandString) then
         return false
     elseif game.get_player(playerName) == nil then
-        CommandsUtils.LogPrintWarning(commandName, settingName, "is invalid player name", commandString)
+        CommandsUtils.LogPrintWarning(commandName, settingName, "is the name of a non present player", commandString)
         return false
     end
     return true
