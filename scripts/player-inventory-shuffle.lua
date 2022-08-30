@@ -45,6 +45,7 @@ local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force th
 ---@field destinationPlayersMinimumVariance uint
 ---@field destinationPlayersVarianceFactor double
 ---@field recipientItemMinToMaxRatio uint
+---@field suppressMessages boolean
 
 local commandName = "muppet_streamer_player_inventory_shuffle"
 
@@ -61,7 +62,7 @@ end
 
 ---@param command CustomCommandData
 PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "includedPlayers", "includedForces", "includeEquipment", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "includedPlayers", "includedForces", "includeEquipment", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -163,18 +164,17 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         recipientItemMinToMaxRatio = 5
     end
 
+    local suppressMessages = commandData.suppressMessages
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+        return
+    end ---@cast suppressMessages boolean|nil
+    if suppressMessages == nil then
+        suppressMessages = false
+    end
+
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
     ---@type PlayerInventoryShuffle_RequestData
-    local requestData = {
-        includedPlayerNames = includedPlayerNames,
-        includedForces = includedForces,
-        includeAllPlayersOnServer = includeAllPlayersOnServer,
-        includeEquipment = includeEquipment,
-        includeHandCrafting = includeHandCrafting,
-        destinationPlayersMinimumVariance = destinationPlayersMinimumVariance,
-        destinationPlayersVarianceFactor = destinationPlayersVarianceFactor,
-        recipientItemMinToMaxRatio = recipientItemMinToMaxRatio
-    }
+    local requestData = { includedPlayerNames = includedPlayerNames, includedForces = includedForces, includeAllPlayersOnServer = includeAllPlayersOnServer, includeEquipment = includeEquipment, includeHandCrafting = includeHandCrafting, destinationPlayersMinimumVariance = destinationPlayersMinimumVariance, destinationPlayersVarianceFactor = destinationPlayersVarianceFactor, recipientItemMinToMaxRatio = recipientItemMinToMaxRatio, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerInventoryShuffle.MixUpPlayerInventories", global.playerInventoryShuffle.nextId, requestData)
 end
 
@@ -226,7 +226,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
 
     -- Check that there are the minimum of 2 players to shuffle.
     if #players <= 1 then
-        game.print({ "message.muppet_streamer_player_inventory_shuffle_not_enough_players" })
+        if not requestData.suppressMessages then game.print({ "message.muppet_streamer_player_inventory_shuffle_not_enough_players" }) end
         return
     end
 
@@ -246,13 +246,13 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
         -- Remove leading comma and space
         playerNamePrettyList = string.sub(playerNamePrettyList, 3)
     end
-    game.print({ "message.muppet_streamer_player_inventory_shuffle_start", playerNamePrettyList })
+    if not requestData.suppressMessages then game.print({ "message.muppet_streamer_player_inventory_shuffle_start", playerNamePrettyList }) end
 
     -- Do the collection and distribution.
     local storageInventory, itemSources = PlayerInventoryShuffle.CollectPlayerItems(players, requestData)
     local playersItemCounts = PlayerInventoryShuffle.CalculateItemDistribution(storageInventory, itemSources, requestData, #players--[[@as uint]] )
     local playerIndexesWithFreeInventorySpace_table = PlayerInventoryShuffle.DistributePlannedItemsToPlayers(storageInventory, players, playersItemCounts)
-    PlayerInventoryShuffle.DistributeRemainingItemsAnywhere(storageInventory, players, playerIndexesWithFreeInventorySpace_table)
+    PlayerInventoryShuffle.DistributeRemainingItemsAnywhere(storageInventory, players, playerIndexesWithFreeInventorySpace_table, requestData.suppressMessages)
 
     -- Remove the now empty storage inventory
     storageInventory.destroy()
@@ -324,7 +324,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid losing items, it will actually duplicate some of the last players items.
-                                game.print({ "message.muppet_streamer_player_inventory_shuffle_item_limit_reached" }, Colors.lightRed)
+                                game.print({ "message.muppet_streamer_player_inventory_shuffle_item_limit_reached" }, Colors.lightRed) --TODO: this is really an error.
                                 storageInventoryFull = true
                                 break
                             end
@@ -389,7 +389,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                     storageInventory.resize(storageInventorySize)
                                 else
                                     -- This is very simplistic and just used to avoid losing items, it will actually duplicate some of the last players items.
-                                    game.print({ "message.muppet_streamer_player_inventory_shuffle_item_limit_reached" }, Colors.lightRed)
+                                    game.print({ "message.muppet_streamer_player_inventory_shuffle_item_limit_reached" }, Colors.lightRed) -- TODO: this is really an error.
                                     storageInventoryFull = true
                                     break
                                 end
@@ -561,7 +561,8 @@ end
 ---@param storageInventory LuaInventory
 ---@param players LuaPlayer[]
 ---@param playerIndexesWithFreeInventorySpace_table table<uint, LuaPlayer>
-PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInventory, players, playerIndexesWithFreeInventorySpace_table)
+---@param suppressMessages boolean
+PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInventory, players, playerIndexesWithFreeInventorySpace_table, suppressMessages)
     -- Check the storage inventory is empty, distribute anything left or just dump it on the ground.
     local itemsLeftInStorage = storageInventory.get_contents()
     if next(itemsLeftInStorage) ~= nil then
@@ -612,7 +613,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
         if next(itemsLeftInStorage) ~= nil then
             -- Just drop it all on the floor at the players feet. No need to remove it from the inventory as we will destroy it next.
             -- CODE NOTE: the spilling on the ground is very UPS costly, especially the further away from each player. So Distributing semi equally across all players should help reduce this impact. Ideally this state won't be reached.
-            game.print({ "message.muppet_streamer_player_inventory_shuffle_not_enough_room_for_items" })
+            if not suppressMessages then game.print({ "message.muppet_streamer_player_inventory_shuffle_not_enough_room_for_items" }) end
             storageInventory.sort_and_merge()
             ---@type LuaItemStack, LuaPlayer
             local storageItemStack, randomPlayer

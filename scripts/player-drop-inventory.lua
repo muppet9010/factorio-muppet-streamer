@@ -20,6 +20,7 @@ local QuantityType = {
 ---@field gap uint # Must be > 0.
 ---@field occurrences uint
 ---@field dropEquipment boolean
+---@field suppressMessages boolean
 
 ---@class PlayerDropInventory_ScheduledDropItemsData
 ---@field player_index uint
@@ -31,6 +32,7 @@ local QuantityType = {
 ---@field staticItemCount uint|nil
 ---@field dynamicPercentageItemCount uint|nil
 ---@field currentOccurrences uint
+---@field suppressMessages boolean
 
 ---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|"cursorStack", uint> # Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
 ---@alias PlayerDropInventory_InventoryContents table<defines.inventory|"cursorStack", table<string, uint>> # Dictionary of each inventory to a cached list of item name and counts in that inventory.
@@ -53,7 +55,7 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -107,17 +109,17 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         dropEquipment = true
     end
 
+    local suppressMessages = commandData.suppressMessages
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+        return
+    end ---@cast suppressMessages boolean|nil
+    if suppressMessages == nil then
+        suppressMessages = false
+    end
+
     global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1
     ---@type PlayerDropInventory_ApplyDropItemsData
-    local applyDropItemsData = {
-        target = target,
-        quantityType = quantityType,
-        quantityValue = quantityValue,
-        dropOnBelts = dropOnBelts,
-        gap = gap,
-        occurrences = occurrences,
-        dropEquipment = dropEquipment
-    }
+    local applyDropItemsData = { target = target, quantityType = quantityType, quantityValue = quantityValue, dropOnBelts = dropOnBelts, gap = gap, occurrences = occurrences, dropEquipment = dropEquipment, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, applyDropItemsData)
 end
 
@@ -133,13 +135,13 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     local targetPlayer_index = targetPlayer.index
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
         -- Player not alive or in non playing mode.
-        game.print({ "message.muppet_streamer_player_drop_inventory_not_character_controller", data.target })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_player_drop_inventory_not_character_controller", data.target }) end
         return
     end
 
     -- If the effect is always set on this player don't start a new one.
     if global.playerDropInventory.affectedPlayers[targetPlayer_index] ~= nil then
-        game.print({ "message.muppet_streamer_duplicate_command_ignored", "Player Drop Inventory", data.target })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_duplicate_command_ignored", "Player Drop Inventory", data.target }) end
         return
     end
 
@@ -159,7 +161,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     global.playerDropInventory.affectedPlayers[targetPlayer_index] = true
 
     -- Do the first effect now.
-    game.print({ "message.muppet_streamer_player_drop_inventory_start", targetPlayer.name })
+    if not data.suppressMessages then game.print({ "message.muppet_streamer_player_drop_inventory_start", targetPlayer.name }) end
     ---@type PlayerDropInventory_ScheduledDropItemsData
     local scheduledDropItemsData = {
         player_index = targetPlayer_index,
@@ -170,7 +172,8 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         dropEquipment = data.dropEquipment,
         staticItemCount = staticItemCount,
         dynamicPercentageItemCount = dynamicPercentageItemCount,
-        currentOccurrences = 0
+        currentOccurrences = 0,
+        suppressMessages = data.suppressMessages
     }
     PlayerDropInventory.PlayerDropItems_Scheduled({ tick = event.tick, instanceId = scheduledDropItemsData.player_index, data = scheduledDropItemsData })
 end
@@ -300,7 +303,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         EventScheduler.ScheduleEventOnce(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
-        game.print({ "message.muppet_streamer_player_drop_inventory_stop", player.name })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_player_drop_inventory_stop", player.name }) end
     end
 end
 

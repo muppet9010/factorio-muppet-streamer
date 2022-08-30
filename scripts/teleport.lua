@@ -41,6 +41,7 @@ local MaxDistancePositionAroundTarget = 10
 ---@field reachableOnly boolean
 ---@field backupTeleportSettings? Teleport_CommandDetails|nil
 ---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
+---@field suppressMessages boolean
 
 ---@class Teleport_TeleportDetails # The data on a teleport action being undertaken. This includes the attributes from the first Teleport_CommandDetails within it directly.
 ---@field teleportId uint
@@ -60,6 +61,7 @@ local MaxDistancePositionAroundTarget = 10
 ---@field destinationTypeDescription Teleport_DestinationTypeSelectionDescription
 ---@field thisAttemptPosition? MapPosition|nil # The map position of the current teleport attempt.
 ---@field spawnerDistances table<uint, Teleport_TargetPlayerSpawnerDistanceDetails> # If destinationType is biterNest then populated when looking for a spawner to target, otherwise empty. Key'd as a gappy numerical order. The enemy spawners found on this surface from our spawner list and the distance they are from the player's current position.
+---@field suppressMessages boolean
 
 ---@class Teleport_TargetPlayerSpawnerDistanceDetails
 ---@field distance double
@@ -99,12 +101,12 @@ end
 --- Triggered when the RCON command is run.
 ---@param command CustomCommandData
 Teleport.TeleportCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings", "suppressMessages" })
     if commandData == nil then
         return
     end
 
-    local commandValues = Teleport.GetCommandData(commandData, 0, command.parameter)
+    local commandValues = Teleport.GetCommandData(commandData, 0, command.parameter, false)
     if commandValues == nil then
         return
     end
@@ -116,8 +118,9 @@ end
 ---@param commandData table<string, any> # Table of arguments passed in to the RCON command.
 ---@param depth uint # Used when looping recursively in to backup settings. Populate as 0 for the initial calling of the function in the raw RCON command handler.
 ---@param commandStringText string # The raw command text sent via RCON.
+---@param suppressMessagesDefault boolean
 ---@return Teleport_CommandDetails|nil commandDetails # Command details are returned if no errors hit, otherwise nil is returned.
-Teleport.GetCommandData = function(commandData, depth, commandStringText)
+Teleport.GetCommandData = function(commandData, depth, commandStringText, suppressMessagesDefault)
     local depthErrorMessage = ""
     if depth > 0 then
         depthErrorMessage = " at depth " .. depth .. " - "
@@ -207,11 +210,20 @@ Teleport.GetCommandData = function(commandData, depth, commandStringText)
         reachableOnly = false
     end
 
+    local suppressMessages = commandData.suppressMessages
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages" .. depthErrorMessage, commandData.parameter) then
+        return
+    end ---@cast suppressMessages boolean|nil
+    if suppressMessages == nil then
+        -- Use the default inherited from the parent teleport command. Just so it doesn't have to be provided on every nested one.
+        suppressMessages = suppressMessagesDefault
+    end
+
     ---@type any, Teleport_CommandDetails|nil
     local backupTeleportSettingsRaw, backupTeleportSettings = commandData.backupTeleportSettings, nil
     if backupTeleportSettingsRaw ~= nil then
         if type(backupTeleportSettingsRaw) == "table" then
-            backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, depth + 1, commandStringText)
+            backupTeleportSettings = Teleport.GetCommandData(backupTeleportSettingsRaw, depth + 1, commandStringText, suppressMessages)
             if backupTeleportSettings == nil then
                 -- The error will have been already reported to screen during the function handling the contents, so just stop the command from executing here.
                 return nil
@@ -223,7 +235,7 @@ Teleport.GetCommandData = function(commandData, depth, commandStringText)
     end
 
     ---@type Teleport_CommandDetails
-    local commandDetails = { delay = delayTicks, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription }
+    local commandDetails = { delay = delayTicks, target = target, arrivalRadius = arrivalRadius, minDistance = minDistance, maxDistance = maxDistance, destinationType = destinationType, destinationTargetPosition = destinationTargetPosition, reachableOnly = reachableOnly, backupTeleportSettings = backupTeleportSettings, destinationTypeDescription = destinationTypeDescription, suppressMessages = suppressMessages }
     return commandDetails
 end
 
@@ -247,7 +259,8 @@ Teleport.ScheduleTeleportCommand = function(commandValues)
         backupTeleportSettings = commandValues.backupTeleportSettings,
         destinationTypeDescription = commandValues.destinationTypeDescription,
         thisAttemptPosition = nil,
-        spawnerDistances = {}
+        spawnerDistances = {},
+        suppressMessages = commandValues.suppressMessages
     }
     EventScheduler.ScheduleEventOnce(scheduleTick, "Teleport.PlanTeleportTarget", global.teleport.nextId, teleportDetails)
 end
@@ -267,7 +280,7 @@ Teleport.PlanTeleportTarget = function(eventData)
 
     -- Check the player is alive (not dead) and not in editor mode. If they are just end the attempt.
     if targetPlayer.controller_type ~= defines.controllers.character then
-        game.print({ "message.muppet_streamer_teleport_not_character_controller", data.target })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_not_character_controller", data.target }) end
         return
     end
 
@@ -337,7 +350,7 @@ Teleport.PlanTeleportTarget = function(eventData)
 
         -- Handle if no valid spawners to try.
         if next(data.spawnerDistances) == nil then
-            game.print({ "message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name })
+            if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name }) end
             Teleport.DoBackupTeleport(data)
             return
         end
@@ -360,7 +373,7 @@ Teleport.PlanTeleportTarget = function(eventData)
             nearestSpawnerDistanceDetails = data.spawnerDistances[firstSpawnerDistancesIndex]
             if nearestSpawnerDistanceDetails == nil then
                 -- Have already removed the last possible spawner as its invalid, so no valid targets.
-                game.print({ "message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name })
+                if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name }) end
                 Teleport.DoBackupTeleport(data)
                 return
             end
@@ -383,7 +396,7 @@ Teleport.PlanTeleportTarget = function(eventData)
     elseif data.destinationType == DestinationTypeSelection.enemyUnit then
         local nearestEnemy = targetPlayer_surface.find_nearest_enemy { position = targetPlayer_position, max_distance = data.maxDistance, force = targetPlayer_force }
         if nearestEnemy == nil then
-            game.print({ "message.muppet_streamer_teleport_no_enemy_unit_found", targetPlayer.name })
+            if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_no_enemy_unit_found", targetPlayer.name }) end
             Teleport.DoBackupTeleport(data)
             return
         end
@@ -411,7 +424,7 @@ Teleport.PlanTeleportTarget = function(eventData)
     elseif teleportResponse.errorNoValidPositionFound then
         -- No valid position was found to try and teleport too.
         if data.targetAttempt > MaxTargetAttempts then
-            game.print({ "message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name })
+            if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_no_teleport_location_found", targetPlayer.name }) end
             Teleport.DoBackupTeleport(data)
             return
         else
@@ -420,7 +433,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
     elseif teleportResponse.errorTeleportFailed then
         -- Failed to teleport the entity to the specific position.
-        game.print({ "message.muppet_streamer_teleport_teleport_action_failed", targetPlayer.name, LoggingUtils.PositionToString(teleportResponse.targetPosition) })
+        game.print({ "message.muppet_streamer_teleport_teleport_action_failed", targetPlayer.name, LoggingUtils.PositionToString(teleportResponse.targetPosition) }) --TODO: is an error
         Teleport.DoBackupTeleport(data)
         return
     end
@@ -450,7 +463,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
     if event.path == nil then
         -- Path request failed.
         if data.targetAttempt > MaxTargetAttempts then
-            game.print({ "message.muppet_streamer_teleport_no_teleport_location_found", data.targetPlayer.name })
+            if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_no_teleport_location_found", data.targetPlayer.name }) end
             Teleport.DoBackupTeleport(data)
         else
             Teleport.PlanTeleportTarget({ data = data })
@@ -462,7 +475,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- Check the player is still alive and in a suitable game state (not editor) to be teleported. If they aren't suitable just abandon the teleport.
         if data.targetPlayer.controller_type ~= defines.controllers.character then
-            game.print({ "message.muppet_streamer_teleport_not_character_controller", data.target })
+            if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_not_character_controller", data.target }) end
             return
         end
 
@@ -484,7 +497,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
         local currentPlayerPlacementEntity, currentPlayerPlacementEntity_isVehicle = PlayerTeleport.GetPlayerTeleportPlacementEntity(data.targetPlayer, nil)
         if currentPlayerPlacementEntity == nil then
             -- If the target player doesn't have an entity then nothing further to do.
-            game.print({ "message.muppet_streamer_teleport_no_character", data.targetPlayer.name })
+            if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_no_character", data.targetPlayer.name }) end
             return
         end
         -- If a vehicle get its current nearest cardinal (4) direction to orientation.
@@ -516,7 +529,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- If the teleport of the player's entity/vehicle to the specific position failed then do next action if there is one.
         if not teleportSucceeded then
-            game.print({ "message.muppet_streamer_teleport_teleport_action_failed", data.targetPlayer.name, LoggingUtils.PositionToString(data.thisAttemptPosition) })
+            game.print({ "message.muppet_streamer_teleport_teleport_action_failed", data.targetPlayer.name, LoggingUtils.PositionToString(data.thisAttemptPosition) }) --TODO: is an error.
             Teleport.DoBackupTeleport(data)
         end
     end
@@ -526,7 +539,7 @@ end
 ---@param data Teleport_TeleportDetails
 Teleport.DoBackupTeleport = function(data)
     if data.backupTeleportSettings ~= nil then
-        game.print({ "message.muppet_streamer_teleport_doing_backup", data.backupTeleportSettings.destinationTypeDescription, data.backupTeleportSettings.target })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_doing_backup", data.backupTeleportSettings.destinationTypeDescription, data.backupTeleportSettings.target }) end
         Teleport.ScheduleTeleportCommand(data.backupTeleportSettings)
     end
 end
