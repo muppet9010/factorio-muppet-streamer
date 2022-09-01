@@ -538,7 +538,9 @@ SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails = function(setEntityName)
             if data.followPlayer then
                 target = data.targetPlayer.character
             end
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, target = target, create_build_effect_smoke = false, raise_built = true }
+            local combatRobot = data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, target = target, create_build_effect_smoke = false, raise_built = true }
+            -- Set the robots orientation post creation, as setting direction during creation doesn't seem to do anything.
+            combatRobot.orientation = math.random() --[[@as RealOrientation]]
         end,
         GetPlayersMaxBotFollowers = function(targetPlayer)
             return SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer(targetPlayer)
@@ -580,7 +582,8 @@ SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails = function(turretName, 
         end,
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
-            local turret = data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
+            -- Turrets support just build direction reliably.
+            local turret = data.surface.create_entity { name = data.entityName, position = data.position, direction = math.random(0, 3) * 2 --[[@as defines.direction]] , force = data.force, create_build_effect_smoke = false, raise_built = true }
             if turret ~= nil and ammoName ~= nil then
                 turret.insert({ name = ammoName, count = data.ammoCount })
             end
@@ -659,7 +662,9 @@ SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails = function(entityName, e
         end,
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
+            -- Try and set the build direction and also its orientation post building. Some entities will respond to one or the other, occasionally both and sometimes none. But none should error or fail from this and is technically just a wasted API call.
+            local createdEntity = data.surface.create_entity { name = data.entityName, position = data.position, direction = math.random(0, 3) * 2 --[[@as defines.direction]] , force = data.force, create_build_effect_smoke = false, raise_built = true }
+            createdEntity.orientation = math.random() --[[@as RealOrientation]]
         end
     }
 

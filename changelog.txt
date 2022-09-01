@@ -3,6 +3,7 @@ Version: 20.1.29
 Date: 2022-08-xxx
   Features:
     - Various Commands - all commands that have text announcements now have an option to suppress these text messages, `suppressMessages`. This only suppresses expected player messages (start/stop/not suitable) and not error or warning messages. Useful if a command is being applied to many players via a remote interface or you want to broadcast specific themed messages yourself.
+    - Spawn Around Player - Created entities will have a random direction set where possible.
   Changes:
     - Pants On Fire - capped the max `flameCount` to 250 as above this Factorio behaves oddly. Rasied as bug: https://forums.factorio.com/viewtopic.php?f=7&t=103227
     - Spawn Around Player - for an entity of type `fire` capped the max `ammoCount` setting to 250, as a flame count above this makes Factorio behave oddly. Rasied as bug: https://forums.factorio.com/viewtopic.php?f=7&t=103227
