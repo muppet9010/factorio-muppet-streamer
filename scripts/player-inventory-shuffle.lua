@@ -324,7 +324,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid losing items, it will actually duplicate some of the last players items.
-                                game.print({ "message.muppet_streamer_player_inventory_shuffle_item_limit_reached" }, Colors.lightRed) --TODO: this is really an error.
+                                CommandsUtils.LogPrintWarning(commandName, nil, "The item limit has been reached during inventory shuffle. The effect will have partially worked and some items may have been duplicated. Please report to mod author so they know to expand the mod.", nil)
                                 storageInventoryFull = true
                                 break
                             end
@@ -389,7 +389,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                     storageInventory.resize(storageInventorySize)
                                 else
                                     -- This is very simplistic and just used to avoid losing items, it will actually duplicate some of the last players items.
-                                    game.print({ "message.muppet_streamer_player_inventory_shuffle_item_limit_reached" }, Colors.lightRed) -- TODO: this is really an error.
+                                    CommandsUtils.LogPrintWarning(commandName, nil, "The item limit has been reached during inventory shuffle. The effect will have partially worked and some items may have been duplicated. Please report to mod author so they know to expand the mod.", nil)
                                     storageInventoryFull = true
                                     break
                                 end

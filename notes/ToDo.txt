@@ -1,5 +1,4 @@
 DOING NOW:
-    - Update the warning messages to use the dedicated call functions so they stand out in code and text color. Added TODO's for the ones I've come across.
 
 
 

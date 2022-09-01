@@ -433,7 +433,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
     elseif teleportResponse.errorTeleportFailed then
         -- Failed to teleport the entity to the specific position.
-        game.print({ "message.muppet_streamer_teleport_teleport_action_failed", targetPlayer.name, LoggingUtils.PositionToString(teleportResponse.targetPosition) }) --TODO: is an error
+        CommandsUtils.LogPrintWarning(commandName, nil, "Teleport action for player " .. targetPlayer.name .. " to position " .. LoggingUtils.PositionToString(teleportResponse.targetPosition) .. " failed (Factorio request rejected).", nil)
         Teleport.DoBackupTeleport(data)
         return
     end
@@ -529,7 +529,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- If the teleport of the player's entity/vehicle to the specific position failed then do next action if there is one.
         if not teleportSucceeded then
-            game.print({ "message.muppet_streamer_teleport_teleport_action_failed", data.targetPlayer.name, LoggingUtils.PositionToString(data.thisAttemptPosition) }) --TODO: is an error.
+            CommandsUtils.LogPrintWarning(commandName, nil, "Teleport action for player " .. data.targetPlayer.name .. " to position " .. LoggingUtils.PositionToString(data.thisAttemptPosition) .. " failed (Factorio request rejected).", nil)
             Teleport.DoBackupTeleport(data)
         end
     end

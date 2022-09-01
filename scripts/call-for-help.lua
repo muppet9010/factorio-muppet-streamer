@@ -372,7 +372,7 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         return
     elseif teleportResponse.errorTeleportFailed then
         -- Failed to teleport the entity to the specific position.
-        game.print({ "message.muppet_streamer_call_for_help_teleport_action_failed", helpPlayer.name, LoggingUtils.PositionToString(teleportResponse.targetPosition) }) --TODO: this is an error.
+        CommandsUtils.LogPrintWarning(commandName, nil, "Teleport action for player " .. helpPlayer.name .. " to position " .. LoggingUtils.PositionToString(teleportResponse.targetPosition) .. " failed (Factorio request rejected)", nil)
         return
     end
 end
@@ -482,7 +482,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
 
         -- If the teleport of the player's entity/vehicle to the specific position failed then nothing further to do for this player.
         if not teleportSucceeded then
-            game.print({ "message.muppet_streamer_call_for_help_teleport_action_failed", helpPlayer.name, LoggingUtils.PositionToString(pathRequest.position) }) -- TODO: this is an error.
+            CommandsUtils.LogPrintWarning(commandName, nil, "Teleport action for player " .. helpPlayer.name .. " to position " .. LoggingUtils.PositionToString(pathRequest.position) .. " failed (Factorio request rejected)", nil)
             CallForHelp.CheckIfCallForHelpCompleted(pathRequest)
             return
         end
