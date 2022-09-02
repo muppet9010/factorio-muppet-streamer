@@ -239,4 +239,19 @@ Common.GetBaseGameItemByName = function(itemName, expectedItemType, commandName,
     return itemPrototype
 end
 
+--- Gets a LuaFluid by name and checks it is the right type. Raises any error messages required.
+---@param fluidName string # The fluid to get by name
+---@param commandName string # Used for error messages.
+---@param commandString? string|nil # Used for error messages.
+---@return LuaFluidPrototype|nil fluidPrototype # nil return means its invalid.
+Common.GetBaseGameFluidByName = function(fluidName, commandName, commandString)
+    local fluidPrototype = game.fluid_prototypes[fluidName]
+    if fluidPrototype == nil then
+        CommandsUtils.LogPrintError(commandName, nil, "tried to use base game '" .. fluidName .. "' fluid, but it doesn't exist in this save.", commandString)
+        return nil
+    end
+
+    return fluidPrototype
+end
+
 return Common

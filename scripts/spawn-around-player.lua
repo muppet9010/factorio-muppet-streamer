@@ -161,9 +161,9 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
         local customEntityPrototype_type = customEntityPrototype.type
         local usedSecondaryData = false
-        if customEntityPrototype_type == "ammo-turret" then
-            usedSecondaryData = true
+        if customEntityPrototype_type == "ammo-turret" or customEntityPrototype_type == "artillery-turret" then
             if customSecondaryDetail ~= nil then
+                usedSecondaryData = true
                 local ammoItemPrototype = game.item_prototypes[customSecondaryDetail]
                 if ammoItemPrototype == nil then
                     CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "item '" .. customSecondaryDetail .. "' wasn't a valid item name", command.parameter)
@@ -174,6 +174,16 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
                     CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "item '" .. customSecondaryDetail .. "' wasn't an ammo item type, instead it was a type: " .. tostring(ammoItemPrototype_type), command.parameter)
                     return
                 end
+            end
+        elseif customEntityPrototype_type == "fluid-turret" then
+            if customSecondaryDetail ~= nil then
+                usedSecondaryData = true
+                local ammoFluidPrototype = game.fluid_prototypes[customSecondaryDetail]
+                if ammoFluidPrototype == nil then
+                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "fluid '" .. customSecondaryDetail .. "' wasn't a valid fluid name", command.parameter)
+                    return
+                end
+                -- Can't check the required fluid count as missing fields in API, requested: https://forums.factorio.com/viewtopic.php?f=28&t=103311
             end
         end
 
@@ -271,7 +281,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
             entityTypeDetails = SpawnAroundPlayer.GenerateFireEntityTypeDetails(data.customEntityName)
         elseif customEntityPrototype_type == "combat-robot" then
             entityTypeDetails = SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails(data.customEntityName)
-        elseif customEntityPrototype_type == "ammo-turret" then
+        elseif customEntityPrototype_type == "ammo-turret" or customEntityPrototype_type == "artillery-turret" then
             if data.customSecondaryDetail ~= nil then
                 local ammoItemPrototype = game.item_prototypes[data.customSecondaryDetail--[[@as string]] ]
                 if ammoItemPrototype == nil then
@@ -284,7 +294,16 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
                     return
                 end
             end
-            entityTypeDetails = SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails(data.customEntityName, data.customSecondaryDetail)
+            entityTypeDetails = SpawnAroundPlayer.GenerateAmmoFiringTurretEntityTypeDetails(data.customEntityName, data.customSecondaryDetail)
+        elseif customEntityPrototype_type == "fluid-turret" then
+            if data.customSecondaryDetail ~= nil then
+                local ammoFluidPrototype = game.fluid_prototypes[data.customSecondaryDetail--[[@as string]] ]
+                if ammoFluidPrototype == nil then
+                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "fluid '" .. data.customSecondaryDetail .. "' wasn't a valid fluid at run time", nil)
+                    return
+                end
+            end
+            entityTypeDetails = SpawnAroundPlayer.GenerateFluidFiringTurretEntityTypeDetails(data.customEntityName, data.customSecondaryDetail)
         else
             entityTypeDetails = SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails(data.customEntityName, customEntityPrototype_type)
         end
@@ -416,9 +435,9 @@ SpawnAroundPlayer.GetBuiltinEntityTypeDetails = function(entityTypeName)
     if entityTypeName == EntityTypeNames.tree then return SpawnAroundPlayer.GenerateRandomTreeTypeDetails()
     elseif entityTypeName == EntityTypeNames.rock then return SpawnAroundPlayer.GenerateRandomRockTypeDetails()
     elseif entityTypeName == EntityTypeNames.laserTurret then return SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails("laser-turret", "electric-turret")
-    elseif entityTypeName == EntityTypeNames.gunTurretRegularAmmo then return SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails("gun-turret", "firearm-magazine")
-    elseif entityTypeName == EntityTypeNames.gunTurretPiercingAmmo then return SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails("gun-turret", "piercing-rounds-magazine")
-    elseif entityTypeName == EntityTypeNames.gunTurretUraniumAmmo then return SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails("gun-turret", "uranium-rounds-magazine")
+    elseif entityTypeName == EntityTypeNames.gunTurretRegularAmmo then return SpawnAroundPlayer.GenerateAmmoFiringTurretEntityTypeDetails("gun-turret", "firearm-magazine")
+    elseif entityTypeName == EntityTypeNames.gunTurretPiercingAmmo then return SpawnAroundPlayer.GenerateAmmoFiringTurretEntityTypeDetails("gun-turret", "piercing-rounds-magazine")
+    elseif entityTypeName == EntityTypeNames.gunTurretUraniumAmmo then return SpawnAroundPlayer.GenerateAmmoFiringTurretEntityTypeDetails("gun-turret", "uranium-rounds-magazine")
     elseif entityTypeName == EntityTypeNames.wall then return SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails("stone-wall", "wall")
     elseif entityTypeName == EntityTypeNames.landmine then return SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails("land-mine", "land-mine")
     elseif entityTypeName == EntityTypeNames.fire then return SpawnAroundPlayer.GenerateFireEntityTypeDetails("fire-flame")
@@ -549,17 +568,17 @@ SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails = function(setEntityName)
     return entityTypeDetails
 end
 
---- Handler for the generic gun turret with ammo types.
+--- Handler for the ammo shooting gun and artillery turrets.
 ---@param turretName string # Prototype entity name
 ---@param ammoName? string|nil # Prototype item name
 ---@return SpawnAroundPlayer_EntityTypeDetails
-SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails = function(turretName, ammoName)
+SpawnAroundPlayer.GenerateAmmoFiringTurretEntityTypeDetails = function(turretName, ammoName)
     local gridSize, searchOnlyInTileCenter = SpawnAroundPlayer.GetEntityTypeFunctionPlacementDetails(turretName)
 
     ---@type SpawnAroundPlayer_EntityTypeDetails
     local entityTypeDetails = {
         ValidateEntityPrototypes = function(commandString)
-            if Common.GetBaseGameEntityByName(turretName, "ammo-turret", commandName, commandString) == nil then
+            if Common.GetBaseGameEntityByName(turretName, { "ammo-turret", "artillery-turret" }, commandName, commandString) == nil then
                 return false
             end
             if ammoName ~= nil and Common.GetBaseGameItemByName(ammoName, "ammo", commandName, commandString) == nil then
@@ -586,6 +605,50 @@ SpawnAroundPlayer.GenerateAmmoGunTurretEntityTypeDetails = function(turretName, 
             local turret = data.surface.create_entity { name = data.entityName, position = data.position, direction = math.random(0, 3) * 2 --[[@as defines.direction]] , force = data.force, create_build_effect_smoke = false, raise_built = true }
             if turret ~= nil and ammoName ~= nil then
                 turret.insert({ name = ammoName, count = data.ammoCount })
+            end
+        end
+    }
+    return entityTypeDetails
+end
+
+
+--- Handler for the fluid firing turrets.
+---@param turretName string # Prototype entity name
+---@param fluidName? string|nil # Prototype item name
+---@return SpawnAroundPlayer_EntityTypeDetails
+SpawnAroundPlayer.GenerateFluidFiringTurretEntityTypeDetails = function(turretName, fluidName)
+    local gridSize, searchOnlyInTileCenter = SpawnAroundPlayer.GetEntityTypeFunctionPlacementDetails(turretName)
+
+    ---@type SpawnAroundPlayer_EntityTypeDetails
+    local entityTypeDetails = {
+        ValidateEntityPrototypes = function(commandString)
+            if Common.GetBaseGameEntityByName(turretName, { "fluid-turret" }, commandName, commandString) == nil then
+                return false
+            end
+            if fluidName ~= nil and Common.GetBaseGameFluidByName(fluidName, commandName, commandString) == nil then
+                return false
+            end
+            return true
+        end,
+        GetDefaultForce = function(targetPlayer)
+            return targetPlayer.force --[[@as LuaForce # Sumneko R/W workaround.]]
+        end,
+        GetEntityName = function()
+            return turretName
+        end,
+        GetEntityAlignedPosition = function(position)
+            return PositionUtils.RoundPosition(position, 0)
+        end,
+        gridPlacementSize = gridSize,
+        FindValidPlacementPosition = function(surface, entityName, position, searchRadius)
+            return surface.find_non_colliding_position(entityName, position, searchRadius, 1, searchOnlyInTileCenter)
+        end,
+        ---@param data SpawnAroundPlayer_PlaceEntityDetails
+        PlaceEntity = function(data)
+            -- Turrets support just build direction reliably.
+            local turret = data.surface.create_entity { name = data.entityName, position = data.position, direction = math.random(0, 3) * 2 --[[@as defines.direction]] , force = data.force, create_build_effect_smoke = false, raise_built = true }
+            if turret ~= nil and fluidName ~= nil then
+                turret.insert_fluid({ name = fluidName, amount = data.ammoCount })
             end
         end
     }
