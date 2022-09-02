@@ -6,6 +6,7 @@ Date: 2022-08-xxx
     - Spawn Around Player - created entities will have a random direction set where possible.
     - Spawn Around Player - putting ammo in an `artillery-turret` type entity now supported. Same as putting ammo in a `gun-turret` already was.
     - Spawn Around Player - creating `fluid-turret` with a fluid "ammo" is supported.
+    - Spawn Around Player - options to automatically remove the created entities between a min and max time.
   Changes:
     - Pants On Fire - capped the max `flameCount` to 250 as above this Factorio behaves oddly. Rasied as bug: https://forums.factorio.com/viewtopic.php?f=7&t=103227
     - Spawn Around Player - for an entity of type `fire` capped the max `ammoCount` setting to 250, as a flame count above this makes Factorio behave oddly. Rasied as bug: https://forums.factorio.com/viewtopic.php?f=7&t=103227

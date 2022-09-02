@@ -25,6 +25,8 @@ local ExistingEntitiesTypes = {
 ---@field ammoCount uint|nil
 ---@field followPlayer boolean|nil
 ---@field forceString string|nil
+---@field removalTimeMinScheduleTick uint|nil
+---@field removalTimeMaxScheduleTick uint|nil
 
 ---@enum SpawnAroundPlayer_EntityTypeNames
 local EntityTypeNames = {
@@ -49,7 +51,7 @@ local EntityTypeNames = {
 ---@field GetEntityName fun(surface: LuaSurface, position: MapPosition): string|nil # Should normally return something, but some advanced features may not, i.e. getting tree for void tiles.
 ---@field GetEntityAlignedPosition fun(position: MapPosition): MapPosition
 ---@field FindValidPlacementPosition fun(surface: LuaSurface, entityName: string, position: MapPosition, searchRadius, double): MapPosition|nil
----@field PlaceEntity fun(data: SpawnAroundPlayer_PlaceEntityDetails) # No return or indication if it worked, its a try and forget.
+---@field PlaceEntity fun(data: SpawnAroundPlayer_PlaceEntityDetails):LuaEntity|nil # Will return the entity created if it worked.
 ---@field GetPlayersMaxBotFollowers? fun(targetPlayer: LuaPlayer): uint
 ---@field gridPlacementSize uint|nil # If the thing needs to be placed on a grid and how big that grid is. Used for things that can't go off grid and have larger collision boxes.
 
@@ -62,6 +64,9 @@ local EntityTypeNames = {
 ---@field followPlayer boolean
 ---@field force LuaForce
 
+---@class SpawnAroundPlayer_RemoveEntityScheduled
+---@field entity LuaEntity
+
 SpawnAroundPlayer.quantitySearchRadius = 3
 SpawnAroundPlayer.densitySearchRadius = 0.6
 SpawnAroundPlayer.offGridPlacementJitter = 0.3
@@ -71,11 +76,13 @@ local commandName = "muppet_streamer_spawn_around_player"
 SpawnAroundPlayer.CreateGlobals = function()
     global.spawnAroundPlayer = global.spawnAroundPlayer or {}
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId or 0 ---@type uint
+    global.spawnAroundPlayer.removeEntityNextId = global.spawnAroundPlayer.removeEntityNextId or 0 ---@type uint
 end
 
 SpawnAroundPlayer.OnLoad = function()
     CommandsUtils.Register("muppet_streamer_spawn_around_player", { "api-description.muppet_streamer_spawn_around_player" }, SpawnAroundPlayer.SpawnAroundPlayerCommand, true)
     EventScheduler.RegisterScheduledEventType("SpawnAroundPlayer.SpawnAroundPlayerScheduled", SpawnAroundPlayer.SpawnAroundPlayerScheduled)
+    EventScheduler.RegisterScheduledEventType("SpawnAroundPlayer.RemoveEntityScheduled", SpawnAroundPlayer.RemoveEntityScheduled)
     MOD.Interfaces.Commands.SpawnAroundPlayer = SpawnAroundPlayer.SpawnAroundPlayerCommand
 end
 
@@ -86,7 +93,7 @@ end
 ---@param command CustomCommandData
 SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "force", "entityName", "customEntityName", "customSecondaryDetail", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "force", "entityName", "customEntityName", "customSecondaryDetail", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer", "removalTimeMin", "removalTimeMax" })
     if commandData == nil then
         return
     end
@@ -96,6 +103,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end ---@cast delaySeconds double|nil
     local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
+    local commandEffectTick = scheduleTick > 0 and scheduleTick --[[@as uint]] or command.tick ---@type uint # The tick the command will be executed.
 
     local target = commandData.target
     if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
@@ -217,6 +225,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     end ---@cast existingEntitiesString string
     local existingEntities = ExistingEntitiesTypes[existingEntitiesString] ---@type SpawnAroundPlayer_ExistingEntities
 
+
     local quantity = commandData.quantity
     if not CommandsUtils.CheckNumberArgument(quantity, "int", false, commandName, "quantity", 0, MathUtils.uintMax, command.parameter) then
         return
@@ -227,10 +236,12 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end ---@cast density double|nil
 
+    -- Check that either quantity or density is provided.
     if quantity == nil and density == nil then
         CommandsUtils.LogPrintError(commandName, nil, "either quantity or density must be provided, otherwise the command will create nothing.", command.parameter)
         return
     end
+
 
     local ammoCount = commandData.ammoCount
     if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, commandName, "ammoCount", 0, MathUtils.uintMax, command.parameter) then
@@ -242,10 +253,37 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
         return
     end ---@cast followPlayer boolean|nil
 
+
+    local removalTimeMin_seconds = commandData.removalTimeMin
+    if not CommandsUtils.CheckNumberArgument(removalTimeMin_seconds, "double", false, commandName, "removalTimeMin", 0, nil, command.parameter) then
+        return
+    end ---@cast removalTimeMin_seconds double|nil
+    local removalTimeMin_scheduleTick = Common.SecondsSettingToTickValue(removalTimeMin_seconds, commandEffectTick, commandName, "removalTimeMin")
+
+    local removalTimeMax_seconds = commandData.removalTimeMax
+    if not CommandsUtils.CheckNumberArgument(removalTimeMax_seconds, "double", false, commandName, "removalTimeMax", 0, nil, command.parameter) then
+        return
+    end ---@cast removalTimeMax_seconds double|nil
+    local removalTimeMax_scheduleTick = Common.SecondsSettingToTickValue(removalTimeMax_seconds, commandEffectTick, commandName, "removalTimeMax")
+
+    -- Ensure the removal min and max tick are both populated if one is.
+    if removalTimeMin_scheduleTick ~= nil and removalTimeMax_scheduleTick == nil then
+        removalTimeMax_scheduleTick = removalTimeMin_scheduleTick
+    elseif removalTimeMax_scheduleTick ~= nil and removalTimeMin_scheduleTick == nil then
+        removalTimeMin_scheduleTick = removalTimeMax_scheduleTick ---@type uint
+    end
+
+    -- Ensure the removal min tick is not greater than the removal max tick.
+    if removalTimeMin_scheduleTick ~= nil and removalTimeMin_scheduleTick > removalTimeMax_scheduleTick then
+        CommandsUtils.LogPrintError(commandName, "removalTimeMin", "can't be set larger than the maximum removal time", command.parameter)
+        return
+    end
+
+
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1
-    -- Can't transfer the object with functions as it goes in to `global` for when there is a delay.
+    -- Can't transfer the Type object with the generated functions as it goes in to `global` for when there is a delay. So we just pass the name and then re-generate it at run time.
     ---@type SpawnAroundPlayer_ScheduledDetails
-    local scheduledDetails = { target = target, entityTypeName = entityTypeName, customEntityName = customEntityName, customSecondaryDetail = customSecondaryDetail, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString }
+    local scheduledDetails = { target = target, entityTypeName = entityTypeName, customEntityName = customEntityName, customSecondaryDetail = customSecondaryDetail, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString, removalTimeMinScheduleTick = removalTimeMin_scheduleTick, removalTimeMaxScheduleTick = removalTimeMax_scheduleTick }
     EventScheduler.ScheduleEventOnce(scheduleTick, "SpawnAroundPlayer.SpawnAroundPlayerScheduled", global.spawnAroundPlayer.nextId, scheduledDetails)
 end
 
@@ -339,7 +377,14 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
 
                     ---@type SpawnAroundPlayer_PlaceEntityDetails
                     local placeEntityDetails = { surface = surface, entityName = entityName, position = entityAlignedPosition, targetPlayer = targetPlayer, ammoCount = data.ammoCount, followPlayer = thisOneFollows, force = force }
-                    entityTypeDetails.PlaceEntity(placeEntityDetails)
+                    local createdEntity = entityTypeDetails.PlaceEntity(placeEntityDetails)
+                    if createdEntity ~= nil and data.removalTimeMinScheduleTick ~= nil then
+                        global.spawnAroundPlayer.removeEntityNextId = global.spawnAroundPlayer.removeEntityNextId + 1
+                        ---@type SpawnAroundPlayer_RemoveEntityScheduled
+                        local removeEntityDetails = { entity = createdEntity }
+                        EventScheduler.ScheduleEventOnce(math.random(data.removalTimeMinScheduleTick, data.removalTimeMaxScheduleTick)--[[@as uint]] , "SpawnAroundPlayer.RemoveEntityScheduled", global.spawnAroundPlayer.removeEntityNextId, removeEntityDetails)
+                    end
+
                     placed = placed + 1
                 end
             end
@@ -424,7 +469,13 @@ SpawnAroundPlayer.PlaceEntityNearPosition = function(entityTypeDetails, position
 
         ---@type SpawnAroundPlayer_PlaceEntityDetails
         local placeEntityDetails = { surface = surface, entityName = entityName, position = entityAlignedPosition, targetPlayer = targetPlayer, ammoCount = data.ammoCount, followPlayer = thisOneFollows, force = force }
-        entityTypeDetails.PlaceEntity(placeEntityDetails)
+        local createdEntity = entityTypeDetails.PlaceEntity(placeEntityDetails)
+        if createdEntity ~= nil and data.removalTimeMinScheduleTick ~= nil then
+            global.spawnAroundPlayer.removeEntityNextId = global.spawnAroundPlayer.removeEntityNextId + 1
+            ---@type SpawnAroundPlayer_RemoveEntityScheduled
+            local removeEntityDetails = { entity = createdEntity }
+            EventScheduler.ScheduleEventOnce(math.random(data.removalTimeMinScheduleTick, data.removalTimeMaxScheduleTick)--[[@as uint]] , "SpawnAroundPlayer.RemoveEntityScheduled", global.spawnAroundPlayer.removeEntityNextId, removeEntityDetails)
+        end
     end
 end
 
@@ -472,7 +523,7 @@ SpawnAroundPlayer.GenerateRandomTreeTypeDetails = function()
         end,
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
+            return data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
         end
     }
     return entityTypeDetails
@@ -518,7 +569,7 @@ SpawnAroundPlayer.GenerateRandomRockTypeDetails = function()
         end,
         ---@param data SpawnAroundPlayer_PlaceEntityDetails
         PlaceEntity = function(data)
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
+            return data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, create_build_effect_smoke = false, raise_built = true }
         end
     }
     return entityTypeDetails
@@ -560,6 +611,7 @@ SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails = function(setEntityName)
             local combatRobot = data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, target = target, create_build_effect_smoke = false, raise_built = true }
             -- Set the robots orientation post creation, as setting direction during creation doesn't seem to do anything.
             combatRobot.orientation = math.random() --[[@as RealOrientation]]
+            return combatRobot
         end,
         GetPlayersMaxBotFollowers = function(targetPlayer)
             return SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer(targetPlayer)
@@ -606,6 +658,7 @@ SpawnAroundPlayer.GenerateAmmoFiringTurretEntityTypeDetails = function(turretNam
             if turret ~= nil and ammoName ~= nil then
                 turret.insert({ name = ammoName, count = data.ammoCount })
             end
+            return turret
         end
     }
     return entityTypeDetails
@@ -650,6 +703,7 @@ SpawnAroundPlayer.GenerateFluidFiringTurretEntityTypeDetails = function(turretNa
             if turret ~= nil and fluidName ~= nil then
                 turret.insert_fluid({ name = fluidName, amount = data.ammoCount })
             end
+            return turret
         end
     }
     return entityTypeDetails
@@ -692,7 +746,7 @@ SpawnAroundPlayer.GenerateFireEntityTypeDetails = function(setEntityName)
                     CommandsUtils.LogPrintWarning(commandName, "ammoCount", "value was above the maximum of 250 for a fire type entity, so clamped to 250", nil)
                 end
             end
-            data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, initial_ground_flame_count = flameCount, create_build_effect_smoke = false, raise_built = true }
+            return data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, initial_ground_flame_count = flameCount, create_build_effect_smoke = false, raise_built = true }
         end
     }
     return entityTypeDetails
@@ -728,6 +782,7 @@ SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails = function(entityName, e
             -- Try and set the build direction and also its orientation post building. Some entities will respond to one or the other, occasionally both and sometimes none. But none should error or fail from this and is technically just a wasted API call.
             local createdEntity = data.surface.create_entity { name = data.entityName, position = data.position, direction = math.random(0, 3) * 2 --[[@as defines.direction]] , force = data.force, create_build_effect_smoke = false, raise_built = true }
             createdEntity.orientation = math.random() --[[@as RealOrientation]]
+            return createdEntity
         end
     }
 
@@ -786,6 +841,16 @@ SpawnAroundPlayer.GetMaxBotFollowerCountForPlayer = function(targetPlayer)
     local max = targetPlayer.character_maximum_following_robot_count_bonus + targetPlayer.force.maximum_following_robot_count
     local current = #targetPlayer.following_robots --[[@as uint # The game doesn't allow more than a uint max following robots, so the count can't be above a uint.]]
     return max - current
+end
+
+--- Called when an entities time has run out and it should be removed if it still exists.
+---@param eventData UtilityScheduledEvent_CallbackObject
+SpawnAroundPlayer.RemoveEntityScheduled = function(eventData)
+    local data = eventData.data ---@type SpawnAroundPlayer_RemoveEntityScheduled
+    local entity = data.entity
+    if entity.valid then
+        entity.destroy({ raise_destroy = true })
+    end
 end
 
 return SpawnAroundPlayer

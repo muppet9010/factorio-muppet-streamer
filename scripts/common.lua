@@ -3,7 +3,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 local TableUtils = require("utility.helper-utils.table-utils")
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 
---- Takes a delay value in seconds and returns the Scheduled Event tick value.
+--- Takes a delay value in seconds and returns the Scheduled Event tick value. Caps it if it's greater than the game's max tick.
 ---@param delaySeconds double|nil
 ---@param currentTick uint
 ---@param commandName string
@@ -21,6 +21,26 @@ Common.DelaySecondsSettingToScheduledEventTickValue = function(delaySeconds, cur
         scheduleTick = -1 ---@type UtilityScheduledEvent_UintNegative1
     end
     return scheduleTick
+end
+
+--- Takes a setting in seconds, applies it to the baseTick and returns it, after capping it if it's greater than the game's max tick.
+---@param seconds double|nil
+---@param baseTick uint
+---@param commandName string
+---@param settingName string
+---@return uint|nil cappedTicks
+Common.SecondsSettingToTickValue = function(seconds, baseTick, commandName, settingName)
+    local cappedTicks ---@type uint|nil
+    if (seconds ~= nil and seconds > 0) then
+        local valueWasOutsideRange ---@type boolean
+        cappedTicks, valueWasOutsideRange = MathUtils.ClampToUInt(baseTick + math.floor(seconds * 60))
+        if valueWasOutsideRange then
+            CommandsUtils.LogPrintWarning(commandName, settingName, "capped at max ticks, as excessively large number of seconds provided: " .. tostring(seconds), nil)
+        end
+    else
+        cappedTicks = nil
+    end
+    return cappedTicks
 end
 
 --- A bespoke check for a player's name setting. Includes the setting as mandatory and that there's a player with this name.
