@@ -502,7 +502,7 @@ All of the commands take a table of options as a JSON string when they are calle
 
 - Mandatory = the option must be provided.
 - Mandatory Special = the option is/can be mandatory, see the details on the option for specifics.
-- Optional = you are free to include or exclude the option. The default value will be listed and used when the option isn't included.
+- Optional = you are free to include or exclude the option. The default value will be listed and used when the option isn't included or is a nil value. As well as not including optional settings you can also pass in `null` to JSON strings or `nil` to Lua objects, if you wish to have the setting name included to improve readability between different commands.
 
 #### Number ranges
 
