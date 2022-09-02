@@ -8,8 +8,8 @@ BUGS:
 
 
 DO NEAR FUTURE:
-    - Add to Spawn Around Player a min and max remain time. Both optional. If set added entities will vanish after a random time between them.
-    - Add to allow other items to be inserted in to custom entities created. Let customSecondaryDetail be used for any item type when the main entity type can have it "inserted" : container/chests, furnace, assembling-machine, vehicles. The ammoCount can still set the number of things. Include an example of spawning a tank with some fuel in it. This will be enough for the fireplace modded entity to be used.
+	- CONCEPT: Make Remote Interface calls return the things they create if appropriate. Means you can chain them together in a Lua script. This should just need the odd entry in a features "notes" and an entry in the generic Remote Interface section to check each command. For affected players it should return the players who were/are affected, i.e. if a player isn't affected by aggressive driver then nil is return, rather than the LuaPlayer object. THIS WON'T WORK AS WE DELAY THE FIRING OF ALL COMMANDS (EVEN DELAY 0), SO THE REMOTE'S RETURN THE ACTION HASN'T BEEN DONE. NEED TO EITHER MAKE DELAY 0 RUN IMMEDIATELY (AND ONLY OFFER THIS ON THAT), NOT OFFER THIS, OR ALLOW A CALLBACK FUNCTION TO BE PASSED IN AND RAN AS DYNAMIC LUA CODE:
+		remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target=player.name, entityName="custom", customEntityName="big-worm-turret", force="muppet_streamer_enemy", radiusMax=15, radiusMin=10, existingEntities="avoid", quantity=3, onCompletionFunction="function(things) for _, thing in pairs(things) do thing.health = 100 end end"})
 
 
 
@@ -21,7 +21,7 @@ Future Confirmed (bigger things):
 
 
 Future Possible Concepts:
-    - "Starting With Ghosts" affects all forces. Maybe we should only apply it to a force when a player joins that force. As can show up odd stuff in map editor and "may" affect other mods and scripted events if they expect to use bots to build script generated ghosts at set times, rather than replacing dead stuff as well.
+    - The "Starting With Ghosts" feature currently affects all forces. Maybe we should only apply it to a force when a player joins that force. As can show up odd stuff in map editor and "may" affect other mods and scripted events if they expect to use bots to build script generated ghosts at set times, rather than replacing dead stuff as well.
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
     - Spawn around player to support biters, spitters or both. Allow named or evolution specific.
     - Call for Help - add:
@@ -54,3 +54,5 @@ Future Possible Concepts:
         - Support settings for ammo and fuel, types and quantities being in the vehicle.
         - Have this feature support checking if a nearby vehicle is drivable first, option to use the vehicle if its driver is free and top it up to the fuel and ammo standard.
         - Have it take an optional duration before removing the vehicle.
+    - Spawn Around Player - Support electric turrets and giving them power. You can't directly set power in to things and most electric turrets have a tiny power buffer. Due to how power poles connect and power other forces the solution would be quite convoluted, this is just a guess and assumes we can connect 2 things by wire beyond their native wire reach distance:
+        - Add a power pole to the game with near 0 power range and 0 power wire reach/count. Make a power pole on another surface with an electric energy interface, as we can set the starting electric on this. Link a wire via script between the 0 reach power pole on the turret and the power pole by the energy interface on the other surface. We now have a finite power source for that specific turret that won't power anything else. If we remove it all on the turrets death then nothing else should manage to get on that exact spot and thus be able to connect to the power network.

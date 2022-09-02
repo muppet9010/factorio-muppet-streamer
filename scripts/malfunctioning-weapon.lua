@@ -20,6 +20,7 @@ local EffectEndStatus = {
 ---@field reloadTicks uint # >=1
 ---@field weaponPrototype LuaItemPrototype
 ---@field ammoPrototype LuaItemPrototype
+---@field suppressMessages boolean
 
 ---@class MalfunctioningWeapon_ShootFlamethrowerDetails
 ---@field player LuaPlayer
@@ -39,18 +40,19 @@ local EffectEndStatus = {
 ---@field cooldownTicks uint # >= 1
 ---@field reloadTicks uint # >=1
 
----@class MalfunctioningWeapon_AffectedPlayersDetails
+---@class MalfunctioningWeapon_AffectedPlayerDetails
 ---@field flamethrowerGiven boolean # If a flamethrower weapon had to be given to the player or if they already had one.
 ---@field burstsLeft uint
 ---@field removedWeaponDetails UtilityPlayerWeapon_RemovedWeaponToEnsureWeapon
 ---@field weaponPrototype LuaItemPrototype
 ---@field ammoPrototype LuaItemPrototype
+---@field suppressMessages boolean
 
 local commandName = "muppet_streamer_malfunctioning_weapon"
 
 MalfunctioningWeapon.CreateGlobals = function()
     global.leakyFlamethrower = global.leakyFlamethrower or {}
-    global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<uint, MalfunctioningWeapon_AffectedPlayersDetails> # Key'd by player_index.
+    global.leakyFlamethrower.affectedPlayers = global.leakyFlamethrower.affectedPlayers or {} ---@type table<uint, MalfunctioningWeapon_AffectedPlayerDetails> # Key'd by player_index.
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId or 0 ---@type uint
 end
 
@@ -69,7 +71,7 @@ end
 
 ---@param command CustomCommandData
 MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "ammoCount", "reloadTime", "weaponType", "ammoType" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "ammoCount", "reloadTime", "weaponType", "ammoType", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -130,12 +132,20 @@ MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
         return
     end
 
+    local suppressMessages = commandData.suppressMessages
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+        return
+    end ---@cast suppressMessages boolean|nil
+    if suppressMessages == nil then
+        suppressMessages = false
+    end
+
     -- Some modded weapons may have a reload time greater than the delay setting and so we must wait for this otherwise we can't start shooting when we expect.
     reloadTicks = math.max(reloadTicks, ammoPrototype.reload_time)
 
     global.leakyFlamethrower.nextId = global.leakyFlamethrower.nextId + 1 ---@type uint # Needed for weird bug reason, maybe in Sumneko or maybe the plugin with its fake global.
     ---@type MalfunctioningWeapon_ScheduledEventDetails
-    local scheduledEventDetails = { target = target, ammoCount = ammoCount, reloadTicks = reloadTicks, weaponPrototype = weaponPrototype, ammoPrototype = ammoPrototype }
+    local scheduledEventDetails = { target = target, ammoCount = ammoCount, reloadTicks = reloadTicks, weaponPrototype = weaponPrototype, ammoPrototype = ammoPrototype, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "MalfunctioningWeapon.ApplyToPlayer", global.leakyFlamethrower.nextId, scheduledEventDetails)
 end
 
@@ -149,7 +159,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
-        game.print({ "message.muppet_streamer_malfunctioning_weapon_not_character_controller", data.target })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_malfunctioning_weapon_not_character_controller", data.target }) end
         return
     end
     local targetPlayer_index = targetPlayer.index
@@ -166,6 +176,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
 
     -- If this player already has the effect active then terminate this new instance.
     if global.leakyFlamethrower.affectedPlayers[targetPlayer_index] ~= nil then
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_duplicate_command_ignored", "Malfunctioning Weapon", data.target }) end
         return
     end
 
@@ -214,7 +225,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
     global.originalPlayersPermissionGroup[targetPlayer_index] = global.originalPlayersPermissionGroup[targetPlayer_index] or targetPlayer.permission_group
 
     targetPlayer.permission_group = MalfunctioningWeapon.GetOrCreatePermissionGroup()
-    global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = { flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails, weaponPrototype = data.weaponPrototype, ammoPrototype = data.ammoPrototype }
+    global.leakyFlamethrower.affectedPlayers[targetPlayer_index] = { flamethrowerGiven = flamethrowerGiven, burstsLeft = data.ammoCount, removedWeaponDetails = removedWeaponDetails, weaponPrototype = data.weaponPrototype, ammoPrototype = data.ammoPrototype, suppressMessages = data.suppressMessages }
 
     local startingAngle = math.random(0, 360)
 
@@ -224,7 +235,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
     local cooldownTicks = math.max(MathUtils.RoundNumberToDecimalPlaces(cooldown, 0), 1) --[[@as uint]]
     -- One or more ticks (rounded). Anything that fires quicker than once per tick will be slowed down as other code can't handle it.
 
-    game.print({ "message.muppet_streamer_malfunctioning_weapon_start", targetPlayer.name, data.weaponPrototype.localised_name })
+    if not data.suppressMessages then game.print({ "message.muppet_streamer_malfunctioning_weapon_start", targetPlayer.name, data.weaponPrototype.localised_name }) end
 
     ---@type MalfunctioningWeapon_ShootFlamethrowerDetails
     local shootFlamethrowerDetails = { player = targetPlayer, angle = startingAngle, distance = startingDistance, currentBurstTicks = 0, burstsDone = 0, maxBursts = data.ammoCount, player_index = targetPlayer_index, usedSomeAmmo = false, startingAmmoItemStacksCount = startingAmmoItemStacksCount, startingAmmoItemStackAmmo = startingAmmoItemStackAmmo, weaponPrototype = data.weaponPrototype, ammoPrototype = data.ammoPrototype, minRange = minRange, maxRange = maxRange, cooldownTicks = cooldownTicks, reloadTicks = data.reloadTicks }
@@ -357,8 +368,8 @@ end
 ---@param player LuaPlayer|nil # Obtained if needed and not provided.
 ---@param status MalfunctioningWeapon_EffectEndStatus
 MalfunctioningWeapon.StopEffectOnPlayer = function(playerIndex, player, status)
-    local affectedPlayer = global.leakyFlamethrower.affectedPlayers[playerIndex]
-    if affectedPlayer == nil then
+    local affectedPlayerDetails = global.leakyFlamethrower.affectedPlayers[playerIndex]
+    if affectedPlayerDetails == nil then
         return
     end
 
@@ -375,16 +386,16 @@ MalfunctioningWeapon.StopEffectOnPlayer = function(playerIndex, player, status)
     -- Take back any weapon and ammo from a player with a character (alive or just dead).
     if playerHasCharacter then
         -- Confirm the prototypes are still valid, if they aren't then the player will have lost those items anyway.
-        if affectedPlayer.flamethrowerGiven and affectedPlayer.weaponPrototype.valid then
-            PlayerWeapon.TakeItemFromPlayerOrGround(player, affectedPlayer.weaponPrototype.name, 1)
+        if affectedPlayerDetails.flamethrowerGiven and affectedPlayerDetails.weaponPrototype.valid then
+            PlayerWeapon.TakeItemFromPlayerOrGround(player, affectedPlayerDetails.weaponPrototype.name, 1)
         end
-        if affectedPlayer.burstsLeft > 0 and affectedPlayer.ammoPrototype.valid then
-            PlayerWeapon.TakeItemFromPlayerOrGround(player, affectedPlayer.ammoPrototype.name, affectedPlayer.burstsLeft)
+        if affectedPlayerDetails.burstsLeft > 0 and affectedPlayerDetails.ammoPrototype.valid then
+            PlayerWeapon.TakeItemFromPlayerOrGround(player, affectedPlayerDetails.ammoPrototype.name, affectedPlayerDetails.burstsLeft)
         end
     end
 
     -- Return the player's weapon and ammo filters (alive or just dead) if there were any.
-    PlayerWeapon.ReturnRemovedWeapon(player, affectedPlayer.removedWeaponDetails)
+    PlayerWeapon.ReturnRemovedWeapon(player, affectedPlayerDetails.removedWeaponDetails)
 
     -- Return the player to their initial permission group.
     if player.permission_group.name == "MalfunctioningWeapon" then
@@ -398,7 +409,7 @@ MalfunctioningWeapon.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Print a message based on ending status.
     if status == EffectEndStatus.completed then
-        game.print({ "message.muppet_streamer_malfunctioning_weapon_stop", player.name })
+        if not affectedPlayerDetails.suppressMessages then game.print({ "message.muppet_streamer_malfunctioning_weapon_stop", player.name }) end
     end
 end
 

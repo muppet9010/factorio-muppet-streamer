@@ -1,15 +1,34 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.29
+Date: 2022-08-xxx
+  Features:
+    - Various Commands - all commands that have text announcements now have an option to suppress these text messages, `suppressMessages`. This only suppresses expected player messages (start/stop/not suitable) and not error or warning messages. Useful if a command is being applied to many players via a remote interface or you want to broadcast specific themed messages yourself.
+    - Spawn Around Player - created entities will have a random direction set where possible.
+    - Spawn Around Player - putting ammo in an `artillery-turret` type entity now supported. Same as putting ammo in a `gun-turret` already was.
+    - Spawn Around Player - creating `fluid-turret` with a fluid "ammo" is supported.
+    - Spawn Around Player - options to automatically remove the created entities between a min and max time.
+  Changes:
+    - Pants On Fire - capped the max `flameCount` to 250 as above this Factorio behaves oddly. Raised as bug: https://forums.factorio.com/viewtopic.php?f=7&t=103227
+    - Spawn Around Player - for an entity of type `fire` capped the max `ammoCount` setting to 250, as a flame count above this makes Factorio behave oddly. Raised as bug: https://forums.factorio.com/viewtopic.php?f=7&t=103227
+    - Various commands - any command that affects a player for a duration will now show a clear message if a second effect is requested by command and discarded. Previously the command silently ignored the repeat activation.
+  Bugfixes:
+    - Spawn Around Player - previously it stored functions in Factorio global. If a save/load was done between the command being called and the action occurring (delay setting) the command then it would error. This could cause server or per player script errors, and possibly desyncs ? (hypothetically).
+  Info:
+    - Various commands - tweaked some error messages so it should be slightly clearer.
+    - Pants On Fire and Player Inventory Drop now labelled in Mod Description as being Time Duration events. They were coded as such previously, but not described as such. Description of Time Duration events updated to say they may interrupt other Time Duration events, it all depends upon what each event does and requires.
+    - Make sure no events are active/scheduled during an upgrade to/through this version as that will likely cause errors. See advice in Mod's description on upgrading.
+---------------------------------------------------------------------------------------------------
 Version: 20.1.28
 Date: 2022-08-19
   Features:
   Changes:
-    - Spawn Around Player - providing a minimum radius above the maximum radius will now be blocked, as its a bad request. Previously it did work for some usage situations and not others.
+    - Spawn Around Player - providing a minimum radius above the maximum radius will now be blocked, as it's a bad request. Previously it did work for some usage situations and not others.
     - Pants On Fire - default flame count upped from 20 to 30 to make sure they safely allways trees on fire.
   Bugfixes:
     - Spawn Around Player - didn't raise the built event so other mods weren't notified about what it created.
     - Pants On Fire - didn't raise the built event so other mods weren't notified about the fire entities it created.
     - Explosive Delivery - didn't raise the built event so other mods weren't notified about the projectiles and stream entities it created.
-    - Explosive Delivery - Fixed the position type arguments had stopped accepting array syntaxed data since v20.1.24.
+    - Explosive Delivery - Fixed the position type arguments had stopped accepting array syntax data since v20.1.24.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.27

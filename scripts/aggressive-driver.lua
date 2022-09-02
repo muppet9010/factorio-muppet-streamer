@@ -25,6 +25,7 @@ local EffectEndStatus = {
 ---@field duration uint # Ticks
 ---@field control AggressiveDriver_ControlTypes
 ---@field teleportDistance double
+---@field suppressMessages boolean
 
 ---@class AggressiveDriver_DriveEachTickDetails
 ---@field player_index uint
@@ -41,12 +42,15 @@ local EffectEndStatus = {
 ---@field distance double
 ---@field vehicle LuaEntity
 
+---@class AggressiveDriver_AffectedPlayerDetails
+---@field suppressMessages boolean
+
 local commandName = "muppet_streamer_aggressive_driver"
 
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type uint
-    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, true> # Key'd by player_index.
+    global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, AggressiveDriver_AffectedPlayerDetails> # Key'd by player_index.
 end
 
 AggressiveDriver.OnLoad = function()
@@ -64,7 +68,7 @@ end
 ---@param command CustomCommandData
 AggressiveDriver.AggressiveDriverCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "control", "teleportDistance" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "control", "teleportDistance", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -102,9 +106,17 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         teleportDistance = 0.0
     end
 
+    local suppressMessages = commandData.suppressMessages
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+        return
+    end ---@cast suppressMessages boolean|nil
+    if suppressMessages == nil then
+        suppressMessages = false
+    end
+
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
     ---@type AggressiveDriver_DelayedCommandDetails
-    local delayedCommandDetails = { target = target, duration = duration, control = control, teleportDistance = teleportDistance }
+    local delayedCommandDetails = { target = target, duration = duration, control = control, teleportDistance = teleportDistance, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, delayedCommandDetails)
 end
 
@@ -118,12 +130,13 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
-        game.print({ "message.muppet_streamer_aggressive_driver_not_character_controller", data.target })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_driver_not_character_controller", data.target }) end
         return
     end
 
     if global.aggressiveDriver.affectedPlayers[targetPlayer.index] ~= nil then
         -- Player already being affected by this effect so just silently ignore it.
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_duplicate_command_ignored", "Aggressive Driver", data.target }) end
         return
     end
 
@@ -153,7 +166,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         end
     end
     if not inVehicle then
-        game.print({ "message.muppet_streamer_aggressive_driver_no_vehicle", data.target })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_driver_no_vehicle", data.target }) end
         return
     end
 
@@ -161,9 +174,9 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     global.originalPlayersPermissionGroup[targetPlayer.index] = global.originalPlayersPermissionGroup[targetPlayer.index] or targetPlayer.permission_group
 
     targetPlayer.permission_group = AggressiveDriver.GetOrCreatePermissionGroup()
-    global.aggressiveDriver.affectedPlayers[targetPlayer.index] = true
+    global.aggressiveDriver.affectedPlayers[targetPlayer.index] = { suppressMessages = data.suppressMessages }
 
-    game.print({ "message.muppet_streamer_aggressive_driver_start", targetPlayer.name })
+    if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_driver_start", targetPlayer.name }) end
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
 
     ---@type AggressiveDriver_DriveEachTickDetails
@@ -304,8 +317,8 @@ end
 ---@param player? LuaPlayer|nil # Obtains player if needed from playerIndex.
 ---@param status AggressiveDriver_EffectEndStatus
 AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
-    local affectedPlayer = global.aggressiveDriver.affectedPlayers[playerIndex]
-    if affectedPlayer == nil then
+    local affectedPlayerDetails = global.aggressiveDriver.affectedPlayers[playerIndex]
+    if affectedPlayerDetails == nil then
         return
     end
 
@@ -333,7 +346,7 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
 
     -- Print a message based on ending status.
     if status == EffectEndStatus.completed then
-        game.print({ "message.muppet_streamer_aggressive_driver_stop", player.name })
+        if not affectedPlayerDetails.suppressMessages then game.print({ "message.muppet_streamer_aggressive_driver_stop", player.name }) end
     end
 end
 

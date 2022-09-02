@@ -12,6 +12,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field fireGap uint # Must be > 0.
 ---@field flameCount uint8 # Must be > 0.
 ---@field firePrototype LuaEntityPrototype
+---@field suppressMessages boolean
 
 ---@class PantsOnFire_EffectDetails
 ---@field player_index uint
@@ -24,9 +25,12 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field stepPos uint
 ---@field ticksInVehicle uint
 ---@field firePrototype LuaEntityPrototype
+---@field suppressMessages boolean
 
----@alias PantsOnFire_PlayersSteps table<uint, PantsOnFire_PlayerSteps> # A dictionary of player_index to the player's step buffer.
----@alias PantsOnFire_PlayerSteps table<uint, PantsOnFire_PlayerStep> # Steps is a buffer of a player's step (past position) every fireGap tick interval.
+---@class PantsOnFire_AffectedPlayerDetails
+---@field steps table<uint, PantsOnFire_PlayerStep> # Steps is a buffer of a player's step (past position) every fireGap tick interval.
+---@field suppressMessages boolean
+
 ---@class PantsOnFire_PlayerStep -- Details of a unique step of the player for that tick.
 ---@field surface LuaSurface
 ---@field position MapPosition
@@ -43,7 +47,7 @@ local commandName = "muppet_streamer_pants_on_fire"
 PantsOnFire.CreateGlobals = function()
     global.PantsOnFire = global.PantsOnFire or {}
     global.PantsOnFire.nextId = global.PantsOnFire.nextId or 0 ---@type uint
-    global.PantsOnFire.playersSteps = global.PantsOnFire.playersSteps or {} ---@type PantsOnFire_PlayersSteps
+    global.PantsOnFire.affectedPlayers = global.PantsOnFire.affectedPlayers or {} ---@type table<uint, PantsOnFire_AffectedPlayerDetails> # Key'd by player_index.
 end
 
 PantsOnFire.OnLoad = function()
@@ -57,7 +61,7 @@ end
 ---@param command CustomCommandData
 PantsOnFire.PantsOnFireCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount", "fireType" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount", "fireType", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -102,7 +106,8 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end
 
     local flameCount = commandData.flameCount
-    if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, MathUtils.uint8Max, command.parameter) then
+    -- Flame count above 250 gives odd results.
+    if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, 250, command.parameter) then
         return
     end ---@cast flameCount uint8|nil
     if flameCount == nil then
@@ -119,9 +124,17 @@ PantsOnFire.PantsOnFireCommand = function(command)
         end
     end
 
+    local suppressMessages = commandData.suppressMessages
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+        return
+    end ---@cast suppressMessages boolean|nil
+    if suppressMessages == nil then
+        suppressMessages = false
+    end
+
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1
     ---@type PantsOnFire_ScheduledEventDetails
-    local scheduledEventDetails = { target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount, firePrototype = firePrototype }
+    local scheduledEventDetails = { target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount, firePrototype = firePrototype, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, scheduledEventDetails)
 end
 
@@ -135,7 +148,7 @@ PantsOnFire.ApplyToPlayer = function(eventData)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
-        game.print({ "message.muppet_streamer_pants_on_fire_not_character_controller", data.target })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_pants_on_fire_not_character_controller", data.target }) end
         return
     end
     local targetPlayer_index = targetPlayer.index
@@ -147,17 +160,18 @@ PantsOnFire.ApplyToPlayer = function(eventData)
     end
 
     -- Effect is already applied to player so don't start a new one.
-    if global.PantsOnFire.playersSteps[targetPlayer_index] ~= nil then
+    if global.PantsOnFire.affectedPlayers[targetPlayer_index] ~= nil then
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_duplicate_command_ignored", "Pants On Fire", data.target }) end
         return
     end
 
     -- Start the process on the player.
-    global.PantsOnFire.playersSteps[targetPlayer_index] = {}
-    game.print({ "message.muppet_streamer_pants_on_fire_start", targetPlayer.name })
+    global.PantsOnFire.affectedPlayers[targetPlayer_index] = { suppressMessages = data.suppressMessages, steps = {} }
+    if not data.suppressMessages then game.print({ "message.muppet_streamer_pants_on_fire_start", targetPlayer.name }) end
 
     -- stepPos starts at 0 so the first step happens at offset 1
     ---@type PantsOnFire_EffectDetails
-    local effectDetails = { player_index = targetPlayer_index, player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, ticksInVehicle = 0, firePrototype = data.firePrototype }
+    local effectDetails = { player_index = targetPlayer_index, player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, ticksInVehicle = 0, firePrototype = data.firePrototype, suppressMessages = data.suppressMessages }
     ---@type UtilityScheduledEvent_CallbackObject
     local walkCheckCallbackObject = { tick = game.tick, instanceId = targetPlayer_index, data = effectDetails }
     PantsOnFire.WalkCheck(walkCheckCallbackObject)
@@ -179,8 +193,8 @@ PantsOnFire.WalkCheck = function(eventData)
     end
 
     -- Steps is a buffer of the players past position every fireGap tick interval.
-    local steps = global.PantsOnFire.playersSteps[playerIndex]
-    if steps == nil then
+    local affectedPlayerDetails = global.PantsOnFire.affectedPlayers[playerIndex]
+    if affectedPlayerDetails == nil then
         -- Don't process this tick as the effect has been stopped by an external event.
         return
     end
@@ -196,7 +210,7 @@ PantsOnFire.WalkCheck = function(eventData)
     -- Create the fire entity if appropriate.
     if data.startFire then
         -- Get where the player was X steps back, or where they are right now.
-        local step = steps[data.stepPos - data.fireHeadStart] or { surface = player.surface, position = player.position }
+        local step = affectedPlayerDetails.steps[data.stepPos - data.fireHeadStart] or { surface = player.surface, position = player.position }
         if step.surface.valid then
             -- Factorio auto deletes the fire-flame entity for us.
             -- 20 flames seems the minimum to set a tree on fire.
@@ -217,7 +231,7 @@ PantsOnFire.WalkCheck = function(eventData)
     end
 
     -- We must store both surface and position as player's surface may change.
-    steps[data.stepPos] = { surface = player.surface, position = player.position }
+    affectedPlayerDetails.steps[data.stepPos] = { surface = player.surface, position = player.position }
 
     -- Schedule the next loop if not finished yet.
     if eventData.tick < data.finishTick then
@@ -239,13 +253,13 @@ end
 ---@param player? LuaPlayer|nil
 ---@param status PantsOnFire_EffectEndStatus
 PantsOnFire.StopEffectOnPlayer = function(playerIndex, player, status)
-    local steps = global.PantsOnFire.playersSteps[playerIndex]
-    if steps == nil then
+    local affectedPlayerDetails = global.PantsOnFire.affectedPlayers[playerIndex]
+    if affectedPlayerDetails == nil then
         return
     end
 
     -- Remove the flag against this player as being currently affected by pants on fire.
-    global.PantsOnFire.playersSteps[playerIndex] = nil
+    global.PantsOnFire.affectedPlayers[playerIndex] = nil
 
     player = player or game.get_player(playerIndex)
     if player == nil then
@@ -254,7 +268,7 @@ PantsOnFire.StopEffectOnPlayer = function(playerIndex, player, status)
     end
 
     if status == EffectEndStatus.completed then
-        game.print({ "message.muppet_streamer_pants_on_fire_stop", player.name })
+        if not affectedPlayerDetails.suppressMessages then game.print({ "message.muppet_streamer_pants_on_fire_stop", player.name }) end
     end
 end
 

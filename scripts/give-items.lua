@@ -12,6 +12,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field weaponPrototype? LuaItemPrototype|nil
 ---@field forceWeaponToSlot boolean
 ---@field selectWeapon boolean
+---@field suppressMessages boolean
 
 local commandName = "muppet_streamer_give_player_weapon_ammo"
 
@@ -29,7 +30,7 @@ end
 ---@param command CustomCommandData
 GiveItems.GivePlayerWeaponAmmoCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -72,9 +73,17 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
         return
     end ---@cast ammoCount uint|nil
 
+    local suppressMessages = commandData.suppressMessages
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+        return
+    end ---@cast suppressMessages boolean|nil
+    if suppressMessages == nil then
+        suppressMessages = false
+    end
+
     global.giveItems.nextId = global.giveItems.nextId + 1
     ---@type GiveItems_GiveWeaponAmmoScheduled
-    local giveWeaponAmmoScheduled = { target = target, ammoPrototype = ammoPrototype, ammoCount = ammoCount, weaponPrototype = weaponPrototype, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon }
+    local giveWeaponAmmoScheduled = { target = target, ammoPrototype = ammoPrototype, ammoCount = ammoCount, weaponPrototype = weaponPrototype, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "GiveItems.GiveWeaponAmmoScheduled", global.giveItems.nextId, giveWeaponAmmoScheduled)
 end
 
@@ -88,7 +97,7 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
-        game.print({ "message.muppet_streamer_give_player_weapon_ammo_not_character_controller", data.target })
+        if not data.suppressMessages then game.print({ "message.muppet_streamer_give_player_weapon_ammo_not_character_controller", data.target }) end
         return
     end
 
