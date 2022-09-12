@@ -4,6 +4,7 @@ Date: 2022-08-XXX
   Features:
   Changes:
   Bugfixes:
+    - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.
   Info:
     - Correct some spelling mistakes in locale strings.
 ---------------------------------------------------------------------------------------------------

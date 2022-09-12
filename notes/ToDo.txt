@@ -8,7 +8,6 @@ BUGS:
 	- Malfunctioning weapon - JD doesn't get to keep his shotgun from the below command. As we give him a shotgun and ammo before the malfunctioning weapon he should get too keep it. He keeps the ammo ok. Also double check the right amount of ammo is fired, hard to tell in stream as he often has partial rounds to start.
 		/muppet_streamer_give_player_weapon_ammo {"target":"JD-Plays", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "selectWeapon":true,"ammoType":"piercing-shotgun-shell", "ammoCount":15}
 		/muppet_streamer_malfunctioning_weapon {"target":"JD-Plays", "ammoCount":3, "weaponType":"combat-shotgun", "ammoType":"piercing-shotgun-shell"}
-	- Pants on Fire - when used on a dead person (?) it reported that the player wasn't character controlled as a warning/error message.
 
 
 
