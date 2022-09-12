@@ -4,10 +4,20 @@ DOING NOW:
 
 BUGS:
     - Suspect Aggressive Driver ignores vehicles that don't burn any fuel. As it just checks if there is currently fuel and ignores if it needs fuel. Probably need the utility function that gets fuel to also return if the entity needs fuel (has a burner).
-	- Malfunctioning weapon - "lost" a removed rocket launcher. Check if it was due to JD already having another rocket launcher a bug in Muppet Streamer. https://www.twitch.tv/videos/1581539223?t=05h47m00s
-	- Malfunctioning weapon - JD doesn't get to keep his shotgun from the below command. As we give him a shotgun and ammo before the malfunctioning weapon he should get too keep it. He keeps the ammo ok. Also double check the right amount of ammo is fired, hard to tell in stream as he often has partial rounds to start.
-		/muppet_streamer_give_player_weapon_ammo {"target":"JD-Plays", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "selectWeapon":true,"ammoType":"piercing-shotgun-shell", "ammoCount":15}
-		/muppet_streamer_malfunctioning_weapon {"target":"JD-Plays", "ammoCount":3, "weaponType":"combat-shotgun", "ammoType":"piercing-shotgun-shell"}
+
+
+
+BUGS THAT CAN'T BE REPRODUCED:
+	- Malfunctioning weapon - "lost" a removed rocket launcher. Tried with 2 rocket launchers and one of them being the weapon removed. I can't reproduce in testing. https://www.twitch.tv/videos/1581539223?t=05h47m00s
+	- Malfunctioning weapon - JD doesn't get to keep his shotgun from the below command. As we give him a shotgun and ammo before the malfunctioning weapon he should get too keep it. He keeps the ammo ok. I can't reproduce in testing.
+        - Fails in stream as 2 subsequent commands sent via RCON as fast as RCON can. But works fine in testing.
+		/muppet_streamer_give_player_weapon_ammo {"target":"Muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "selectWeapon":true,"ammoType":"piercing-shotgun-shell", "ammoCount":15}
+		/muppet_streamer_malfunctioning_weapon {"target":"Muppet9010", "ammoCount":3, "weaponType":"combat-shotgun", "ammoType":"piercing-shotgun-shell"}
+
+        - Alternative untested in stream, but also works fine in SP testing.
+        /sc
+        remote.call('muppet_streamer', 'run_command', 'muppet_streamer_give_player_weapon_ammo', {target="Muppet9010", weaponType="combat-shotgun", forceWeaponToSlot=true, selectWeapon=true, ammoType="piercing-shotgun-shell", ammoCount=15});
+		remote.call('muppet_streamer', 'run_command', 'muppet_streamer_malfunctioning_weapon', {target="Muppet9010", ammoCount=3, weaponType="combat-shotgun", ammoType="piercing-shotgun-shell"});
 
 
 

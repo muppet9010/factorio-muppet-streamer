@@ -17,6 +17,9 @@ Common.DelaySecondsSettingToScheduledEventTickValue = function(delaySeconds, cur
         if valueWasOutsideRange then
             CommandsUtils.LogPrintWarning(commandName, settingName, "capped at max ticks, as excessively large number of delay seconds provided: " .. tostring(delaySeconds), nil)
         end
+        if scheduleTick == currentTick then
+            scheduleTick = -1 ---@type UtilityScheduledEvent_UintNegative1
+        end
     else
         scheduleTick = -1 ---@type UtilityScheduledEvent_UintNegative1
     end
