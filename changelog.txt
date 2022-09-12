@@ -2,6 +2,7 @@
 Version: 20.1.30
 Date: 2022-08-XXX
   Features:
+    - Explosive Delivery - add option for each salvo to re-target on the player's current position. Defaults to target the initial position (as per old behaviour).
   Changes:
   Bugfixes:
     - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.

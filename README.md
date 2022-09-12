@@ -67,6 +67,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - accuracyRadiusMax: DECIMAL - Optional: the maximum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
 - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
 - salvoDelay: INTEGER - Optional: use with salvoSize. Sets the delay between salvo deliveries in game ticks (60 ticks = 1 second). Each salvo will target the initial player position and not re-target the player's new position.
+- salvoFollowPlayer: BOOLEAN - Optional: if each salvo re-targets on the player (`true`) or continues to target the initial position (`false`). Defaults to `false` of any secondary salvo continuing to target the initial position.
 
 #### Examples
 
@@ -74,7 +75,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - grenades around player: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
 - offset artillery: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"artilleryShell", "target":"muppet9010", "targetOffset":[10, 10]}`
 - poison capsules in large area around spawn: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":200, "explosiveType":"poisonCapsule", "target":"muppet9010", "targetPosition":{"x":0,"y":0}, "accuracyRadiusMax":200}`
-- large count of explosive rockets using salvo and delay: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":30, "explosiveType":"explosiveRocket", "target":"muppet9010", "accuracyRadiusMax":30, "salvoSize":10, "salvoDelay":300}`
+- large count of explosive rockets using salvo and delay: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":30, "explosiveType":"explosiveRocket", "target":"muppet9010", "accuracyRadiusMax":30, "salvoSize":10, "salvoDelay":300, "salvoFollowPlayer": true}`
 - custom type: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":5, "explosiveType":"custom", "target":"muppet9010", "customExplosiveType":"cannon-projectile", "customExplosiveSpeed":1, "accuracyRadiusMax":10}`
 
 #### Notes
