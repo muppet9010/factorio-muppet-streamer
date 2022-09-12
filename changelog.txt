@@ -2,8 +2,11 @@
 Version: 20.1.30
 Date: 2022-08-XXX
   Features:
-    - Explosive Delivery - add option for each salvo to re-target on the player's current position. Defaults to target the initial position (as per old behaviour).
+    - Explosive Delivery - added `salvoFollowPlayer` option for each salvo to re-target on the player's current position. Defaults to target the initial position (as per old behaviour).
+    - Inventory Shuffle - added `includeArmor` and `includeWeapons` as separate options to replace the single `includeEquipment` option. Both still default to true as per the old option.
+    - Inventory Shuffle - added `extractArmorEquipment` option that removes equipment from armor and shuffles them between players. Defaults to false.
   Changes:
+    - Inventory Shuffle - removed `includeEquipment` option as added `includeArmor` and `includeWeapons`.
   Bugfixes:
     - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.
     - All Features - don't error if a tiny delay is provided that gets rounded to 0 ticks.
