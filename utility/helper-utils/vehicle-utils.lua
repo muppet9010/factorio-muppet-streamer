@@ -4,21 +4,22 @@ local VehicleUtils = {} ---@class Utility_VehicleUtils
 
 --- Checks the vehicle for its current fuel and returns it's prototype. Checks fuel inventories if nothing is currently burning.
 ---@param vehicle LuaEntity
----@return LuaItemPrototype|nil currentFuelPrototype # Will be nil if there's no current fuel in the vehicle.
-VehicleUtils.GetVehicleCurrentFuelPrototype = function(vehicle)
-    local loco_burner = vehicle.burner
-    if loco_burner == nil then
+---@param vehicle_burner? LuaBurner # Optionally passed in, obtained otherwise.
+---@return LuaItemPrototype|nil currentFuelPrototype # Will be nil if there's no current fuel in the vehicle or this vehicle doesn't have a burner.
+VehicleUtils.GetVehicleCurrentFuelPrototype = function(vehicle, vehicle_burner)
+    local vehicle_burner = vehicle_burner or vehicle.burner
+    if vehicle_burner == nil then
         return nil
     end
 
     -- Check any currently burning fuel inventory first.
-    local currentFuelItem = loco_burner.currently_burning
+    local currentFuelItem = vehicle_burner.currently_burning
     if currentFuelItem ~= nil then
         return currentFuelItem
     end
 
     -- Check the fuel inventories as this will be burnt next.
-    local burner_inventory = loco_burner.inventory
+    local burner_inventory = vehicle_burner.inventory
     local currentFuelStack
     for i = 1, #burner_inventory do
         currentFuelStack = burner_inventory[i] ---@type LuaItemStack

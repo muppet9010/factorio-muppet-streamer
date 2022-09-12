@@ -6,6 +6,7 @@ Date: 2022-08-XXX
   Bugfixes:
     - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.
     - All Features - don't error if a tiny delay is provided that gets rounded to 0 ticks.
+    - Aggressive Driver - vehicles that don't require fuel (spidertron) are now valid teleport targets.
   Info:
     - Correct some spelling mistakes in locale strings.
 ---------------------------------------------------------------------------------------------------

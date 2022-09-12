@@ -147,8 +147,19 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         for _, vehicle in pairs(vehicles) do
             -- If the vehicle has an empty drivers seat and isn't lacking fuel then include it in the suitable vehicles list.
             if vehicle.get_driver() == nil then
-                local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(vehicle)
-                if currentFuel ~= nil then
+                local vehicle_burner = vehicle.burner
+                local vehicleValidTeleportTarget = false
+                if vehicle_burner == nil then
+                    -- No burner so vehicle requires no fuel to move.
+                    vehicleValidTeleportTarget = true
+                else
+                    -- Vehicle needs fuel, so check it has some.
+                    local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(vehicle, vehicle_burner)
+                    if currentFuel ~= nil then
+                        vehicleValidTeleportTarget = true
+                    end
+                end
+                if vehicleValidTeleportTarget then
                     local distance = PositionUtils.GetDistance(targetPlayer.position, vehicle.position)
                     table.insert(distanceSortedVehicles, { distance = distance, vehicle = vehicle })
                 end
