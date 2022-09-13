@@ -5,8 +5,11 @@ Date: 2022-08-XXX
     - Explosive Delivery - added `salvoFollowPlayer` option for each salvo to re-target on the player's current position. Defaults to target the initial position (as per old behaviour).
     - Inventory Shuffle - added `includeArmor` and `includeWeapons` as separate options to replace the single `includeEquipment` option. Both still default to true as per the old option.
     - Inventory Shuffle - added `extractArmorEquipment` option that removes equipment from armor and shuffles them between players. Defaults to false.
+    - Player Drop On Ground - added `distributionInnerDensity` and `distributionOuterDensity` options to allow for items to be dropped in a spread out manner. Default to dense to sparse distribution.
+    - Player Drop On Ground - In open areas the distributed item dropping logic is much more efficient than the old way of dropping everything at the players feet. When tested in an open area with default settings and an inventory of 3,000 items being fully dropped it was 40 times more efficient (or used 2.5% the UPS of the old way). The mileage on this UPS saving will vary based on densities being dropped and how crowded the area is.
   Changes:
     - Inventory Shuffle - removed `includeEquipment` option as added `includeArmor` and `includeWeapons`.
+    - Player Drop On Ground - introduction of `distributionInnerDensity` and `distributionOuterDensity` options means that items are never dropped in the most concentrated grid possible any more. This was not a design feature before, but default behaviour due to lack of a proper distribution feature.
   Bugfixes:
     - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.
     - All Features - don't error if a tiny delay is provided that gets rounded to 0 ticks.

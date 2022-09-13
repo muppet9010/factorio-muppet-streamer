@@ -1,4 +1,7 @@
 DOING NOW:
+    - Player Drop Inventory - streamline for 100% drop settings.
+    - Player Drop Inventory - do a UPS pass over it when finished and check nothing stands out as easy savings. As whole thing was done on the assumption we would be dropping not that much, but it may be used for many players and large inventory chunks.
+    - In readme mark all option names as `code`. Also any option values should be in code blocks, i.e. range of `0` to `1`.
 
 
 
@@ -24,7 +27,6 @@ DO NEAR FUTURE:
 	- A way for Lua code utilising Remote Interface calls to manipulate the created entities post effect. Means you can chain them together in a Lua script. This must handle the fact that the execution of each effect is always delayed, and possibly by a lot, must also be Save/Load safe to avoid MP desyncs. This should just need the odd entry in a features "notes" and an entry in the generic Remote Interface section to check each command. For affected players it should return the players who were/are affected, i.e. if a player isn't affected by aggressive driver then nil is return, rather than the LuaPlayer object. Potential methods:
 		- 1: WONT WORK - Return the created/affected things. This can never handle a delay and so isn't a valid universal solution.
 		- 2: Command accepts a callback function. To make this Save/Load safe if will need to be able to put this in to global. This requires the function to be turned to a string and stored until needed to handle the delay. It also requires any passed in data object to be stored in global between the command being called and the function being run. At function run time it would be changed from a string back in to a function, have the passed in data object passed in to the function as well as the effect data object (entities/players affected by the effect). See the SimHelper mod as that does something similar apparently.
-	- Player Drop Inventory - Add a distribution radius option so its randomly spread out.
     - Spawn around player to support biters, spitters or both. Allow named or evolution specific.
     - Look at moving usage documentation to a GitHub wiki.
 

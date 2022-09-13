@@ -4,6 +4,8 @@ local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
+local math_rad, math_sin, math_cos, math_pi, math_random, math_ceil = math.rad, math.sin, math.cos, math.pi, math.random, math.ceil
+local math_pi_x2 = math_pi * 2
 
 ---@enum PlayerDropInventory_QuantityType
 local QuantityType = {
@@ -20,6 +22,8 @@ local QuantityType = {
 ---@field gap uint # Must be > 0.
 ---@field occurrences uint
 ---@field dropEquipment boolean
+---@field distributionInnerDensity double # 0 to 1.
+---@field distributionOuterDensity double # 0 to 1.
 ---@field suppressMessages boolean
 
 ---@class PlayerDropInventory_ScheduledDropItemsData
@@ -32,6 +36,8 @@ local QuantityType = {
 ---@field staticItemCount uint|nil
 ---@field dynamicPercentageItemCount uint|nil
 ---@field currentOccurrences uint
+---@field distributionInnerDensity double # 0 to 1.
+---@field distributionOuterDensity double # 0 to 1.
 ---@field suppressMessages boolean
 
 ---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|"cursorStack", uint> # Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
@@ -55,7 +61,7 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment", "distributionInnerDensity", "distributionOuterDensity", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -109,6 +115,22 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         dropEquipment = true
     end
 
+    local distributionInnerDensity = commandData.distributionInnerDensity
+    if not CommandsUtils.CheckNumberArgument(distributionInnerDensity, "double", false, commandName, "distributionInnerDensity", 0, 1, command.parameter) then
+        return
+    end ---@cast distributionInnerDensity double
+    if distributionInnerDensity == nil then
+        distributionInnerDensity = 1 -- TODO
+    end
+
+    local distributionOuterDensity = commandData.distributionOuterDensity
+    if not CommandsUtils.CheckNumberArgument(distributionOuterDensity, "double", false, commandName, "distributionOuterDensity", 0, 1, command.parameter) then
+        return
+    end ---@cast distributionOuterDensity double
+    if distributionOuterDensity == nil then
+        distributionOuterDensity = 0 -- TODO
+    end
+
     local suppressMessages = commandData.suppressMessages
     if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
         return
@@ -119,7 +141,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
 
     global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1
     ---@type PlayerDropInventory_ApplyDropItemsData
-    local applyDropItemsData = { target = target, quantityType = quantityType, quantityValue = quantityValue, dropOnBelts = dropOnBelts, gap = gap, occurrences = occurrences, dropEquipment = dropEquipment, suppressMessages = suppressMessages }
+    local applyDropItemsData = { target = target, quantityType = quantityType, quantityValue = quantityValue, dropOnBelts = dropOnBelts, gap = gap, occurrences = occurrences, dropEquipment = dropEquipment, distributionInnerDensity = distributionInnerDensity, distributionOuterDensity = distributionOuterDensity, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, applyDropItemsData)
 end
 
@@ -173,6 +195,8 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         staticItemCount = staticItemCount,
         dynamicPercentageItemCount = dynamicPercentageItemCount,
         currentOccurrences = 0,
+        distributionInnerDensity = data.distributionInnerDensity,
+        distributionOuterDensity = data.distributionOuterDensity,
         suppressMessages = data.suppressMessages
     }
     PlayerDropInventory.PlayerDropItems_Scheduled({ tick = event.tick, instanceId = scheduledDropItemsData.player_index, data = scheduledDropItemsData })
@@ -200,18 +224,24 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     local itemCountToDrop
     if data.staticItemCount ~= nil then
         itemCountToDrop = data.staticItemCount
+
+        -- Cap the itemCountToDrop at the totalItemCount if it's lower. Makes later logic simpler.
+        itemCountToDrop = math.min(itemCountToDrop, totalItemCount)
     else
         itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint # End value will always end up as a uint from the validated input values.]]
     end ---@cast itemCountToDrop -nil
 
     -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurrence count has completed.
-    if totalItemCount > 0 then
-        local itemCountDropped = 0
-        local surface, position = player.surface, player.position
+    if totalItemCount > 0 and itemCountToDrop > 0 then
+        local itemCountDropped = 1
+        local surface = player.surface
+
+        -- Plan out the item dropping locations. While we can't guarantee that items end up at exact positions, it will work in open areas.
+        local itemDropLocations = PlayerDropInventory.CalculateItemDropLocations(itemCountToDrop, player.position, data.distributionInnerDensity, data.distributionOuterDensity)
 
         -- Drop a single random item from across the range of inventories at a time until the required number of items have been dropped.
         -- CODE NOTE: This is quite Lua code inefficient, but does ensure truly random items are dropped.
-        while itemCountDropped < itemCountToDrop do
+        while itemCountDropped <= itemCountToDrop do
             -- Select the single random item number to be dropped from across the total item count.
             local itemNumberToDrop = math.random(1, totalItemCount)
 
@@ -248,7 +278,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 return
             end
 
-            -- Drop the specific item.
+            -- Identify and record the specific item being dropped.
             local itemStackToDropFrom ---@type LuaItemStack|nil
             if inventoryNameOfItemNumberToDrop == "cursorStack" then
                 -- Special case as not a real inventory.
@@ -268,21 +298,21 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             local itemStackToDropFrom_count = itemStackToDropFrom.count
             if itemStackToDropFrom_count == 1 then
                 -- Single item in the itemStack so drop it and all done. This handles any extra attributes the itemStack may have naturally.
-                surface.spill_item_stack(position, itemStackToDropFrom, false, nil, data.dropOnBelts)
+                surface.spill_item_stack(itemDropLocations[itemCountDropped], itemStackToDropFrom, false, nil, data.dropOnBelts)
                 itemStackToDropFrom.count = 0
             else
                 -- Multiple items in the itemStack so can just drop 1 copy of the itemStack details and remove 1 from count.
                 -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
                 -- CODE NOTE: ItemStacks have a single durability and ammo stat which effectively is for the first item in the itemStack, with the other items in the itemStack all being full.
                 -- CODE NOTE: when the itemStack's count is reduced by 1 the itemStacks durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
-                local itemToDrop = { name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability }
+                local itemToPlaceOnGround = { name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability }
                 if itemStackToDropFrom.type == "ammo" then
-                    itemToDrop.ammo = itemStackToDropFrom.ammo
+                    itemToPlaceOnGround.ammo = itemStackToDropFrom.ammo
                 end
                 if itemStackToDropFrom.is_item_with_tags then
-                    itemToDrop.tags = itemStackToDropFrom.tags
+                    itemToPlaceOnGround.tags = itemStackToDropFrom.tags
                 end
-                surface.spill_item_stack(position, itemToDrop, false, nil, data.dropOnBelts)
+                surface.spill_item_stack(itemDropLocations[itemCountDropped], itemToPlaceOnGround, false, nil, data.dropOnBelts)
                 itemStackToDropFrom.count = itemStackToDropFrom_count - 1
             end
 
@@ -292,7 +322,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
 
             -- If no items left stop trying to drop things this event and await the next one.
             if totalItemCount == 0 then
-                itemCountDropped = itemCountToDrop
+                itemCountDropped = itemCountToDrop + 1
             end
         end
     end
@@ -390,5 +420,120 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
 
     return totalItemsCount, inventoryItemCounts, inventoryContents
 end
+
+--- Plan out the item dropping locations. While we can't guarantee that items end up at exact positions, it will work in open areas.
+---@param itemCount uint
+---@param centerPosition MapPosition
+---@param innerDensity double # 0-1
+---@param outerDensity double # 0-1
+---@return table<uint, MapPosition>
+PlayerDropInventory.CalculateItemDropLocations = function(itemCount, centerPosition, innerDensity, outerDensity)
+    local itemDropLocations = {} ---@type table<uint, MapPosition>
+    local centerPosition_x, centerPosition_y = centerPosition.x, centerPosition.y
+    ---@type MapPosition, double
+    local position, densityChange
+    local itemsPerTileCircumference = 12 -- 12 Seems to be the max real density achieved. -- Related to the fact that each ring is 2 tiles of items wide when fully dense.
+
+    -- Populate starting values.
+    local currentDistanceFromCenter = 3 -- Start placing outside of the players default pickup range. Quite far out due to max density and the randomness applied to spilling.
+
+    -- Work out the number of rings and the scaled density correctly to make solid rings.
+    local itemsInInnerRing = math_ceil((currentDistanceFromCenter * math_pi_x2) * (itemsPerTileCircumference * innerDensity))
+    if itemsInInnerRing >= itemCount then
+        -- Less than 1 inner dense ring, so work out the density to complete a single ring.
+        innerDensity = itemCount / ((currentDistanceFromCenter * math_pi_x2) * (itemsPerTileCircumference))
+        densityChange = 0
+    else
+        -- Need to mock up the rings counts.
+        local itemsLeftToAssignARing = itemCount - itemsInInnerRing
+
+        -- TODO: alternative approach as I don't think I can work out the ring number in advance.
+        --[[
+            If I worked backwards and work out the area needed in the circle to accommodate the item count at the average density. As we know that 1 tile of circumference at 2 tiles wide can take itemsPerTileCircumference (12) items, so basically 6 items per tile density.
+            Then work out the max radius needed to get this area from the min radius of the starting currentDistanceFromCenter (3).
+            This would give me my approx radius to use to scale the density on, and then just use the outer ring to handle the +/- variation. Might need the outer ring to have a variable width to control the itemsPerTileCircumference for just it.
+        ]]
+
+        -- TODO: this should be worked out based on the itemCount and how many items we fit in each radius.
+        densityChange = 0.10
+    end
+
+
+    -- Populate dynamic values initial values.
+    local currentDensity = innerDensity
+    local itemsInThisRadius = math_ceil((currentDistanceFromCenter * math_pi_x2) * (itemsPerTileCircumference * currentDensity))
+    local itemsLeftInThisRadius = itemsInThisRadius
+    local currentRadian, radianIncrement = math_random() * math_pi_x2, math_pi_x2 / itemsInThisRadius
+
+    -- Step over each item to do and work outs it's position.
+    ---@type uint
+    for i = 1, itemCount do
+        -- Calculate new radius's initial values if needed.
+        if itemsLeftInThisRadius == 0 then
+            currentDistanceFromCenter = currentDistanceFromCenter + 2 -- Step out 2 tiles at a time due to how items spill and randomisation.
+            currentDensity = currentDensity - densityChange
+            itemsInThisRadius = math_ceil((currentDistanceFromCenter * math_pi_x2) * (itemsPerTileCircumference * currentDensity))
+            if itemsInThisRadius <= 0 then
+                -- TODO - This shouldn't be needed if we work out the max radius correctly for the densities.
+                ---@type uint
+                for j = i, itemCount do
+                    itemDropLocations[j] = { x = 100, y = 100 }
+                end
+                game.print("some items dropped off screen", { 1, 0, 0, 1 })
+                return itemDropLocations
+            end
+            itemsLeftInThisRadius = itemsInThisRadius
+            currentRadian, radianIncrement = math_random() * math_pi_x2, math_pi_x2 / itemsInThisRadius
+        end
+
+        -- Get the new position.
+        -- Copied inner logic from PositionUtils.GetPositionForOrientationDistance()
+        position = {
+            x = (currentDistanceFromCenter * math_sin(currentRadian)) + centerPosition_x,
+            y = (currentDistanceFromCenter * -math_cos(currentRadian)) + centerPosition_y
+        }
+        position.x = position.x + ((math_random() - 0.5) * 2)
+        position.y = position.y + ((math_random() - 0.5) * 2)
+
+        itemDropLocations[i] = position
+
+        currentRadian = currentRadian + radianIncrement
+
+        itemsLeftInThisRadius = itemsLeftInThisRadius - 1
+    end
+
+    return itemDropLocations
+end
+
+--[[
+    -- Using Gaussian model. Seems very middle focused. This would then need to be converted in to circles on a map somehow...
+
+    function gaussian (mean, variance)
+        return math.sqrt(-2 * variance * math.log(math.random())) * math.cos(2 * math.pi * math.random()) + mean
+    end
+
+    function showHistogram (t)
+        local lo = math.ceil(math.min(table.unpack(t)))
+        local hi = math.floor(math.max(table.unpack(t)))
+        local hist, barScale = {}, 200
+        for i = lo, hi do
+            hist[i] = 0
+            for k, v in pairs(t) do
+                if math.ceil(v - 0.5) == i then
+                    hist[i] = hist[i] + 1
+                end
+            end
+            io.write(i .. "\t" .. string.rep('=', math.ceil(hist[i] / #t * barScale)))
+            print(" " .. hist[i])
+        end
+    end
+
+    -- These 2 values control the shape of it.
+    local t, average, variance = {}, 50, 10
+    for i = 1, 1000 do
+        table.insert(t, gaussian(average, variance))
+    end
+    showHistogram(t)
+]]
 
 return PlayerDropInventory
