@@ -298,7 +298,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     end
     local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0
 
-    -- Check and generate the creation function object. Can;t be transferred from before as it may sit in `global`.
+    -- Check and generate the creation function object. Can't be transferred from before as it may sit in `global`.
     local entityTypeDetails
     if data.entityTypeName ~= EntityTypeNames.custom then
         -- Lookup the predefined EntityTypeDetails.

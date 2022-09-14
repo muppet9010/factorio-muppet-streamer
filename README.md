@@ -242,6 +242,7 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 - This feature affects all types of cars, tanks, trains and spider vehicles.
 - If the player is in a vehicle and not in the drivers seat or it doesn't have fuel then the effect won't do anything.
 - If the player isn't in a vehicle and the `teleportDistance` option is enabled then only vehicle's with an empty drivers seat and fuel will be selected.
+- The player isn't prevented from removing the fuel from their train as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
 
 
 
@@ -377,7 +378,7 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 - gap: DECIMAL - Mandatory: how many seconds between each drop action.
 - occurrences: INTEGER - Mandatory: how many times the drop actions are done.
 - dropEquipment: BOOLEAN - Optional: if the player's armor and weapons are dropped or not. Defaults to `true`.
-- density: DECIMAL - Optional: specifies the approximate density of the dropped items at the center of their spill area. Value in range of `0` (dense) to `10` (extremely spread out), see Notes for full details. Defaults to `0`.
+- density: DECIMAL - Optional: specifies the approximate density of the dropped items at the center of their spill area. Value in range of `10` (dense) to `0` (extremely spread out), see Notes for full details. Defaults to `10`.
 
 - suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
@@ -393,8 +394,9 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 - Dropping very large quantities and in crowded areas will increase the UPS cost of this feature. So if you have any UPS issues further consideration of your usage case should be given.
 - For percentage based quantity values it will drop a minimum of 1 item per cycle. So that very low values/inventory sizes don't drop anything.
 - If the player doesn't have any items to drop for any given drop action then that occurrence is marked as completed and the effect continues until all occurrences have occurred at their set gaps. The effect does not not stop unless the player dies or all occurrences have been completed.
-- The `density` settings will define how dense the items will be at their center. They are dropped from a few tiles away from the player moving away in a circle. With smoothly decreasing density as they move away. The spread is ideal in open areas, with tight areas seeming more densely placed due to the limited placement options. While `10` is the max value and extremely spaced out, any value above
-- The items are dropped in rings around the player approximately 2 tiles wide, but merged together so they look like an equal spread. The inner most ring is a few tiles away from the player so they can't just instantly pick it all up where they stand. So if a small amount is dropped then the minimal will be a ring of items 2 tiles wide around the player at an even density. Larger amounts will be multiple rings (merged together) each capped bu their density between the `distributionInnerDensity` and `distributionOuterDensity` settings.
+- The items are dropped around the player approximately 2 tiles away from them in a circle. With the density decreasing as the items move away from the player. The spread is ideal in open areas, with tight areas seeming more densely placed due to the limited placement options. The items placement density won't be exactly the same between very low and high values, but should be approximately similar considering the randomisation in the placement logic. Any square edges to dense items on the ground is caused by entities blocking their placement.
+- The `density` settings will define how dense the items will be at their center. The decrease of density is related to the starting density and is also a "shape" setting; with less dense starting values being flatter and taking longer to finish. Changes to the density value around the max density (`10`) will appear to have a greater impact on distribution than changes at the sparse (`0`) end of the range. This may be real from the Gaussian algorithm or just human perception.
+- Maximum `density` is configured to avoid excessive overlapping of the items when randomly placed on the ground. This is why it isn't truly make density of 9 items per tile. Overlapping items cause the Factorio game engine to work harder to find a placement location and thus higher UPS usage.
 
 
 

@@ -21,8 +21,7 @@ local QuantityType = {
 ---@field gap uint # Must be > 0.
 ---@field occurrences uint
 ---@field dropEquipment boolean
----@field distributionInnerDensity double # 0 to 1.
----@field distributionOuterDensity double # 0 to 1.
+---@field density double
 ---@field suppressMessages boolean
 
 ---@class PlayerDropInventory_ScheduledDropItemsData
@@ -35,8 +34,7 @@ local QuantityType = {
 ---@field staticItemCount uint|nil
 ---@field dynamicPercentageItemCount uint|nil
 ---@field currentOccurrences uint
----@field distributionInnerDensity double # 0 to 1.
----@field distributionOuterDensity double # 0 to 1.
+---@field density double
 ---@field suppressMessages boolean
 
 ---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|"cursorStack", uint> # Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
@@ -60,7 +58,7 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment", "distributionInnerDensity", "distributionOuterDensity", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment", "density", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -114,12 +112,12 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         dropEquipment = true
     end
 
-    local distributionInnerDensity = commandData.distributionInnerDensity
-    if not CommandsUtils.CheckNumberArgument(distributionInnerDensity, "double", false, commandName, "distributionInnerDensity", 0, 1, command.parameter) then
+    local density = commandData.density
+    if not CommandsUtils.CheckNumberArgument(density, "double", false, commandName, "density", 0, 10, command.parameter) then
         return
-    end ---@cast distributionInnerDensity double
-    if distributionInnerDensity == nil then
-        distributionInnerDensity = 1
+    end ---@cast density double
+    if density == nil then
+        density = 10
     end
 
     local distributionOuterDensity = commandData.distributionOuterDensity
@@ -140,7 +138,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
 
     global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1
     ---@type PlayerDropInventory_ApplyDropItemsData
-    local applyDropItemsData = { target = target, quantityType = quantityType, quantityValue = quantityValue, dropOnBelts = dropOnBelts, gap = gap, occurrences = occurrences, dropEquipment = dropEquipment, distributionInnerDensity = distributionInnerDensity, distributionOuterDensity = distributionOuterDensity, suppressMessages = suppressMessages }
+    local applyDropItemsData = { target = target, quantityType = quantityType, quantityValue = quantityValue, dropOnBelts = dropOnBelts, gap = gap, occurrences = occurrences, dropEquipment = dropEquipment, density = density, distributionOuterDensity = distributionOuterDensity, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, applyDropItemsData)
 end
 
@@ -194,8 +192,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         staticItemCount = staticItemCount,
         dynamicPercentageItemCount = dynamicPercentageItemCount,
         currentOccurrences = 0,
-        distributionInnerDensity = data.distributionInnerDensity,
-        distributionOuterDensity = data.distributionOuterDensity,
+        density = data.density,
         suppressMessages = data.suppressMessages
     }
     PlayerDropInventory.PlayerDropItems_Scheduled({ tick = event.tick, instanceId = scheduledDropItemsData.player_index, data = scheduledDropItemsData })
@@ -234,13 +231,13 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     if totalItemCount > 0 and itemCountToDrop > 0 then
         local itemCountDropped = 1
         local surface = player.surface
-        local position = player.position
-        local centerPosition_x, centerPosition_y = position.x, position.y
-        local maxRadius = math.ceil(math.sqrt(itemCountToDrop) * 0.5)
-        -- TODO: this should be a setting passed in.
-        -- TODO: there's no hard edge limit with this, so it always softens out.
-        -- TODO: not sure if this truly scales right with max radius, as it looks like more over compression in center. Maybe need even higher min density value. The max radius doesn't seem to grow enough with larger quantities and so more ends up near the center thus making the density higher.
-        local density = 0.25 -- Max non overlapping density is 0.175. But this does have a lot of overlap in placing items and so higher UPS hit. A value of like 0.25 seems to avoid this lag spike from overlapping items having to look for new places to go.
+        local player_position = player.position
+        local centerPosition_x, centerPosition_y = player_position.x, player_position.y
+        local maxRadius = math.sqrt(itemCountToDrop) * 0.7 -- The larger this multiplier is the more spread out items are. However too small a value leads to them being bunched up around the center when very large numbers of items are dropped.
+
+        -- We have to invert the number as in code lower is more dense, but that doesn't make sense in a command configuration situation.
+        -- Max non overlapping density is 0.075 at max radius increase and result radius offset.
+        local density = (10 - data.density) + 0.075
 
         -- Drop a single random item from across the range of inventories at a time until the required number of items have been dropped.
         -- CODE NOTE: This is quite Lua code inefficient, but does ensure truly random items are dropped.
@@ -268,6 +265,9 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             -- Find the name of the numbered item in the specific inventory. Update the cached lists to remove 1 from this item's count.
             local itemNameToDrop
             local inventoryItemsCounted = 0
+
+            -- CODE NOTE: this for loop is very expensive UPS wise for large mixed inventories. Far more than the placement of the items in an open area. Ideally we'd have some way to jump over the items in groups to avoid checking every one when looking for the specific item number we want.
+            -- TODO: check this is really costly by putting it in a function and doing line counting off. As its a lot of loops and so that may be the profile cost.
             for itemName, itemCount in pairs(inventoriesContents[inventoryNameOfItemNumberToDrop]) do
                 inventoryItemsCounted = inventoryItemsCounted + itemCount
                 if inventoryItemsCounted >= itemNumberInSpecificInventory then
@@ -319,7 +319,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
 
             -- Work out where to put the item on the ground.
             local angle = math_pi * 2 * math_random()
-            local radius = (maxRadius * math_sqrt(-density * math_log(math_random())))
+            local radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
             local position = { x = centerPosition_x + radius * math_cos(angle), y = centerPosition_y + radius * math_sin(angle) }
             surface.spill_item_stack(position, itemToPlaceOnGround, false, nil, data.dropOnBelts)
 
@@ -398,12 +398,9 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
     local inventoryItemCounts = {} ---@type PlayerDropInventory_InventoryItemCounts
     local inventoryContents = {} ---@type PlayerDropInventory_InventoryContents
     for _, inventoryName in pairs({ defines.inventory.character_main, defines.inventory.character_trash }) do
-        local contents = player.get_inventory(inventoryName).get_contents()
-        inventoryContents[inventoryName] = contents
-        local inventoryTotalCount = 0 ---@type uint
-        for _, count in pairs(contents) do
-            inventoryTotalCount = inventoryTotalCount + count
-        end
+        local inventory = player.get_inventory(inventoryName) ---@cast inventory - nil
+        inventoryContents[inventoryName] = inventory.get_contents()
+        local inventoryTotalCount = inventory.get_item_count()
         totalItemsCount = totalItemsCount + inventoryTotalCount
         inventoryItemCounts[inventoryName] = inventoryTotalCount
     end
@@ -417,12 +414,9 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
 
     if includeEquipment then
         for _, inventoryName in pairs({ defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo }) do
-            local contents = player.get_inventory(inventoryName).get_contents()
-            inventoryContents[inventoryName] = contents
-            local inventoryTotalCount = 0 ---@type uint
-            for _, count in pairs(contents) do
-                inventoryTotalCount = inventoryTotalCount + count
-            end
+            local inventory = player.get_inventory(inventoryName) ---@cast inventory - nil
+            inventoryContents[inventoryName] = inventory.get_contents()
+            local inventoryTotalCount = inventory.get_item_count()
             totalItemsCount = totalItemsCount + inventoryTotalCount
             inventoryItemCounts[inventoryName] = inventoryTotalCount
         end
@@ -430,71 +424,5 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
 
     return totalItemsCount, inventoryItemCounts, inventoryContents
 end
-
---[[
-    -- Using Gaussian model. Seems very middle focused. This would then need to be converted in to circles on a map somehow...
-
-    function gaussian (mean, variance)
-        return math.sqrt(-2 * variance * math.log(math.random())) * math.cos(2 * math.pi * math.random()) + mean
-    end
-
-    function showHistogram (t)
-        local lo = math.ceil(math.min(table.unpack(t)))
-        local hi = math.floor(math.max(table.unpack(t)))
-        local hist, barScale = {}, 200
-        for i = lo, hi do
-            hist[i] = 0
-            for k, v in pairs(t) do
-                if math.ceil(v - 0.5) == i then
-                    hist[i] = hist[i] + 1
-                end
-            end
-            io.write(i .. "\t" .. string.rep('=', math.ceil(hist[i] / #t * barScale)))
-            print(" " .. hist[i])
-        end
-    end
-
-    -- These 2 values control the shape of it.
-    local t, average, variance = {}, 50, 10
-    for i = 1, 1000 do
-        table.insert(t, gaussian(average, variance))
-    end
-    showHistogram(t)
-]]
-
---[[
-    -- Lua Demo
-
-    local itemsPerTileCircumference = 12
-
-    local distanceDensities = {
-      {distance = 3, density = 1},
-      {distance = 5, density = 0.8},
-      {distance = 7, density = 0.6},
-      {distance = 9, density = 0.4},
-      {distance = 11, density = 0.2}
-    }
-
-    local totalRings, totalItems = 0, 0
-    for ringIndex , data in pairs(distanceDensities) do
-      local currentDistanceFromCenter, currentDensity = data.distance, data.density
-      local itemsInThisRadius = math.ceil((tonumber(currentDistanceFromCenter) * 2 *
-    math.pi) * (itemsPerTileCircumference * currentDensity))
-      io.write(currentDistanceFromCenter .. " = " .. itemsInThisRadius .. "\r\n")
-      totalRings = ringIndex
-      totalItems = totalItems + itemsInThisRadius
-    end
-
-    io.write("\r\n")
-    io.write("totalRings" .. " = " .. totalRings .. "\r\n")
-    io.write("totalItems" .. " = " .. totalItems .. "\r\n")
-
-    io.write("\r\n")
-    local itemCount = 150
-    local testDensity = itemCount / ((3* 2 * math.pi) * (itemsPerTileCircumference))
-    local itemsInThisRadius = math.ceil((3 * 2 *
-    math.pi) * (itemsPerTileCircumference * testDensity ))
-    io.write("test - density = " .. testDensity .. "   items = " .. itemsInThisRadius .. "\r\n")
-]]
 
 return PlayerDropInventory
