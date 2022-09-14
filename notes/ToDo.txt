@@ -1,5 +1,6 @@
 DOING NOW:
     - Player Drop Inventory - streamline for 100% drop settings.
+    - Player Drop Inventory - in a single drop action the message should just be player has littered, no start and stop.
     - Player Drop Inventory - do a UPS pass over it when finished and check nothing stands out as easy savings. As whole thing was done on the assumption we would be dropping not that much, but it may be used for many players and large inventory chunks.
     - In readme mark all option names as `code`. Also any option values should be in code blocks, i.e. range of `0` to `1`.
 

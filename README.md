@@ -378,7 +378,7 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 - occurrences: INTEGER - Mandatory: how many times the drop actions are done.
 - dropEquipment: BOOLEAN - Optional: if the player's armor and weapons are dropped or not. Defaults to `true`.
 - distributionInnerDensity: DECIMAL - Optional: specifies the approximate density of the dropped items at the center of their spill area. Value in range of greater than `0` (sparse) to `1` (dense), see Notes for full details. Defaults to `1`.
-- distributionOuterDensity: DECIMAL - Optional: specifies the approximate density of the dropped items at the edge of their spill area. Value in range of `0` (sparse) to `1` (dense), see Notes for full details. Defaults to `0`.
+- distributionOuterDensity: DECIMAL - Optional: specifies the target density of the dropped items at the edge of their spill area. Value in range of `0` (sparse) to `1` (dense), see Notes for full details. Defaults to `0`.
 - suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
