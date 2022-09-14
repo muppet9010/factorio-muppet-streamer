@@ -4,7 +4,7 @@ local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
-local math_rad, math_sin, math_cos, math_pi, math_random, math_ceil = math.rad, math.sin, math.cos, math.pi, math.random, math.ceil
+local math_rad, math_sin, math_cos, math_pi, math_random, math_ceil, math_sqrt, math_log = math.rad, math.sin, math.cos, math.pi, math.random, math.ceil, math.sqrt, math.log
 
 ---@enum PlayerDropInventory_QuantityType
 local QuantityType = {
@@ -234,6 +234,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     if totalItemCount > 0 and itemCountToDrop > 0 then
         local itemCountDropped = 1
         local surface = player.surface
+        local position = player.position
 
         -- Plan out the item dropping locations. While we can't guarantee that items end up at exact positions, it will work in open areas.
         local itemDropLocations = PlayerDropInventory.CalculateItemDropLocations(itemCountToDrop, player.position, data.distributionInnerDensity, data.distributionOuterDensity)
@@ -429,94 +430,17 @@ end
 PlayerDropInventory.CalculateItemDropLocations = function(itemCount, centerPosition, innerDensity, outerDensity)
     local itemDropLocations = {} ---@type table<uint, MapPosition>
     local centerPosition_x, centerPosition_y = centerPosition.x, centerPosition.y
-    ---@type MapPosition, double
-    local position, densityChange
-    local itemsPerTileCircumference = 12 -- 12 Seems to be the max real density achieved. -- Related to the fact that each ring is 2 tiles of items wide when fully dense.
+    local maxRadius = math.ceil(math.sqrt(itemCount) * 0.5)
 
-    -- Populate starting values.
-    local currentDistanceFromCenter = 3 -- Start placing outside of the players default pickup range. Quite far out due to max density and the randomness applied to spilling.
+    -- Max non overlapping density is -0.175. Min density can be -5.175 which is very spread out.
 
-    -- Work out the number of rings and the scaled density correctly to make solid rings.
-    local itemsInInnerRing = math_ceil((currentDistanceFromCenter * math_pi) * (itemsPerTileCircumference * innerDensity * 2))
-    if itemsInInnerRing >= itemCount then
-        -- Less than 1 inner dense ring, so work out the density to complete a single ring.
-        innerDensity = itemCount / ((currentDistanceFromCenter * math_pi) * (itemsPerTileCircumference * 2))
-        densityChange = 0
-    else
-        -- Need to work out how many rings approx we need.
-        local densityRange = innerDensity - outerDensity
-        local averageDensity = innerDensity - (densityRange / 2)
-        local areaForAverageDensity = itemCount / (itemsPerTileCircumference * averageDensity * 2)
-        local innerCircleNegativeArea = math_pi * (currentDistanceFromCenter ^ 2)
-        local requiredCircumference = math.ceil(2 * math.sqrt(math_pi * (areaForAverageDensity + innerCircleNegativeArea)))
-        local requiredRadius = (requiredCircumference / (2 * math_pi))
-        densityChange = densityRange / requiredRadius -- TODO - This isn't right as its a dynamic variation it's wrong by. So something above is bad.
-
-        -- TODO: this should be worked out based on the itemCount and how many items we fit in each radius.
-        --densityChange = 0.1098 -- 0.1099 is too high for test save. full amount  - radius of 9.1 from 61 - divides to 6.7
-        densityChange = 0.1835 -- 0.1836 is too high for test save. half amount  - radius of 5.45 from 46 - divides to 8.44
-
-        local x = 1
-    end
-
-
-    -- Populate dynamic values initial values.
-    local currentDensity = innerDensity
-    local itemsInThisRadius = math_ceil((currentDistanceFromCenter * math_pi) * (itemsPerTileCircumference * currentDensity * 2))
-    local itemsLeftInThisRadius = itemsInThisRadius
-    local currentRadian, radianIncrement = math_random() * math_pi * 2, (math_pi * 2) / itemsInThisRadius
-
-    -- Step over each item to do and work outs it's position.
-    local test_ringCount = 1 -- TODO: temp
     ---@type uint
     for i = 1, itemCount do
-        -- Calculate new radius's initial values if needed.
-        if itemsLeftInThisRadius == 0 then
-            currentDistanceFromCenter = currentDistanceFromCenter + 2 -- Step out 2 tiles at a time due to how items spill and randomisation.
-            currentDensity = currentDensity - densityChange
-            if currentDensity <= 0 then
-                -- TODO - This shouldn't be needed if we work out the max radius correctly for the densities.
-                ---@type uint
-                for j = i, itemCount do
-                    itemDropLocations[j] = { x = 100, y = 100 }
-                end
-                game.print("some items dropped off screen", { 1, 0, 0, 1 })
-                return itemDropLocations
-            end
-            local itemsLeft = itemCount - (i - 1)
-            if itemsLeft < itemsInThisRadius then
-                -- This is the last ring, so may not be a solid one, so get the correct density for the remaining items so they are distributed evenly.
-                currentDensity = itemsLeft / ((currentDistanceFromCenter * math_pi) * (itemsPerTileCircumference * 2))
-            end
-            itemsInThisRadius = math_ceil((currentDistanceFromCenter * math_pi) * (itemsPerTileCircumference * currentDensity * 2))
-            if itemsInThisRadius <= 0 then
-                -- TODO - This shouldn't be needed if we work out the max radius correctly for the densities.
-                ---@type uint
-                for j = i, itemCount do
-                    itemDropLocations[j] = { x = 100, y = 100 }
-                end
-                game.print("some items dropped off screen", { 1, 0, 0, 1 })
-                return itemDropLocations
-            end
-            itemsLeftInThisRadius = itemsInThisRadius
-            currentRadian, radianIncrement = math_random() * math_pi * 2, (math_pi * 2) / itemsInThisRadius
-            test_ringCount = test_ringCount + 1 -- TODO: temp
-        end
-
-        -- Get the new position.
-        -- Copied inner logic from PositionUtils.GetPositionForOrientationDistance()
-        position = {
-            x = (currentDistanceFromCenter * math_sin(currentRadian)) + centerPosition_x,
-            y = (currentDistanceFromCenter * -math_cos(currentRadian)) + centerPosition_y
-        }
-        position.x = position.x + ((math_random() - 0.5) * 2)
-        position.y = position.y + ((math_random() - 0.5) * 2)
+        local angle = math_pi * 2 * math_random()
+        local radius = maxRadius * math_sqrt(-5.175 * math_log(math_random()))
+        local position = { x = centerPosition_x + radius * math_cos(angle), y = centerPosition_y + radius * math_sin(angle) }
 
         itemDropLocations[i] = position
-
-        currentRadian = currentRadian + radianIncrement
-
-        itemsLeftInThisRadius = itemsLeftInThisRadius - 1
     end
 
     return itemDropLocations
@@ -551,6 +475,41 @@ end
         table.insert(t, gaussian(average, variance))
     end
     showHistogram(t)
+]]
+
+--[[
+    -- Lua Demo
+
+    local itemsPerTileCircumference = 12
+
+    local distanceDensities = {
+      {distance = 3, density = 1},
+      {distance = 5, density = 0.8},
+      {distance = 7, density = 0.6},
+      {distance = 9, density = 0.4},
+      {distance = 11, density = 0.2}
+    }
+
+    local totalRings, totalItems = 0, 0
+    for ringIndex , data in pairs(distanceDensities) do
+      local currentDistanceFromCenter, currentDensity = data.distance, data.density
+      local itemsInThisRadius = math.ceil((tonumber(currentDistanceFromCenter) * 2 *
+    math.pi) * (itemsPerTileCircumference * currentDensity))
+      io.write(currentDistanceFromCenter .. " = " .. itemsInThisRadius .. "\r\n")
+      totalRings = ringIndex
+      totalItems = totalItems + itemsInThisRadius
+    end
+
+    io.write("\r\n")
+    io.write("totalRings" .. " = " .. totalRings .. "\r\n")
+    io.write("totalItems" .. " = " .. totalItems .. "\r\n")
+
+    io.write("\r\n")
+    local itemCount = 150
+    local testDensity = itemCount / ((3* 2 * math.pi) * (itemsPerTileCircumference))
+    local itemsInThisRadius = math.ceil((3 * 2 *
+    math.pi) * (itemsPerTileCircumference * testDensity ))
+    io.write("test - density = " .. testDensity .. "   items = " .. itemsInThisRadius .. "\r\n")
 ]]
 
 return PlayerDropInventory
