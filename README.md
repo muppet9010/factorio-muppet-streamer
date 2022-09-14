@@ -377,8 +377,8 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 - gap: DECIMAL - Mandatory: how many seconds between each drop action.
 - occurrences: INTEGER - Mandatory: how many times the drop actions are done.
 - dropEquipment: BOOLEAN - Optional: if the player's armor and weapons are dropped or not. Defaults to `true`.
-- distributionInnerDensity: DECIMAL - Optional: specifies the approximate density of the dropped items at the center of their spill area. Value in range of greater than `0` (sparse) to `1` (dense), see Notes for full details. Defaults to `1`.
-- distributionOuterDensity: DECIMAL - Optional: specifies the target density of the dropped items at the edge of their spill area. Value in range of `0` (sparse) to `1` (dense), see Notes for full details. Defaults to `0`.
+- density: DECIMAL - Optional: specifies the approximate density of the dropped items at the center of their spill area. Value in range of `0` (dense) to `10` (extremely spread out), see Notes for full details. Defaults to `0`.
+
 - suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
@@ -393,7 +393,7 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 - Dropping very large quantities and in crowded areas will increase the UPS cost of this feature. So if you have any UPS issues further consideration of your usage case should be given.
 - For percentage based quantity values it will drop a minimum of 1 item per cycle. So that very low values/inventory sizes don't drop anything.
 - If the player doesn't have any items to drop for any given drop action then that occurrence is marked as completed and the effect continues until all occurrences have occurred at their set gaps. The effect does not not stop unless the player dies or all occurrences have been completed.
-- The `distributionInnerDensity` and `distributionOuterDensity` settings will define the total area the items will be spread over. As more items at the same density levels, or a lower overall density, both require the area to be larger. Density values are set with a value of `1` being fully dense and a value of `0` being 0 items. The spread is ideal in open areas, with tight areas seeming more densely placed due to the limited placement options.
+- The `density` settings will define how dense the items will be at their center. They are dropped from a few tiles away from the player moving away in a circle. With smoothly decreasing density as they move away. The spread is ideal in open areas, with tight areas seeming more densely placed due to the limited placement options. While `10` is the max value and extremely spaced out, any value above
 - The items are dropped in rings around the player approximately 2 tiles wide, but merged together so they look like an equal spread. The inner most ring is a few tiles away from the player so they can't just instantly pick it all up where they stand. So if a small amount is dropped then the minimal will be a ring of items 2 tiles wide around the player at an even density. Larger amounts will be multiple rings (merged together) each capped bu their density between the `distributionInnerDensity` and `distributionOuterDensity` settings.
 
 

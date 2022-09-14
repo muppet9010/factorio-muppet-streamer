@@ -235,9 +235,12 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         local itemCountDropped = 1
         local surface = player.surface
         local position = player.position
-
-        -- Plan out the item dropping locations. While we can't guarantee that items end up at exact positions, it will work in open areas.
-        local itemDropLocations = PlayerDropInventory.CalculateItemDropLocations(itemCountToDrop, player.position, data.distributionInnerDensity, data.distributionOuterDensity)
+        local centerPosition_x, centerPosition_y = position.x, position.y
+        local maxRadius = math.ceil(math.sqrt(itemCountToDrop) * 0.5)
+        -- TODO: this should be a setting passed in.
+        -- TODO: there's no hard edge limit with this, so it always softens out.
+        -- TODO: not sure if this truly scales right with max radius, as it looks like more over compression in center. Maybe need even higher min density value. The max radius doesn't seem to grow enough with larger quantities and so more ends up near the center thus making the density higher.
+        local density = 0.25 -- Max non overlapping density is 0.175. But this does have a lot of overlap in placing items and so higher UPS hit. A value of like 0.25 seems to avoid this lag spike from overlapping items having to look for new places to go.
 
         -- Drop a single random item from across the range of inventories at a time until the required number of items have been dropped.
         -- CODE NOTE: This is quite Lua code inefficient, but does ensure truly random items are dropped.
@@ -296,25 +299,32 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 end
             end
             local itemStackToDropFrom_count = itemStackToDropFrom.count
+            local itemToPlaceOnGround
             if itemStackToDropFrom_count == 1 then
                 -- Single item in the itemStack so drop it and all done. This handles any extra attributes the itemStack may have naturally.
-                surface.spill_item_stack(itemDropLocations[itemCountDropped], itemStackToDropFrom, false, nil, data.dropOnBelts)
-                itemStackToDropFrom.count = 0
+                itemToPlaceOnGround = itemStackToDropFrom
             else
                 -- Multiple items in the itemStack so can just drop 1 copy of the itemStack details and remove 1 from count.
                 -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
                 -- CODE NOTE: ItemStacks have a single durability and ammo stat which effectively is for the first item in the itemStack, with the other items in the itemStack all being full.
                 -- CODE NOTE: when the itemStack's count is reduced by 1 the itemStacks durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
-                local itemToPlaceOnGround = { name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability }
+                itemToPlaceOnGround = { name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability }
                 if itemStackToDropFrom.type == "ammo" then
                     itemToPlaceOnGround.ammo = itemStackToDropFrom.ammo
                 end
                 if itemStackToDropFrom.is_item_with_tags then
                     itemToPlaceOnGround.tags = itemStackToDropFrom.tags
                 end
-                surface.spill_item_stack(itemDropLocations[itemCountDropped], itemToPlaceOnGround, false, nil, data.dropOnBelts)
-                itemStackToDropFrom.count = itemStackToDropFrom_count - 1
             end
+
+            -- Work out where to put the item on the ground.
+            local angle = math_pi * 2 * math_random()
+            local radius = (maxRadius * math_sqrt(-density * math_log(math_random())))
+            local position = { x = centerPosition_x + radius * math_cos(angle), y = centerPosition_y + radius * math_sin(angle) }
+            surface.spill_item_stack(position, itemToPlaceOnGround, false, nil, data.dropOnBelts)
+
+            -- Remove 1 from the source item stack. This may make it 0, so have to this after placing it on the ground as in some cases we reference it.
+            itemStackToDropFrom.count = itemStackToDropFrom_count - 1
 
             -- Count that the item was dropped and update the total items in all inventory count.
             itemCountDropped = itemCountDropped + 1
@@ -419,31 +429,6 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
     end
 
     return totalItemsCount, inventoryItemCounts, inventoryContents
-end
-
---- Plan out the item dropping locations. While we can't guarantee that items end up at exact positions, it will work in open areas.
----@param itemCount uint
----@param centerPosition MapPosition
----@param innerDensity double # 0-1
----@param outerDensity double # 0-1
----@return table<uint, MapPosition>
-PlayerDropInventory.CalculateItemDropLocations = function(itemCount, centerPosition, innerDensity, outerDensity)
-    local itemDropLocations = {} ---@type table<uint, MapPosition>
-    local centerPosition_x, centerPosition_y = centerPosition.x, centerPosition.y
-    local maxRadius = math.ceil(math.sqrt(itemCount) * 0.5)
-
-    -- Max non overlapping density is -0.175. Min density can be -5.175 which is very spread out.
-
-    ---@type uint
-    for i = 1, itemCount do
-        local angle = math_pi * 2 * math_random()
-        local radius = maxRadius * math_sqrt(-5.175 * math_log(math_random()))
-        local position = { x = centerPosition_x + radius * math_cos(angle), y = centerPosition_y + radius * math_sin(angle) }
-
-        itemDropLocations[i] = position
-    end
-
-    return itemDropLocations
 end
 
 --[[
