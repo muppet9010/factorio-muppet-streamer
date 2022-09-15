@@ -239,15 +239,20 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         -- Max non overlapping density is 0.075 at max radius increase and result radius offset.
         local density = (10 - data.density) + 0.075
 
+        -- Standard position and drop on ground tables that I just update rather than create. Should save UPS and LuaGarbage collection.
+        local position, itemToDrop = {}, { count = 1 }
+        -- Standard variables used in the loop per item being dropped.
+        local itemNumberToDrop, inventoryNameOfItemNumberToDrop, itemNumberInSpecificInventory, itemCountedUpTo, itemNameToDrop, inventoryItemsCounted, itemStackToDropFrom, inventory, itemStackToDropFrom_count, itemToPlaceOnGround, angle, radius
+        local math_pi_x2 = math_pi * 2
+
         -- Drop a single random item from across the range of inventories at a time until the required number of items have been dropped.
         -- CODE NOTE: This is quite Lua code inefficient, but does ensure truly random items are dropped.
         while itemCountDropped <= itemCountToDrop do
             -- Select the single random item number to be dropped from across the total item count.
-            local itemNumberToDrop = math.random(1, totalItemCount)
+            itemNumberToDrop = math.random(1, totalItemCount)
 
             -- Find the inventory with this item number in it. Update the per inventory total item counts.
-            local inventoryNameOfItemNumberToDrop, itemNumberInSpecificInventory
-            local itemCountedUpTo = 0
+            itemCountedUpTo, inventoryNameOfItemNumberToDrop = 0, nil
             for inventoryName, countInInventory in pairs(itemsCountsInInventories) do
                 itemCountedUpTo = itemCountedUpTo + countInInventory
                 if itemCountedUpTo >= itemNumberToDrop then
@@ -263,11 +268,9 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             end
 
             -- Find the name of the numbered item in the specific inventory. Update the cached lists to remove 1 from this item's count.
-            local itemNameToDrop
-            local inventoryItemsCounted = 0
+            inventoryItemsCounted, itemNameToDrop = 0, nil
 
-            -- CODE NOTE: this for loop is very expensive UPS wise for large mixed inventories. Far more than the placement of the items in an open area. Ideally we'd have some way to jump over the items in groups to avoid checking every one when looking for the specific item number we want.
-            -- TODO: check this is really costly by putting it in a function and doing line counting off. As its a lot of loops and so that may be the profile cost.
+            -- CODE NOTE: this for loop is very expensive UPS wise for large mixed inventories. In a non line test in a function it accounted for 50% UPS of a full inventory dump. Far more than the actual placement of the items in an open area (API calls). Ideally we'd have some way to jump over the items in groups to avoid checking every one when looking for the specific item number we want in that inventory.
             for itemName, itemCount in pairs(inventoriesContents[inventoryNameOfItemNumberToDrop]) do
                 inventoryItemsCounted = inventoryItemsCounted + itemCount
                 if inventoryItemsCounted >= itemNumberInSpecificInventory then
@@ -282,12 +285,12 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             end
 
             -- Identify and record the specific item being dropped.
-            local itemStackToDropFrom ---@type LuaItemStack|nil
+            itemStackToDropFrom = nil
             if inventoryNameOfItemNumberToDrop == "cursorStack" then
                 -- Special case as not a real inventory.
                 itemStackToDropFrom = player.cursor_stack ---@cast itemStackToDropFrom -nil # We know the cursor_stack is populated if its gone down this logic path.
             else
-                local inventory = player.get_inventory(inventoryNameOfItemNumberToDrop)
+                inventory = player.get_inventory(inventoryNameOfItemNumberToDrop)
                 if inventory == nil then
                     CommandsUtils.LogPrintError(commandName, nil, "didn't find inventory id " .. inventoryNameOfItemNumberToDrop .. "' for " .. player.name, nil)
                     return
@@ -298,8 +301,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                     return
                 end
             end
-            local itemStackToDropFrom_count = itemStackToDropFrom.count
-            local itemToPlaceOnGround
+            itemStackToDropFrom_count = itemStackToDropFrom.count
             if itemStackToDropFrom_count == 1 then
                 -- Single item in the itemStack so drop it and all done. This handles any extra attributes the itemStack may have naturally.
                 itemToPlaceOnGround = itemStackToDropFrom
@@ -308,19 +310,27 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
                 -- CODE NOTE: ItemStacks have a single durability and ammo stat which effectively is for the first item in the itemStack, with the other items in the itemStack all being full.
                 -- CODE NOTE: when the itemStack's count is reduced by 1 the itemStacks durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
-                itemToPlaceOnGround = { name = itemStackToDropFrom.name, count = 1, health = itemStackToDropFrom.health, durability = itemStackToDropFrom.durability }
+                itemToDrop.name = itemStackToDropFrom.name
+                itemToDrop.health = itemStackToDropFrom.health
+                itemToDrop.durability = itemStackToDropFrom.durability
                 if itemStackToDropFrom.type == "ammo" then
-                    itemToPlaceOnGround.ammo = itemStackToDropFrom.ammo
+                    itemToDrop.ammo = itemStackToDropFrom.ammo
+                else
+                    itemToDrop.ammo = nil
                 end
                 if itemStackToDropFrom.is_item_with_tags then
-                    itemToPlaceOnGround.tags = itemStackToDropFrom.tags
+                    itemToDrop.tags = itemStackToDropFrom.tags
+                else
+                    itemToDrop.ammo = nil
                 end
+                itemToPlaceOnGround = itemToDrop
             end
 
             -- Work out where to put the item on the ground.
-            local angle = math_pi * 2 * math_random()
-            local radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
-            local position = { x = centerPosition_x + radius * math_cos(angle), y = centerPosition_y + radius * math_sin(angle) }
+            angle = math_pi_x2 * math_random()
+            radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
+            position.x = centerPosition_x + radius * math_cos(angle)
+            position.y = centerPosition_y + radius * math_sin(angle)
             surface.spill_item_stack(position, itemToPlaceOnGround, false, nil, data.dropOnBelts)
 
             -- Remove 1 from the source item stack. This may make it 0, so have to this after placing it on the ground as in some cases we reference it.
