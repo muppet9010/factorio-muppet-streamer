@@ -14,6 +14,7 @@ Date: 2022-08-XXX
     - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.
     - All Features - don't error if a tiny delay is provided that gets rounded to 0 ticks.
     - Aggressive Driver - vehicles that don't require fuel (spidertron) are now valid teleport targets.
+    - Spawn Around Player - if there is an ammo name provided, but no `ammoCount` value is given it won't error any more. It won;t warn about this either, it will just insert 0 ammo for no effect.
   Info:
     - Correct some spelling mistakes in locale strings.
 ---------------------------------------------------------------------------------------------------
