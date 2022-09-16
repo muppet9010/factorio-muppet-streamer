@@ -1,12 +1,4 @@
 DOING NOW:
-    - Player Drop Inventory - change from `density` to `concentration`. As this should link in to it being both how concentrated per tile but also how steep the density deceases (shape of the items). Review readme again as part of this.
-    - Player Drop Inventory - streamline for 100% drop settings.
-    - Player Drop Inventory - in a single drop action the message should just be player has littered, no start and stop.
-    - Player Drop Inventory - should have separate armor and gun equipment options.
-    - Player Drop Inventory - include option to mark as deconstruction for the owners team (poop does it).
-    - Player Drop Inventory - include option to mark dropped items as loot (auto pickup by any player) - poop doesn't do it, but API has option for it.
-    - Player Drop Inventory - do a UPS pass over it when finished and check nothing stands out as easy savings. As whole thing was done on the assumption we would be dropping not that much, but it may be used for many players and large inventory chunks.
-    - In readme mark all option names as `code`. Also any option values should be in code blocks, i.e. range of `0` to `1`.
 
 
 
@@ -29,6 +21,14 @@ BUGS THAT CAN'T BE REPRODUCED:
 
 
 DO NEAR FUTURE:
+    - Player Drop Inventory - streamline for 100% drop settings.
+    - Player Drop Inventory - in a single drop action the message should just be player has littered, no start and stop.
+    - Player Drop Inventory - should have separate armor and gun equipment options.
+    - Player Drop Inventory - include option to mark as deconstruction for the owners team (poop does it).
+    - Player Drop Inventory - include option to mark dropped items as loot (auto pickup by any player) - poop doesn't do it, but API has option for it.
+    - Player Drop Inventory - do a UPS pass over it when finished and check nothing stands out as easy savings. As whole thing was done on the assumption we would be dropping not that much, but it may be used for many players and large inventory chunks.
+    - In readme mark all option names as `code`. Also any option values should be in code blocks, i.e. range of `0` to `1`.
+
 	- A way for Lua code utilising Remote Interface calls to manipulate the created entities post effect. Means you can chain them together in a Lua script. This must handle the fact that the execution of each effect is always delayed, and possibly by a lot, must also be Save/Load safe to avoid MP desyncs. This should just need the odd entry in a features "notes" and an entry in the generic Remote Interface section to check each command. For affected players it should return the players who were/are affected, i.e. if a player isn't affected by aggressive driver then nil is return, rather than the LuaPlayer object. Potential methods:
 		- 1: WONT WORK - Return the created/affected things. This can never handle a delay and so isn't a valid universal solution.
 		- 2: Command accepts a callback function. To make this Save/Load safe if will need to be able to put this in to global. This requires the function to be turned to a string and stored until needed to handle the delay. It also requires any passed in data object to be stored in global between the command being called and the function being run. At function run time it would be changed from a string back in to a function, have the passed in data object passed in to the function as well as the effect data object (entities/players affected by the effect). See the SimHelper mod as that does something similar apparently.
