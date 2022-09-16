@@ -1,3 +1,10 @@
 20.11.44
 
 Created by Muppet9010: https://github.com/muppet9010/Factorio-Utils
+
+
+
+HOT FIXES
+=========
+
+vehicle-utils.lua > VehicleUtils.GetVehicleCurrentFuelPrototype() --- already obtained LuaBurner passed in as `vehicle_burner` function parameter. Added to Utility 20.12.45.

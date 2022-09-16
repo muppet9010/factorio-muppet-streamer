@@ -3,13 +3,38 @@ DOING NOW:
 
 
 BUGS:
-    - Suspect Aggressive Driver ignores vehicles that don't burn any fuel. As it just checks if there is currently fuel and ignores if it needs fuel. Probably need the utility function that gets fuel to also return if the entity needs fuel (has a burner).
+
+
+
+BUGS THAT CAN'T BE REPRODUCED:
+	- Malfunctioning weapon - "lost" a removed rocket launcher. Tried with 2 rocket launchers and one of them being the weapon removed. I can't reproduce in testing. https://www.twitch.tv/videos/1581539223?t=05h47m00s
+	- Malfunctioning weapon - JD doesn't get to keep his shotgun from the below command. As we give him a shotgun and ammo before the malfunctioning weapon he should get too keep it. He keeps the ammo ok. I can't reproduce in testing.
+        - Fails in stream as 2 subsequent commands sent via RCON as fast as RCON can. But works fine in testing.
+		/muppet_streamer_give_player_weapon_ammo {"target":"Muppet9010", "weaponType":"combat-shotgun", "forceWeaponToSlot":true, "selectWeapon":true,"ammoType":"piercing-shotgun-shell", "ammoCount":15}
+		/muppet_streamer_malfunctioning_weapon {"target":"Muppet9010", "ammoCount":3, "weaponType":"combat-shotgun", "ammoType":"piercing-shotgun-shell"}
+
+        - Alternative untested in stream, but also works fine in SP testing.
+        /sc
+        remote.call('muppet_streamer', 'run_command', 'muppet_streamer_give_player_weapon_ammo', {target="Muppet9010", weaponType="combat-shotgun", forceWeaponToSlot=true, selectWeapon=true, ammoType="piercing-shotgun-shell", ammoCount=15});
+		remote.call('muppet_streamer', 'run_command', 'muppet_streamer_malfunctioning_weapon', {target="Muppet9010", ammoCount=3, weaponType="combat-shotgun", ammoType="piercing-shotgun-shell"});
 
 
 
 DO NEAR FUTURE:
-	- CONCEPT: Make Remote Interface calls return the things they create if appropriate. Means you can chain them together in a Lua script. This should just need the odd entry in a features "notes" and an entry in the generic Remote Interface section to check each command. For affected players it should return the players who were/are affected, i.e. if a player isn't affected by aggressive driver then nil is return, rather than the LuaPlayer object. THIS WON'T WORK AS WE DELAY THE FIRING OF ALL COMMANDS (EVEN DELAY 0), SO THE REMOTE'S RETURN THE ACTION HASN'T BEEN DONE. NEED TO EITHER MAKE DELAY 0 RUN IMMEDIATELY (AND ONLY OFFER THIS ON THAT), NOT OFFER THIS, OR ALLOW A CALLBACK FUNCTION TO BE PASSED IN AND RAN AS DYNAMIC LUA CODE:
-		remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target=player.name, entityName="custom", customEntityName="big-worm-turret", force="muppet_streamer_enemy", radiusMax=15, radiusMin=10, existingEntities="avoid", quantity=3, onCompletionFunction="function(things) for _, thing in pairs(things) do thing.health = 100 end end"})
+    - Player Drop Inventory - streamline for 100% drop settings.
+    - Player Drop Inventory - in a single drop action the message should just be player has littered, no start and stop.
+    - Player Drop Inventory - should have separate armor and gun equipment options.
+    - Player Drop Inventory - include option to mark as deconstruction for the owners team (poop does it).
+    - Player Drop Inventory - include option to mark dropped items as loot (auto pickup by any player) - poop doesn't do it, but API has option for it.
+    - Player Drop Inventory - do a UPS pass over it when finished and check nothing stands out as easy savings. As whole thing was done on the assumption we would be dropping not that much, but it may be used for many players and large inventory chunks.
+    - In readme mark all option names as `code`. Also any option values should be in code blocks, i.e. range of `0` to `1`.
+
+	- A way for Lua code utilising Remote Interface calls to manipulate the created entities post effect. Means you can chain them together in a Lua script. This must handle the fact that the execution of each effect is always delayed, and possibly by a lot, must also be Save/Load safe to avoid MP desyncs. This should just need the odd entry in a features "notes" and an entry in the generic Remote Interface section to check each command. For affected players it should return the players who were/are affected, i.e. if a player isn't affected by aggressive driver then nil is return, rather than the LuaPlayer object. Potential methods:
+		- 1: WONT WORK - Return the created/affected things. This can never handle a delay and so isn't a valid universal solution.
+		- 2: Command accepts a callback function. To make this Save/Load safe if will need to be able to put this in to global. This requires the function to be turned to a string and stored until needed to handle the delay. It also requires any passed in data object to be stored in global between the command being called and the function being run. At function run time it would be changed from a string back in to a function, have the passed in data object passed in to the function as well as the effect data object (entities/players affected by the effect). See the SimHelper mod as that does something similar apparently.
+    - Spawn around player to support biters, spitters or both. Allow named or evolution specific.
+    - Look at moving usage documentation to a GitHub wiki.
+    - Add `targetPosition` and `targetOffset` to `Spawn Around Player` like they are in `Explosive Delivery`.
 
 
 
@@ -23,7 +48,6 @@ Future Confirmed (bigger things):
 Future Possible Concepts:
     - The "Starting With Ghosts" feature currently affects all forces. Maybe we should only apply it to a force when a player joins that force. As can show up odd stuff in map editor and "may" affect other mods and scripted events if they expect to use bots to build script generated ghosts at set times, rather than replacing dead stuff as well.
     - Add effects radiating from player in all directions: various tank shells, shotgun shells, flamethrower
-    - Spawn around player to support biters, spitters or both. Allow named or evolution specific.
     - Call for Help - add:
         - If player is in a vehicle try to put the called player in the vehicle with them first. If they are in a train try and put the players in other carriages in the train first.
         - An option to weight the player selection by time online. - this may be multiple options, see discussion: https://mods.factorio.com/mod/muppet_streamer/discussion/5f7b1102057852611e5817c6
@@ -56,3 +80,7 @@ Future Possible Concepts:
         - Have it take an optional duration before removing the vehicle.
     - Spawn Around Player - Support electric turrets and giving them power. You can't directly set power in to things and most electric turrets have a tiny power buffer. Due to how power poles connect and power other forces the solution would be quite convoluted, this is just a guess and assumes we can connect 2 things by wire beyond their native wire reach distance:
         - Add a power pole to the game with near 0 power range and 0 power wire reach/count. Make a power pole on another surface with an electric energy interface, as we can set the starting electric on this. Link a wire via script between the 0 reach power pole on the turret and the power pole by the energy interface on the other surface. We now have a finite power source for that specific turret that won't power anything else. If we remove it all on the turrets death then nothing else should manage to get on that exact spot and thus be able to connect to the power network.
+	- Add swapping everyone's positions feature. It should be simple. Options that spring to mind are player white and black lists, also if to take teleport-able vehicles with the player or to put the swapping players in to the vehicles. If taking a vehicle with them it will need to find a valid placement location. Teleport-able vehicles are entity types of `car` and `spider-vehicle`.
+    - Player Drop Inventory - there's no hard edge limit with the item drop spread, so it always softens out gradually. maybe try to collect the items on the very edge and bring them back in a bit?
+    - Player Drop Inventory - You can't do an even spread with current algorithm. Add an algorithm option and have one for even spread that uses an even distribution weighting and a different max radius logic to balance it.
+    - Player Drop Inventory - separate option to include armor equipment in things that can be dropped. Would require a more stateful inspection of items in inventory to see if they have grids and then equipment.

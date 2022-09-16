@@ -1,6 +1,25 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.30
+Date: 2022-09-16
+  Features:
+    - Explosive Delivery - added `salvoFollowPlayer` option for each salvo to re-target on the player's current position. Defaults to target the initial position (as per old behaviour).
+    - Inventory Shuffle - added `includeArmor` and `includeWeapons` as separate options to replace the single `includeEquipment` option. Both still default to true as per the old option.
+    - Inventory Shuffle - added `extractArmorEquipment` option that removes equipment from armor and shuffles them between players. Defaults to false.
+    - Player Drop On Ground - items dropped are now spread out in a visually pleasing manner a few tiles away from the player, rather than a solid block of items at the players feet. Added `density` option to allow controlling how spread out the dropped items are. Defaults to most dense distribution around the player.
+    - Player Drop On Ground - More UPS efficient: both Lua code improvements and for larger quantities the distributed item dropping logic is much more efficient than the old way of dropping everything at the players feet. As the game doesn't have to keep on looking for a near by location to place each spilled item from the center heading outwards. The mileage on this UPS saving will vary based on densities being dropped and how crowded the area is (best UPS in open areas).
+  Changes:
+    - Inventory Shuffle - removed `includeEquipment` option as added `includeArmor` and `includeWeapons`.
+    - Player Drop On Ground - introduction of `density` option and using a pretty circular distribution means that items are never dropped in the most concentrated grid possible any more. This was not a design feature before, but default behaviour due to lack of a proper distribution feature.
+  Bugfixes:
+    - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.
+    - All Features - don't error if a tiny delay is provided that gets rounded to 0 ticks.
+    - Aggressive Driver - vehicles that don't require fuel (spidertron) are now valid teleport targets.
+    - Spawn Around Player - if there is an ammo name provided, but no `ammoCount` value is given it won't error any more. It won;t warn about this either, it will just insert 0 ammo for no effect.
+  Info:
+    - Correct some spelling mistakes in locale strings.
+---------------------------------------------------------------------------------------------------
 Version: 20.1.29
-Date: 2022-08-xxx
+Date: 2022-08-09
   Features:
     - Various Commands - all commands that have text announcements now have an option to suppress these text messages, `suppressMessages`. This only suppresses expected player messages (start/stop/not suitable) and not error or warning messages. Useful if a command is being applied to many players via a remote interface or you want to broadcast specific themed messages yourself.
     - Spawn Around Player - created entities will have a random direction set where possible.
@@ -12,7 +31,7 @@ Date: 2022-08-xxx
     - Spawn Around Player - for an entity of type `fire` capped the max `ammoCount` setting to 250, as a flame count above this makes Factorio behave oddly. Raised as bug: https://forums.factorio.com/viewtopic.php?f=7&t=103227
     - Various commands - any command that affects a player for a duration will now show a clear message if a second effect is requested by command and discarded. Previously the command silently ignored the repeat activation.
   Bugfixes:
-    - Spawn Around Player - previously it stored functions in Factorio global. If a save/load was done between the command being called and the action occurring (delay setting) the command then it would error. This could cause server or per player script errors, and possibly desyncs ? (hypothetically).
+    - Spawn Around Player - previously it stored functions in Factorio global. If a save/load was done between the command being called and the action occurring (delay setting) the command then it would error. This could cause server or per player script errors, and possibly desynchronisations ? (hypothetically).
   Info:
     - Various commands - tweaked some error messages so it should be slightly clearer.
     - Pants On Fire and Player Inventory Drop now labelled in Mod Description as being Time Duration events. They were coded as such previously, but not described as such. Description of Time Duration events updated to say they may interrupt other Time Duration events, it all depends upon what each event does and requires.
@@ -23,7 +42,7 @@ Date: 2022-08-19
   Features:
   Changes:
     - Spawn Around Player - providing a minimum radius above the maximum radius will now be blocked, as it's a bad request. Previously it did work for some usage situations and not others.
-    - Pants On Fire - default flame count upped from 20 to 30 to make sure they safely allways trees on fire.
+    - Pants On Fire - default flame count upped from 20 to 30 to make sure they safely all ways trees on fire.
   Bugfixes:
     - Spawn Around Player - didn't raise the built event so other mods weren't notified about what it created.
     - Pants On Fire - didn't raise the built event so other mods weren't notified about the fire entities it created.
@@ -42,7 +61,7 @@ Date: 2022-08-13
 Version: 20.1.26
 Date: 2022-07-31
   Features:
-    - Malfunctioning Weapon - supports custom weapon and ammo names as options for modded playthroughs.
+    - Malfunctioning Weapon - supports custom weapon and ammo names as options for modded play throughs.
     - Malfunctioning Weapon - added reloadTime to set delay between firing each magazine.
     - Pants On Fire - added support for custom fire entity types.
     - Schedule Explosive Delivery - added support for custom projectile/stream types.
@@ -74,7 +93,7 @@ Date: 2022-07-24
     - Added remote interface for features in addition to their commands. This is documented at the end of the mod description/readme. This should provide full flexibility for all viewer integration methods. Also allows for multiple features to be triggered simultaneously as separate RCON commands will always have a tiny delay between them.
   Changes:
     - All feature's commands are now tighter on enforcing option's value types to what the readme says, so incorrect typed values will be rejected, i.e. passing in a decimal point number to an Integer (whole number) setting, or entering a number as a string (number in double quotes). If you previously passed in the correct value types this will have no impact on you. In the past "some" commands would convert "some" incorrect setting values to "some" degree, i.e. a decimal number "might" be rounded either up/down to an integer number.
-    - No command will silently be ignored if provided a nonsensical low value to some mandatory settings any more. Previously some commands had this feature on some settings. Now all commands will raise an onscreen error for excessively low values, i.e. trying to create 0 explosives.
+    - No command will silently be ignored if provided a nonsensical low value to some mandatory settings any more. Previously some commands had this feature on some settings. Now all commands will raise an on screen error for excessively low values, i.e. trying to create 0 explosives.
     - Player Drop Inventory - gap (seconds) setting must be a value that ends up at 1 tick or more (1/60 or 0.0167 of a second).
     - Give Weapon & Ammo - if an ammo type is given for the gun it will be forced to be equipped now, before it was only equipped if the player didn't have any ammo in that existing weapon.
     - Player Inventory Shuffle - when all players on a force are included the force is listed and not the players of it. Any additional individual players on other non-included forces will still be named individually.
@@ -142,7 +161,7 @@ Date: 2022-05-07
   Changes:
     - Call For Help feature - added option to only call players on the same force, defaults to true. Previously any player on the server could be called.
     - Teleport feature - optimised to handle large numbers of biter nests (spawners) being on a non-enemy force and thus ignored. General optimisations to UPS usage across biter nest searching.
-    - Leaky flamethrower feature - if weapon/ammo items and/or filters were removed to equip the player with a flamethrower then these are restored upon the effect completing or the player dieing.
+    - Leaky flamethrower feature - if weapon/ammo items and/or filters were removed to equip the player with a flamethrower then these are restored upon the effect completing or the player dying.
     - Leaky flamethrower feature - random aiming across a larger distribution area.
     - Leaky flamethrower feature - after effect ends the player's active weapon is returned to what it was before the effect started, rather than being left on whichever weapon slot the flamethrower was put in.
     - Pants On Fire - if you stay in a vehicle you will take exponential damage until you get out. This will scale quickly to handle players from no armor up to heavily shielded players.
@@ -203,7 +222,7 @@ Date: 2022-01-19
 Version: 20.0.14
 Date: 2021-12-29
   Features:
-    - Added pants on fire feature - courtesy of andrewreds and inspired by Comfy.
+    - Added pants on fire feature - courtesy of Andrewreds and inspired by Comfy.
   Changes:
   Bugfixes:
   Info:
@@ -341,7 +360,7 @@ Version: 18.0.1
 Date: 2020-02-27
   Features:
   Changes:
-    - Make Workforce feature entirely disableable.
+    - Make Workforce feature entirely disable-able.
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------

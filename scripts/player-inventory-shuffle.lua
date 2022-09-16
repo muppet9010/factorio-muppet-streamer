@@ -1,7 +1,6 @@
 local PlayerInventoryShuffle = {} ---@class PlayerInventoryShuffle
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
-local Colors = require("utility.lists.colors")
 local StringUtils = require("utility.helper-utils.string-utils")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
@@ -40,7 +39,9 @@ local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force th
 ---@field includedPlayerNames string[]
 ---@field includedForces LuaForce[]
 ---@field includeAllPlayersOnServer boolean
----@field includeEquipment boolean
+---@field includeArmor boolean
+---@field extractArmorEquipment boolean
+---@field includeWeapons boolean
 ---@field includeHandCrafting boolean
 ---@field destinationPlayersMinimumVariance uint
 ---@field destinationPlayersVarianceFactor double
@@ -62,7 +63,7 @@ end
 
 ---@param command CustomCommandData
 PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "includedPlayers", "includedForces", "includeEquipment", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "includedPlayers", "includedForces", "includeArmor", "extractArmorEquipment", "includeWeapons", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -124,12 +125,28 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         end
     end
 
-    local includeEquipment = commandData.includeEquipment
-    if not CommandsUtils.CheckBooleanArgument(includeEquipment, false, commandName, "includeEquipment", command.parameter) then
+    local includeArmor = commandData.includeArmor
+    if not CommandsUtils.CheckBooleanArgument(includeArmor, false, commandName, "includeArmor", command.parameter) then
         return
-    end ---@cast includeEquipment boolean|nil
-    if includeEquipment == nil then
-        includeEquipment = true
+    end ---@cast includeArmor boolean|nil
+    if includeArmor == nil then
+        includeArmor = true
+    end
+
+    local extractArmorEquipment = commandData.extractArmorEquipment
+    if not CommandsUtils.CheckBooleanArgument(extractArmorEquipment, false, commandName, "extractArmorEquipment", command.parameter) then
+        return
+    end ---@cast extractArmorEquipment boolean|nil
+    if extractArmorEquipment == nil then
+        extractArmorEquipment = false
+    end
+
+    local includeWeapons = commandData.includeWeapons
+    if not CommandsUtils.CheckBooleanArgument(includeWeapons, false, commandName, "includeWeapons", command.parameter) then
+        return
+    end ---@cast includeWeapons boolean|nil
+    if includeWeapons == nil then
+        includeWeapons = true
     end
 
     local includeHandCrafting = commandData.includeHandCrafting
@@ -174,7 +191,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
 
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
     ---@type PlayerInventoryShuffle_RequestData
-    local requestData = { includedPlayerNames = includedPlayerNames, includedForces = includedForces, includeAllPlayersOnServer = includeAllPlayersOnServer, includeEquipment = includeEquipment, includeHandCrafting = includeHandCrafting, destinationPlayersMinimumVariance = destinationPlayersMinimumVariance, destinationPlayersVarianceFactor = destinationPlayersVarianceFactor, recipientItemMinToMaxRatio = recipientItemMinToMaxRatio, suppressMessages = suppressMessages }
+    local requestData = { includedPlayerNames = includedPlayerNames, includedForces = includedForces, includeAllPlayersOnServer = includeAllPlayersOnServer, includeArmor = includeArmor, extractArmorEquipment = extractArmorEquipment, includeWeapons = includeWeapons, includeHandCrafting = includeHandCrafting, destinationPlayersMinimumVariance = destinationPlayersMinimumVariance, destinationPlayersVarianceFactor = destinationPlayersVarianceFactor, recipientItemMinToMaxRatio = recipientItemMinToMaxRatio, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerInventoryShuffle.MixUpPlayerInventories", global.playerInventoryShuffle.nextId, requestData)
 end
 
@@ -266,11 +283,13 @@ end
 PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     -- Work out what inventories we will be emptying based on settings.
     -- CODE NOTE: Empty main inventory before armor so no oddness with main inventory size changes.
-    local inventoryNamesToCheck ---@type defines.inventory[]
-    if requestData.includeEquipment then
-        inventoryNamesToCheck = { defines.inventory.character_main, defines.inventory.character_trash, defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo }
-    else
-        inventoryNamesToCheck = { defines.inventory.character_main, defines.inventory.character_trash }
+    local inventoryNamesToCheck = { defines.inventory.character_main, defines.inventory.character_trash } ---@type defines.inventory[]
+    if requestData.includeArmor then
+        inventoryNamesToCheck[#inventoryNamesToCheck + 1] = defines.inventory.character_armor
+    end
+    if requestData.includeWeapons then
+        inventoryNamesToCheck[#inventoryNamesToCheck + 1] = defines.inventory.character_ammo
+        inventoryNamesToCheck[#inventoryNamesToCheck + 1] = defines.inventory.character_guns
     end
 
     -- We will track the number of player sources for each item type when moving the items in to the shared inventory.
@@ -282,8 +301,8 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     local storageInventoryStackCount, storageInventoryFull = 0, false
 
     -- Loop over each player and handle their inventories.
-    ---@type LuaItemStack|nil, LuaInventory|nil, string, uint, table<string, true>
-    local playerInventoryStack, playersInventory, stackItemName, playersInitialInventorySlotBonus, playersItemSources
+    ---@type LuaItemStack|nil, LuaInventory|nil, string, uint, table<string, true>, string, LuaEquipmentGrid|nil
+    local playerInventoryStack, playersInventory, stackItemName, playersInitialInventorySlotBonus, playersItemSources, stackItemType, equipmentGrid
     for _, player in pairs(players) do
         -- Return the players cursor stack to their inventory before handling.
         player.clear_cursor()
@@ -308,6 +327,31 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                 itemSources[stackItemName] = 1
                             else
                                 itemSources[stackItemName] = itemSources[stackItemName] + 1
+                            end
+                        end
+
+                        -- Handle if this is armor and if we are extracting equipment from it.
+                        if requestData.extractArmorEquipment then
+                            stackItemType = playerInventoryStack.type
+                            if stackItemType == "armor" then
+                                equipmentGrid = playerInventoryStack.grid
+                                if equipmentGrid ~= nil then
+                                    -- Remove all the equipment from the grid and get a list of the bits in the process. This raises the event like the player removed the equipment for any modded events to react too.
+                                    for equipmentName, equipmentCount in pairs(equipmentGrid.take_all(player)) do
+                                        -- Record the removed item name to this player as a source.
+                                        if playersItemSources[equipmentName] == nil then
+                                            playersItemSources[equipmentName] = true
+                                            if itemSources[equipmentName] == nil then
+                                                itemSources[equipmentName] = 1
+                                            else
+                                                itemSources[equipmentName] = itemSources[equipmentName] + 1
+                                            end
+                                        end
+
+                                        -- Create items in the shared storage for the item counts removed. When you take an item from armor it loses all its electricity anyway.
+                                        storageInventory.insert({ name = equipmentName, count = equipmentCount })
+                                    end
+                                end
                             end
                         end
 

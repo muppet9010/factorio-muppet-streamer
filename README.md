@@ -7,7 +7,7 @@ Features that a streamer can let chat activate to make their games more dynamic 
 Features
 -----------
 
-#### Streamer Events
+#### Streamer Effects
 
 - Schedule the delivery of some hostile explosives to the player at speed. = `Schedule Explosive Delivery`
 - A malfunctioning weapon (leaky flamethrower) that shoots wildly for short bursts intermittently. = `Malfunctioning Weapon`
@@ -59,7 +59,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - explosiveCount: INTEGER - Mandatory: the quantity of explosives to be delivered.
 - explosiveType: STRING - Mandatory: the type of explosive, can be any one of the vanilla Factorio built-in options: `grenade`, `clusterGrenade`, `slowdownCapsule`, `poisonCapsule`, `artilleryShell`, `explosiveRocket`, `atomicRocket`, `smallSpit`, `mediumSpit`, `largeSpit`, or `custom`. Is case sensitive. Custom requires the additional options `customExplosiveType` and `customExplosiveSpeed` options to be set/considered.
 - customExplosiveType: STRING - Mandatory Special: only required/supported if `explosiveType` is set to `custom`. Sets the name of the explosive to be used. Must be either a `projectile`, `artillery-projectile` or `stream` entity type.
-- customExplosiveSpeed: DECIMAL - Mandatory Special: only required/supported if `explosiveType` is set to `custom`. Sets the speed of the custom explosive type in the air. Only applies to `projectile` and `artillery-projectile` entity types. Default is 0.3 if not specified. See notes for the values of built-in options.
+- customExplosiveSpeed: DECIMAL - Mandatory Special: only required/supported if `explosiveType` is set to `custom`. Sets the speed of the custom explosive type in the air. Only applies to `projectile` and `artillery-projectile` entity types. Default is 0.3 if not specified. See effect Notes for the values of built-in options.
 - target: STRING - Mandatory: a player name to target the position and surface of (case sensitive).
 - targetPosition: POSITION_OBJECT - Optional: a position to target instead of the player's position. Will still come on to the target players map (surface). See Argument Data Types for syntax examples of a POSITION_OBJECT.
 - targetOffset: POSITION_OBJECT - Optional: an offset position that's applied to the `target`/`targetPosition` value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offset set. See Argument Data Types for syntax examples of a POSITION_OBJECT. As this is an offset, a value of 0 for "x" and/or "y" is valid as specifying no offset on that axis.
@@ -67,6 +67,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - accuracyRadiusMax: DECIMAL - Optional: the maximum distance from the target that each explosive can be randomly targeted within. If not specified defaults to 0.
 - salvoSize: INTEGER - Optional: breaks the incoming explosiveCount into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues.
 - salvoDelay: INTEGER - Optional: use with salvoSize. Sets the delay between salvo deliveries in game ticks (60 ticks = 1 second). Each salvo will target the initial player position and not re-target the player's new position.
+- salvoFollowPlayer: BOOLEAN - Optional: if each salvo re-targets on the player (`true`) or continues to target the initial position (`false`). Defaults to `false` of any secondary salvo continuing to target the initial position.
 
 #### Examples
 
@@ -74,7 +75,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 - grenades around player: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":7, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":10, "accuracyRadiusMax":20}`
 - offset artillery: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":1, "explosiveType":"artilleryShell", "target":"muppet9010", "targetOffset":[10, 10]}`
 - poison capsules in large area around spawn: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":200, "explosiveType":"poisonCapsule", "target":"muppet9010", "targetPosition":{"x":0,"y":0}, "accuracyRadiusMax":200}`
-- large count of explosive rockets using salvo and delay: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":30, "explosiveType":"explosiveRocket", "target":"muppet9010", "accuracyRadiusMax":30, "salvoSize":10, "salvoDelay":300}`
+- large count of explosive rockets using salvo and delay: `/muppet_streamer_schedule_explosive_delivery {"delay":5, "explosiveCount":30, "explosiveType":"explosiveRocket", "target":"muppet9010", "accuracyRadiusMax":30, "salvoSize":10, "salvoDelay":300, "salvoFollowPlayer": true}`
 - custom type: `/muppet_streamer_schedule_explosive_delivery {"explosiveCount":5, "explosiveType":"custom", "target":"muppet9010", "customExplosiveType":"cannon-projectile", "customExplosiveSpeed":1, "accuracyRadiusMax":10}`
 
 #### Notes
@@ -90,7 +91,7 @@ Can deliver a highly customisable explosive delivery to the player. The explosiv
 Malfunctioning Weapon (Leaky Flamethrower)
 ============
 
-Forces the targeted player to wield a weapon that shoots in random directions. Shoots a full ammo item, then briefly pauses before firing the next full ammo item. This is a Time Duration Event and so may cut short other Time Duration events, see General Notes for details.
+Forces the targeted player to wield a weapon that shoots in random directions. Shoots a full ammo item, then briefly pauses before firing the next full ammo item. This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
 
 #### Command syntax
 
@@ -104,7 +105,7 @@ Forces the targeted player to wield a weapon that shoots in random directions. S
 - reloadTime: DECIMAL - Optional: how many seconds to wait between each ammo magazine being fired. Defaults to 3 to give a noticeable gap.
 - weaponType: STRING - Optional: the name of the specific weapon you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower weapon, `flamethrower`.
 - ammoType: STRING - Optional: the name of the specific ammo you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower ammo, `flamethrower-ammo`.
-- suppressMessages: BOOLEAN - Optional: if all standard event messages are suppressed. Defaults to `false`.
+- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
 
@@ -146,7 +147,7 @@ Ensures the target player has a specific weapon and can give ammo and force thei
 - selectWeapon: BOOLEAN - Optional: if `true` the player will have this `weaponType` selected as active if it's equipped in the weapon inventory. If not provided or the `weaponType` isn't in the weapon inventory then no weapon change is done.
 - ammoType: STRING - Optional: the name of the ammo type to be given to the player. The ammo name is Factorio's internal name of the ammo type and is case sensitive. If an ammo amount is also set greater than 0 then this ammo type and amount will be forced into the weapon if equipped.
 - ammoCount: INTEGER - Optional: the quantity of the named ammo to be given. If 0 or not present then no ammo is given.
-- suppressMessages: BOOLEAN - Optional: if all standard event messages are suppressed. Defaults to `false`.
+- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
 
@@ -198,11 +199,11 @@ Spawns entities in the game around the named player on their side. Includes both
 
 #### Notes
 
-- For `entityType` of `tree` or a `customEntityName` of type `tree`: if placed on a vanilla Factorio tile or with Alien Biomes mod a biome specific tree will be selected, otherwise the tree will be random on other modded tiles. Should support and handle fully defined custom tree types, otherwise they will be ignored.
-- For `entityType` of `rock` or a `customEntityName` of type `rock`: a random selection between the larger 3 minable vanilla Factorio rocks will be used.
+- For `entityType` of `tree` or a `customEntityName` of an entity with a type of `tree`: if placed on a vanilla Factorio tile or with Alien Biomes mod a biome specific tree will be selected, otherwise the tree will be random on other modded tiles. Should support and handle fully defined custom tree types, otherwise they will be ignored.
+- For `entityType` of `rock` or a `customEntityName` of an entity with a type of `rock`: a random selection between the larger 3 minable vanilla Factorio rocks will be used.
 - There is a special force included in the mod that is hostile to every other force which can be used if desired for the `forceString` option: `muppet_streamer_enemy`. The `enemy` force is the one the default biters are on, with players by default on the `player` force.
-- For `entityType` of `fire` or a `customEntityName` of type `fire`: generally the more flames the greater the damage, burn time (internal Factorio logic) and will make a slightly wider fire area. Values at the higher end seem to have a diminishing effect in-game. Suggested is 50, with the max of 250. It takes 20 fire count to set a tree on fire, but at this level the player will have to run right next to a tree to set it on fire. A suggested value is 50, which generally sets trees very close to the player on fire without requiring the player to actually touch them. Max is 250, but greater numbers seeming to have a diminishing effect in-game. Value capped at 250, as the games maximum of 255 can behave oddly, see bug report: https://forums.factorio.com/viewtopic.php?f=7&t=103227
-- For `customEntityName` of type `fluid-turret`: use the `customSecondaryDetail` to specify the fluid type to load the turret with. When using the `ammoCount` setting be aware that the amount must be greater than the turret's minimum fluid to activate; for vanilla Flamethrower turrets this is greater than 25.
+- For `entityType` of `fire` or a `customEntityName` of an entity with a type of `fire`: Suggested is 30, with the max of 250. Generally the more flames the greater the damage, burn time and larger spread. For vanilla Factorio's `fire-flame` values above 35 have no greater effect, with it taking 20 fire count to set a tree on fire; but at this level the player will have to run right next to a tree to set it on fire. The suggested value of 30 generally sets trees very close to the player on fire without requiring the player to actually touch them. Value capped at 250, as the Factorio's maximum of 255 is treated as a value of 0, but this isn't 0 flames, instead its some odd default value. For some details on the oddity of flame counts see the following bug report: https://forums.factorio.com/viewtopic.php?f=7&t=103227
+- For `customEntityName` of an entity with a type of `fluid-turret`: use the `customSecondaryDetail` to specify the fluid type to load the turret with. When using the `ammoCount` setting be aware that the amount must be greater than the turret's minimum fluid to activate; for vanilla Factorio Flamethrower turrets this is greater than 25.
 - The `customSecondaryDetail` setting is used when the `customEntityName` is one of these entity types: `ammo-turret` it stores the ammo name. `artillery-turret` it stores the ammo name. `fluid-turret` it stores the fluid name.
 - The default `force` used is based on the entity type if not specified as part of the command. The default is for the force of the targeted player, with the following exceptions: Trees and rocks will be the `neutral` force. Fire will be the `muppet_streamer_enemy` force which will hurt everything on the map.
 - Most entity types will be placed no closer than 1 per tile. With the exception of the pre-defined `entityType` of `tree` and `rock`, plus any `entityType` and `customEntityName` that is a `combat-robot` or `fire` entity type. These exceptions are allowed to be placed much closer together.
@@ -215,7 +216,7 @@ Spawns entities in the game around the named player on their side. Includes both
 Aggressive Driver
 ============
 
-The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering. This is a Time Duration Event and so may cut short other Time Duration events, see General Notes for details.
+The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering. This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
 
 #### Command syntax
 
@@ -228,7 +229,7 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 - duration: DECIMAL - Mandatory: how many seconds the effect lasts on the player.
 - control: STRING - Optional: if the player has control over steering, either: `full` or `random`. Full allows control over left/right steering, random switches between left, right, straight for short periods. If not specified then full is applied.
 - teleportDistance: DECIMAL - Optional: the max distance of tiles that the player will be teleported into the nearest suitable drivable vehicle. If not supplied it is treated as 0 distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
-- suppressMessages: BOOLEAN - Optional: if all standard event messages are suppressed. Defaults to `false`.
+- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
 
@@ -241,6 +242,7 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 - This feature affects all types of cars, tanks, trains and spider vehicles.
 - If the player is in a vehicle and not in the drivers seat or it doesn't have fuel then the effect won't do anything.
 - If the player isn't in a vehicle and the `teleportDistance` option is enabled then only vehicle's with an empty drivers seat and fuel will be selected.
+- The player isn't prevented from removing the fuel from their train as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
 
 
 
@@ -267,7 +269,7 @@ Teleports other players on the server to near your position.
 - callSelection - STRING - Mandatory: the logic to select which available players in the callRadius are teleported, either: `random`, `nearest`.
 - number - INTEGER - Mandatory Special: how many players to call. At least one of `number` or `activePercentage` must be supplied.
 - activePercentage - DECIMAL - Mandatory Special: the percentage of currently available players to teleport to help, i.e. 50 for 50%. Will respect blacklistedPlayerNames and whitelistedPlayerName argument values when counting the number of available players. At least one of `number` or `activePercentage` must be supplied.
-- suppressMessages: BOOLEAN - Optional: if all standard event messages are suppressed. Defaults to `false`.
+- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
 
@@ -302,7 +304,7 @@ Teleports the player to the nearest type of thing.
 - minDistance: DECIMAL - Optional: the minimum distance to teleport. If not provided then the value of 0 is used. Is ignored for destinationType of `spawn`, specific position or `enemyUnit`.
 - maxDistance: DECIMAL - Mandatory Special: the maximum distance to teleport. Is not mandatory and ignored for destinationType of `spawn` or a specific position.
 - reachableOnly: BOOLEAN - Optional: if the place you are teleported must be walkable back to where you were. Defaults to `false`. Only applicable for destinationType of `random` and `biterNest`.
-- suppressMessages: BOOLEAN - Optional: if all standard event messages are suppressed. Can be specified within nested `backupTeleportSettings` options, otherwise will be inherited from the parent command. Defaults to `false`.
+- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Can be specified within nested `backupTeleportSettings` options, otherwise will be inherited from the parent command. Defaults to `false`.
 - backupTeleportSettings: Teleport details in JSON string - Optional: a backup complete teleport action that will be done if the main destinationType is unsuccessful. Is a complete copy of the main muppet_streamer_teleport options as a JSON object.
 
 #### Examples
@@ -327,7 +329,7 @@ Teleports the player to the nearest type of thing.
 Pants On Fire
 ============
 
-Sets the ground on fire behind a player forcing them to run. This is a Time Duration Event and so may cut short other Time Duration events, see General Notes for details.
+Sets the ground on fire behind a player forcing them to run. This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
 
 #### Command syntax
 
@@ -339,9 +341,9 @@ Sets the ground on fire behind a player forcing them to run. This is a Time Dura
 - duration: DECIMAL - Mandatory: how many seconds the effect lasts on the player.
 - fireGap: INTEGER - Optional: how many ticks between each fire entity. Defaults to 6, which gives a constant fire line.
 - fireHeadStart: INTEGER - Optional: how many fire entities does the player have a head start on. Defaults to 3, which forces continuous running with default `fireGap`.
-- flameCount: INTEGER - Optional: how many flames each fire entity will have. Generally the more flames the greater the damage, burn time (internal Factorio logic) and will make a slightly wider fire area. Values at the higher end seem to have a diminishing effect in-game. Default is 30 (intended for fire-flame), with the max of 250.
+- flameCount: INTEGER - Optional: how many flames each fire entity will have, see notes for more details. Default is 30 (intended for fire-flame), with the conceptual max of 250.
 - fireType: STRING - Optional: the name of the specific `fire` type entity you want to have. This is the internal name within Factorio. Defaults to the vanilla Factorio fire entity, `fire-flame`.
-- suppressMessages: BOOLEAN - Optional: if all standard event messages are suppressed. Defaults to `false`.
+- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
 
@@ -352,7 +354,8 @@ Sets the ground on fire behind a player forcing them to run. This is a Time Dura
 
 - If a player is in a vehicle while the effect is active they take increasing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armored vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
 - Fire effects are on a special enemy force so that they will hurt everything on the map, `muppet_streamer_enemy`. This also means that player damage upgrades don't affect these effects.
-- It takes 20 fire count to set a tree on fire, but at this level the player will have to run right next to a tree to set it on fire. The command defaults to a value of 30 which generally sets trees very close to the player on fire without requiring the player to actually touch them. Value capped at 250, as the games maximum of 255 can behave oddly, see bug report: https://forums.factorio.com/viewtopic.php?f=7&t=103227
+- Generally the more flames the greater the damage, burn time and larger spread. For vanilla Factorio's `fire-flame` values above 35 have no greater effect, with it taking 20 fire count to set a tree on fire; but at this level the player will have to run right next to a tree to set it on fire. The command defaults to a value of 30 which generally sets trees very close to the player on fire without requiring the player to actually touch them. Value capped at 250, as the Factorio's maximum of 255 is treated as a value of 0, but this isn't 0 flames, instead its some odd default value. For some details on the oddity of flame counts see the following bug report: https://forums.factorio.com/viewtopic.php?f=7&t=103227
+
 
 
 ---------------------------------------
@@ -360,7 +363,7 @@ Sets the ground on fire behind a player forcing them to run. This is a Time Dura
 Player Drop Inventory
 ============
 
-Schedules the targeted player to drop their inventory on the ground over time. This is a Time Duration Event and so may cut short other Time Duration events, see General Notes for details.
+Schedules the targeted player to drop their inventory on the ground over time. This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
 
 #### Command syntax
 
@@ -369,24 +372,31 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 
 - delay: DECIMAL - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - target: STRING - Mandatory: the player name to target (case sensitive).
-- quantityType: STRING - Mandatory: the way quantity value is interpreted to calculate the number of items to drop per drop event, either `constant`, `startingPercentage` or `realtimePercentage`. Constant uses `quantityValue` as a static number of items. StartingPercentage means a percentage of the item count at the start of the effect is dropped from the player every drop event. RealtimePercentage means that every time a drop event occurs the player's current inventory item count is used to calculate how many items to drop this event.
+- quantityType: STRING - Mandatory: the way quantity value is interpreted to calculate the number of items to drop per drop action, either `constant`, `startingPercentage` or `realtimePercentage`. Constant uses `quantityValue` as a static number of items. StartingPercentage means a percentage of the item count at the start of the effect is dropped from the player every drop action. RealtimePercentage means that every time a drop action occurs the player's current inventory item count is used to calculate how many items to drop this action.
 - quantityValue: INTEGER - Mandatory: the number of items to drop. When quantityType is `startingPercentage`, or `realtimePercentage` this number is used as the percentage (0-100).
 - dropOnBelts: BOOLEAN - Optional: if the dropped items should be placed on belts or not. Defaults to `false`.
-- gap: DECIMAL - Mandatory: how many seconds between each drop event.
-- occurrences: INTEGER - Mandatory: how many times the drop events are done.
+- gap: DECIMAL - Mandatory: how many seconds between each drop action.
+- occurrences: INTEGER - Mandatory: how many times the drop actions are done.
 - dropEquipment: BOOLEAN - Optional: if the player's armor and weapons are dropped or not. Defaults to `true`.
-- suppressMessages: BOOLEAN - Optional: if all standard event messages are suppressed. Defaults to `false`.
+- density: DECIMAL - Optional: specifies the approximate density of the dropped items at the center of their spill area. Value in range of `10` (dense) to `0` (extremely spread out), see Notes for full details. Defaults to `10`.
+
+- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
 
 - dropping 10% of starting inventory items 5 times: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":2, "occurrences":5}`
 - 10 drops of 5 items, including on belts: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"constant", "quantityValue":5, "gap":2, "occurrences":10, "dropOnBelts":true}`
+- dropping all of inventory in 1 go (can be high UPSer usage): `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":100, "gap":1, "occurrences":1}`
 
 #### Notes
 
-- Not intended to empty a player's inventory all in 1 go. A direct Lua script could be used for that.
+- Will drop individually randomised items across all of the included inventories and item stacks the player has. This effect selects random items one at a time and so the placement order/location of multiple items of the same type is also random.
+- Dropping very large quantities and in crowded areas will increase the UPS cost of this feature. So if you have any UPS issues further consideration of your usage case should be given.
 - For percentage based quantity values it will drop a minimum of 1 item per cycle. So that very low values/inventory sizes don't drop anything.
-- If the player doesn't have any items to drop for any given drop event then that occurrence is marked as completed and the effect continues until all occurrences have occurred at their set gaps. The event does not not stop unless the player dies or all occurrences have been completed.
+- If the player doesn't have any items to drop for any given drop action then that occurrence is marked as completed and the effect continues until all occurrences have occurred at their set gaps. The effect does not not stop unless the player dies or all occurrences have been completed.
+- The items are dropped around the player approximately 2 tiles away from them in a circle. With the density decreasing as the items move away from the player. The spread is ideal in open areas, with tight areas seeming more densely placed due to the limited placement options. The items placement density won't be exactly the same between very low and high values, but should be approximately similar considering the randomisation in the placement logic. Any square edges to dense areas of items on the ground is caused by entities blocking their placement.
+- The `density` settings will define how dense the items will be at their center. The rate the density of items decreases at is related to the starting density, with higher central `density` values getting sparser quicker (mountain shape), and lower starting `density` values becoming sparse over a larger distance (frisbee shape). All items are placed in the same total area regardless of density setting, but the number of items towards the edge of this area will vary significantly. Changes to the density value around the max density (`10`) will appear to have a greater impact on distribution than changes at the sparse (`0`) end of the range. This may be real from the Gaussian algorithm or just human perception.
+- Maximum `density` is configured to avoid excessive overlapping of the items when randomly placed on the ground. This is why it doesn't place the full 9 items per tile. Overlapping items cause the Factorio game engine to work harder to find a placement location and thus higher UPS usage.
 
 
 
@@ -405,12 +415,14 @@ Takes all the inventory items from the target players, shuffles them and then di
 - delay: DECIMAL - Optional: how many seconds before the effects start. A 0 second delay makes it happen instantly. If not specified it defaults to 0 second delay.
 - includedPlayers: STRING_LIST/STRING -  Mandatory Special: either blank, a comma separated list of the player names to include (assuming they are online at the time), or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's in-game name. At least one of `includedPlayers` or `includedForces` options must be provided.
 - includedForces: STRING_LIST/STRING -  Mandatory Special: a comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's in-game name. At least one of `includedPlayers` or `includedForces` options must be provided.
-- includeEquipment: BOOLEAN - Optional: if the player's armor and weapons are included for shuffling or not. Defaults to `true`.
+- includeArmor: BOOLEAN - Optional: if the player's equipped (worn) armor is included for shuffling or not. Defaults to `true`.
+- extractArmorEquipment: BOOLEAN - Optional: if the player's armor (equipped and in inventory) should have its equipment removed from it and included in the shuffled items. Items will lose their electric charge during this process as they are removed from the equipment grid. Defaults to `false`.
+- includeWeapons: BOOLEAN - Optional: if the player's equipped weapons and ammo are included for shuffling or not. Defaults to `true`.
 - includeHandCrafting: BOOLEAN - Optional: if the player's hand crafting should be cancelled and the ingredients shuffled. Defaults to `true`.
 - destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to receive an item type compared to the number of source inventories. A value of 0 will allow the for the same number of players to receive an item as lost it, greater than 1 ensures a wider distribution away from the source number of inventories. Defaults to 1 to ensure some uneven spreading of items. See notes for logic on item distribution and how this option interacts with other options.
 - destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to receive the item. Used to allow scaling of item recipients for large player counts. A value of 0 will mean there is no scaling of source to destination inventories. Defaults to 0.25. See notes for logic on item distribution and how this option interacts with other options.
 - recipientItemMinToMaxRatio: INTEGER - Optional: The approximate min/max ratio range of the number of items a destination player will receive compared to others. Defaults to 4. See notes for logic on item distribution.
-- suppressMessages: BOOLEAN - Optional: if all standard event messages are suppressed. Defaults to `false`.
+- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
 
@@ -421,15 +433,19 @@ Takes all the inventory items from the target players, shuffles them and then di
 #### Notes
 
 - There must be 2 or more included players online otherwise the command will do nothing (silently fail). The players from both include options will be pooled for this.
-- The distribution logic is a bit convoluted, but works as per:
+- Players are given items using Factorio's default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
+- If includeHandCrafting is `true`; Any hand crafting by players will be cancelled and the ingredients added into the shared items. To limit the UPS impact from this, each item stack (icon in crafting queue) that is cancelled will have any ingredients greater than 4 full player inventories worth dropped on the ground rather than included into the shared items. Multiple separate crafts will be individually handled and so have their own limits. This will come into play in the example of a player filling up their inventory with stone and starts crafting stone furnaces, then refills with stone and does this again 4 times all at once. As these crafts would all go into 1 craft item (icon in the queue).
+- All attempts are made to give the items to players, but as a last resort they will be dropped on the ground. In large quantities this can cause a UPS stutter as the core Factorio game engine handles it. This will arise if players have all their different inventories full and have long crafting queues with extra items already used in these crafts.
+- This command can be UPS intensive for large player numbers (10/20+), if players have very large modded inventories, or if lots of players are hand crafting lots of things. In these cases the server may pause for a moment or two until the effect completes. This feature has been refactored multiple times for UPS improvements, but ultimately does a lot of API commands and inventory manipulation which is UPS intensive.
+
+#### Distribution Logic
+
+The distribution logic is a bit convoluted, but works as per:
+
 - All targets online have all their inventories taken. Each item type has the number of source players recorded.
 - A random number of new players to receive each item type is worked out. This is based on the number of source players for that item type, with a +/- random value applied based on the greatest between; the destinationPlayersMinimumVariance option, and the destinationPlayersVarianceFactor option multiplied by the number of source inventories. This allows a minimum variation of receiving players compared to source inventories to be enforced even when very small player targets are online. The final value of new players for the items to be split across will never be less than 1 or greater than all of the online target players.
 - The number of each item each selected player will receive is a random proportion of the total. This is controlled by the recipientItemMinToMaxRatio option. This option defines the minimum to maximum ratio between 2 players, i.e. option of 4 means a player receiving the maximum number can receive up to 4 times as many as a player receiving the minimum. This option's implementation isn't quite exact and should be viewed as a rough guide.
 - Any items that can't be fitted into the intended destination player will be given to another online targeted player if possible. This will affect the item quantity balance between players and the appearance of how many destination players were selected. If it isn't possible to give the items to any online targeted player then they will be dropped on the floor at the targeted players’ feet. This situation can occur as items are taken from the player's extra inventories like trash, but returned to the player using Factorio default item assignment logic. Player's various inventories can also have filtering on their slots, thus further reducing the room for random items to fit in.
-- Players are given items using Factorio's default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
-- If includeHandCrafting is `true`; Any hand crafting by players will be cancelled and the ingredients added into the shared items. To limit the UPS impact from this, each item stack (icon in crafting queue) that is cancelled will have any ingredients greater than 4 full player inventories worth dropped on the ground rather than included into the shared items. Multiple separate crafts will be individually handled and so have their own limits. This will come into play in the example of a player filling up their inventory with stone and starts crafting stone furnaces, then refills with stone and does this again 4 times all at once. As these crafts would all go into 1 craft item (icon in the queue).
-- All attempts are made to give the items to players, but as a last resort they will be dropped on the ground. In large quantities this can cause a UPS stutter as the core Factorio game engine handles it. This will arise if players have all their different inventories full and have long crafting queues with extra items already used in these crafts.
-- This command can be UPS intensive for large player numbers (10/20+), if players have very large modded inventories, or if lots of players are hand crafting lots of things. In these cases the server may pause for a moment or two until the event completes. This feature has been refactored multiple times for UPS improvements, but ultimately does a lot of API commands and inventory manipulation which is UPS intensive.
 
 
 
@@ -502,7 +518,7 @@ All of the commands take a table of options as a JSON string when they are calle
 
 - Mandatory = the option must be provided.
 - Mandatory Special = the option is/can be mandatory, see the details on the option for specifics.
-- Optional = you are free to include or exclude the option. The default value will be listed and used when the option isn't included or is a nil value. As well as not including optional settings you can also pass in `null` to JSON strings or `nil` to Lua objects, if you wish to have the setting name included to improve readability between different commands.
+- Optional = you are free to include or exclude the option. The default value will be listed and used when the option isn't included or is a nil value. As well as not including optional settings you can also pass in `null` to JSON strings or `nil` to Lua objects, if you wish to have the setting name included to improve readability between different commands. While `null` isn't part of the JSON specification, the Factorio JSON string to Lua Object does handle it.
 
 #### Number ranges
 
@@ -516,11 +532,11 @@ All of the commands take a table of options as a JSON string when they are calle
 General Usage Notes
 ============
 
-#### Time Duration Event
+#### Time Duration Effect
 
-At present a Time Duration Event may interrupt a different type of time duration event, depending upon each events action and requirements. i.e. Aggressive Driver will cut short a Malfunctioning Weapon, but a Player Drop Inventory will not affect an Aggressive Driver.
+At present a Time Duration Effect may interrupt a different type of Time Duration Effect, depending upon each effects behaviours and player state requirements. i.e. Aggressive Driver and Malfunctioning Weapon will interrupt each other, but a Player Drop Inventory will not affect an Aggressive Driver.
 
-Any repeated running of the same event will have the subsequent event requests ignored, with the first event continuing until its original completion.
+Any repeated running of the same effect will have the subsequent effect requests ignored, with the first effect continuing until its original completion.
 
 #### Updating the mod
 

@@ -369,8 +369,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         local firstSpawnerDistancesIndex ---@type uint|nil
         local nearestSpawnerDistanceDetails ---@type Teleport_TargetPlayerSpawnerDistanceDetails|nil
         while nearestSpawnerDistanceDetails == nil do
-            firstSpawnerDistancesIndex = next(data.spawnerDistances)
-            nearestSpawnerDistanceDetails = data.spawnerDistances[firstSpawnerDistancesIndex]
+            firstSpawnerDistancesIndex, nearestSpawnerDistanceDetails = next(data.spawnerDistances)
             if nearestSpawnerDistanceDetails == nil then
                 -- Have already removed the last possible spawner as its invalid, so no valid targets.
                 if not data.suppressMessages then game.print({ "message.muppet_streamer_teleport_no_biter_nest_found", targetPlayer.name }) end

@@ -298,7 +298,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     end
     local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0
 
-    -- Check and generate the creation function object. Can;t be transferred from before as it may sit in `global`.
+    -- Check and generate the creation function object. Can't be transferred from before as it may sit in `global`.
     local entityTypeDetails
     if data.entityTypeName ~= EntityTypeNames.custom then
         -- Lookup the predefined EntityTypeDetails.
@@ -655,7 +655,7 @@ SpawnAroundPlayer.GenerateAmmoFiringTurretEntityTypeDetails = function(turretNam
         PlaceEntity = function(data)
             -- Turrets support just build direction reliably.
             local turret = data.surface.create_entity { name = data.entityName, position = data.position, direction = math.random(0, 3) * 2 --[[@as defines.direction]] , force = data.force, create_build_effect_smoke = false, raise_built = true }
-            if turret ~= nil and ammoName ~= nil then
+            if turret ~= nil and ammoName ~= nil and data.ammoCount ~= nil then
                 turret.insert({ name = ammoName, count = data.ammoCount })
             end
             return turret
@@ -700,7 +700,7 @@ SpawnAroundPlayer.GenerateFluidFiringTurretEntityTypeDetails = function(turretNa
         PlaceEntity = function(data)
             -- Turrets support just build direction reliably.
             local turret = data.surface.create_entity { name = data.entityName, position = data.position, direction = math.random(0, 3) * 2 --[[@as defines.direction]] , force = data.force, create_build_effect_smoke = false, raise_built = true }
-            if turret ~= nil and fluidName ~= nil then
+            if turret ~= nil and fluidName ~= nil and data.ammoCount ~= nil then
                 turret.insert_fluid({ name = fluidName, amount = data.ammoCount })
             end
             return turret

@@ -16,6 +16,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field targetOffset MapPosition|nil
 ---@field salvoWaveId uint|nil
 ---@field finalSalvo boolean
+---@field salvoFollowPlayer boolean
 
 ---@class ExplosiveDelivery_SalvoWaveDetails
 ---@field targetPosition MapPosition
@@ -38,7 +39,7 @@ end
 
 ---@param command CustomCommandData
 ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "explosiveCount", "explosiveType", "customExplosiveType", "customExplosiveSpeed", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "explosiveCount", "explosiveType", "customExplosiveType", "customExplosiveSpeed", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay", "salvoFollowPlayer" })
     if commandData == nil then
         return
     end
@@ -210,6 +211,14 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         -- Counting starts at 0 so flooring gives the -1 from total needed by loop.
     end
 
+    local salvoFollowPlayer = commandData.salvoFollowPlayer
+    if not CommandsUtils.CheckBooleanArgument(salvoFollowPlayer, false, commandName, "salvoFollowPlayer", command.parameter) then
+        return
+    end ---@cast salvoFollowPlayer boolean|nil
+    if salvoFollowPlayer == nil then
+        salvoFollowPlayer = false
+    end
+
     local explosiveCountRemaining = explosiveCount
     ---@type uint
     for batchNumber = 0, maxBatchNumber do
@@ -228,7 +237,8 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
             targetPosition = targetPosition,
             targetOffset = targetOffset,
             salvoWaveId = salvoWaveId,
-            finalSalvo = (batchNumber == maxBatchNumber)
+            finalSalvo = (batchNumber == maxBatchNumber),
+            salvoFollowPlayer = salvoFollowPlayer
         }
 
         local batchScheduleTick ---@type UtilityScheduledEvent_UintNegative1
@@ -274,10 +284,20 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
 
     ---@type MapPosition, LuaSurface
     local targetPos, surface
-    -- Check if we need to obtain a target position from the salvo wave rather than calculate it now.
     local salvoWaveId = data.salvoWaveId -- Variables existence is a work around for Sumneko's missing object field nil detection.
+    -- Check if we need to obtain a target position from the salvo wave rather than calculate it now. SalvoWaveId is nil if its a single explosive grouping.
     if salvoWaveId ~= nil and global.explosiveDelivery.salvoWaveDetails[salvoWaveId] ~= nil then
-        targetPos = global.explosiveDelivery.salvoWaveDetails[salvoWaveId].targetPosition
+        if not data.salvoFollowPlayer then
+            -- Load the initial salvo target position for every subsequent salvo.
+            targetPos = global.explosiveDelivery.salvoWaveDetails[salvoWaveId].targetPosition
+        else
+            -- Calculate the target position for every salvo.
+            targetPos = data.targetPosition or targetPlayer.position
+            if data.targetOffset ~= nil then
+                targetPos.x = targetPos.x + data.targetOffset.x
+                targetPos.y = targetPos.y + data.targetOffset.y
+            end
+        end
         surface = global.explosiveDelivery.salvoWaveDetails[salvoWaveId].targetSurface
         if data.finalSalvo then
             global.explosiveDelivery.salvoWaveDetails[salvoWaveId] = nil
