@@ -229,7 +229,6 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
 
     -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurrence count has completed.
     if totalItemCount > 0 and itemCountToDrop > 0 then
-        local itemCountDropped = 1
         local surface = player.surface
         local player_position = player.position
         local centerPosition_x, centerPosition_y = player_position.x, player_position.y
@@ -242,47 +241,68 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         -- Standard position and drop on ground tables that I just update rather than create. Should save UPS and LuaGarbage collection.
         local position, itemToDrop = {}, { count = 1 }
         -- Standard variables used in the loop per item being dropped.
-        local itemNumberToDrop, inventoryNameOfItemNumberToDrop, itemNumberInSpecificInventory, itemCountedUpTo, itemNameToDrop, inventoryItemsCounted, itemStackToDropFrom, inventory, itemStackToDropFrom_count, itemToPlaceOnGround, angle, radius
+        local itemStackToDropFrom, inventory, itemStackToDropFrom_count, itemToPlaceOnGround, angle, radius
         local math_pi_x2 = math_pi * 2
 
-        -- Drop a single random item from across the range of inventories at a time until the required number of items have been dropped.
-        -- CODE NOTE: This is quite Lua code inefficient, but does ensure truly random items are dropped.
-        while itemCountDropped <= itemCountToDrop do
-            -- Select the single random item number to be dropped from across the total item count.
-            itemNumberToDrop = math.random(1, totalItemCount)
+        -- Get a sorted list of the random item numbers across all inventories we are going to drop. Duplicates can be supported as we will reduce the item count from cache and local variables when we drop each item.
+        local itemNumbersToBeDropped = {} ---@type table<int, int>
+        for i = 1, itemCountToDrop do
+            itemNumbersToBeDropped[i] = math.random(1, totalItemCount)
+            totalItemCount = totalItemCount - 1 -- Reduce by 1 each cycle so that nothing goes off the end of the total inventory number.
+        end
+        table.sort(itemNumbersToBeDropped)
 
-            -- Find the inventory with this item number in it. Update the per inventory total item counts.
-            itemCountedUpTo, inventoryNameOfItemNumberToDrop = 0, nil
-            for inventoryName, countInInventory in pairs(itemsCountsInInventories) do
-                itemCountedUpTo = itemCountedUpTo + countInInventory
-                if itemCountedUpTo >= itemNumberToDrop then
-                    inventoryNameOfItemNumberToDrop = inventoryName
-                    itemNumberInSpecificInventory = itemNumberToDrop - (itemCountedUpTo - countInInventory)
-                    itemsCountsInInventories[inventoryName] = countInInventory - 1
-                    break
+        -- Set up the initial values before starting to hunt for the item numbers.
+        local inventoryNameOfItemNumberToDrop = next(itemsCountsInInventories)
+        local countInInventory = itemsCountsInInventories[inventoryNameOfItemNumberToDrop]
+        local itemCountedUpTo, inventoryTotalCountedUpTo = 0, 0
+        local inventoryContents = inventoriesContents[inventoryNameOfItemNumberToDrop]
+        local itemNameToDrop = next(inventoryContents)
+        local itemCount = inventoryContents[itemNameToDrop]
+
+        -- Work over the items numbers to be dropped. Increment the inventories as required and drop the item when found. As we drop in a random location from player the order dropped doesn't matter.
+        for _, itemNumberToDrop in pairs(itemNumbersToBeDropped) do
+            -- Check if the current inventory has the item number we want within it, otherwise cycle to the correct one.
+            if inventoryTotalCountedUpTo + countInInventory < itemNumberToDrop then
+                -- Item not in this inventory so cycle to the correct inventory.
+                while inventoryTotalCountedUpTo + countInInventory < itemNumberToDrop do
+                    inventoryTotalCountedUpTo = inventoryTotalCountedUpTo + countInInventory
+                    inventoryNameOfItemNumberToDrop = next(itemsCountsInInventories, inventoryNameOfItemNumberToDrop)
+                    countInInventory = itemsCountsInInventories[inventoryNameOfItemNumberToDrop]
                 end
-            end
-            if inventoryNameOfItemNumberToDrop == nil then
-                CommandsUtils.LogPrintError(commandName, nil, "didn't find item number " .. itemNumberToDrop .. " when looking over " .. player.name .. "'s inventories.", nil)
-                return
+
+                -- Correct inventory found, so update our starting positions to the start of this inventory.
+                inventoryContents = inventoriesContents[inventoryNameOfItemNumberToDrop]
+                itemNameToDrop = next(inventoryContents)
+                itemCount = inventoryContents[itemNameToDrop]
+                itemCountedUpTo = inventoryTotalCountedUpTo
             end
 
-            -- Find the name of the numbered item in the specific inventory. Update the cached lists to remove 1 from this item's count.
-            inventoryItemsCounted, itemNameToDrop = 0, nil
+            -- Decrease this inventories count by 1 as we will be removing an item from it.
+            countInInventory = countInInventory - 1
+            itemsCountsInInventories[inventoryNameOfItemNumberToDrop] = countInInventory
 
-            -- CODE NOTE: this for loop is very expensive UPS wise for large mixed inventories. In a non line test in a function it accounted for 50% UPS of a full inventory dump. Far more than the actual placement of the items in an open area (API calls). Ideally we'd have some way to jump over the items in groups to avoid checking every one when looking for the specific item number we want in that inventory.
-            for itemName, itemCount in pairs(inventoriesContents[inventoryNameOfItemNumberToDrop]) do
-                inventoryItemsCounted = inventoryItemsCounted + itemCount
-                if inventoryItemsCounted >= itemNumberInSpecificInventory then
-                    itemNameToDrop = itemName
-                    inventoriesContents[inventoryNameOfItemNumberToDrop][itemName] = itemCount - 1
-                    break
+            -- Find the specific item in this inventory details if the current item doesn't include the required count.
+            while itemCountedUpTo + itemCount < itemNumberToDrop do
+                if next(inventoryContents, itemNameToDrop) == nil then
+                    -- Run out of items in this this inventory, ERROR.
+                    local x = 1
                 end
+                itemCountedUpTo = itemCountedUpTo + itemCount
+                itemNameToDrop = next(inventoryContents, itemNameToDrop)
+                itemCount = inventoryContents[itemNameToDrop]
             end
+
+            -- Handle the found item for this count.
             if itemNameToDrop == nil then
                 CommandsUtils.LogPrintError(commandName, nil, "didn't find item name for number " .. itemNumberToDrop .. " in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop, nil)
                 return
             end
+            itemCount = itemCount - 1
+            inventoryContents[itemNameToDrop] = itemCount
+
+            -- Have to reduce the currently counted number as we will have reduced the cached numbers.
+            itemCountedUpTo = itemCountedUpTo - 1 -- TODO: not sure if I should have this. It errors with an without, but in different places. Think about now the code is fleshed out.
 
             -- Identify and record the specific item being dropped.
             itemStackToDropFrom = nil
@@ -290,6 +310,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 -- Special case as not a real inventory.
                 itemStackToDropFrom = player.cursor_stack ---@cast itemStackToDropFrom -nil # We know the cursor_stack is populated if its gone down this logic path.
             else
+                ---@cast inventoryNameOfItemNumberToDrop defines.inventory # "cursorStack" has separate if/else leg.
                 inventory = player.get_inventory(inventoryNameOfItemNumberToDrop)
                 if inventory == nil then
                     CommandsUtils.LogPrintError(commandName, nil, "didn't find inventory id " .. inventoryNameOfItemNumberToDrop .. "' for " .. player.name, nil)
@@ -335,15 +356,6 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
 
             -- Remove 1 from the source item stack. This may make it 0, so have to this after placing it on the ground as in some cases we reference it.
             itemStackToDropFrom.count = itemStackToDropFrom_count - 1
-
-            -- Count that the item was dropped and update the total items in all inventory count.
-            itemCountDropped = itemCountDropped + 1
-            totalItemCount = totalItemCount - 1
-
-            -- If no items left stop trying to drop things this event and await the next one.
-            if totalItemCount == 0 then
-                itemCountDropped = itemCountToDrop + 1
-            end
         end
     end
 
