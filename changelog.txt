@@ -2,7 +2,7 @@
 Version: 20.1.31
 Date: 2022-09-XXXX
   Features:
-    - Player Drop Inventory - UPS improvements from refactor of processing logic for very large (but non full inventory) drop counts. Will have no real UPS impact on small drop amounts either positively  or negatively. Refactor enabled by change of dropped item placement logic in previous release to the random density distribution.
+    - Player Drop Inventory - UPS improvements for very large (but non full inventory) drop counts. Will have no real UPS impact on small drop amounts either positively or negatively.
   Changes:
   Bugfixes:
   Info:

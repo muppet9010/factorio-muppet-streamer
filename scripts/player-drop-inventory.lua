@@ -4,8 +4,7 @@ local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
--- TODO: remove unused ones after all major code changes done.
-local math_rad, math_sin, math_cos, math_pi, math_random, math_ceil, math_sqrt, math_log, math_max = math.rad, math.sin, math.cos, math.pi, math.random, math.ceil, math.sqrt, math.log, math.max
+local math_sin, math_cos, math_pi, math_random, math_sqrt, math_log, math_max = math.sin, math.cos, math.pi, math.random, math.sqrt, math.log, math.max
 
 ---@enum PlayerDropInventory_QuantityType
 local QuantityType = {
@@ -246,18 +245,18 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         local math_pi_x2 = math_pi * 2
 
         -- Get a sorted list of the random item numbers across all inventories we are going to drop. Duplicates can be supported as we will reduce the item count from cache and local variables when we drop each item. These numbers are all manipulated post selection to account for the reduced items in inventories as previous items are dropped.
+        -- CODE NOTE: this logic isn't quite right, but it does handle duplicate random numbers by just selecting the next one. Also handles the fact we select all of the items from a full list, but we iterate through the items from low to high and thus the selected item numbers to be dropped have to be kept within the remaining total as we work through the items. Its likely not perfectly random, but in testing it looks pretty even across the many item stacks.
         local itemNumbersToBeDropped = {} ---@type table<int, int>
-        --TODO: this is bad as we aren't creating numbers randomly within the final range. The rest of the code works around this concept correctly however.
-        local itemsSelectedForDropping = 0
         for i = 1, itemCountToDrop do
-            itemNumbersToBeDropped[i] = math.random(1, totalItemCount) -- itemsSelectedForDropping
-            totalItemCount = totalItemCount - 1
-            --itemsSelectedForDropping = itemsSelectedForDropping + 1 -- Increase by 1 each cycle so that each next selected value is within the inventory range.
+            itemNumbersToBeDropped[i] = math.random(1, totalItemCount)
         end
         table.sort(itemNumbersToBeDropped)
-
-        if totalItemCount < itemCountToDrop then
-            local x = 1
+        local newNumber
+        local lastItemNumber = 1
+        for i, number in pairs(itemNumbersToBeDropped) do
+            newNumber = math_max(number - (i - 1), lastItemNumber) ---@type int
+            lastItemNumber = newNumber
+            itemNumbersToBeDropped[i] = newNumber
         end
 
         -- Set up the initial values before starting to hunt for the item numbers.
@@ -311,9 +310,6 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             -- Decrease the cached item count by 1 as we will be removing an item from it.
             itemCount = itemCount - 1
             inventoryContents[itemNameToDrop] = itemCount
-
-            -- Have to reduce the currently counted number as we will have reduced the cached numbers.
-            --itemCountedUpTo = math_max(itemCountedUpTo - 1, 0) -- Never go below 0 as this is the starting value.
 
             -- Identify and record the specific item being dropped.
             itemStackToDropFrom = nil
