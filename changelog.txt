@@ -2,10 +2,11 @@
 Version: 20.1.31
 Date: 2022-09-XXXX
   Features:
-    - Player Drop Inventory - UPS improvements for very large (but non full inventory) drop counts. Will have no real UPS impact on small drop amounts.
+    - Player Drop Inventory - UPS improvements make this feature viable for all sizes of inventory drops now, including dropping entire inventories in 1 go.
   Changes:
   Bugfixes:
   Info:
+    - Player Drop Inventory - UPS improvements for very large (but non full inventory) drop counts. Will have negligible UPS impact on small drop amounts.
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.30
 Date: 2022-09-16
@@ -14,7 +15,6 @@ Date: 2022-09-16
     - Inventory Shuffle - added `includeArmor` and `includeWeapons` as separate options to replace the single `includeEquipment` option. Both still default to true as per the old option.
     - Inventory Shuffle - added `extractArmorEquipment` option that removes equipment from armor and shuffles them between players. Defaults to false.
     - Player Drop Inventory - items dropped are now spread out in a visually pleasing manner a few tiles away from the player, rather than a solid block of items at the players feet. Added `density` option to allow controlling how spread out the dropped items are. Defaults to most dense distribution around the player.
-    - Player Drop Inventory - More UPS efficient: both Lua code improvements and for larger quantities the distributed item dropping logic is much more efficient than the old way of dropping everything at the players feet. As the game doesn't have to keep on looking for a near by location to place each spilled item from the center heading outwards. The mileage on this UPS saving will vary based on densities being dropped and how crowded the area is (best UPS in open areas).
   Changes:
     - Inventory Shuffle - removed `includeEquipment` option as added `includeArmor` and `includeWeapons`.
     - Player Drop Inventory - introduction of `density` option and using a pretty circular distribution means that items are never dropped in the most concentrated grid possible any more. This was not a design feature before, but default behaviour due to lack of a proper distribution feature.
@@ -25,6 +25,7 @@ Date: 2022-09-16
     - Spawn Around Player - if there is an ammo name provided, but no `ammoCount` value is given it won't error any more. It won;t warn about this either, it will just insert 0 ammo for no effect.
   Info:
     - Correct some spelling mistakes in locale strings.
+    - Player Drop Inventory - More UPS efficient: both Lua code improvements and for larger quantities the distributed item dropping logic is much more efficient than the old way of dropping everything at the players feet. As the game doesn't have to keep on looking for a near by location to place each spilled item from the center heading outwards. The mileage on this UPS saving will vary based on densities being dropped and how crowded the area is (best UPS in open areas).
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.29
 Date: 2022-08-09

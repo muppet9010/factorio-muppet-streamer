@@ -254,9 +254,15 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         local newNumber
         local lastItemNumber = 1
         for i, number in pairs(itemNumbersToBeDropped) do
-            newNumber = math_max(number - (i - 1), lastItemNumber) ---@type int
-            lastItemNumber = newNumber
-            itemNumbersToBeDropped[i] = newNumber
+            newNumber = number - (i - 1)
+            if newNumber > lastItemNumber then
+                -- Record the reduced new number as greater than last number.
+                itemNumbersToBeDropped[i] = newNumber
+                lastItemNumber = newNumber
+            else
+                -- Record the last number as this was the same or greater than the new reduced number.
+                itemNumbersToBeDropped[i] = lastItemNumber
+            end
         end
 
         -- Set up the initial values before starting to hunt for the item numbers.
@@ -266,6 +272,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         local inventoryContents = inventoriesContents[inventoryNameOfItemNumberToDrop]
         local itemNameToDrop = next(inventoryContents)
         local itemCount = inventoryContents[itemNameToDrop]
+        local itemStackToDropFrom_UpdatedForThisItem = false
 
         -- Set initial cached LuaObjects used when placing entities on the ground. "cursorStack" is a special case and we don't use the inventory variable there, so just don't update it.
         -- CODE NOTE: this is technically wasteful as its likely the first item to be dropped won't be from the first item in the first inventory, but its only 1 or 2 API calls and makes the looping code simpler.
@@ -341,8 +348,9 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
             itemCount = itemCount - 1
             inventoryContents[itemNameToDrop] = itemCount
 
-            -- Obtain the specific LuaItemStack having an item being dropped from it if we don't already have it.
+            -- Obtain a specific LuaItemStack having an item being dropped from it if we don't already have it. This is the first stack of the correct item name. Meaning all items are dropped from the first stack of an item before the second starts getting dropped, rather than dropping items from random stacks. This saves us having to actually get each item stack and lets us just do the whole feature with totals and letting Factorio C++ code do the heavy lifting.
             if itemStackToDropFrom == nil then
+                itemStackToDropFrom_UpdatedForThisItem = true
                 if inventoryNameOfItemNumberToDrop == "cursorStack" then
                     -- Special case as not a real inventory.
                     itemStackToDropFrom = player.cursor_stack ---@cast itemStackToDropFrom -nil # We know the cursor_stack is populated if its gone down this logic path.
@@ -356,16 +364,16 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                 end
             end
 
-            -- Create the details of the item to be dropped.
+            -- Create the details of the item to be dropped if we can't re-use the same details for the same Item Stack as last time.
             itemStackToDropFrom_count = itemStackToDropFrom.count
             if itemStackToDropFrom_count == 1 then
                 -- Single item in the itemStack so drop it and all done. This handles any extra attributes the itemStack may have naturally.
                 itemToPlaceOnGround = itemStackToDropFrom
-            else
+            elseif itemStackToDropFrom_UpdatedForThisItem then
                 -- Multiple items in the itemStack so can just drop 1 copy of the itemStack details and remove 1 from count.
                 -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
                 -- CODE NOTE: ItemStacks have a single durability and ammo stat which effectively is for the first item in the itemStack, with the other items in the itemStack all being full.
-                -- CODE NOTE: when the itemStack's count is reduced by 1 the itemStacks durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
+                -- CODE NOTE: when the itemStack's count is reduced by 1 the itemStack's durability and ammo fields are reset to full. As the first item is considered to be the partially used items.
                 itemToDrop.name = itemStackToDropFrom.name
                 itemToDrop.health = itemStackToDropFrom.health
                 itemToDrop.durability = itemStackToDropFrom.durability
@@ -380,6 +388,8 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
                     itemToDrop.ammo = nil
                 end
                 itemToPlaceOnGround = itemToDrop
+
+                itemStackToDropFrom_UpdatedForThisItem = false
             end
 
             -- Work out where to put the item on the ground.

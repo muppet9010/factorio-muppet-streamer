@@ -386,17 +386,17 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 
 - dropping 10% of starting inventory items 5 times: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":10, "gap":2, "occurrences":5}`
 - 10 drops of 5 items a time, allows dropping items on belts: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"constant", "quantityValue":5, "gap":2, "occurrences":10, "dropOnBelts":true}`
-- dropping all of inventory in 1 go (can be high UPSer usage): `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":100, "gap":1, "occurrences":1}`
+- dropping all of inventory in 1 go: `/muppet_streamer_player_drop_inventory {"target":"muppet9010", "quantityType":"startingPercentage", "quantityValue":100, "gap":1, "occurrences":1}`
 
 #### Notes
 
-- Will drop individually randomised items across all of the included inventories and item stacks the player has. This effect selects random items one at a time and so the placement order/location of multiple items of the same type is also random.
-- Dropping very large quantities and in crowded areas will increase the UPS cost of this feature. So if you have any UPS issues further consideration of your usage case should be given.
+- Will drop individually randomised items across all of the included inventories and item stack types the player has. It will drop items of the same type from the first stack in the inventory, rather than from across multiple item stacks of the same type; this should almost never have any impact on the outcome.
+- Dropping very large quantities of items in crowded areas at one time may cause Factorio to use increased UPS as it tries to find placement locations for all the items. This has not been found to be an issue in testing.
 - For percentage based quantity values it will drop a minimum of 1 item per cycle. So that very low values/inventory sizes don't drop anything.
-- If the player doesn't have any items to drop for any given drop action then that occurrence is marked as completed and the effect continues until all occurrences have occurred at their set gaps. The effect does not not stop unless the player dies or all occurrences have been completed.
+- If the player doesn't have any items to drop for any given drop action then while that drop occurrence is complete, the effect continues until all occurrences have occurred at their set gaps. The effect does not not stop unless the player dies or all occurrences have been completed.
 - The items are dropped around the player approximately 2 tiles away from them in a circle. With the density decreasing as the items move away from the player. The spread is ideal in open areas, with tight areas seeming more densely placed due to the limited placement options. The items placement density won't be exactly the same between very low and high values, but should be approximately similar considering the randomisation in the placement logic. Any square edges to dense areas of items on the ground is caused by entities blocking their placement.
 - The `density` settings will define how dense the items will be at their center. The rate the density of items decreases at is related to the starting density, with higher central `density` values getting sparser quicker (mountain shape), and lower starting `density` values becoming sparse over a larger distance (frisbee shape). All items are placed in the same total area regardless of density setting, but the number of items towards the edge of this area will vary significantly. Changes to the density value around the max density (`10`) will appear to have a greater impact on distribution than changes at the sparse (`0`) end of the range. This may be real from the Gaussian algorithm or just human perception.
-- Maximum `density` is configured to avoid excessive overlapping of the items when randomly placed on the ground. This is why it doesn't place the full 9 items per tile. Overlapping items cause the Factorio game engine to work harder to find a placement location and thus higher UPS usage.
+- Maximum `density` is configured to avoid excessive overlapping of the items when randomly placed on the ground. This is why it doesn't place the full 9 items per tile. Overlapping items cause the Factorio game engine to work harder to find a placement location and thus can have higher UPS usage.
 
 
 

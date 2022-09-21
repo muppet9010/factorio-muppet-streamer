@@ -26,7 +26,6 @@ DO NEAR FUTURE:
     - Player Drop Inventory - should have separate armor and gun equipment options.
     - Player Drop Inventory - include option to mark as deconstruction for the owners team (poop does it).
     - Player Drop Inventory - include option to mark dropped items as loot (auto pickup by any player) - poop doesn't do it, but API has option for it.
-    - Player Drop Inventory - do a UPS pass over it when finished and check nothing stands out as easy savings. As whole thing was done on the assumption we would be dropping not that much, but it may be used for many players and large inventory chunks.
 
     - In readme mark all option names as `code`. Also any option values should be in code blocks, i.e. range of `0` to `1`.
     - Look at moving usage documentation to a GitHub wiki.
