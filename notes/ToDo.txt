@@ -21,11 +21,11 @@ BUGS THAT CAN'T BE REPRODUCED:
 
 
 DO NEAR FUTURE:
-    - Player Drop Inventory - streamline for 100% drop settings.
+    - CommandsUtils.CheckNumberArgument() seemed to have a surprisingly high UPS impact, review it.
     - Player Drop Inventory - in a single drop action the message should just be player has littered, no start and stop.
-    - Player Drop Inventory - should have separate armor and gun equipment options.
-    - Player Drop Inventory - include option to mark as deconstruction for the owners team (poop does it).
-    - Player Drop Inventory - include option to mark dropped items as loot (auto pickup by any player) - poop doesn't do it, but API has option for it.
+    - Player Drop Inventory - should have separate armor and gun equipment options. Default to true.
+    - Player Drop Inventory - include option to mark as deconstruction for the owners team (poop does it). Default to false.
+    - Player Drop Inventory - include option to mark dropped items as loot (auto pickup by any player) - poop doesn't do it, but API has option for it. Default to false.
 
     - In readme mark all option names as `code`. Also any option values should be in code blocks, i.e. range of `0` to `1`.
     - Look at moving usage documentation to a GitHub wiki.
@@ -35,6 +35,8 @@ DO NEAR FUTURE:
 	- Aggressive Driver - test what happens if the player is in a vehicle, but not driving. It should ideally treat it as if they aren't in a vehicle as their script controlled input won't drive the vehicle, but I suspect it just detects they are in a vehicle and thus gives them input, despite the fact it does nothing.
     - Aggressive Driver - Add option to commender vehicle (switch places with the driver) in a dual player vehicle.
     - Aggressive Driver - check it handles sitting in a vehicle inside a rocket without erroring. Either should treat it as a non drivable vehicle, or should launch the rocket if it can be?
+
+    - Player Inventory Shuffle - see if any UPS savings on current code. If we can avoid mass creations of tables via table re-use this also helps with Lua garbage collection.
 
 
 Future Confirmed (bigger things):

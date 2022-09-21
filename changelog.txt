@@ -7,6 +7,7 @@ Date: 2022-09-XXXX
   Bugfixes:
   Info:
     - Player Drop Inventory - UPS improvements for very large (but non full inventory) drop counts. Will have negligible UPS impact on small drop amounts.
+    - Player Drop Inventory - UPS improvements for when specifically full inventories are dropped. This occurs when either a static or dynamic drop count is equal or greater than the total items the player has.
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.30
 Date: 2022-09-16
