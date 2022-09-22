@@ -22,6 +22,8 @@ local QuantityType = {
 ---@field quantityType PlayerDropInventory_QuantityType
 ---@field quantityValue uint
 ---@field dropOnBelts boolean
+---@field markForDeconstruction boolean
+---@field dropAsLoot boolean
 ---@field gap uint # Must be > 0.
 ---@field occurrences uint
 ---@field dropEquipment boolean
@@ -34,6 +36,8 @@ local QuantityType = {
 ---@field gap uint # Must be > 0.
 ---@field totalOccurrences uint
 ---@field dropOnBelts boolean
+---@field markForDeconstructionForce LuaForce|nil
+---@field dropAsLoot boolean
 ---@field dropEquipment boolean
 ---@field staticItemCount uint|nil
 ---@field dynamicPercentageItemCount uint|nil
@@ -62,7 +66,7 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "gap", "occurrences", "dropEquipment", "density", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "markForDeconstruction", "dropAsLoot", "gap", "occurrences", "dropEquipment", "density", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -95,6 +99,22 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end ---@cast dropOnBelts boolean|nil
     if dropOnBelts == nil then
         dropOnBelts = false
+    end
+
+    local markForDeconstruction = commandData.markForDeconstruction
+    if not CommandsUtils.CheckBooleanArgument(markForDeconstruction, false, commandName, "markForDeconstruction", command.parameter) then
+        return
+    end ---@cast markForDeconstruction boolean|nil
+    if markForDeconstruction == nil then
+        markForDeconstruction = false
+    end
+
+    local dropAsLoot = commandData.dropAsLoot
+    if not CommandsUtils.CheckBooleanArgument(dropAsLoot, false, commandName, "dropAsLoot", command.parameter) then
+        return
+    end ---@cast dropAsLoot boolean|nil
+    if dropAsLoot == nil then
+        dropAsLoot = false
     end
 
     local gapSeconds = commandData.gap
@@ -142,7 +162,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
 
     global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1
     ---@type PlayerDropInventory_ApplyDropItemsData
-    local applyDropItemsData = { target = target, quantityType = quantityType, quantityValue = quantityValue, dropOnBelts = dropOnBelts, gap = gap, occurrences = occurrences, dropEquipment = dropEquipment, density = density, distributionOuterDensity = distributionOuterDensity, suppressMessages = suppressMessages }
+    local applyDropItemsData = { target = target, quantityType = quantityType, quantityValue = quantityValue, dropOnBelts = dropOnBelts, markForDeconstruction = markForDeconstruction, dropAsLoot = dropAsLoot, gap = gap, occurrences = occurrences, dropEquipment = dropEquipment, density = density, distributionOuterDensity = distributionOuterDensity, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, applyDropItemsData)
 end
 
@@ -199,6 +219,8 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         gap = data.gap,
         totalOccurrences = data.occurrences,
         dropOnBelts = data.dropOnBelts,
+        markForDeconstructionForce = data.markForDeconstruction and targetPlayer.force --[[@as LuaForce]] or nil,
+        dropAsLoot = data.dropAsLoot,
         dropEquipment = data.dropEquipment,
         staticItemCount = staticItemCount,
         dynamicPercentageItemCount = dynamicPercentageItemCount,
@@ -271,6 +293,7 @@ end
 PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCountToDrop, totalItemCount, itemsCountsInInventories, inventoriesContents)
     local surface = player.surface
     local player_position = player.position
+    local dropAsLoot, markForDeconstructionForce, dropOnBelts = data.dropAsLoot, data.markForDeconstructionForce, data.dropOnBelts
     local centerPosition_x, centerPosition_y = player_position.x, player_position.y
     local maxRadius = math.sqrt(itemCountToDrop) * 0.7 -- The larger this multiplier is the more spread out items are. However too small a value leads to them being bunched up around the center when very large numbers of items are dropped.
 
@@ -442,7 +465,7 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
         radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
         position.x = centerPosition_x + radius * math_cos(angle)
         position.y = centerPosition_y + radius * math_sin(angle)
-        surface.spill_item_stack(position, itemToPlaceOnGround, false, nil, data.dropOnBelts)
+        surface.spill_item_stack(position, itemToPlaceOnGround, dropAsLoot, markForDeconstructionForce, dropOnBelts)
 
         -- Remove 1 from the source item stack. This may make it 0, so have to this after placing it on the ground as in some cases we reference it.
         itemStackToDropFrom.count = itemStackToDropFrom_count - 1
@@ -463,6 +486,7 @@ end
 PlayerDropInventory.DropAllItemsFromInventories = function(player, data, itemCountToDrop, itemsCountsInInventories)
     local surface = player.surface
     local player_position = player.position
+    local dropAsLoot, markForDeconstructionForce, dropOnBelts = data.dropAsLoot, data.markForDeconstructionForce, data.dropOnBelts
     local centerPosition_x, centerPosition_y = player_position.x, player_position.y
     local maxRadius = math.sqrt(itemCountToDrop) * 0.7 -- The larger this multiplier is the more spread out items are. However too small a value leads to them being bunched up around the center when very large numbers of items are dropped.
 
@@ -495,7 +519,7 @@ PlayerDropInventory.DropAllItemsFromInventories = function(player, data, itemCou
                     radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
                     position.x = centerPosition_x + radius * math_cos(angle)
                     position.y = centerPosition_y + radius * math_sin(angle)
-                    surface.spill_item_stack(position, itemStackToDropFrom, false, nil, data.dropOnBelts)
+                    surface.spill_item_stack(position, itemStackToDropFrom, dropAsLoot, markForDeconstructionForce, dropOnBelts)
                 else
                     -- Multiple items in the itemStack so can create 1 item to drop object and just drop it repeatedly for the whole count.
                     -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
@@ -520,7 +544,7 @@ PlayerDropInventory.DropAllItemsFromInventories = function(player, data, itemCou
                     radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
                     position.x = centerPosition_x + radius * math_cos(angle)
                     position.y = centerPosition_y + radius * math_sin(angle)
-                    surface.spill_item_stack(position, itemToDrop, false, nil, data.dropOnBelts)
+                    surface.spill_item_stack(position, itemToDrop, dropAsLoot, markForDeconstructionForce, dropOnBelts)
 
                     -- Clear these special attributes after the first item is dropped as they are only present for 1 item in the stack effectively.
                     itemToDrop.durability = nil
@@ -532,7 +556,7 @@ PlayerDropInventory.DropAllItemsFromInventories = function(player, data, itemCou
                         radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
                         position.x = centerPosition_x + radius * math_cos(angle)
                         position.y = centerPosition_y + radius * math_sin(angle)
-                        surface.spill_item_stack(position, itemToDrop, false, nil, data.dropOnBelts)
+                        surface.spill_item_stack(position, itemToDrop, dropAsLoot, markForDeconstructionForce, dropOnBelts)
                     end
                 end
 
@@ -557,7 +581,7 @@ PlayerDropInventory.DropAllItemsFromInventories = function(player, data, itemCou
                             radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
                             position.x = centerPosition_x + radius * math_cos(angle)
                             position.y = centerPosition_y + radius * math_sin(angle)
-                            surface.spill_item_stack(position, itemStackToDropFrom, false, nil, data.dropOnBelts)
+                            surface.spill_item_stack(position, itemStackToDropFrom, dropAsLoot, markForDeconstructionForce, dropOnBelts)
                         else
                             -- Multiple items in the itemStack so can create 1 item to drop object and just drop it repeatedly for the whole count.
                             -- CODE NOTE: ItemStacks are grouped by Factorio in to full health or damaged (health averaged across all items in itemStack).
@@ -581,7 +605,7 @@ PlayerDropInventory.DropAllItemsFromInventories = function(player, data, itemCou
                             radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
                             position.x = centerPosition_x + radius * math_cos(angle)
                             position.y = centerPosition_y + radius * math_sin(angle)
-                            surface.spill_item_stack(position, itemToDrop, false, nil, data.dropOnBelts)
+                            surface.spill_item_stack(position, itemToDrop, dropAsLoot, markForDeconstructionForce, dropOnBelts)
 
                             -- Clear these special attributes after the first item is dropped as they are only present for 1 item in the stack effectively.
                             itemToDrop.durability = nil
@@ -593,7 +617,7 @@ PlayerDropInventory.DropAllItemsFromInventories = function(player, data, itemCou
                                 radius = (maxRadius * math_sqrt(-density * math_log(math_random()))) + 2
                                 position.x = centerPosition_x + radius * math_cos(angle)
                                 position.y = centerPosition_y + radius * math_sin(angle)
-                                surface.spill_item_stack(position, itemToDrop, false, nil, data.dropOnBelts)
+                                surface.spill_item_stack(position, itemToDrop, dropAsLoot, markForDeconstructionForce, dropOnBelts)
                             end
                         end
                     end

@@ -2,7 +2,9 @@
 Version: 20.1.31
 Date: 2022-09-XXXX
   Features:
-    - Player Drop Inventory - UPS improvements make this feature viable for all sizes of inventory drops now, including dropping entire inventories in 1 go.
+    - Player Drop Inventory - UPS improvements make this feature viable for all sizes of inventory drops now, including dropping entire inventories in 1 go. Readme updated to reflect this.
+    - Player Drop Inventory - add option to `markForDeconstruction`. If enabled then items dropped are marked for deconstruction for the owners force. Defaults to false.
+    - Player Drop Inventory - add option to `dropAsLoot`. If enabled then items dropped are marked as loot, meaning any near by player automatically picks them up. Defaults to false.
   Changes:
   Bugfixes:
   Info:
