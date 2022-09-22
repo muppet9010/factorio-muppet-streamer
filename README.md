@@ -375,8 +375,8 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 - quantityType: STRING - Mandatory: the way quantity value is interpreted to calculate the number of items to drop per drop action, either `constant`, `startingPercentage` or `realtimePercentage`. Constant uses `quantityValue` as a static number of items. StartingPercentage means a percentage of the item count at the start of the effect is dropped from the player every drop action. RealtimePercentage means that every time a drop action occurs the player's current inventory item count is used to calculate how many items to drop this action.
 - quantityValue: INTEGER - Mandatory: the number of items to drop. When quantityType is `startingPercentage`, or `realtimePercentage` this number is used as the percentage (0-100).
 - dropOnBelts: BOOLEAN - Optional: if the dropped items should be placed on belts or not. Defaults to `false`.
-- gap: DECIMAL - Mandatory: how many seconds between each drop action.
-- occurrences: INTEGER - Mandatory: how many times the drop actions are done.
+- gap: DECIMAL - Mandatory: how many seconds between each drop action. If `occurrences` is `1` then this option has no impact, but still must be set to 1 or greater.
+- occurrences: INTEGER - Mandatory: how many times the drop actions are done. Must be a value of `1` or greater.
 - dropEquipment: BOOLEAN - Optional: if the player's armor and weapons are dropped or not. Defaults to `true`.
 - density: DECIMAL - Optional: specifies the approximate density of the dropped items at the center of their spill area. Value in range of `10` (dense) to `0` (extremely spread out), see Notes for full details. Defaults to `10`.
 

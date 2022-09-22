@@ -183,8 +183,15 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     -- Record the player as having this effect running on them so it can't be started a second time.
     global.playerDropInventory.affectedPlayers[targetPlayer_index] = true
 
-    -- Do the first effect now.
-    if not data.suppressMessages then game.print({ "message.muppet_streamer_player_drop_inventory_start", targetPlayer.name }) end
+    -- Do the first effect immediately.
+    if not data.suppressMessages then
+        if data.occurrences > 1 then
+            game.print({ "message.muppet_streamer_player_drop_inventory_start", targetPlayer.name })
+        else
+            game.print({ "message.muppet_streamer_player_drop_inventory_full", targetPlayer.name })
+        end
+    end
+
     ---@type PlayerDropInventory_ScheduledDropItemsData
     local scheduledDropItemsData = {
         player_index = targetPlayer_index,
@@ -244,7 +251,11 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         EventScheduler.ScheduleEventOnce(event.tick + data.gap, "PlayerDropInventory.PlayerDropItems_Scheduled", playerIndex, data)
     else
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
-        if not data.suppressMessages then game.print({ "message.muppet_streamer_player_drop_inventory_stop", player.name }) end
+        if not data.suppressMessages then
+            if data.totalOccurrences > 1 then
+                game.print({ "message.muppet_streamer_player_drop_inventory_stop", player.name })
+            end
+        end
     end
 end
 
