@@ -274,7 +274,7 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
     local math_pi_x2 = math_pi * 2
 
     -- Get a sorted list of the random item numbers across all inventories we are going to drop. Duplicates can be supported as we will reduce the item count from cache and local variables when we drop each item. These numbers are all manipulated post selection to account for the reduced items in inventories as previous items are dropped.
-    -- CODE NOTE: this logic isn't quite right, but it does handle duplicate random numbers by just selecting the next one. Also handles the fact we select all of the items from a full list, but we iterate through the items from low to high and thus the selected item numbers to be dropped have to be kept within the remaining total as we work through the items. Its likely not perfectly random, but in testing it looks pretty even across the many item stacks.
+    -- CODE NOTE: this logic isn't quite right, but it does handle duplicate random numbers by just selecting the next one. Also handles the fact we select all of the items from a full list, but we iterate through the items from low to high and thus the selected item numbers to be dropped have to be kept within the remaining total as we work through the items. It's likely not perfectly random, but in testing it looks pretty even across the many item stacks.
     local itemNumbersToBeDropped = {} ---@type table<int, int>
     for i = 1, itemCountToDrop do
         itemNumbersToBeDropped[i] = math_random(1, totalItemCount)
@@ -282,8 +282,13 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
     table.sort(itemNumbersToBeDropped)
     local newNumber
     local lastItemNumber = 1
+    local itemsLeft = totalItemCount - itemCountToDrop
     for i, number in pairs(itemNumbersToBeDropped) do
         newNumber = number - (i - 1)
+        -- Cap the number to be dropped at the remaining count. As the above seems to go over this limit a bit.
+        if newNumber > itemsLeft then
+            newNumber = itemsLeft
+        end
         if newNumber > lastItemNumber then
             -- Record the reduced new number as greater than last number.
             itemNumbersToBeDropped[i] = newNumber
@@ -445,7 +450,6 @@ end
 ---@param itemCountToDrop uint
 ---@param itemsCountsInInventories PlayerDropInventory_InventoryItemCounts
 PlayerDropInventory.DropAllItemsFromInventories = function(player, data, itemCountToDrop, itemsCountsInInventories)
-    -- TODO: this all needs testing.
     local surface = player.surface
     local player_position = player.position
     local centerPosition_x, centerPosition_y = player_position.x, player_position.y

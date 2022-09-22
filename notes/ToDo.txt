@@ -21,7 +21,6 @@ BUGS THAT CAN'T BE REPRODUCED:
 
 
 DO NEAR FUTURE:
-    - CommandsUtils.CheckNumberArgument() seemed to have a surprisingly high UPS impact, review it.
     - Player Drop Inventory - in a single drop action the message should just be player has littered, no start and stop.
     - Player Drop Inventory - should have separate armor and gun equipment options. Default to true.
     - Player Drop Inventory - include option to mark as deconstruction for the owners team (poop does it). Default to false.
