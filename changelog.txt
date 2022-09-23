@@ -1,15 +1,29 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.31
+Date: 2022-09-23
+  Features:
+    - Player Drop Inventory - UPS improvements make this feature viable for all sizes of inventory drops now, including dropping entire inventories in 1 go. Readme updated to reflect this.
+    - Player Drop Inventory - add option to `markForDeconstruction`. If enabled then items dropped are marked for deconstruction for the owners force. Defaults to false.
+    - Player Drop Inventory - add option to `dropAsLoot`. If enabled then items dropped are marked as loot, meaning any near by player automatically picks them up. Defaults to false.
+    - Player Drop Inventory - added `includeArmor` and `includeWeapons` as separate options to replace the single `includeEquipment` option. Both still default to true as per the old option.
+  Changes:
+    - Player Drop Inventory - removed `includeEquipment` option as added `includeArmor` and `includeWeapons`.
+    - Pants On Fire - players are ejected from vehicles for the duration of the effect, rather than taking damage inside a vehicle. As taking damage can be confusing and not scale as intended, especially in multiplayer with lag.
+  Bugfixes:
+  Info:
+    - Player Drop Inventory - UPS improvements for very large (but non full inventory) drop counts. Will have negligible UPS impact on small drop amounts.
+    - Player Drop Inventory - UPS improvements for when specifically full inventories are dropped. This occurs when either a static or dynamic drop count is equal or greater than the total items the player has.
+---------------------------------------------------------------------------------------------------
 Version: 20.1.30
 Date: 2022-09-16
   Features:
     - Explosive Delivery - added `salvoFollowPlayer` option for each salvo to re-target on the player's current position. Defaults to target the initial position (as per old behaviour).
     - Inventory Shuffle - added `includeArmor` and `includeWeapons` as separate options to replace the single `includeEquipment` option. Both still default to true as per the old option.
     - Inventory Shuffle - added `extractArmorEquipment` option that removes equipment from armor and shuffles them between players. Defaults to false.
-    - Player Drop On Ground - items dropped are now spread out in a visually pleasing manner a few tiles away from the player, rather than a solid block of items at the players feet. Added `density` option to allow controlling how spread out the dropped items are. Defaults to most dense distribution around the player.
-    - Player Drop On Ground - More UPS efficient: both Lua code improvements and for larger quantities the distributed item dropping logic is much more efficient than the old way of dropping everything at the players feet. As the game doesn't have to keep on looking for a near by location to place each spilled item from the center heading outwards. The mileage on this UPS saving will vary based on densities being dropped and how crowded the area is (best UPS in open areas).
+    - Player Drop Inventory - items dropped are now spread out in a visually pleasing manner a few tiles away from the player, rather than a solid block of items at the players feet. Added `density` option to allow controlling how spread out the dropped items are. Defaults to most dense distribution around the player.
   Changes:
     - Inventory Shuffle - removed `includeEquipment` option as added `includeArmor` and `includeWeapons`.
-    - Player Drop On Ground - introduction of `density` option and using a pretty circular distribution means that items are never dropped in the most concentrated grid possible any more. This was not a design feature before, but default behaviour due to lack of a proper distribution feature.
+    - Player Drop Inventory - introduction of `density` option and using a pretty circular distribution means that items are never dropped in the most concentrated grid possible any more. This was not a design feature before, but default behaviour due to lack of a proper distribution feature.
   Bugfixes:
     - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.
     - All Features - don't error if a tiny delay is provided that gets rounded to 0 ticks.
@@ -17,6 +31,7 @@ Date: 2022-09-16
     - Spawn Around Player - if there is an ammo name provided, but no `ammoCount` value is given it won't error any more. It won;t warn about this either, it will just insert 0 ammo for no effect.
   Info:
     - Correct some spelling mistakes in locale strings.
+    - Player Drop Inventory - More UPS efficient: both Lua code improvements and for larger quantities the distributed item dropping logic is much more efficient than the old way of dropping everything at the players feet. As the game doesn't have to keep on looking for a near by location to place each spilled item from the center heading outwards. The mileage on this UPS saving will vary based on densities being dropped and how crowded the area is (best UPS in open areas).
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.29
 Date: 2022-08-09
