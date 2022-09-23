@@ -26,7 +26,8 @@ local QuantityType = {
 ---@field dropAsLoot boolean
 ---@field gap uint # Must be > 0.
 ---@field occurrences uint
----@field dropEquipment boolean
+---@field includeArmor boolean
+---@field includeWeapons boolean
 ---@field density double
 ---@field suppressMessages boolean
 
@@ -38,7 +39,8 @@ local QuantityType = {
 ---@field dropOnBelts boolean
 ---@field markForDeconstructionForce LuaForce|nil
 ---@field dropAsLoot boolean
----@field dropEquipment boolean
+---@field includeArmor boolean
+---@field includeWeapons boolean
 ---@field staticItemCount uint|nil
 ---@field dynamicPercentageItemCount uint|nil
 ---@field currentOccurrences uint
@@ -66,7 +68,7 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "markForDeconstruction", "dropAsLoot", "gap", "occurrences", "dropEquipment", "density", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "markForDeconstruction", "dropAsLoot", "gap", "occurrences", "includeArmor", "includeWeapons", "density", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -128,12 +130,20 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
         return
     end ---@cast occurrences uint
 
-    local dropEquipment = commandData.dropEquipment
-    if not CommandsUtils.CheckBooleanArgument(dropEquipment, false, commandName, "dropEquipment", command.parameter) then
+    local includeArmor = commandData.includeArmor
+    if not CommandsUtils.CheckBooleanArgument(includeArmor, false, commandName, "includeArmor", command.parameter) then
         return
-    end ---@cast dropEquipment boolean|nil
-    if dropEquipment == nil then
-        dropEquipment = true
+    end ---@cast includeArmor boolean|nil
+    if includeArmor == nil then
+        includeArmor = true
+    end
+
+    local includeWeapons = commandData.includeWeapons
+    if not CommandsUtils.CheckBooleanArgument(includeWeapons, false, commandName, "includeWeapons", command.parameter) then
+        return
+    end ---@cast includeWeapons boolean|nil
+    if includeWeapons == nil then
+        includeWeapons = true
     end
 
     local density = commandData.density
@@ -162,7 +172,8 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
 
     global.playerDropInventory.nextId = global.playerDropInventory.nextId + 1
     ---@type PlayerDropInventory_ApplyDropItemsData
-    local applyDropItemsData = { target = target, quantityType = quantityType, quantityValue = quantityValue, dropOnBelts = dropOnBelts, markForDeconstruction = markForDeconstruction, dropAsLoot = dropAsLoot, gap = gap, occurrences = occurrences, dropEquipment = dropEquipment, density = density, distributionOuterDensity = distributionOuterDensity, suppressMessages = suppressMessages }
+    local applyDropItemsData = { target = target, quantityType = quantityType, quantityValue = quantityValue, dropOnBelts = dropOnBelts, markForDeconstruction = markForDeconstruction, dropAsLoot = dropAsLoot, gap = gap, occurrences = occurrences,
+        includeArmor = includeArmor, includeWeapons = includeWeapons, density = density, distributionOuterDensity = distributionOuterDensity, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerDropInventory.ApplyToPlayer", global.playerDropInventory.nextId, applyDropItemsData)
 end
 
@@ -194,7 +205,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
     if data.quantityType == QuantityType.constant then
         staticItemCount = data.quantityValue
     elseif data.quantityType == QuantityType.startingPercentage then
-        local totalItemCount = PlayerDropInventory.GetPlayersItemCount(targetPlayer, data.dropEquipment)
+        local totalItemCount = PlayerDropInventory.GetPlayersItemCount(targetPlayer, data.includeArmor, data.includeWeapons)
         staticItemCount = math.max(1, math.floor(totalItemCount / (100 / data.quantityValue))) -- Output will always be a uint based on the input values prior validation.
     elseif data.quantityType == QuantityType.realtimePercentage then
         dynamicPercentageItemCount = data.quantityValue
@@ -205,10 +216,9 @@ PlayerDropInventory.ApplyToPlayer = function(event)
 
     -- Do the first effect immediately.
     if not data.suppressMessages then
+        -- Single occurrence messages are printed from within the dropping loop when we have the required data to know their context.
         if data.occurrences > 1 then
             game.print({ "message.muppet_streamer_player_drop_inventory_start", targetPlayer.name })
-        else
-            game.print({ "message.muppet_streamer_player_drop_inventory_full", targetPlayer.name })
         end
     end
 
@@ -221,7 +231,8 @@ PlayerDropInventory.ApplyToPlayer = function(event)
         dropOnBelts = data.dropOnBelts,
         markForDeconstructionForce = data.markForDeconstruction and targetPlayer.force --[[@as LuaForce]] or nil,
         dropAsLoot = data.dropAsLoot,
-        dropEquipment = data.dropEquipment,
+        includeArmor = data.includeArmor,
+        includeWeapons = data.includeWeapons,
         staticItemCount = staticItemCount,
         dynamicPercentageItemCount = dynamicPercentageItemCount,
         currentOccurrences = 0,
@@ -247,7 +258,7 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     --      - total items in all inventories - used to work out the range of our random item selection (by index).
     --      - total items in each inventory - used to work out which inventory has the item we want as can just use these totals, rather than having to repeatedly count the cached contents counts.
     --      - item name and count in each inventory - used to define what item to drop for a given index in an inventory.
-    local totalItemCount, itemsCountsInInventories, inventoriesContents = PlayerDropInventory.GetPlayersInventoryItemDetails(player, data.dropEquipment)
+    local totalItemCount, itemsCountsInInventories, inventoriesContents = PlayerDropInventory.GetPlayersInventoryItemDetails(player, data.includeArmor, data.includeWeapons)
 
     -- Get the number of items to drop this event.
     local itemCountToDrop
@@ -256,6 +267,17 @@ PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
         itemCountToDrop = math.min(data.staticItemCount, totalItemCount) ---@type uint
     else
         itemCountToDrop = math.max(1, math.floor(totalItemCount / (100 / data.dynamicPercentageItemCount))) --[[@as uint # End value will always end up as a uint from the validated input values.]]
+    end
+
+    -- Print single occurrence messages here as we need to know the item counts for this.
+    if not data.suppressMessages then
+        if data.totalOccurrences == 1 then
+            if itemCountToDrop == totalItemCount then
+                game.print({ "message.muppet_streamer_player_drop_inventory_full", player.name })
+            else
+                game.print({ "message.muppet_streamer_player_drop_inventory_once", player.name })
+            end
+        end
     end
 
     -- Only try and drop items if there are any to drop in the player's inventories. We want the code to keep on running for future iterations until the occurrence count has completed.
@@ -646,9 +668,10 @@ PlayerDropInventory.StopEffectOnPlayer = function(playerIndex)
 end
 
 ---@param player LuaPlayer
----@param includeEquipment boolean
+---@param includeArmor boolean
+---@param includeWeapons boolean
 ---@return uint totalItemsCount
-PlayerDropInventory.GetPlayersItemCount = function(player, includeEquipment)
+PlayerDropInventory.GetPlayersItemCount = function(player, includeArmor, includeWeapons)
     local totalItemsCount = 0 ---@type uint
     for _, inventoryName in pairs({ defines.inventory.character_main, defines.inventory.character_trash }) do
         for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
@@ -660,8 +683,13 @@ PlayerDropInventory.GetPlayersItemCount = function(player, includeEquipment)
         totalItemsCount = totalItemsCount + cursorStack.count
     end
 
-    if includeEquipment then
-        for _, inventoryName in pairs({ defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo }) do
+    if includeArmor then
+        for _, count in pairs(player.get_inventory(defines.inventory.character_armor).get_contents()) do
+            totalItemsCount = totalItemsCount + count
+        end
+    end
+    if includeWeapons then
+        for _, inventoryName in pairs({ defines.inventory.character_guns, defines.inventory.character_ammo }) do
             for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
                 totalItemsCount = totalItemsCount + count
             end
@@ -672,11 +700,12 @@ PlayerDropInventory.GetPlayersItemCount = function(player, includeEquipment)
 end
 
 ---@param player LuaPlayer
----@param includeEquipment boolean
+---@param includeArmor boolean
+---@param includeWeapons boolean
 ---@return uint totalItemsCount
 ---@return PlayerDropInventory_InventoryItemCounts inventoryItemCounts
 ---@return PlayerDropInventory_InventoryContents inventoryContents
-PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEquipment)
+PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeArmor, includeWeapons)
     local totalItemsCount = 0 ---@type uint
     local inventoryItemCounts = {} ---@type PlayerDropInventory_InventoryItemCounts
     local inventoryContents = {} ---@type PlayerDropInventory_InventoryContents
@@ -695,8 +724,15 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeEqu
         inventoryContents["cursorStack"] = { [cursorStack.name] = count }
     end
 
-    if includeEquipment then
-        for _, inventoryName in pairs({ defines.inventory.character_armor, defines.inventory.character_guns, defines.inventory.character_ammo }) do
+    if includeArmor then
+        local inventory = player.get_inventory(defines.inventory.character_armor) ---@cast inventory - nil
+        inventoryContents[defines.inventory.character_armor] = inventory.get_contents()
+        local inventoryTotalCount = inventory.get_item_count()
+        totalItemsCount = totalItemsCount + inventoryTotalCount
+        inventoryItemCounts[defines.inventory.character_armor] = inventoryTotalCount
+    end
+    if includeWeapons then
+        for _, inventoryName in pairs({ defines.inventory.character_guns, defines.inventory.character_ammo }) do
             local inventory = player.get_inventory(inventoryName) ---@cast inventory - nil
             inventoryContents[inventoryName] = inventory.get_contents()
             local inventoryTotalCount = inventory.get_item_count()

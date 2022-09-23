@@ -379,9 +379,9 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 - dropAsLoot: BOOLEAN - Optional: if the dropped items are marked as loot and thus any player who goes near them automatically picks them up. Defaults to `false`.
 - gap: DECIMAL - Mandatory: how many seconds between each drop action. If `occurrences` is `1` then this option has no impact, but still must be set to 1 or greater.
 - occurrences: INTEGER - Mandatory: how many times the drop actions are done. Must be a value of `1` or greater.
-- dropEquipment: BOOLEAN - Optional: if the player's armor and weapons are dropped or not. Defaults to `true`.
+- includeArmor: BOOLEAN - Optional: if the player's equipped (worn) armor is included for dropping or not. Defaults to `true`.
+- includeWeapons: BOOLEAN - Optional: if the player's equipped weapons and ammo are included for dropping or not. Defaults to `true`.
 - density: DECIMAL - Optional: specifies the approximate density of the dropped items at the center of their spill area. Value in range of `10` (dense) to `0` (extremely spread out), see Notes for full details. Defaults to `10`.
-
 - suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples

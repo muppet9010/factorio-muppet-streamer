@@ -5,7 +5,9 @@ Date: 2022-09-XXXX
     - Player Drop Inventory - UPS improvements make this feature viable for all sizes of inventory drops now, including dropping entire inventories in 1 go. Readme updated to reflect this.
     - Player Drop Inventory - add option to `markForDeconstruction`. If enabled then items dropped are marked for deconstruction for the owners force. Defaults to false.
     - Player Drop Inventory - add option to `dropAsLoot`. If enabled then items dropped are marked as loot, meaning any near by player automatically picks them up. Defaults to false.
+    - Player Drop Inventory - added `includeArmor` and `includeWeapons` as separate options to replace the single `includeEquipment` option. Both still default to true as per the old option.
   Changes:
+    - Player Drop Inventory - removed `includeEquipment` option as added `includeArmor` and `includeWeapons`.
   Bugfixes:
   Info:
     - Player Drop Inventory - UPS improvements for very large (but non full inventory) drop counts. Will have negligible UPS impact on small drop amounts.
