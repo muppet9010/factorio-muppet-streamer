@@ -115,7 +115,7 @@ Forces the targeted player to wield a weapon that shoots in random directions. S
 
 #### Notes
 
-- This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
+- This feature uses a custom Factorio permission group when active. This could conflict with other mods/scenarios that also use Factorio permission groups.
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one. As no one likes to be in an enclosed space with weapons firing.
 - The player will be given the weapon and ammo needed for the effect if needed. If given these will be reclaimed at the end of the effect as appropriate. The player’s original gun and weapon selection will be returned to them including any slot filters.
 - While activated the player will lose control over their weapons targeting and firing behaviour.
@@ -237,7 +237,7 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 
 #### Notes
 
-- This feature uses a custom permission group when active. This could conflict with other mods/scenarios that also use permission groups.
+- This feature uses a custom Factorio permission group when active. This could conflict with other mods/scenarios that also use Factorio permission groups.
 - If the vehicle comes to a stop during the time (due to hitting something) it will automatically start going the opposite direction.
 - This feature affects all types of cars, tanks, trains and spider vehicles.
 - If the player is in a vehicle and not in the drivers seat or it doesn't have fuel then the effect won't do anything.
@@ -352,7 +352,7 @@ Sets the ground on fire behind a player forcing them to run. This is a Time Dura
 
 #### Notes
 
-- If a player is in a vehicle while the effect is active they take increasing damage until they get out, in addition to the ground being set on fire. If they get back in another vehicle then the damage resumes from its high point reached so far. This is to stop the player jumping in/out of armored vehicles (tank, train, etc) and being effectively immune as those vehicles take so little fire damage.
+- For the duration of the effect if a player enters a vehicle they are instantly ejected. This does not use a Factorio permission group as the effect doesn't require it.
 - Fire effects are on a special enemy force so that they will hurt everything on the map, `muppet_streamer_enemy`. This also means that player damage upgrades don't affect these effects.
 - Generally the more flames the greater the damage, burn time and larger spread. For vanilla Factorio's `fire-flame` values above 35 have no greater effect, with it taking 20 fire count to set a tree on fire; but at this level the player will have to run right next to a tree to set it on fire. The command defaults to a value of 30 which generally sets trees very close to the player on fire without requiring the player to actually touch them. Value capped at 250, as the Factorio's maximum of 255 is treated as a value of 0, but this isn't 0 flames, instead its some odd default value. For some details on the oddity of flame counts see the following bug report: https://forums.factorio.com/viewtopic.php?f=7&t=103227
 
@@ -399,6 +399,7 @@ Schedules the targeted player to drop their inventory on the ground over time. T
 - The items are dropped around the player approximately 2 tiles away from them in a circle. With the density decreasing as the items move away from the player. The spread is ideal in open areas, with tight areas seeming more densely placed due to the limited placement options. The items placement density won't be exactly the same between very low and high values, but should be approximately similar considering the randomisation in the placement logic. Any square edges to dense areas of items on the ground is caused by entities blocking their placement.
 - The `density` option will define how dense the items will be at their center. The rate the density of items decreases at is related to the starting density, with higher central `density` values getting sparser quicker (mountain shape), and lower starting `density` values becoming sparse over a larger distance (frisbee shape). All items are placed in the same total area regardless of density option, but the number of items towards the edge of this area will vary significantly. Changes to the density value around the max density (`10`) will appear to have a greater impact on distribution than changes at the sparse (`0`) end of the range. This may be real from the Gaussian algorithm or just human perception.
 - Maximum `density` is configured to avoid excessive overlapping of the items when randomly placed on the ground. This is why it doesn't place the full 9 items per tile. Overlapping items cause the Factorio game engine to work harder to find a placement location and thus can have higher UPS usage.
+- Armor is dropped last if it's included. When the armor is dropped this may reduce players inventory size and thus may spill items on the ground using default Factorio logic.
 
 
 

@@ -17,6 +17,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@class PantsOnFire_EffectDetails
 ---@field player_index uint
 ---@field player LuaPlayer
+---@field nextFireTick uint
 ---@field finishTick uint
 ---@field fireHeadStart uint
 ---@field fireGap uint # Must be > 0.
@@ -171,9 +172,9 @@ PantsOnFire.ApplyToPlayer = function(eventData)
 
     -- stepPos starts at 0 so the first step happens at offset 1
     ---@type PantsOnFire_EffectDetails
-    local effectDetails = { player_index = targetPlayer_index, player = targetPlayer, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, ticksInVehicle = 0, firePrototype = data.firePrototype, suppressMessages = data.suppressMessages }
+    local effectDetails = { player_index = targetPlayer_index, player = targetPlayer, nextFireTick = eventData.tick, finishTick = data.finishTick, fireHeadStart = data.fireHeadStart, fireGap = data.fireGap, flameCount = data.flameCount, startFire = false, stepPos = 0, ticksInVehicle = 0, firePrototype = data.firePrototype, suppressMessages = data.suppressMessages }
     ---@type UtilityScheduledEvent_CallbackObject
-    local walkCheckCallbackObject = { tick = game.tick, instanceId = targetPlayer_index, data = effectDetails }
+    local walkCheckCallbackObject = { tick = eventData.tick, instanceId = targetPlayer_index, data = effectDetails }
     PantsOnFire.WalkCheck(walkCheckCallbackObject)
 end
 
@@ -186,16 +187,25 @@ PantsOnFire.WalkCheck = function(eventData)
         return
     end
 
-    -- Check the firePrototype is still valid (unchanged).
-    if not data.firePrototype.valid then
-        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game fire prototype has been changed/removed since the command was run.", nil)
-        return
-    end
-
     -- Steps is a buffer of the players past position every fireGap tick interval.
     local affectedPlayerDetails = global.PantsOnFire.affectedPlayers[playerIndex]
     if affectedPlayerDetails == nil then
         -- Don't process this tick as the effect has been stopped by an external event.
+        return
+    end
+
+    -- Every tick eject the player should they be in a vehicle. While we don't create fire entities every tick, we don't want to let players escape the fire by getting in a vehicle for short periods.
+    player.driving = false
+
+    -- Only continue to create a fire entity if its correct for this tick, otherwise just schedule the effect to continue next tick and end this function.
+    if data.nextFireTick ~= eventData.tick then
+        EventScheduler.ScheduleEventOnce(eventData.tick + 1, "PantsOnFire.WalkCheck", playerIndex, data)
+        return
+    end
+
+    -- Check the firePrototype is still valid (unchanged).
+    if not data.firePrototype.valid then
+        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game fire prototype has been changed/removed since the command was run.", nil)
         return
     end
 
@@ -214,19 +224,7 @@ PantsOnFire.WalkCheck = function(eventData)
         if step.surface.valid then
             -- Factorio auto deletes the fire-flame entity for us.
             -- 20 flames seems the minimum to set a tree on fire.
-            local fireEntity = step.surface.create_entity({ name = data.firePrototype.name, position = step.position, initial_ground_flame_count = data.flameCount, force = global.Forces.muppet_streamer_enemy, create_build_effect_smoke = false, raise_built = true })
-
-            -- If the player is in a vehicle do direct health damage to stop them hiding from the effects in armored vehicles.
-            if player.vehicle then
-                local playerCharacter = player.character
-                if playerCharacter then
-                    data.ticksInVehicle = data.ticksInVehicle + data.fireGap
-                    -- Damage is square of how long they are in a vehicle to give a scale between those with no shields/armor and heavily shielded players. Total damage is done as an amount per second regardless of how often the fire gap delay has the ground effect created and thus this function called.
-                    local secondsInVehicle = math.ceil(data.ticksInVehicle / 60)
-                    local damageForPeriodOfSecond = MathUtils.ClampToFloat((secondsInVehicle ^ 4) / (60 / data.fireGap)) -- We don't care if the value is clamped within the allowed range as its already so large.
-                    playerCharacter.damage(damageForPeriodOfSecond, global.Forces.muppet_streamer_enemy, "fire", fireEntity)
-                end
-            end
+            step.surface.create_entity({ name = data.firePrototype.name, position = step.position, initial_ground_flame_count = data.flameCount, force = global.Forces.muppet_streamer_enemy, create_build_effect_smoke = false, raise_built = true })
         end
     end
 
@@ -235,7 +233,8 @@ PantsOnFire.WalkCheck = function(eventData)
 
     -- Schedule the next loop if not finished yet.
     if eventData.tick < data.finishTick then
-        EventScheduler.ScheduleEventOnce(eventData.tick + data.fireGap, "PantsOnFire.WalkCheck", playerIndex, data)
+        data.nextFireTick = eventData.tick + data.fireGap
+        EventScheduler.ScheduleEventOnce(data.nextFireTick, "PantsOnFire.WalkCheck", playerIndex, data)
     else
         PantsOnFire.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.completed)
     end

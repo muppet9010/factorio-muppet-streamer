@@ -7,8 +7,6 @@ BUGS:
 
 
 DO NEAR FUTURE:
-	- Pants On Fire - kick the player out of the vehicle if they are in one every tick, rather than damaging them. As the damage can come across oddly in MP game with latency and there's no obvious visual for it some times. Also shields absorb the lower damage very easily and then at higher levels it suddenly becomes visible and kills quickly. Does mean the effect need's to run every tick which currently it doesn't.
-
     - In readme mark all option names as `code`. Also any option values should be in code blocks, i.e. range of `0` to `1`.
     - Look at moving usage documentation to a GitHub wiki.
 

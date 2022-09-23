@@ -8,6 +8,7 @@ Date: 2022-09-XXXX
     - Player Drop Inventory - added `includeArmor` and `includeWeapons` as separate options to replace the single `includeEquipment` option. Both still default to true as per the old option.
   Changes:
     - Player Drop Inventory - removed `includeEquipment` option as added `includeArmor` and `includeWeapons`.
+    - Pants On Fire - players are ejected from vehicles for the duration of the effect, rather than taking damage inside a vehicle. As taking damage can be confusing and not scale as intended, especially in multiplayer with lag.
   Bugfixes:
   Info:
     - Player Drop Inventory - UPS improvements for very large (but non full inventory) drop counts. Will have negligible UPS impact on small drop amounts.

@@ -683,16 +683,17 @@ PlayerDropInventory.GetPlayersItemCount = function(player, includeArmor, include
         totalItemsCount = totalItemsCount + cursorStack.count
     end
 
-    if includeArmor then
-        for _, count in pairs(player.get_inventory(defines.inventory.character_armor).get_contents()) do
-            totalItemsCount = totalItemsCount + count
-        end
-    end
     if includeWeapons then
         for _, inventoryName in pairs({ defines.inventory.character_guns, defines.inventory.character_ammo }) do
             for _, count in pairs(player.get_inventory(inventoryName).get_contents()) do
                 totalItemsCount = totalItemsCount + count
             end
+        end
+    end
+    -- Armor is last so any inventory items are dropped first to try and avoid inventory spills.
+    if includeArmor then
+        for _, count in pairs(player.get_inventory(defines.inventory.character_armor).get_contents()) do
+            totalItemsCount = totalItemsCount + count
         end
     end
 
@@ -724,13 +725,6 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeArm
         inventoryContents["cursorStack"] = { [cursorStack.name] = count }
     end
 
-    if includeArmor then
-        local inventory = player.get_inventory(defines.inventory.character_armor) ---@cast inventory - nil
-        inventoryContents[defines.inventory.character_armor] = inventory.get_contents()
-        local inventoryTotalCount = inventory.get_item_count()
-        totalItemsCount = totalItemsCount + inventoryTotalCount
-        inventoryItemCounts[defines.inventory.character_armor] = inventoryTotalCount
-    end
     if includeWeapons then
         for _, inventoryName in pairs({ defines.inventory.character_guns, defines.inventory.character_ammo }) do
             local inventory = player.get_inventory(inventoryName) ---@cast inventory - nil
@@ -739,6 +733,14 @@ PlayerDropInventory.GetPlayersInventoryItemDetails = function(player, includeArm
             totalItemsCount = totalItemsCount + inventoryTotalCount
             inventoryItemCounts[inventoryName] = inventoryTotalCount
         end
+    end
+    -- Armor is last so any inventory items are dropped first to try and avoid inventory spills.
+    if includeArmor then
+        local inventory = player.get_inventory(defines.inventory.character_armor) ---@cast inventory - nil
+        inventoryContents[defines.inventory.character_armor] = inventory.get_contents()
+        local inventoryTotalCount = inventory.get_item_count()
+        totalItemsCount = totalItemsCount + inventoryTotalCount
+        inventoryItemCounts[defines.inventory.character_armor] = inventoryTotalCount
     end
 
     return totalItemsCount, inventoryItemCounts, inventoryContents
