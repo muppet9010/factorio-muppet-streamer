@@ -40,6 +40,10 @@ Examples of some of the single player features can be seen here in a YouTube vid
 
 See the end of the file for descriptions of the data types and other wordings used in this explanation document. Also includes details on the Remote Interface of the mod, and mod upgrading advice.
 
+#### Updating the mod
+
+When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
+
 
 
 ---------------------------------------
@@ -112,6 +116,7 @@ Forces the targeted player to wield a weapon that shoots in random directions. S
 - standard usage (leaky flamethrower): `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":5}`
 - shotgun: `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":3, "weaponType":"shotgun", "ammoType":"shotgun-shell"}`
 - custom weapon (Cryogun from Space Exploration mod): `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":5, "weaponType":"se-cryogun", "ammoType":"se-cryogun-ammo"}`
+- atomic rocket launch: `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":1, "weaponType":"rocket-launcher", "ammoType":"atomic-bomb"}`
 
 #### Notes
 
@@ -122,7 +127,7 @@ Forces the targeted player to wield a weapon that shoots in random directions. S
 - While activated the player can not change the active gun via the switch to the next weapon key.
 - The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
 - The weapon is yours and so any of your damage upgrades for you will affect it.
-- The weapon ammo will need to be able to either target the ground or be shot in a direction.
+- The weapon's `ammoType` will need to be able to either target the ground or be shot in a direction. Ammo's that need to be fired at a specific enemy target won't work.
 - Stream type weapons (i.e. flamethrower) will slowly wonder around in range and direction. Projectile or beam type weapons will jump in their direction far quicker as they generally don't have the concept of target range in the same way.
 
 
@@ -540,10 +545,6 @@ General Usage Notes
 At present a Time Duration Effect may interrupt a different type of Time Duration Effect, depending upon each effects behaviours and player state requirements. i.e. Aggressive Driver and Malfunctioning Weapon will interrupt each other, but a Player Drop Inventory will not affect an Aggressive Driver.
 
 Any repeated running of the same effect will have the subsequent effect requests ignored, with the first effect continuing until its original completion.
-
-#### Updating the mod
-
-When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
 
 
 

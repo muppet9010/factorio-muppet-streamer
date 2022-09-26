@@ -11,7 +11,7 @@ DO NEAR FUTURE:
     - Look at moving usage documentation to a GitHub wiki.
 
 	- Aggressive Driver - test what happens if the player is in a vehicle, but not driving. It should ideally treat it as if they aren't in a vehicle as their script controlled input won't drive the vehicle, but I suspect it just detects they are in a vehicle and thus gives them input, despite the fact it does nothing.
-    - Aggressive Driver - Add option to commender vehicle (switch places with the driver) in a dual player vehicle.
+    - Aggressive Driver - Add option to commender vehicle (switch places with the driver) in a dual player vehicle. Also another option to kick a player out of driving a vehicle if there isn't one near by.
     - Aggressive Driver - check it handles sitting in a vehicle inside a rocket without erroring. Either should treat it as a non drivable vehicle, or should launch the rocket if it can be?
 
     - Player Inventory Shuffle - see if any UPS savings on current code. If we can avoid mass creations of tables via table re-use this also helps with Lua garbage collection.
