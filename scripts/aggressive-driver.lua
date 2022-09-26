@@ -95,7 +95,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         return
     end ---@cast control AggressiveDriver_ControlTypes|nil
     if control == nil then
-        control = ControlTypes.full
+        control = ControlTypes.random
     end
 
     local teleportDistance = commandData.teleportDistance

@@ -3,6 +3,7 @@ Version: 20.1.32
 Date: 2022-09-XXX
   Features:
   Changes:
+    - Aggressive Driver - changed default control to `random` from `full`. As this is the intended experience really and was the single example command.
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------
