@@ -9,13 +9,11 @@ BUGS:
 DO NEAR FUTURE:
     - Look at moving usage documentation to a GitHub wiki.
 
-	- Aggressive Driver - test what happens if the player is in a vehicle, but not driving. It should ideally treat it as if they aren't in a vehicle as their script controlled input won't drive the vehicle, but I suspect it just detects they are in a vehicle and thus gives them input, despite the fact it does nothing.
-    - Aggressive Driver - Add option to commender vehicle (switch places with the driver) in a dual player vehicle. Also another option to kick a player out of driving a vehicle if there isn't one near by.
-    - Aggressive Driver - check it handles sitting in a vehicle inside a rocket without erroring. Either should treat it as a non drivable vehicle, or should launch the rocket if it can be?
-    - Aggressive Driver - Add option to randomly walk the player if they end up with no vehicle. If this fallback state is reached it will ignore the control setting.
-    - Aggressive Driver - Add option to specify a vehicle type by name to only search for and teleport you to.
+    - Aggressive Driver - Add option to commender vehicle by kicking a player out of driving a suitable vehicle if there isn't one near by.
+    - Aggressive Driver - Add option to randomly walk the player if they end up with no vehicle. If this fallback state is reached it will ignore the control setting. This should have 3 active options, 1 as fallback if no vehicle is found, 1 only if a vehicle found and effect started but then the player becomes outside the vehicle, and one in both of these cases. Plus none of these as an option.
+    - Aggressive Driver - Add options to specify a vehicle by name(s) to only search for and teleport you to, and another option of vehicle type(s). Can't do this as one combined setting as base game has entities named the same as the vehicle types.
 
-    - Player Inventory Shuffle - see if any UPS savings on current code. If we can avoid mass creations of tables via table re-use this also helps with Lua garbage collection.
+    - Player Inventory Shuffle - see if any UPS savings on current code. If we can avoid mass creations of tables via table re-use this also helps with Lua garbage collection. Do a performance check with and without lines to see if this distorts the overall results.
 
     - Call for Help - add option for if target player is in a vehicle try to put any helping players (who are on foot) in the vehicle with them first. If the target player is in a train try and put the players in other carriages in the train first.
 
@@ -41,7 +39,6 @@ Future Confirmed (bigger things):
 		- 2: Command accepts a callback function. To make this Save/Load safe if will need to be able to put this in to global. This requires the function to be turned to a string and stored until needed to handle the delay. It also requires any passed in data object to be stored in global between the command being called and the function being run. At function run time it would be changed from a string back in to a function, have the passed in data object passed in to the function as well as the effect data object (entities/players affected by the effect). See the SimHelper mod as that does something similar apparently.
 
     - Add `targetPosition` and `targetOffset` to `Spawn Around Player` like they are in `Explosive Delivery`.
-    - Spawn around player to support biters, spitters or both. Allow named or evolution specific.
 
     - Time duration events should add to existing ones if active.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room. Should never be "lost".
@@ -88,3 +85,4 @@ Future Possible Concepts:
     - Player Drop Inventory - You can't do an even spread with current algorithm. Add an algorithm option and have one for even spread that uses an even distribution weighting and a different max radius logic to balance it. Also see if we can have a low to max option, so the outside is high density.
     - Player Drop Inventory - Separate option to include armor equipment in things that can be dropped. Would require a more stateful inspection of items in inventory to see if they have grids and then equipment.
     - Drunk Player - new feature to swap movement keys around randomly. So when a player pressed UP, it may behave like its bind'ed to RIGHT. Will be a timed duration event.
+    - Spawn enemies around player. Allow named (list) or evolution specific. Allow all or named spawner type generated enemies.

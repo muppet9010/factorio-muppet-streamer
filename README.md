@@ -123,9 +123,9 @@ Forces the targeted player to wield a weapon that shoots in random directions. S
 - This feature uses a custom Factorio permission group when active. This could conflict with other mods/scenarios that also use Factorio permission groups.
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one. As no one likes to be in an enclosed space with weapons firing.
 - The player will be given the weapon and ammo needed for the effect if needed. If given these will be reclaimed at the end of the effect as appropriate. The player’s original gun and weapon selection will be returned to them including any slot filters.
-- While activated the player will lose control over their weapon's targeting and firing behaviour.
+- While activated the player will lose control over their weapon's targeting and firing behavior.
 - While activated the player can not change the active gun via the switch to the next weapon key.
-- The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
+- The player isn't prevented from removing the gun/ammo from their equipment slots as this isn't simple to prevent. However, this is such an active countering of the mod's behavior that if the streamer wishes to do this then that's their choice.
 - The weapon is yours and so any of your force's damage upgrades will affect it.
 - The weapon's `ammoType` will need to be able to either target the ground or be shot in a direction. Ammo types that need to be fired at a specific enemy target won't work.
 - Stream type weapons (i.e. flamethrower) will slowly wonder around in range and direction. Projectile or beam type weapons will jump in their direction far quicker as they generally don't have the concept of target range in the same way.
@@ -222,7 +222,7 @@ Spawns entities in the game around the named player on their side. Includes both
 Aggressive Driver
 ============
 
-The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering. This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
+The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering based on settings. This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
 
 #### Command syntax
 
@@ -239,16 +239,18 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 
 #### Examples
 
-- standard usage : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance": 100}`
+- standard usage with teleport to a near vehicle : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance": 100}`
 
 #### Notes
 
 - This feature uses a custom Factorio permission group when active. This could conflict with other mods/scenarios that also use Factorio permission groups.
 - If the vehicle comes to a stop during the time (due to hitting something) it will automatically start moving in the opposite direction.
 - This feature affects all types of cars, tanks, trains and spider vehicles.
-- If the player is in a vehicle and not in the drivers seat or it doesn't have fuel then the effect won't do anything.
-- If the player isn't in a vehicle and the `teleportDistance` option is enabled then only vehicle's with an empty drivers seat and fuel will be selected.
-- The player isn't prevented from removing the fuel from their vehicle as this isn't simple to prevent. However, this is such an active countering of the mod's behaviour that if the streamer wishes to do this then that's their choice.
+- If the player is already in a vehicle and it is lacking fuel then the vehicle is treated as invalid and the player may be teleported out to a suitable vehicle (option pending) or the effect will report as unsuitable.
+- If the player is in a duel player vehicle and not in the drivers seat the effect will still apply and supersede any driver players inputs. The driver will maintain steering with the `full` setting of the `control` option.
+- Trains are a special case in Factorio as every player in the train can have input to drive it. The mod will control the target players inputs and generally these seem to supersede any other train riding players inputs, however, this isn't guaranteed.
+- If the player isn't in a vehicle and the `teleportDistance` option is enabled then only vehicle's with an empty drivers seat and not lacking fuel will be selected.
+- The player isn't prevented from removing the fuel from their vehicle as this isn't simple to prevent. However, this is such an active countering of the mod's behavior that if the streamer wishes to do this then that's their choice.
 
 
 
@@ -446,7 +448,7 @@ Takes all the inventory items from the targeted players, shuffles them and then 
 - If includeHandCrafting is `true`; Any hand crafting by players will be cancelled and the ingredients added into the shared items. To limit the UPS impact from this, each item stack (icon in crafting queue) that is cancelled will have any ingredients greater than 4 full player inventories worth dropped on the ground rather than included into the shared items. Multiple separate crafts will be individually handled and so have their own limits. This will come into play in the example of a player filling up their inventory with stone and starts crafting stone furnaces, then refills with stone and does this again 4 times sequentially, thus having a huge number of queued crafting items. As these crafts would all go into 1 craft item (icon in the queue).
 - All attempts are made to give the items to players, but as a last resort they will be dropped on the ground. In large quantities this can cause a UPS stutter as the core Factorio game engine handles it. This will arise if players have all their different inventories full and have long crafting queues with extra items already used in these crafts.
 - This command can be UPS intensive for large player numbers (10/20+), if players have very large modded inventories, or if lots of players are hand crafting lots of things. In these cases the server may pause for a moment or two until the effect completes. This feature has been refactored multiple times for UPS improvements, but ultimately does a lot of API commands and inventory manipulation which is UPS intensive.
-- When the option `extractArmorEquipment` is enabled any items extracted from armor equipment grids will lose their electric charge. This is default Factorio behaviour during the process of removing equipment from the equipment grid.
+- When the option `extractArmorEquipment` is enabled any items extracted from armor equipment grids will lose their electric charge. This is default Factorio behavior during the process of removing equipment from the equipment grid.
 
 #### Distribution Logic
 

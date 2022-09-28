@@ -25,13 +25,13 @@ Date: 2022-09-23
 Version: 20.1.30
 Date: 2022-09-16
   Features:
-    - Explosive Delivery - added `salvoFollowPlayer` option for each salvo to re-target on the player's current position. Defaults to target the initial position (as per old behaviour).
+    - Explosive Delivery - added `salvoFollowPlayer` option for each salvo to re-target on the player's current position. Defaults to target the initial position (as per old behavior).
     - Inventory Shuffle - added `includeArmor` and `includeWeapons` as separate options to replace the single `includeEquipment` option. Both still default to true as per the old option.
     - Inventory Shuffle - added `extractArmorEquipment` option that removes equipment from armor and shuffles them between players. Defaults to false.
     - Player Drop Inventory - items dropped are now spread out in a visually pleasing manner a few tiles away from the player, rather than a solid block of items at the players feet. Added `density` option to allow controlling how spread out the dropped items are. Defaults to most dense distribution around the player.
   Changes:
     - Inventory Shuffle - removed `includeEquipment` option as added `includeArmor` and `includeWeapons`.
-    - Player Drop Inventory - introduction of `density` option and using a pretty circular distribution means that items are never dropped in the most concentrated grid possible any more. This was not a design feature before, but default behaviour due to lack of a proper distribution feature.
+    - Player Drop Inventory - introduction of `density` option and using a pretty circular distribution means that items are never dropped in the most concentrated grid possible any more. This was not a design feature before, but default behavior due to lack of a proper distribution feature.
   Bugfixes:
     - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.
     - All Features - don't error if a tiny delay is provided that gets rounded to 0 ticks.
@@ -224,7 +224,7 @@ Version: 20.0.16
 Date: 2022-03-04
   Features:
     - Pants On Fire - Added optional Flame Count option that affects how much damage and the burn time of each fire entity. Defaults to 20 which is the minimum for a tree to catch on fire.
-    - Call For Help - Added optional Same Surface Only option to allow calling players from other surfaces. Useful for some scenarios. Defaults to true (as per old behaviour).
+    - Call For Help - Added optional Same Surface Only option to allow calling players from other surfaces. Useful for some scenarios. Defaults to true (as per old behavior).
     - Call For Help - Added optional blacklisted and whitelisted player name lists to refine which players can be teleported to help.
   Changes:
     - Call For Help - Changed callRadius is now optional and if left undefined will call players from an unlimited distance away. Saves having to provide a very large number for these scenarios and is the default.
