@@ -179,11 +179,11 @@ Spawns entities in the game around the named player on their side. Includes both
 
 - delay: DECIMAL - Optional: how many seconds before the spawning occurs. A `0` second delay makes it happen instantly. If not specified it defaults to 0 happen instantly.
 - target: STRING - Mandatory: the player name to center upon (case sensitive).
-- force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player`), or left blank for the default for the entity type. See notes for this list. Value is case sensitive to Factorio's internal force name.
+- force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player`), or left blank for the default for the entity type. See Notes for this list. Value is case sensitive to Factorio's internal force name.
 - entityName: STRING - Mandatory: the type of entity to be placed: `tree`, `rock`, `laserTurret`, `gunTurretRegularAmmo`, `gunTurretPiercingAmmo`, `gunTurretUraniumAmmo`, `wall`, `landmine`, `fire`, `defenderBot`, `distractorBot`, `destroyerBot`, or `custom`. Is case sensitive. Custom requires the additional options `customEntityName` and `customSecondaryDetail` options to be set/considered.
 - customEntityName: STRING - Mandatory Special: only required/supported if `entityName` is set to `custom`. Sets the name of the entity to be used. Supports any entity type, with the behaviours matching the included entityTypes.
-- customSecondaryDetail: STRING - Optional Special: only required/supported if `entityName` is set to `custom`. Sets the name of any secondary item/entity used with the main `customEntityName`. See notes for a list of supported `customEntityName` types.
-- ammoCount: INTEGER - Optional: specifies the amount of "ammo" in applicable entityTypes. For turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the flame count, see notes for more details. This option applies to both `entityName` options and `customEntityName` entity types of turrets (all types) and fire.
+- customSecondaryDetail: STRING - Optional Special: only required/supported if `entityName` is set to `custom`. Sets the name of any secondary item/entity used with the main `customEntityName`. See Notes for a list of supported `customEntityName` types.
+- ammoCount: INTEGER - Optional: specifies the amount of "ammo" in applicable entityTypes. For turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the flame count, see Notes for more details. This option applies to both `entityName` options and `customEntityName` entity types of turrets (all types) and fire.
 - radiusMax: INTEGER - Mandatory: the max radius of the placement area from the target player.
 - radiusMin: INTEGER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then `0` is used.
 - existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
@@ -233,23 +233,25 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 - delay: DECIMAL - Optional: how many seconds before the effect starts. A `0` second delay makes it happen instantly. If not specified it defaults to happen instantly.
 - target: STRING - Mandatory: the player name to target (case sensitive).
 - duration: DECIMAL - Mandatory: how many seconds the effect lasts on the player.
-- control: STRING - Optional: if the player has control over steering, either: `full` or `random`. `full` allows control over left/right steering, `random` switches between left, right, straight for short periods. Both option settings include continuous accelerating. Defaults to `random`.
-- teleportDistance: DECIMAL - Optional: the max distance of tiles that the player will be teleported into the nearest suitable drivable vehicle. If not supplied it is treated as `0` distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+.
+- control: STRING - Optional: if the driver of the vehicle has control over steering, either: `full` or `random`. `full` allows control over left/right steering, with `random` switching between left, right and straight for short periods. Both option settings include continuous accelerating. Defaults to `random`.
+- commandeerVehicle: BOOLEAN - Optional: when `true` (default) the target player asserts control over vehicles dislodging other players if required, otherwise the target player won't dislodge other players in trying to ge a vehicle to drive. See Notes for more details on the option's settings. Defaults to `true`.
+- teleportDistance: DECIMAL - Optional: the max distance of tiles that the player will be teleported into the nearest suitable vehicle. If not supplied it is treated as `0` distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+. See Notes for more details on how options interact.
 - suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
 
-- standard usage with teleport to a near vehicle : `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance": 100}`
+- standard usage with teleport to a near vehicle: `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance": 100}`
+- just be aggressive if currently driving a vehicle: `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "commandeerVehicle": false}`
 
 #### Notes
 
 - This feature uses a custom Factorio permission group when active. This could conflict with other mods/scenarios that also use Factorio permission groups.
-- If the vehicle comes to a stop during the time (due to hitting something) it will automatically start moving in the opposite direction.
+- If the vehicle comes to a stop during the effect due to hitting something it will automatically start moving in the opposite direction.
 - This feature affects all types of cars, tanks, trains and spider vehicles.
-- If the player is already in a vehicle and it is lacking fuel then the vehicle is treated as invalid and the player may be teleported out to a suitable vehicle (option pending) or the effect will report as unsuitable.
-- If the player is in a duel player vehicle and not in the drivers seat the effect will still apply and supersede any driver players inputs. The driver will maintain steering with the `full` setting of the `control` option.
-- Trains are a special case in Factorio as every player in the train can have input to drive it. The mod will control the target players inputs and generally these seem to supersede any other train riding players inputs, however, this isn't guaranteed.
-- If the player isn't in a vehicle and the `teleportDistance` option is enabled then only vehicle's with an empty drivers seat and not lacking fuel will be selected.
+- Any vehicle that is lacking fuel is treated as not suitable for the effect.
+- The `commandeerVehicle` option when enabled (`true`) will always aim to put the player in the driving seat of a vehicle so they have all of the control over the vehicle. If the target player is already in a suitable vehicle they will be swapped to the drivers seat. If they aren't in a suitable vehicle and the `teleportDistance` option is greater than 0, then if there's no driverless suitable vehicles the target player will be moved in to any suitable vehicle's driver seat. Any other players dislodged will be moved to a passenger seat if possible, otherwise ejected from the vehicle. The vehicle selection logic for teleport targets will aim to minimise dislocations of other player, choosing greater teleportation distance first.
+- The `commandeerVehicle` option when disabled (`false`) will try to get the player a vehicle to drive, but won't dislodge any other players to achieve it. If the player is already in a suitable vehicle in the passengers seat then the current vehicle will be deemed unsuitable as they aren't driving it. When the `teleportDistance` option is greater than 0, suitable vehicles must have a vacant drivers seat.
+- Trains are a special case in Factorio as every player in the train can have input to drive it. The mod will control the target players inputs and generally these seem to supersede any other train riding player's inputs, however, this isn't guaranteed.
 - The player isn't prevented from removing the fuel from their vehicle as this isn't simple to prevent. However, this is such an active countering of the mod's behavior that if the streamer wishes to do this then that's their choice.
 
 
@@ -349,7 +351,7 @@ Sets the ground on fire behind a player forcing them to run. This is a Time Dura
 - duration: DECIMAL - Mandatory: how many seconds the effect lasts on the player.
 - fireGap: INTEGER - Optional: how many ticks between each fire entity. Defaults to `6`, which gives a constant fire line.
 - fireHeadStart: INTEGER - Optional: how many fire entities does the player have a head start on. Defaults to `3`, which forces continuous running with the default value of the `fireGap` option.
-- flameCount: INTEGER - Optional: how many flames each fire entity will have, see notes for more details. Default is `30` (intended for `fire-flame`), with the conceptual max of `250`.
+- flameCount: INTEGER - Optional: how many flames each fire entity will have, see Notes for more details. Default is `30` (intended for `fire-flame`), with the conceptual max of `250`.
 - fireType: STRING - Optional: the name of the specific `fire` type entity you want to have. This is the internal name within Factorio. Defaults to the vanilla Factorio fire entity, `fire-flame`.
 - suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
@@ -430,9 +432,9 @@ Takes all the inventory items from the targeted players, shuffles them and then 
 - extractArmorEquipment: BOOLEAN - Optional: if the player's armor (equipped and in inventory) should have its equipment removed from it and included in the shuffled items. Defaults to `false`.
 - includeWeapons: BOOLEAN - Optional: if the player's equipped weapons and ammo are included for shuffling or not. Defaults to `true`.
 - includeHandCrafting: BOOLEAN - Optional: if the player's hand crafting should be cancelled and the ingredients shuffled. Defaults to `true`.
-- destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to receive an item type compared to the number of source inventories. A value of `0` will allow the same number of players to receive an item as lost it, greater than 0 ensures a wider distribution away from the source number of inventories. Defaults to `1` to ensure some uneven spreading of items. See notes for logic on item distribution and how this option interacts with other options.
-- destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to receive the item. Used to allow scaling of item recipients for large player counts. A value of `0` will mean there is no scaling of source to destination inventories. Defaults to `0.25`. See notes for logic on item distribution and how this option interacts with other options.
-- recipientItemMinToMaxRatio: INTEGER - Optional: The approximate min/max ratio range of the number of items a destination player will receive compared to others. Defaults to `4`. See notes for logic on item distribution.
+- destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to receive an item type compared to the number of source inventories. A value of `0` will allow the same number of players to receive an item as lost it, greater than 0 ensures a wider distribution away from the source number of inventories. Defaults to `1` to ensure some uneven spreading of items. See Notes for logic on item distribution and how this option interacts with other options.
+- destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to receive the item. Used to allow scaling of item recipients for large player counts. A value of `0` will mean there is no scaling of source to destination inventories. Defaults to `0.25`. See Notes for logic on item distribution and how this option interacts with other options.
+- recipientItemMinToMaxRatio: INTEGER - Optional: The approximate min/max ratio range of the number of items a destination player will receive compared to others. Defaults to `4`. See Notes for logic on item distribution.
 - suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
 
 #### Examples
@@ -524,7 +526,7 @@ All of the commands take a table of options as a JSON string when they are calle
 - STRING = a text string wrapped in double quotes, i.e. `"some text"`
 - STRING_LIST = a comma separated list of things in a single string, i.e. `"Player1,player2, Player3  "`. Any leading or trailing spaces will be removed from each entry in the list. The casing (capitalisation) of things must match the case within factorio exactly, i.e. player names must have the same case as within Factorio. This can be a single thing in a string, i.e. `"Player1"`.
 - POSITION_OBJECT = Arguments that accept a position will accept either a table or an array for the positional data. Both formats are recording 2 coordinates, an `x` and `y` value. They can be provided as either a table JSON string `{"x": 10, "y": 5}` or as a shorter array JSON string `[10, 5]`.
-- OBJECT = some features accept an object as an argument. These are detailed in the notes for those functions. This is a dictionary of keys and values in JSON format (a table). The arguments each command accepts is an example of this.
+- OBJECT = some features accept an object as an argument. These are detailed in the Notes for those functions. This is a dictionary of keys and values in JSON format (a table). The arguments each command accepts is an example of this.
 
 #### Argument Requirements
 

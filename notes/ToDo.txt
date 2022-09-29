@@ -1,4 +1,5 @@
 DOING NOW:
+    - Test commender vehicle priority in MP.
 
 
 
@@ -9,7 +10,7 @@ BUGS:
 DO NEAR FUTURE:
     - Look at moving usage documentation to a GitHub wiki.
 
-    - Aggressive Driver - Add option to commender vehicle by kicking a player out of driving a suitable vehicle if there isn't one near by.
+    - Aggressive Driver - We don't include non locomotive train carriages in a search, but if a player is already in one we will drive it aggressively. Should we include these carriages as a lower priority target?
     - Aggressive Driver - Add option to randomly walk the player if they end up with no vehicle. If this fallback state is reached it will ignore the control setting. This should have 3 active options, 1 as fallback if no vehicle is found, 1 only if a vehicle found and effect started but then the player becomes outside the vehicle, and one in both of these cases. Plus none of these as an option.
     - Aggressive Driver - Add options to specify a vehicle by name(s) to only search for and teleport you to, and another option of vehicle type(s). Can't do this as one combined setting as base game has entities named the same as the vehicle types.
 

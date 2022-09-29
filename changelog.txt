@@ -2,8 +2,10 @@
 Version: 20.1.32
 Date: 2022-09-XXX
   Features:
+    - Aggressive Driver - added `commandeerVehicle` option that when enabled makes the target player more assertive in getting a vehicle to drive. This is the default. When not enabled the effect is quite passive in getting a vehicle to drive.
   Changes:
     - Aggressive Driver - changed default control to `random` from `full`. As this is the intended experience really and was the single example command.
+    - Aggressive Driver - feature's behavior standardised in relation to if driver or passenger of a vehicle.  The previous logic had slight variations between the processing of the 2 seats during different processes. Description in readme clarified around this area. Now the effect only applies if the player is in the drivers seat, and never from the passengers seat. The option `commandeerVehicle` was added to allow control over this. By default the feature is more assertive in getting a vehicle to drive now.
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------
