@@ -153,38 +153,70 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     local playersVehicle = targetPlayer.vehicle
     local inSuitableVehicle
     if playersVehicle == nil then
+        -- Player not in a vehicle.
         inSuitableVehicle = false
     else
         -- Player is in a vehicle.
-        local driver = playersVehicle.get_driver()
-        if driver == nil then
-            -- No current driver, so player must be in the passengers seat. We can always just move them across to the drivers seat.
-            inSuitableVehicle = true
-            playersVehicle.set_driver(targetPlayer)
-            if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle", targetPlayer.name }) end
+
+        -- Check the vehicle isn't an excluded type.
+        local playersVehicle_type = playersVehicle.type
+        if playersVehicle_type == "cargo-wagon" or playersVehicle_type == "fluid-wagon" or playersVehicle_type == "artillery-wagon" then
+            -- Bad vehicle type.
+            inSuitableVehicle = false
         else
-            -- There's a driver of the vehicle.
-            if data.commandeerVehicle then
-                -- Commandeer a vehicle.
-                if driver == targetPlayer or driver == targetPlayer.character then
-                    -- Player is already driving
+            -- Good vehicle type
+
+            -- Check current vehicles fuel state.
+            local vehicle_burner = playersVehicle.burner
+            local vehicleValidTeleportTarget = false
+            if vehicle_burner == nil then
+                -- No burner so vehicle requires no fuel to move.
+                vehicleValidTeleportTarget = true
+            else
+                -- Vehicle needs fuel, so check it has some.
+                local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(playersVehicle, vehicle_burner)
+                if currentFuel ~= nil then
+                    vehicleValidTeleportTarget = true
+                end
+            end
+
+            -- If the vehicle isn't short of fuel check its state deeper.
+            if vehicleValidTeleportTarget then
+                -- Check seats in current vehicle.
+                local driver = playersVehicle.get_driver()
+                if driver == nil then
+                    -- No current driver, so player must be in the passengers seat. We can always just move them across to the drivers seat.
                     inSuitableVehicle = true
-                else
-                    -- Player must be in the passenger seat currently, so will need moving to the driver's seat (swap players seats) before checking for any other vehicle (readme logic).
-                    inSuitableVehicle = true
-                    playersVehicle.set_passenger(driver)
                     playersVehicle.set_driver(targetPlayer)
-                    if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle_from_other", targetPlayer.name, AggressiveDriver.GetVehicleOccupierPlayer(driver).name }) end
+                    if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle", targetPlayer.name }) end
+                else
+                    -- There's a driver of the vehicle.
+                    if data.commandeerVehicle then
+                        -- Commandeer a vehicle.
+                        if driver == targetPlayer or driver == targetPlayer.character then
+                            -- Player is already driving
+                            inSuitableVehicle = true
+                        else
+                            -- Player must be in the passenger seat currently, so will need moving to the driver's seat (swap players seats) before checking for any other vehicle (readme logic).
+                            inSuitableVehicle = true
+                            playersVehicle.set_passenger(driver)
+                            playersVehicle.set_driver(targetPlayer)
+                            if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle_from_other", targetPlayer.name, AggressiveDriver.GetVehicleOccupierPlayer(driver).name }) end
+                        end
+                    else
+                        -- Respect vehicle drivers.
+                        if driver == targetPlayer or driver == targetPlayer.character then
+                            -- Player is already driving
+                            inSuitableVehicle = true
+                        else
+                            -- Player must be in passenger seat, so will need moving.
+                            inSuitableVehicle = false
+                        end
+                    end
                 end
             else
-                -- Respect vehicle drivers.
-                if driver == targetPlayer or driver == targetPlayer.character then
-                    -- Player is already driving
-                    inSuitableVehicle = true
-                else
-                    -- Player must be in passenger seat, so will need moving.
-                    inSuitableVehicle = false
-                end
+                -- Current vehicle is lacking fuel.
+                inSuitableVehicle = false
             end
         end
     end
@@ -210,7 +242,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                 -- Is a driver so option based logic.
                 if data.commandeerVehicle then
                     -- Can commandeer a vehicle.
-                    if vehicle.prototype.allow_passengers then
+                    if vehicle.type ~= "locomotive" then
                         -- Vehicle allows passenger and driver.
 
                         -- Check if there's a passenger already.

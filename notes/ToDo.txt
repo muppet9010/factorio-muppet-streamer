@@ -1,5 +1,4 @@
 DOING NOW:
-    - Test commender vehicle priority in MP.
 
 
 
@@ -10,7 +9,6 @@ BUGS:
 DO NEAR FUTURE:
     - Look at moving usage documentation to a GitHub wiki.
 
-    - Aggressive Driver - We don't include non locomotive train carriages in a search, but if a player is already in one we will drive it aggressively. Should we include these carriages as a lower priority target?
     - Aggressive Driver - Add option to randomly walk the player if they end up with no vehicle. If this fallback state is reached it will ignore the control setting. This should have 3 active options, 1 as fallback if no vehicle is found, 1 only if a vehicle found and effect started but then the player becomes outside the vehicle, and one in both of these cases. Plus none of these as an option.
     - Aggressive Driver - Add options to specify a vehicle by name(s) to only search for and teleport you to, and another option of vehicle type(s). Can't do this as one combined setting as base game has entities named the same as the vehicle types.
 
@@ -87,3 +85,4 @@ Future Possible Concepts:
     - Player Drop Inventory - Separate option to include armor equipment in things that can be dropped. Would require a more stateful inspection of items in inventory to see if they have grids and then equipment.
     - Drunk Player - new feature to swap movement keys around randomly. So when a player pressed UP, it may behave like its bind'ed to RIGHT. Will be a timed duration event.
     - Spawn enemies around player. Allow named (list) or evolution specific. Allow all or named spawner type generated enemies.
+    - Aggressive Driver - support driving trains from non locomotive carriages. Or teleport the player to a locomotive in the same train as them before trying another vehicle. If moving around the train should put any dislodged player in another carriage in the same train.
