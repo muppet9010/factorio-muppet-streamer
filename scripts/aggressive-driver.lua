@@ -26,10 +26,20 @@ local EffectEndStatus = {
     invalid = "invalid"
 }
 
+---@enum AggressiveDriver_AggressiveWalkingTypes
+local AggressiveWalkingTypes = {
+    never = "never",
+    noVehicle = "noVehicle",
+    vehicleLost = "vehicleLost",
+    both = "both"
+}
+
 ---@class AggressiveDriver_DelayedCommandDetails
 ---@field target string # Player's name.
 ---@field duration uint # Ticks
 ---@field control AggressiveDriver_ControlTypes
+---@field aggressiveWalkingNoStartingVehicle boolean
+---@field aggressiveWalkingOnVehicleDeath boolean
 ---@field commandeerVehicle boolean
 ---@field teleportDistance double
 ---@field teleportWhitelistTypes table<string, string>|nil
@@ -39,8 +49,11 @@ local EffectEndStatus = {
 ---@class AggressiveDriver_DriveEachTickDetails
 ---@field player_index uint
 ---@field player LuaPlayer
+---@field beenInVehicle boolean # Has the player been in a vehicle since the effect started.
 ---@field duration uint # Ticks
 ---@field control AggressiveDriver_ControlTypes
+---@field aggressiveWalkingNoStartingVehicle boolean
+---@field aggressiveWalkingOnVehicleDeath boolean
 ---@field accelerationTicks uint # How many ticks the vehicle has been trying to move in its current direction (forwards or backwards).
 ---@field accelerationState defines.riding.acceleration # Should only ever be either accelerating or reversing.
 ---@field directionDurationTicks uint # How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
@@ -84,7 +97,7 @@ end
 ---@param command CustomCommandData
 AggressiveDriver.AggressiveDriverCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "control", "commandeerVehicle", "teleportDistance", "teleportWhitelistTypes", "teleportWhitelistNames", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "control", "aggressiveWalking", "commandeerVehicle", "teleportDistance", "teleportWhitelistTypes", "teleportWhitelistNames", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -112,6 +125,25 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     end ---@cast control AggressiveDriver_ControlTypes|nil
     if control == nil then
         control = ControlTypes.random
+    end
+
+    local aggressiveWalking = commandData.aggressiveWalking
+    if not CommandsUtils.CheckStringArgument(aggressiveWalking, false, commandName, "aggressiveWalking", AggressiveWalkingTypes, command.parameter) then
+        return
+    end ---@cast aggressiveWalking AggressiveDriver_AggressiveWalkingTypes|nil
+    if aggressiveWalking == nil then
+        aggressiveWalking = AggressiveWalkingTypes.both
+    end
+    local aggressiveWalkingNoStartingVehicle, aggressiveWalkingOnVehicleDeath
+    if aggressiveWalking == AggressiveWalkingTypes.noVehicle or aggressiveWalking == AggressiveWalkingTypes.both then
+        aggressiveWalkingNoStartingVehicle = true
+    else
+        aggressiveWalkingNoStartingVehicle = false
+    end
+    if aggressiveWalking == AggressiveWalkingTypes.vehicleLost or aggressiveWalking == AggressiveWalkingTypes.both then
+        aggressiveWalkingOnVehicleDeath = true
+    else
+        aggressiveWalkingOnVehicleDeath = false
     end
 
     local commandeerVehicle = commandData.commandeerVehicle
@@ -180,7 +212,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
 
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
     ---@type AggressiveDriver_DelayedCommandDetails
-    local delayedCommandDetails = { target = target, duration = duration, control = control, commandeerVehicle = commandeerVehicle, teleportDistance = teleportDistance, teleportWhitelistTypes = teleportWhitelistTypes, teleportWhitelistNames = teleportWhitelistNames, suppressMessages = suppressMessages }
+    local delayedCommandDetails = { target = target, duration = duration, control = control, aggressiveWalkingNoStartingVehicle = aggressiveWalkingNoStartingVehicle, aggressiveWalkingOnVehicleDeath = aggressiveWalkingOnVehicleDeath, commandeerVehicle = commandeerVehicle, teleportDistance = teleportDistance, teleportWhitelistTypes = teleportWhitelistTypes, teleportWhitelistNames = teleportWhitelistNames, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, delayedCommandDetails)
 end
 
@@ -352,6 +384,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                 -- Can just put us in the free drivers seat.
                 vehicleList[1].vehicle.set_driver(targetPlayer)
                 inSuitableVehicle = true
+                playersVehicle = vehicleList[1].vehicle
                 if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle", targetPlayer.name }) end
                 break
             end
@@ -370,6 +403,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                     vehicleList[1].vehicle.set_passenger(oldDriver)
                     vehicleList[1].vehicle.set_driver(targetPlayer)
                     inSuitableVehicle = true
+                    playersVehicle = vehicleList[1].vehicle
                     if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle_from_other", targetPlayer.name, AggressiveDriver.GetVehicleOccupierPlayer(oldDriver).name }) end
                     break
                 end
@@ -388,6 +422,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                     local oldDriver = vehicleList[1].vehicle.get_driver() ---@cast oldDriver - nil
                     vehicleList[1].vehicle.set_driver(targetPlayer)
                     inSuitableVehicle = true
+                    playersVehicle = vehicleList[1].vehicle
                     if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle_from_other", targetPlayer.name, AggressiveDriver.GetVehicleOccupierPlayer(oldDriver).name }) end
                     break
                 end
@@ -395,8 +430,16 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         end
     end
     if not inSuitableVehicle then
-        if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_driver_no_vehicle", data.target }) end
-        return
+        if not data.aggressiveWalkingNoStartingVehicle then
+            -- No aggressive walking for lack of starting vehicle, so the effect has failed to start.
+            if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_driver_no_vehicle", data.target }) end
+            return
+        end
+
+        -- If the player is in a vehicle then eject them as it can't be auto driven, so they need to be on foot to walk.
+        if playersVehicle ~= nil then
+            targetPlayer.vehicle = nil
+        end
     end
 
     -- Store the players current permission group. Left as the previously stored group if an effect was already being applied to the player, or captured if no present effect affects them.
@@ -409,90 +452,55 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
 
     ---@type AggressiveDriver_DriveEachTickDetails
-    local driveEachTickDetails = { player_index = targetPlayer.index, player = targetPlayer, duration = data.duration, control = data.control, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0 }
+    local driveEachTickDetails = { player_index = targetPlayer.index, player = targetPlayer, beenInVehicle = inSuitableVehicle, duration = data.duration, control = data.control, aggressiveWalkingNoStartingVehicle = data.aggressiveWalkingNoStartingVehicle, aggressiveWalkingOnVehicleDeath = data.aggressiveWalkingOnVehicleDeath, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0 }
     ---@type UtilityScheduledEvent_CallbackObject
     local driveCallbackObject = { tick = game.tick, instanceId = driveEachTickDetails.player_index, data = driveEachTickDetails }
     AggressiveDriver.Drive(driveCallbackObject)
-end
-
---- Checks that the vehicle has a good fuel state. This handles train carriages in a smart manner.
----@param vehicle LuaEntity
----@param vehicle_type string
----@param checkedTrainFuelStates AggressiveDriver_CheckedTrainFuelStates
----@return boolean fuelStateGood
-AggressiveDriver.CheckVehiclesFuelState = function(vehicle, vehicle_type, checkedTrainFuelStates)
-    if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
-        -- Train type vehicle, so we need to check that any of the locomotives in the train aren't lacking fuel, not just this specific carriage.
-        local train = vehicle.train ---@cast train - nil
-        local train_id = train.id
-
-        -- Use the cached fuel state if we know it, otherwise get and store it.
-        local trainGoodFuelState = checkedTrainFuelStates[train_id]
-        if trainGoodFuelState == nil then
-            -- Not cached so get the value and cache it.
-            local locos = train.locomotives
-            trainGoodFuelState = false
-            for _, directionLocos in pairs(locos) do
-                for _, loco in pairs(directionLocos) do
-                    local loco_burner = loco.burner
-                    if loco_burner == nil then
-                        -- No burner so vehicle requires no fuel to move.
-                        trainGoodFuelState = true
-                        break
-                    else
-                        -- Vehicle needs fuel, so check it has some.
-                        local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(loco, loco_burner)
-                        if currentFuel ~= nil then
-                            trainGoodFuelState = true
-                            break
-                        end
-                    end
-                end
-                if trainGoodFuelState then
-                    break
-                end
-            end
-            checkedTrainFuelStates[train_id] = trainGoodFuelState
-        end
-
-        return trainGoodFuelState
-    else
-        -- Single vehicle, so we can just check its direct fuel needs.
-        local vehicle_burner = vehicle.burner
-        if vehicle_burner == nil then
-            -- No burner so vehicle requires no fuel to move.
-            return true
-        else
-            -- Vehicle needs fuel, so check it has some.
-            local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(vehicle, vehicle_burner)
-            if currentFuel ~= nil then
-                return true
-            end
-        end
-        return false
-    end
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject
 AggressiveDriver.Drive = function(eventData)
     local data = eventData.data ---@type AggressiveDriver_DriveEachTickDetails
     local player, playerIndex = data.player, data.player_index
+    if not player.valid then
+        AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        return
+    end
+
     local vehicle = player.vehicle
-    if (not player.valid) or vehicle == nil then
-        AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
-        return
+    if vehicle == nil then
+        -- Player doesn't have a vehicle currently.
+
+        if (not data.beenInVehicle) and data.aggressiveWalkingNoStartingVehicle then
+            -- Player has never been in a vehicle and should walk until having entered a vehicle.
+        elseif data.beenInVehicle and data.aggressiveWalkingOnVehicleDeath then
+            -- Player has been in a vehicle and should walk after its death.
+        else
+            -- Player shouldn't walk after having left their vehicle or never having one.
+            AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+            return
+        end
+    else
+        -- Player has a vehicle
+
+        -- So just update that they'd had one during this effect at some point. No harm in over writing this constantly.
+        data.beenInVehicle = true
+
+        -- Check the player is still the driver and not a passenger.
+        local driver = vehicle.get_driver()
+        if driver ~= player and driver ~= player.character then
+            AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+            return
+        end
     end
 
-    -- Check the player is still the driver and not a passenger.
-    local driver = vehicle.get_driver()
-    if driver ~= player and driver ~= player.character then
-        AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
-        return
+    local vehicle_type
+    if vehicle ~= nil then
+        vehicle_type = vehicle.type
+    else
+        vehicle_type = "walking"
     end
-
-    local vehicle_type = vehicle.type
-
-    if vehicle_type == "spider-vehicle" then
+    if vehicle_type == "spider-vehicle" or vehicle_type == "walking" then
         -- Spider vehicles are special.
 
         -- Overwrite the players input control for this tick based on the settings.
@@ -522,6 +530,7 @@ AggressiveDriver.Drive = function(eventData)
         end
     else
         -- Cars and trains.
+        ---@cast vehicle - nil
 
         -- Train carriages need special handling.
         if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
@@ -658,6 +667,64 @@ end
 ---@return LuaPlayer
 AggressiveDriver.GetVehicleOccupierPlayer = function(occupier)
     return occupier.is_player() and occupier or occupier.player --[[@as LuaPlayer]]
+end
+
+--- Checks that the vehicle has a good fuel state. This handles train carriages in a smart manner.
+---@param vehicle LuaEntity
+---@param vehicle_type string
+---@param checkedTrainFuelStates AggressiveDriver_CheckedTrainFuelStates
+---@return boolean fuelStateGood
+AggressiveDriver.CheckVehiclesFuelState = function(vehicle, vehicle_type, checkedTrainFuelStates)
+    if vehicle_type == "locomotive" or vehicle_type == "cargo-wagon" or vehicle_type == "fluid-wagon" or vehicle_type == "artillery-wagon" then
+        -- Train type vehicle, so we need to check that any of the locomotives in the train aren't lacking fuel, not just this specific carriage.
+        local train = vehicle.train ---@cast train - nil
+        local train_id = train.id
+
+        -- Use the cached fuel state if we know it, otherwise get and store it.
+        local trainGoodFuelState = checkedTrainFuelStates[train_id]
+        if trainGoodFuelState == nil then
+            -- Not cached so get the value and cache it.
+            local locos = train.locomotives
+            trainGoodFuelState = false
+            for _, directionLocos in pairs(locos) do
+                for _, loco in pairs(directionLocos) do
+                    local loco_burner = loco.burner
+                    if loco_burner == nil then
+                        -- No burner so vehicle requires no fuel to move.
+                        trainGoodFuelState = true
+                        break
+                    else
+                        -- Vehicle needs fuel, so check it has some.
+                        local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(loco, loco_burner)
+                        if currentFuel ~= nil then
+                            trainGoodFuelState = true
+                            break
+                        end
+                    end
+                end
+                if trainGoodFuelState then
+                    break
+                end
+            end
+            checkedTrainFuelStates[train_id] = trainGoodFuelState
+        end
+
+        return trainGoodFuelState
+    else
+        -- Single vehicle, so we can just check its direct fuel needs.
+        local vehicle_burner = vehicle.burner
+        if vehicle_burner == nil then
+            -- No burner so vehicle requires no fuel to move.
+            return true
+        else
+            -- Vehicle needs fuel, so check it has some.
+            local currentFuel = VehicleUtils.GetVehicleCurrentFuelPrototype(vehicle, vehicle_burner)
+            if currentFuel ~= nil then
+                return true
+            end
+        end
+        return false
+    end
 end
 
 return AggressiveDriver

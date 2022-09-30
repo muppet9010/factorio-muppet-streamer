@@ -9,13 +9,13 @@ BUGS:
 DO NEAR FUTURE:
     - Move all file wile locals to be capitalised. commandName is best example.
 
-    - Look at moving usage documentation to a GitHub wiki.
-
-    - Aggressive Driver - Add option to randomly walk the player if they end up with no vehicle. If this fallback state is reached it will ignore the control setting. This should have 3 active options, 1 as fallback if no vehicle is found, 1 only if a vehicle found and effect started but then the player becomes outside the vehicle, and one in both of these cases. Plus none of these as an option.
+    - Call for Help - add option for if target player is in a vehicle try to put any helping players (who are on foot) in the vehicle with them first. If the target player is in a train try and put the players in other carriages in the train first.
 
     - Player Inventory Shuffle - see if any UPS savings on current code. If we can avoid mass creations of tables via table re-use this also helps with Lua garbage collection. Do a performance check with and without lines to see if this distorts the overall results.
 
-    - Call for Help - add option for if target player is in a vehicle try to put any helping players (who are on foot) in the vehicle with them first. If the target player is in a train try and put the players in other carriages in the train first.
+    - Look at moving usage documentation to a GitHub wiki.
+
+    - A remote interface that can be used to call a function (as text) at a delayed time. For use in calling custom code snippets with a delay. Will have some of the same considerations as the "effect callback feature" listed as a larger piece of work, but should be much simpler.
 
 
 
