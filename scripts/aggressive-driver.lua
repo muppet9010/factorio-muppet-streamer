@@ -11,6 +11,7 @@ local Events = require("utility.manager-libraries.events")
 local Common = require("scripts.common")
 local MathUtils = require("utility.helper-utils.math-utils")
 local VehicleUtils = require("utility.helper-utils.vehicle-utils")
+local StringUtils = require("utility.helper-utils.string-utils")
 
 ---@enum AggressiveDriver_ControlTypes
 local ControlTypes = {
@@ -31,6 +32,8 @@ local EffectEndStatus = {
 ---@field control AggressiveDriver_ControlTypes
 ---@field commandeerVehicle boolean
 ---@field teleportDistance double
+---@field teleportWhitelistTypes table<string, string>|nil
+---@field teleportWhitelistNames table<string, string>|nil
 ---@field suppressMessages boolean
 
 ---@class AggressiveDriver_DriveEachTickDetails
@@ -58,6 +61,7 @@ local EffectEndStatus = {
 local commandName = "muppet_streamer_aggressive_driver"
 local PrimaryVehicleTypes = { ["car"] = "car", ["locomotive"] = "locomotive", ["spider-vehicle"] = "spider-vehicle" }
 local SecondaryVehicleTypes = { ["cargo-wagon"] = "cargo-wagon", ["fluid-wagon"] = "fluid-wagon", ["artillery-wagon"] = "artillery-wagon" }
+local AllVehicleEntityTypes = { ["car"] = "car", ["locomotive"] = "locomotive", ["spider-vehicle"] = "spider-vehicle", ["cargo-wagon"] = "cargo-wagon", ["fluid-wagon"] = "fluid-wagon", ["artillery-wagon"] = "artillery-wagon" }
 
 AggressiveDriver.CreateGlobals = function()
     global.aggressiveDriver = global.aggressiveDriver or {}
@@ -80,7 +84,7 @@ end
 ---@param command CustomCommandData
 AggressiveDriver.AggressiveDriverCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "control", "commandeerVehicle", "teleportDistance", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "control", "commandeerVehicle", "teleportDistance", "teleportWhitelistTypes", "teleportWhitelistNames", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -126,6 +130,46 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
         teleportDistance = 0.0
     end
 
+    local teleportWhitelistTypes_string = commandData.teleportWhitelistTypes
+    if not CommandsUtils.CheckStringArgument(teleportWhitelistTypes_string, false, commandName, "teleportWhitelistTypes", nil, command.parameter) then
+        return
+    end ---@cast teleportWhitelistTypes_string string|nil
+    local teleportWhitelistTypes ---@type table<string, string>|nil
+    if teleportWhitelistTypes_string ~= nil and teleportWhitelistTypes_string ~= "" then
+        local teleportWhitelistTypes_raw = StringUtils.SplitStringOnCharactersToDictionary(teleportWhitelistTypes_string, ",")
+        teleportWhitelistTypes = {}
+        for entityTypeName in pairs(teleportWhitelistTypes_raw) do
+            if AllVehicleEntityTypes[entityTypeName] == nil then
+                CommandsUtils.LogPrintError(commandName, "teleportWhitelistTypes", "invalid vehicle type name: '" .. entityTypeName .. "'", command.parameter)
+                return
+            end
+            teleportWhitelistTypes[entityTypeName] = entityTypeName
+        end
+    end
+
+    local teleportWhitelistNames_string = commandData.teleportWhitelistNames
+    if not CommandsUtils.CheckStringArgument(teleportWhitelistNames_string, false, commandName, "teleportWhitelistNames", nil, command.parameter) then
+        return
+    end ---@cast teleportWhitelistNames_string string|nil
+    local teleportWhitelistNames ---@type table<string, string>|nil
+    if teleportWhitelistNames_string ~= nil and teleportWhitelistNames_string ~= "" then
+        local teleportWhitelistNames_raw = StringUtils.SplitStringOnCharactersToDictionary(teleportWhitelistNames_string, ",")
+        teleportWhitelistNames = {}
+        for entityName in pairs(teleportWhitelistNames_raw) do
+            if game.entity_prototypes[entityName] == nil then
+                CommandsUtils.LogPrintError(commandName, "teleportWhitelistNames", "invalid vehicle entity name: '" .. entityName .. "'", command.parameter)
+                return
+            end
+            teleportWhitelistNames[entityName] = entityName
+        end
+    end
+
+    -- Set default type and name values if none are populated.
+    if teleportWhitelistTypes == nil and teleportWhitelistNames == nil then
+        teleportWhitelistTypes = AllVehicleEntityTypes
+        teleportWhitelistNames = nil
+    end
+
     local suppressMessages = commandData.suppressMessages
     if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
         return
@@ -136,7 +180,7 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
 
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
     ---@type AggressiveDriver_DelayedCommandDetails
-    local delayedCommandDetails = { target = target, duration = duration, control = control, commandeerVehicle = commandeerVehicle, teleportDistance = teleportDistance, suppressMessages = suppressMessages }
+    local delayedCommandDetails = { target = target, duration = duration, control = control, commandeerVehicle = commandeerVehicle, teleportDistance = teleportDistance, teleportWhitelistTypes = teleportWhitelistTypes, teleportWhitelistNames = teleportWhitelistNames, suppressMessages = suppressMessages }
     EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, delayedCommandDetails)
 end
 
@@ -218,8 +262,23 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         ---@type AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[]
         local primaryDistanceSortedFreeVehicles, primaryDistanceSortedDriverOccupiedVehicles, primaryDistanceSortedFullyOccupiedVehicles, secondaryDistanceSortedFreeVehicles, secondaryDistanceSortedDriverOccupiedVehicles, secondaryDistanceSortedFullyOccupiedVehicles = {}, {}, {}, {}, {}, {}
 
-        -- Search for suitable vehicles within the teleport radius.
-        local vehicles = targetPlayer.surface.find_entities_filtered { position = targetPlayer_position, radius = data.teleportDistance, force = targetPlayer.force, type = { "car", "locomotive", "spider-vehicle", "cargo-wagon", "fluid-wagon", "artillery-wagon" } }
+        -- Search for specified vehicles within the teleport radius. Have to get by type and names separately as otherwise if both populated they restricted over each other.
+        local vehicles
+        if data.teleportWhitelistTypes ~= nil then
+            vehicles = targetPlayer.surface.find_entities_filtered { position = targetPlayer_position, radius = data.teleportDistance, force = targetPlayer.force, type = data.teleportWhitelistTypes }
+        end
+        if data.teleportWhitelistNames ~= nil then
+            local vehicles_names = targetPlayer.surface.find_entities_filtered { position = targetPlayer_position, radius = data.teleportDistance, force = targetPlayer.force, name = data.teleportWhitelistNames }
+            if vehicles == nil then
+                vehicles = vehicles_names
+            else
+                for _, vehicle in pairs(vehicles_names) do
+                    vehicles[#vehicles + 1] = vehicle
+                end
+            end
+        end
+
+        -- Check which of the vehicles are suitable.
         local list, driver, passenger, distance, vehicle_type
         for _, vehicle in pairs(vehicles) do
             -- Check which list to add the vehicle too based on the effect settings.

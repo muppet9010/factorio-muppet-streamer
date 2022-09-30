@@ -7,10 +7,11 @@ BUGS:
 
 
 DO NEAR FUTURE:
+    - Move all file wile locals to be capitalised. commandName is best example.
+
     - Look at moving usage documentation to a GitHub wiki.
 
     - Aggressive Driver - Add option to randomly walk the player if they end up with no vehicle. If this fallback state is reached it will ignore the control setting. This should have 3 active options, 1 as fallback if no vehicle is found, 1 only if a vehicle found and effect started but then the player becomes outside the vehicle, and one in both of these cases. Plus none of these as an option.
-    - Aggressive Driver - Add options to specify a vehicle by name(s) to only search for and teleport you to, and another option of vehicle type(s). Can't do this as one combined setting as base game has entities named the same as the vehicle types.
 
     - Player Inventory Shuffle - see if any UPS savings on current code. If we can avoid mass creations of tables via table re-use this also helps with Lua garbage collection. Do a performance check with and without lines to see if this distorts the overall results.
 
@@ -61,17 +62,6 @@ Future Possible Concepts:
         - option: walk towards nearest biter base (use teleport biter nest tracking). - use some sort of back off when damaged.
         - option: walk towards nearest enemy unit group (use teleport to nearest biter logic). - use some sort of back off when damaged.
     - Change player (named or all) characters to other things, i.e. biters. Need to check how armor, ammo, etc handles this. Also would need to be delayed until after other active event has finished.
-    - Custom grenade, cluster grenade and nuke:
-        - Requested by eoraptor666 (BigMonD).
-        - Mod options for the custom:
-            - Grenade:
-                - Damage amount
-                - Damage radius
-            - Cluster Grenade:
-                - Cluster count
-                - Distance of spread
-            - Nuke:
-                - not requested, but would need max blast area and damage settable?
     - A New feature to ensure a player has a vehicle.
         - Support cars, spiders and locomotive vehicle types being placed in valid spots within a random distance from the player. Ideally have it find and use a larger clear area within the radius.
         - Support settings for ammo and fuel, types and quantities being in the vehicle.
