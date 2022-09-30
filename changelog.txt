@@ -2,13 +2,14 @@
 Version: 20.1.32
 Date: 2022-09-XXX
   Features:
-    - Aggressive Driver - added `commandeerVehicle` option that when enabled makes the target player more assertive in getting a vehicle to drive. This is the default. When not enabled the effect is quite passive in getting a vehicle to drive.
+    - Aggressive Driver - added `commandeerVehicle` option that when enabled (default) makes the target player more assertive in getting a vehicle to drive. When not enabled the effect is quite passive in getting a vehicle to drive.
+    - Aggressive Driver - all train carriages are now valid targets for being teleported too. However, non-locomotive train carriages are lower priority than powered vehicle types.
   Changes:
     - Aggressive Driver - changed default control to `random` from `full`. As this is the intended experience really and was the single example command.
-    - Aggressive Driver - feature's behavior standardised in relation to if driver or passenger of a vehicle.  The previous logic had slight variations between the processing of the 2 seats during different processes. Description in readme clarified around this area. Now the effect only applies if the player is in the drivers seat, and never from the passengers seat. The option `commandeerVehicle` was added to allow control over this. By default the feature is more assertive in getting a vehicle to drive now.
-    - Aggressive Driver - exclude non locomotive type train wagons from being suitable vehicles for the effect. As we can't easily validate the train as a whole has fuel from a cargo wagon. In the past if the player was in a cargo wagon the effect would apply to them, regardless of if the train had fuel. But it would never teleport them in to a non locomotive type train wagon. This is anticipated to have very little real world impact as players tend to always drive trains from the locomotive, or players will be teleported in to the locomotive of the train they are currently in.
+    - Aggressive Driver - if the player is already in a vehicle and it is lacking fuel, it will be treated as an unsuitable vehicle and the player will be teleported to a new suitable vehicle if options allow.
+    - Aggressive Driver - train carriages are now validated on the train's ability to move (not lacking fuel), rather than the specific carriages fuel state.
+    - Aggressive Driver - feature's behavior standardised. Affects previous variations in handling of driver vs passenger seat of a vehicle, plus locomotive vs other train carriage types. Description in readme clarified around these areas. The option `commandeerVehicle` was added to allow control over some of these changes.
   Bugfixes:
-    - Aggressive Driver - if the player is in a vehicle and it is lacking fuel, it will be treated as an unsuitable vehicle and the player will be teleported to a suitable vehicle if options allow.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.31

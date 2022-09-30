@@ -85,4 +85,3 @@ Future Possible Concepts:
     - Player Drop Inventory - Separate option to include armor equipment in things that can be dropped. Would require a more stateful inspection of items in inventory to see if they have grids and then equipment.
     - Drunk Player - new feature to swap movement keys around randomly. So when a player pressed UP, it may behave like its bind'ed to RIGHT. Will be a timed duration event.
     - Spawn enemies around player. Allow named (list) or evolution specific. Allow all or named spawner type generated enemies.
-    - Aggressive Driver - support driving trains from non locomotive carriages. Or teleport the player to a locomotive in the same train as them before trying another vehicle. If moving around the train should put any dislodged player in another carriage in the same train.

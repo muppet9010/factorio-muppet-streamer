@@ -247,12 +247,14 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 
 - This feature uses a custom Factorio permission group when active. This could conflict with other mods/scenarios that also use Factorio permission groups.
 - If the vehicle comes to a stop during the effect due to hitting something it will automatically start moving in the opposite direction.
-- This feature affects all types of cars, tanks, locomotives and spider vehicles. It intentionally excludes cargo, fluid and artillery type wagons as they can't power the train.
+- This feature affects all types of cars, tanks, spider vehicles and train carriages.
 - Any vehicle that is lacking fuel is treated as not suitable for the effect.
 - The `commandeerVehicle` option when enabled (`true`) will always aim to put the player in the driving seat of a vehicle so they have all of the control over the vehicle. If the target player is already in a suitable vehicle they will be swapped to the drivers seat. If they aren't in a suitable vehicle and the `teleportDistance` option is greater than 0, then if there's no driverless suitable vehicles the target player will be moved in to any suitable vehicle's driver seat. Any other players dislodged will be moved to a passenger seat if possible, otherwise ejected from the vehicle. The vehicle selection logic for teleport targets will aim to minimise dislocations of other player, choosing greater teleportation distance first.
 - The `commandeerVehicle` option when disabled (`false`) will try to get the player a vehicle to drive, but won't dislodge any other players to achieve it. If the player is already in a suitable vehicle in the passengers seat then the current vehicle will be deemed unsuitable as they aren't driving it. When the `teleportDistance` option is greater than 0, suitable vehicles must have a vacant drivers seat.
+- The `teleportDistance` option will de-prioritise non-locomotive train carriages. So it will pick a further away locomotive or car type, rather than a near by cargo-wagon type. It will still aim to minimise player dislocations over target vehicle type priority.
 - Trains are a special case in Factorio as every player in the train can have input to drive it. The mod will control the target players inputs and generally these seem to supersede any other train riding player's inputs, however, this isn't guaranteed.
 - The player isn't prevented from removing the fuel from their vehicle as this isn't simple to prevent. However, this is such an active countering of the mod's behavior that if the streamer wishes to do this then that's their choice.
+- If the vehicle runs out of fuel during the effect it will continue, but just have no impact other than locking the player in the vehicle. This is a very unlikely edge case and the player can obviously add fuel to the vehicle if they have any.
 
 
 
