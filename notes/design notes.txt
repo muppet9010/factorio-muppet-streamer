@@ -1,0 +1,8 @@
+Permission Groups
+=================
+
+Permission groups to stop players getting out of vehicles have an advantage over just putting the player back in to their vehicle by script if they found to have left it. This advantage relates to when other scripts may teleport a player out of the vehicle. When using a permission group to prevent the player from leaving the vehicle via key input we know that if the player is found to be outside of the vehicle it occurred either as the vehicle died, or the player was teleported out of it. If they were teleported out of it then we don't want to undo the teleport by putting them back in to the vehicle where they used to be. This is seen by Mukkie's redeems.
+
+At present we assume a second action should take priority over a still active prior action. This is standard across all of our effects with them stopping when a major change is detected that prevents them continuing. Rather than the effects trying to return the state so they could continue.
+
+But if we didn't use the permission group then we'd need to provide a remote interface and command to stop the effect on a player if it was active so the teleport action took priority.
