@@ -222,7 +222,7 @@ Spawns entities in the game around the named player on their side. Includes both
 Aggressive Driver
 ============
 
-The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering based on settings. This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
+The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering based on settings. If they don't have a vehicle they can aggressively walk in stead. This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
 
 #### Command syntax
 

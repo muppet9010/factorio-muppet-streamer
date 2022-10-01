@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.32
-Date: 2022-09-XXX
+Date: 2022-10-01
   Features:
     - Aggressive Driver - added `commandeerVehicle` option that when enabled (default) makes the target player more assertive in getting a vehicle to drive. When not enabled the effect is quite passive in getting a vehicle to drive.
     - Aggressive Driver - all train carriages are now valid targets for being teleported too. However, non-locomotive train carriages are lower priority than powered vehicle types.
