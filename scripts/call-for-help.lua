@@ -61,7 +61,7 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 ---@field player LuaPlayer
 ---@field distance double
 
-local commandName = "muppet_streamer_call_for_help"
+local CommandName = "muppet_streamer_call_for_help"
 
 CallForHelp.CreateGlobals = function()
     global.callForHelp = global.aggressiveDriver or {}
@@ -80,24 +80,24 @@ end
 ---@param command CustomCommandData
 CallForHelp.CallForHelpCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "arrivalRadius", "callRadius", "sameSurfaceOnly", "sameTeamOnly", "blacklistedPlayerNames", "whitelistedPlayerNames", "callSelection", "number", "activePercentage", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "target", "arrivalRadius", "callRadius", "sameSurfaceOnly", "sameTeamOnly", "blacklistedPlayerNames", "whitelistedPlayerNames", "callSelection", "number", "activePercentage", "suppressMessages" })
     if commandData == nil then
         return
     end
 
     local delaySeconds = commandData.delay
-    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, CommandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, CommandName, "delay")
 
     local target = commandData.target
-    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
+    if not Common.CheckPlayerNameSettingValue(target, CommandName, "target", command.parameter) then
         return
     end ---@cast target string
 
     local arrivalRadius = commandData.arrivalRadius
-    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius", 1, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, CommandName, "arrivalRadius", 1, nil, command.parameter) then
         return
     end ---@cast arrivalRadius double|nil
     if arrivalRadius == nil then
@@ -105,12 +105,12 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local callRadius = commandData.callRadius
-    if not CommandsUtils.CheckNumberArgument(callRadius, "double", false, commandName, "callRadius", 1, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(callRadius, "double", false, CommandName, "callRadius", 1, nil, command.parameter) then
         return
     end ---@cast callRadius double|nil
 
     local sameSurfaceOnly = commandData.sameSurfaceOnly
-    if not CommandsUtils.CheckBooleanArgument(sameSurfaceOnly, false, commandName, "sameSurfaceOnly", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(sameSurfaceOnly, false, CommandName, "sameSurfaceOnly", command.parameter) then
         return
     end ---@cast sameSurfaceOnly boolean|nil
     if sameSurfaceOnly == nil then
@@ -122,7 +122,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local sameTeamOnly = commandData.sameTeamOnly
-    if not CommandsUtils.CheckBooleanArgument(sameTeamOnly, false, commandName, "sameTeamOnly", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(sameTeamOnly, false, CommandName, "sameTeamOnly", command.parameter) then
         return
     end ---@cast sameTeamOnly boolean|nil
     if sameTeamOnly == nil then
@@ -130,7 +130,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local blacklistedPlayerNames_string = commandData.blacklistedPlayerNames
-    if not CommandsUtils.CheckStringArgument(blacklistedPlayerNames_string, false, commandName, "blacklistedPlayerNames", nil, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(blacklistedPlayerNames_string, false, CommandName, "blacklistedPlayerNames", nil, command.parameter) then
         return
     end ---@cast blacklistedPlayerNames_string string|nil
     local blacklistedPlayerNames ---@type table<string, true>|nil
@@ -139,7 +139,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local whitelistedPlayerNames_string = commandData.whitelistedPlayerNames
-    if not CommandsUtils.CheckStringArgument(whitelistedPlayerNames_string, false, commandName, "whitelistedPlayerNames", nil, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(whitelistedPlayerNames_string, false, CommandName, "whitelistedPlayerNames", nil, command.parameter) then
         return
     end ---@cast whitelistedPlayerNames_string string|nil
     local whitelistedPlayerNames ---@type table<string, true>|nil
@@ -148,13 +148,13 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local callSelection_string = commandData.callSelection
-    if not CommandsUtils.CheckStringArgument(callSelection_string, true, commandName, "callSelection", CallSelection, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(callSelection_string, true, CommandName, "callSelection", CallSelection, command.parameter) then
         return
     end ---@cast callSelection_string string
     local callSelection = CallSelection[callSelection_string] ---@type CallForHelp_CallSelection
 
     local number = commandData.number
-    if not CommandsUtils.CheckNumberArgument(number, "int", false, commandName, "number", 0, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(number, "int", false, CommandName, "number", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast number uint|nil
     if number == nil then
@@ -162,7 +162,7 @@ CallForHelp.CallForHelpCommand = function(command)
     end
 
     local activePercentage = commandData.activePercentage
-    if not CommandsUtils.CheckNumberArgument(activePercentage, "double", false, commandName, "activePercentage", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(activePercentage, "double", false, CommandName, "activePercentage", 0, nil, command.parameter) then
         return
     end ---@cast activePercentage double|nil
     if activePercentage ~= nil then
@@ -173,12 +173,12 @@ CallForHelp.CallForHelpCommand = function(command)
 
     -- At least one of number or activePercentage must have been set above 0.
     if number == 0 and activePercentage == 0 then
-        CommandsUtils.LogPrintError(commandName, nil, "either number or activePercentage must be provided", command.parameter)
+        CommandsUtils.LogPrintError(CommandName, nil, "either number or activePercentage must be provided", command.parameter)
         return
     end
 
     local suppressMessages = commandData.suppressMessages
-    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, CommandName, "suppressMessages", command.parameter) then
         return
     end ---@cast suppressMessages boolean|nil
     if suppressMessages == nil then
@@ -211,7 +211,7 @@ CallForHelp.CallForHelp = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character then
@@ -372,7 +372,7 @@ CallForHelp.PlanTeleportHelpPlayer = function(helpPlayer, arrivalRadius, targetP
         return
     elseif teleportResponse.errorTeleportFailed then
         -- Failed to teleport the entity to the specific position.
-        CommandsUtils.LogPrintWarning(commandName, nil, "Teleport action for player " .. helpPlayer.name .. " to position " .. LoggingUtils.PositionToString(teleportResponse.targetPosition) .. " failed (Factorio request rejected)", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "Teleport action for player " .. helpPlayer.name .. " to position " .. LoggingUtils.PositionToString(teleportResponse.targetPosition) .. " failed (Factorio request rejected)", nil)
         return
     end
 end
@@ -482,7 +482,7 @@ CallForHelp.OnScriptPathRequestFinished = function(event)
 
         -- If the teleport of the player's entity/vehicle to the specific position failed then nothing further to do for this player.
         if not teleportSucceeded then
-            CommandsUtils.LogPrintWarning(commandName, nil, "Teleport action for player " .. helpPlayer.name .. " to position " .. LoggingUtils.PositionToString(pathRequest.position) .. " failed (Factorio request rejected)", nil)
+            CommandsUtils.LogPrintWarning(CommandName, nil, "Teleport action for player " .. helpPlayer.name .. " to position " .. LoggingUtils.PositionToString(pathRequest.position) .. " failed (Factorio request rejected)", nil)
             CallForHelp.CheckIfCallForHelpCompleted(pathRequest)
             return
         end

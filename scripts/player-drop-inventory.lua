@@ -50,7 +50,7 @@ local QuantityType = {
 ---@alias PlayerDropInventory_InventoryItemCounts table<defines.inventory|"cursorStack", uint> # Dictionary of each inventory to a cached total count across all items (count of each item all added together) were in that inventory.
 ---@alias PlayerDropInventory_InventoryContents table<defines.inventory|"cursorStack", table<string, uint>> # Dictionary of each inventory to a cached list of item name and counts in that inventory.
 
-local commandName = "muppet_streamer_player_drop_inventory"
+local CommandName = "muppet_streamer_player_drop_inventory"
 
 PlayerDropInventory.CreateGlobals = function()
     global.playerDropInventory = global.playerDropInventory or {}
@@ -68,35 +68,35 @@ end
 
 ---@param command CustomCommandData
 PlayerDropInventory.PlayerDropInventoryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "markForDeconstruction", "dropAsLoot", "gap", "occurrences", "includeArmor", "includeWeapons", "density", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "target", "quantityType", "quantityValue", "dropOnBelts", "markForDeconstruction", "dropAsLoot", "gap", "occurrences", "includeArmor", "includeWeapons", "density", "suppressMessages" })
     if commandData == nil then
         return
     end
 
     local delaySeconds = commandData.delay
-    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, CommandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, CommandName, "delay")
 
     local target = commandData.target
-    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
+    if not Common.CheckPlayerNameSettingValue(target, CommandName, "target", command.parameter) then
         return
     end ---@cast target string
 
     local quantityType_string = commandData.quantityType
-    if not CommandsUtils.CheckStringArgument(quantityType_string, true, commandName, "quantityType", QuantityType, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(quantityType_string, true, CommandName, "quantityType", QuantityType, command.parameter) then
         return
     end ---@cast quantityType_string string
     local quantityType = QuantityType[quantityType_string] ---@type PlayerDropInventory_QuantityType
 
     local quantityValue = commandData.quantityValue
-    if not CommandsUtils.CheckNumberArgument(quantityValue, "int", true, commandName, "quantityValue", 1, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(quantityValue, "int", true, CommandName, "quantityValue", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast quantityValue uint
 
     local dropOnBelts = commandData.dropOnBelts
-    if not CommandsUtils.CheckBooleanArgument(dropOnBelts, false, commandName, "dropOnBelts", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(dropOnBelts, false, CommandName, "dropOnBelts", command.parameter) then
         return
     end ---@cast dropOnBelts boolean|nil
     if dropOnBelts == nil then
@@ -104,7 +104,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local markForDeconstruction = commandData.markForDeconstruction
-    if not CommandsUtils.CheckBooleanArgument(markForDeconstruction, false, commandName, "markForDeconstruction", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(markForDeconstruction, false, CommandName, "markForDeconstruction", command.parameter) then
         return
     end ---@cast markForDeconstruction boolean|nil
     if markForDeconstruction == nil then
@@ -112,7 +112,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local dropAsLoot = commandData.dropAsLoot
-    if not CommandsUtils.CheckBooleanArgument(dropAsLoot, false, commandName, "dropAsLoot", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(dropAsLoot, false, CommandName, "dropAsLoot", command.parameter) then
         return
     end ---@cast dropAsLoot boolean|nil
     if dropAsLoot == nil then
@@ -120,18 +120,18 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local gapSeconds = commandData.gap
-    if not CommandsUtils.CheckNumberArgument(gapSeconds, "double", true, commandName, "gap", 1 / 60, math.floor(MathUtils.uintMax / 60), command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(gapSeconds, "double", true, CommandName, "gap", 1 / 60, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast gapSeconds double
     local gap = math.floor(gapSeconds * 60) --[[@as uint # gapSeconds was validated as not exceeding a uint during input validation.]]
 
     local occurrences = commandData.occurrences
-    if not CommandsUtils.CheckNumberArgument(occurrences, "int", true, commandName, "occurrences", 1, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(occurrences, "int", true, CommandName, "occurrences", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast occurrences uint
 
     local includeArmor = commandData.includeArmor
-    if not CommandsUtils.CheckBooleanArgument(includeArmor, false, commandName, "includeArmor", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(includeArmor, false, CommandName, "includeArmor", command.parameter) then
         return
     end ---@cast includeArmor boolean|nil
     if includeArmor == nil then
@@ -139,7 +139,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local includeWeapons = commandData.includeWeapons
-    if not CommandsUtils.CheckBooleanArgument(includeWeapons, false, commandName, "includeWeapons", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(includeWeapons, false, CommandName, "includeWeapons", command.parameter) then
         return
     end ---@cast includeWeapons boolean|nil
     if includeWeapons == nil then
@@ -147,7 +147,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local density = commandData.density
-    if not CommandsUtils.CheckNumberArgument(density, "double", false, commandName, "density", 0, 10, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(density, "double", false, CommandName, "density", 0, 10, command.parameter) then
         return
     end ---@cast density double
     if density == nil then
@@ -155,7 +155,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local distributionOuterDensity = commandData.distributionOuterDensity
-    if not CommandsUtils.CheckNumberArgument(distributionOuterDensity, "double", false, commandName, "distributionOuterDensity", 0, 1, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(distributionOuterDensity, "double", false, CommandName, "distributionOuterDensity", 0, 1, command.parameter) then
         return
     end ---@cast distributionOuterDensity double
     if distributionOuterDensity == nil then
@@ -163,7 +163,7 @@ PlayerDropInventory.PlayerDropInventoryCommand = function(command)
     end
 
     local suppressMessages = commandData.suppressMessages
-    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, CommandName, "suppressMessages", command.parameter) then
         return
     end ---@cast suppressMessages boolean|nil
     if suppressMessages == nil then
@@ -183,7 +183,7 @@ PlayerDropInventory.ApplyToPlayer = function(event)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     local targetPlayer_index = targetPlayer.index
@@ -371,7 +371,7 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
         ---@cast inventoryNameOfItemNumberToDrop defines.inventory # "cursorStack" has separate if/else leg.
         inventory = player.get_inventory(inventoryNameOfItemNumberToDrop)
         if inventory == nil then
-            CommandsUtils.LogPrintError(commandName, nil, "didn't find inventory id " .. inventoryNameOfItemNumberToDrop .. "' for " .. player.name, nil)
+            CommandsUtils.LogPrintError(CommandName, nil, "didn't find inventory id " .. inventoryNameOfItemNumberToDrop .. "' for " .. player.name, nil)
             return
         end
     end
@@ -387,7 +387,7 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
 
                 if inventoryNameOfItemNumberToDrop == nil then
                     -- Run out of inventories to iterate through, ERROR.
-                    CommandsUtils.LogPrintError(commandName, nil, "run out of inventories to search before finding item number " .. itemNumberToDrop .. " for " .. player.name, nil)
+                    CommandsUtils.LogPrintError(CommandName, nil, "run out of inventories to search before finding item number " .. itemNumberToDrop .. " for " .. player.name, nil)
                     return
                 end
                 countInInventory = itemsCountsInInventories[inventoryNameOfItemNumberToDrop]
@@ -405,7 +405,7 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
                 ---@cast inventoryNameOfItemNumberToDrop defines.inventory # "cursorStack" has separate if/else leg.
                 inventory = player.get_inventory(inventoryNameOfItemNumberToDrop)
                 if inventory == nil then
-                    CommandsUtils.LogPrintError(commandName, nil, "didn't find inventory id " .. inventoryNameOfItemNumberToDrop .. "' for " .. player.name, nil)
+                    CommandsUtils.LogPrintError(CommandName, nil, "didn't find inventory id " .. inventoryNameOfItemNumberToDrop .. "' for " .. player.name, nil)
                     return
                 end
             end
@@ -424,7 +424,7 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
                 itemNameToDrop = next(inventoryContents, itemNameToDrop)
                 if itemNameToDrop == nil then
                     -- Run out of items in this this inventory to iterate through, ERROR.
-                    CommandsUtils.LogPrintError(commandName, nil, "didn't find item number " .. itemNumberToDrop .. " in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop, nil)
+                    CommandsUtils.LogPrintError(CommandName, nil, "didn't find item number " .. itemNumberToDrop .. " in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop, nil)
                     return
                 end
                 itemCount = inventoryContents[itemNameToDrop]
@@ -448,7 +448,7 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
                 -- Standard case for all other inventories.
                 itemStackToDropFrom = inventory.find_item_stack(itemNameToDrop)
                 if itemStackToDropFrom == nil then
-                    CommandsUtils.LogPrintError(commandName, nil, "didn't find item stack for item '" .. itemNameToDrop .. "' in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop, nil)
+                    CommandsUtils.LogPrintError(CommandName, nil, "didn't find item stack for item '" .. itemNameToDrop .. "' in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop, nil)
                     return
                 end
             end

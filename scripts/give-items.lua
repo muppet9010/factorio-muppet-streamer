@@ -14,7 +14,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field selectWeapon boolean
 ---@field suppressMessages boolean
 
-local commandName = "muppet_streamer_give_player_weapon_ammo"
+local CommandName = "muppet_streamer_give_player_weapon_ammo"
 
 GiveItems.CreateGlobals = function()
     global.giveItems = global.giveItems or {}
@@ -30,27 +30,27 @@ end
 ---@param command CustomCommandData
 GiveItems.GivePlayerWeaponAmmoCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "target", "weaponType", "forceWeaponToSlot", "selectWeapon", "ammoType", "ammoCount", "suppressMessages" })
     if commandData == nil then
         return
     end
 
     local delaySeconds = commandData.delay
-    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, CommandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, CommandName, "delay")
 
     local target = commandData.target
-    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
+    if not Common.CheckPlayerNameSettingValue(target, CommandName, "target", command.parameter) then
         return
     end ---@cast target string
 
-    local weaponPrototype, valid = Common.GetItemPrototypeFromCommandArgument(commandData.weaponType, "gun", false, commandName, "weaponType", command.parameter)
+    local weaponPrototype, valid = Common.GetItemPrototypeFromCommandArgument(commandData.weaponType, "gun", false, CommandName, "weaponType", command.parameter)
     if not valid then return end
 
     local forceWeaponToSlot = commandData.forceWeaponToSlot
-    if not CommandsUtils.CheckBooleanArgument(forceWeaponToSlot, false, commandName, "forceWeaponToSlot", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(forceWeaponToSlot, false, CommandName, "forceWeaponToSlot", command.parameter) then
         return
     end ---@cast forceWeaponToSlot boolean|nil
     if forceWeaponToSlot == nil then
@@ -58,23 +58,23 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     end
 
     local selectWeapon = commandData.selectWeapon
-    if not CommandsUtils.CheckBooleanArgument(selectWeapon, false, commandName, "selectWeapon", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(selectWeapon, false, CommandName, "selectWeapon", command.parameter) then
         return
     end ---@cast selectWeapon boolean|nil
     if selectWeapon == nil then
         selectWeapon = false
     end
 
-    local ammoPrototype, valid = Common.GetItemPrototypeFromCommandArgument(commandData.ammoType, "ammo", false, commandName, "ammoType", command.parameter)
+    local ammoPrototype, valid = Common.GetItemPrototypeFromCommandArgument(commandData.ammoType, "ammo", false, CommandName, "ammoType", command.parameter)
     if not valid then return end
 
     local ammoCount = commandData.ammoCount
-    if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, commandName, "ammoCount", 1, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, CommandName, "ammoCount", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast ammoCount uint|nil
 
     local suppressMessages = commandData.suppressMessages
-    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, CommandName, "suppressMessages", command.parameter) then
         return
     end ---@cast suppressMessages boolean|nil
     if suppressMessages == nil then
@@ -93,7 +93,7 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
@@ -104,11 +104,11 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
 
     -- Check the weapon and ammo are still valid (unchanged).
     if not data.weaponPrototype.valid then
-        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game weapon prototype has been changed/removed since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "The in-game weapon prototype has been changed/removed since the command was run.", nil)
         return
     end
     if not data.ammoPrototype.valid then
-        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game ammo prototype has been changed/removed since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "The in-game ammo prototype has been changed/removed since the command was run.", nil)
         return
     end
 

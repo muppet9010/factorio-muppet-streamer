@@ -43,7 +43,7 @@ local EffectEndStatus = {
     invalid = "invalid"
 }
 
-local commandName = "muppet_streamer_pants_on_fire"
+local CommandName = "muppet_streamer_pants_on_fire"
 
 PantsOnFire.CreateGlobals = function()
     global.PantsOnFire = global.PantsOnFire or {}
@@ -62,24 +62,24 @@ end
 ---@param command CustomCommandData
 PantsOnFire.PantsOnFireCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount", "fireType", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "target", "duration", "fireHeadStart", "fireGap", "flameCount", "fireType", "suppressMessages" })
     if commandData == nil then
         return
     end
 
     local delaySeconds = commandData.delay
-    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, CommandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, CommandName, "delay")
 
     local target = commandData.target
-    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
+    if not Common.CheckPlayerNameSettingValue(target, CommandName, "target", command.parameter) then
         return
     end ---@cast target string
 
     local durationSeconds = commandData.duration
-    if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, commandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(durationSeconds, "double", true, CommandName, "duration", 1, math.floor(MathUtils.uintMax / 60), command.parameter) then
         return
     end ---@cast durationSeconds double
     local finishTick ---@type uint
@@ -91,7 +91,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     finishTick = MathUtils.ClampToUInt(finishTick + math.floor(durationSeconds * 60))
 
     local fireHeadStart = commandData.fireHeadStart
-    if not CommandsUtils.CheckNumberArgument(fireHeadStart, "int", false, commandName, "fireHeadStart", 0, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(fireHeadStart, "int", false, CommandName, "fireHeadStart", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast fireHeadStart uint|nil
     if fireHeadStart == nil then
@@ -99,7 +99,7 @@ PantsOnFire.PantsOnFireCommand = function(command)
     end
 
     local fireGap = commandData.fireGap
-    if not CommandsUtils.CheckNumberArgument(fireGap, "int", false, commandName, "fireGap", 1, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(fireGap, "int", false, CommandName, "fireGap", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast fireGap uint|nil
     if fireGap == nil then
@@ -108,25 +108,25 @@ PantsOnFire.PantsOnFireCommand = function(command)
 
     local flameCount = commandData.flameCount
     -- Flame count above 250 gives odd results.
-    if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, commandName, "flameCount", 1, 250, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(flameCount, "int", false, CommandName, "flameCount", 1, 250, command.parameter) then
         return
     end ---@cast flameCount uint8|nil
     if flameCount == nil then
         flameCount = 30
     end
 
-    local firePrototype, valid = Common.GetEntityPrototypeFromCommandArgument(commandData.fireType, "fire", false, commandName, "fireType", command.parameter)
+    local firePrototype, valid = Common.GetEntityPrototypeFromCommandArgument(commandData.fireType, "fire", false, CommandName, "fireType", command.parameter)
     if not valid then return end
     if firePrototype == nil then
         -- No custom weapon set, so use the base game weapon and confirm its valid.
-        firePrototype = Common.GetBaseGameEntityByName("fire-flame", "fire", commandName, command.parameter)
+        firePrototype = Common.GetBaseGameEntityByName("fire-flame", "fire", CommandName, command.parameter)
         if firePrototype == nil then
             return
         end
     end
 
     local suppressMessages = commandData.suppressMessages
-    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, CommandName, "suppressMessages", command.parameter) then
         return
     end ---@cast suppressMessages boolean|nil
     if suppressMessages == nil then
@@ -145,7 +145,7 @@ PantsOnFire.ApplyToPlayer = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
@@ -156,7 +156,7 @@ PantsOnFire.ApplyToPlayer = function(eventData)
 
     -- Check the firePrototype is still valid (unchanged).
     if not data.firePrototype.valid then
-        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game fire prototype has been changed/removed since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "The in-game fire prototype has been changed/removed since the command was run.", nil)
         return
     end
 
@@ -205,7 +205,7 @@ PantsOnFire.WalkCheck = function(eventData)
 
     -- Check the firePrototype is still valid (unchanged).
     if not data.firePrototype.valid then
-        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game fire prototype has been changed/removed since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "The in-game fire prototype has been changed/removed since the command was run.", nil)
         return
     end
 
@@ -262,7 +262,7 @@ PantsOnFire.StopEffectOnPlayer = function(playerIndex, player, status)
 
     player = player or game.get_player(playerIndex)
     if player == nil then
-        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted while the effect was running.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted while the effect was running.", nil)
         return
     end
 

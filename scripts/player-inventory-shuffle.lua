@@ -48,7 +48,7 @@ local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force th
 ---@field recipientItemMinToMaxRatio uint
 ---@field suppressMessages boolean
 
-local commandName = "muppet_streamer_player_inventory_shuffle"
+local CommandName = "muppet_streamer_player_inventory_shuffle"
 
 PlayerInventoryShuffle.CreateGlobals = function()
     global.playerInventoryShuffle = global.playerInventoryShuffle or {}
@@ -63,20 +63,20 @@ end
 
 ---@param command CustomCommandData
 PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "includedPlayers", "includedForces", "includeArmor", "extractArmorEquipment", "includeWeapons", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "includedPlayers", "includedForces", "includeArmor", "extractArmorEquipment", "includeWeapons", "includeHandCrafting", "destinationPlayersMinimumVariance", "destinationPlayersVarianceFactor", "recipientItemMinToMaxRatio", "suppressMessages" })
     if commandData == nil then
         return
     end
 
     local delaySeconds = commandData.delay
-    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, CommandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, CommandName, "delay")
 
     -- Just get the Included Players with minimal checking as we do the checks once all the include settings are obtained.
     local includedPlayersString = commandData.includedPlayers
-    if not CommandsUtils.CheckStringArgument(includedPlayersString, false, commandName, "includedPlayers", nil, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(includedPlayersString, false, CommandName, "includedPlayers", nil, command.parameter) then
         return
     end ---@cast includedPlayersString string|nil
     local includedPlayerNames = {} ---@type string[]
@@ -95,13 +95,13 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
 
     -- Get the Included Forces and just check anything provided is valid.
     local includedForcesString = commandData.includedForces
-    if not CommandsUtils.CheckStringArgument(includedForcesString, false, commandName, "includedForces", nil, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(includedForcesString, false, CommandName, "includedForces", nil, command.parameter) then
         return
     end ---@cast includedForcesString string|nil
     local includedForces = {} ---@type LuaForce[]
     if includedForcesString ~= nil and includedForcesString ~= "" then
         if includeAllPlayersOnServer then
-            CommandsUtils.LogPrintError(commandName, "includedForces", "is invalid option as all players on the server are already being included", command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "includedForces", "is invalid option as all players on the server are already being included", command.parameter)
             return
         end
         local includedForceNames = StringUtils.SplitStringOnCharactersToList(includedForcesString, ",")
@@ -110,7 +110,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
             if force ~= nil then
                 table.insert(includedForces, force)
             else
-                CommandsUtils.LogPrintError(commandName, "includedForces", "has an invalid force name: " .. tostring(includedForceName), command.parameter)
+                CommandsUtils.LogPrintError(CommandName, "includedForces", "has an invalid force name: " .. tostring(includedForceName), command.parameter)
                 return
             end
         end
@@ -120,13 +120,13 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     if not includeAllPlayersOnServer and #includedForces == 0 then
         -- As not all players and no forces fully included, we actually have to check the player list.
         if includedPlayerNames == nil or #includedPlayerNames < 2 then
-            CommandsUtils.LogPrintError(commandName, nil, "at least 2 player's names must be included in the `includedPlayers` option if no force is included in the 'includedForces' option.", command.parameter)
+            CommandsUtils.LogPrintError(CommandName, nil, "at least 2 player's names must be included in the `includedPlayers` option if no force is included in the 'includedForces' option.", command.parameter)
             return
         end
     end
 
     local includeArmor = commandData.includeArmor
-    if not CommandsUtils.CheckBooleanArgument(includeArmor, false, commandName, "includeArmor", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(includeArmor, false, CommandName, "includeArmor", command.parameter) then
         return
     end ---@cast includeArmor boolean|nil
     if includeArmor == nil then
@@ -134,7 +134,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local extractArmorEquipment = commandData.extractArmorEquipment
-    if not CommandsUtils.CheckBooleanArgument(extractArmorEquipment, false, commandName, "extractArmorEquipment", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(extractArmorEquipment, false, CommandName, "extractArmorEquipment", command.parameter) then
         return
     end ---@cast extractArmorEquipment boolean|nil
     if extractArmorEquipment == nil then
@@ -142,7 +142,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local includeWeapons = commandData.includeWeapons
-    if not CommandsUtils.CheckBooleanArgument(includeWeapons, false, commandName, "includeWeapons", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(includeWeapons, false, CommandName, "includeWeapons", command.parameter) then
         return
     end ---@cast includeWeapons boolean|nil
     if includeWeapons == nil then
@@ -150,7 +150,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local includeHandCrafting = commandData.includeHandCrafting
-    if not CommandsUtils.CheckBooleanArgument(includeHandCrafting, false, commandName, "includeHandCrafting", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(includeHandCrafting, false, CommandName, "includeHandCrafting", command.parameter) then
         return
     end ---@cast includeHandCrafting boolean|nil
     if includeHandCrafting == nil then
@@ -158,7 +158,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local destinationPlayersMinimumVariance = commandData.destinationPlayersMinimumVariance
-    if not CommandsUtils.CheckNumberArgument(destinationPlayersMinimumVariance, "int", false, commandName, "destinationPlayersMinimumVariance", 0, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(destinationPlayersMinimumVariance, "int", false, CommandName, "destinationPlayersMinimumVariance", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast destinationPlayersMinimumVariance uint|nil
     if destinationPlayersMinimumVariance == nil then
@@ -166,7 +166,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local destinationPlayersVarianceFactor = commandData.destinationPlayersVarianceFactor
-    if not CommandsUtils.CheckNumberArgument(destinationPlayersVarianceFactor, "double", false, commandName, "destinationPlayersVarianceFactor", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(destinationPlayersVarianceFactor, "double", false, CommandName, "destinationPlayersVarianceFactor", 0, nil, command.parameter) then
         return
     end ---@cast destinationPlayersVarianceFactor double|nil
     if destinationPlayersVarianceFactor == nil then
@@ -174,7 +174,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local recipientItemMinToMaxRatio = commandData.recipientItemMinToMaxRatio
-    if not CommandsUtils.CheckNumberArgument(recipientItemMinToMaxRatio, "int", false, commandName, "recipientItemMinToMaxRatio", 1, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(recipientItemMinToMaxRatio, "int", false, CommandName, "recipientItemMinToMaxRatio", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast recipientItemMinToMaxRatio uint|nil
     if recipientItemMinToMaxRatio == nil then
@@ -182,7 +182,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     end
 
     local suppressMessages = commandData.suppressMessages
-    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, CommandName, "suppressMessages", command.parameter) then
         return
     end ---@cast suppressMessages boolean|nil
     if suppressMessages == nil then
@@ -368,7 +368,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                 storageInventory.resize(storageInventorySize)
                             else
                                 -- This is very simplistic and just used to avoid losing items, it will actually duplicate some of the last players items.
-                                CommandsUtils.LogPrintWarning(commandName, nil, "The item limit has been reached during inventory shuffle. The effect will have partially worked and some items may have been duplicated. Please report to mod author so they know to expand the mod.", nil)
+                                CommandsUtils.LogPrintWarning(CommandName, nil, "The item limit has been reached during inventory shuffle. The effect will have partially worked and some items may have been duplicated. Please report to mod author so they know to expand the mod.", nil)
                                 storageInventoryFull = true
                                 break
                             end
@@ -433,7 +433,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                     storageInventory.resize(storageInventorySize)
                                 else
                                     -- This is very simplistic and just used to avoid losing items, it will actually duplicate some of the last players items.
-                                    CommandsUtils.LogPrintWarning(commandName, nil, "The item limit has been reached during inventory shuffle. The effect will have partially worked and some items may have been duplicated. Please report to mod author so they know to expand the mod.", nil)
+                                    CommandsUtils.LogPrintWarning(CommandName, nil, "The item limit has been reached during inventory shuffle. The effect will have partially worked and some items may have been duplicated. Please report to mod author so they know to expand the mod.", nil)
                                     storageInventoryFull = true
                                     break
                                 end
@@ -591,7 +591,7 @@ PlayerInventoryShuffle.DistributePlannedItemsToPlayers = function(storageInvento
                 -- Player's inventory is full so stop trying to add more things to do. Will catch the left over items in the storage inventory later.
                 playerIndexesWithFreeInventorySpace_table[playerIndex] = nil -- This will make it a gappy array, but we will squash it down later.
                 if DebugStatusMessages then
-                    CommandsUtils.LogPrintWarning(commandName, nil, "Player list index " .. playerIndex .. "'s inventory is full during initial item distribution")
+                    CommandsUtils.LogPrintWarning(CommandName, nil, "Player list index " .. playerIndex .. "'s inventory is full during initial item distribution")
                 end
                 break
             end
@@ -611,7 +611,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
     local itemsLeftInStorage = storageInventory.get_contents()
     if next(itemsLeftInStorage) ~= nil then
         if DebugStatusMessages then
-            CommandsUtils.LogPrintWarning(commandName, nil, "storage inventory not all distributed to players initially")
+            CommandsUtils.LogPrintWarning(CommandName, nil, "storage inventory not all distributed to players initially")
         end
         -- playerIndexesWithFreeInventorySpace_table is a gappy array so have to make it consistent to allow easier usage in this phase.
         local playerIndexesWithFreeInventorySpace_array = {} ---@type LuaPlayer[]
@@ -636,7 +636,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
                     -- Player's inventory is full so prevent trying to add anything else to this player in the future.
                     table.remove(playerIndexesWithFreeInventorySpace_array, playerListIndex)
                     if DebugStatusMessages then
-                        CommandsUtils.LogPrintWarning(commandName, nil, "A player's inventory is full during secondary item dump to players") -- This doesn't know the original position of the player in the list as the list is being trimmed and squashed as it goes.
+                        CommandsUtils.LogPrintWarning(CommandName, nil, "A player's inventory is full during secondary item dump to players") -- This doesn't know the original position of the player in the list as the list is being trimmed and squashed as it goes.
                     end
                 end
             end
@@ -692,7 +692,7 @@ PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemNa
     while itemCount > 0 do
         itemStackToTakeFrom = storageInventory.find_item_stack(itemName)
         if itemStackToTakeFrom == nil then
-            CommandsUtils.LogPrintError(commandName, nil, "When inserting items in to player item was missing in shared storage")
+            CommandsUtils.LogPrintError(CommandName, nil, "When inserting items in to player item was missing in shared storage")
             return true, itemCount -- This aborts the code loop, but may give weird later error messages. Unexpected route so shouldn't matter.
         end
         itemStackToTakeFrom_count = itemStackToTakeFrom.count
