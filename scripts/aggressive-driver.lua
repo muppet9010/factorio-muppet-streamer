@@ -225,7 +225,9 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
-    if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
+    local targetPlayer_character = targetPlayer.character
+    -- Check the player has a character they can control. The character may be inside the vehicle at present.
+    if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer_character == nil then
         if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_driver_not_character_controller", data.target }) end
         return
     end
@@ -259,7 +261,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                 -- There's a driver of the vehicle.
                 if data.commandeerVehicle then
                     -- Commandeer a vehicle.
-                    if driver == targetPlayer or driver == targetPlayer.character then
+                    if driver == targetPlayer or driver == targetPlayer_character then
                         -- Player is already driving
                         inSuitableVehicle = true
                     else
@@ -271,7 +273,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                     end
                 else
                     -- Respect vehicle drivers.
-                    if driver == targetPlayer or driver == targetPlayer.character then
+                    if driver == targetPlayer or driver == targetPlayer_character then
                         -- Player is already driving
                         inSuitableVehicle = true
                     else
@@ -467,6 +469,13 @@ AggressiveDriver.Drive = function(eventData)
         return
     end
 
+    -- Check the player has a character they can control. The character may be inside the vehicle at present.
+    local player_character = player.character
+    if player.controller_type ~= defines.controllers.character or player_character == nil then
+        AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        return
+    end
+
     local vehicle = player.vehicle
     if vehicle == nil then
         -- Player doesn't have a vehicle currently.
@@ -480,13 +489,6 @@ AggressiveDriver.Drive = function(eventData)
             AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
             return
         end
-
-        -- Check player still has a character to walk.
-        if player.character == nil then
-            -- Player shouldn't walk if they don't have a character and don;t have a vehicle. Likely died, but may also be in editor.
-            AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
-            return
-        end
     else
         -- Player has a vehicle
 
@@ -495,7 +497,7 @@ AggressiveDriver.Drive = function(eventData)
 
         -- Check the player is still the driver and not a passenger.
         local driver = vehicle.get_driver()
-        if driver ~= player and driver ~= player.character then
+        if driver ~= player and driver ~= player_character then
             AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
             return
         end

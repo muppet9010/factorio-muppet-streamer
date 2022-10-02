@@ -206,7 +206,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
     if requestData.includeAllPlayersOnServer == true then
         -- Just include everyone.
         for _, player in pairs(game.connected_players) do
-            if player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
+            if player.controller_type == defines.controllers.character and player.character ~= nil then
                 table.insert(players, player)
             end
         end
@@ -215,7 +215,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
         for _, force in pairs(requestData.includedForces) do
             if force.valid then
                 for _, player in pairs(force.connected_players) do
-                    if player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
+                    if player.controller_type == defines.controllers.character and player.character ~= nil then
                         table.insert(players, player)
                         local player_name = player.name
                         playerNamesAddedByForce[player_name] = player_name
@@ -225,7 +225,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
         end
         for _, playerName in pairs(requestData.includedPlayerNames) do
             local player = game.get_player(playerName)
-            if player ~= nil and player.connected and player.controller_type == defines.controllers.character and player.character ~= nil and player.character.valid then
+            if player ~= nil and player.connected and player.controller_type == defines.controllers.character and player.character ~= nil then
                 local player_name = player.name
                 -- Only include the player if they aren't already included by their force.
                 if playerNamesAddedByForce[player_name] == nil then

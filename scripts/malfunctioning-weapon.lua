@@ -158,11 +158,11 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
         CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
-    if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer.character == nil then
+    local targetPlayer_index, targetPlayer_character = targetPlayer.index, targetPlayer.character
+    if targetPlayer.controller_type ~= defines.controllers.character or targetPlayer_character == nil then
         if not data.suppressMessages then game.print({ "message.muppet_streamer_malfunctioning_weapon_not_character_controller", data.target }) end
         return
     end
-    local targetPlayer_index = targetPlayer.index
 
     -- Check the weapon and ammo are still valid (unchanged).
     if not data.weaponPrototype.valid then
@@ -189,7 +189,8 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
     end
 
     -- Put the required ammo in the guns related ammo slot.
-    local selectedAmmoItemStack = targetPlayer.get_inventory(defines.inventory.character_ammo)[removedWeaponDetails.gunInventoryIndex]
+    local targetPlayer_characterAmmoInventory = targetPlayer.get_inventory(defines.inventory.character_ammo) ---@cast targetPlayer_characterAmmoInventory - nil
+    local selectedAmmoItemStack = targetPlayer_characterAmmoInventory[removedWeaponDetails.gunInventoryIndex]
     if selectedAmmoItemStack.valid_for_read then
         -- There's a stack there and it will be the specified ammo from when we forced the weapon to the player.
         -- Just give the ammo to the player and it will auto assign it correctly.
@@ -203,7 +204,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
     end
 
     -- Check the player has the weapon equipped as expected. (same as checking logic as when it tries to fire the weapon).
-    local selectedGunIndex = targetPlayer.character.selected_gun_index
+    local selectedGunIndex = targetPlayer_character.selected_gun_index
     local selectedGunInventory = targetPlayer.get_inventory(defines.inventory.character_guns)[selectedGunIndex]
     if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= data.weaponPrototype.name then
         -- Weapon has been removed as active weapon by some script.
@@ -211,7 +212,7 @@ MalfunctioningWeapon.ApplyToPlayer = function(eventData)
         return
     end
     -- Check the player has the weapon's ammo equipped as expected. (same as checking logic as when it tries to fire the weapon).
-    local selectedAmmoInventory = targetPlayer.get_inventory(defines.inventory.character_ammo)[selectedGunIndex]
+    local selectedAmmoInventory = targetPlayer_characterAmmoInventory[selectedGunIndex]
     if selectedAmmoInventory == nil or (not selectedAmmoInventory.valid_for_read) or selectedAmmoInventory.name ~= data.ammoPrototype.name then
         -- Ammo has been removed by some script. As we wouldn't have reached this point in a managed loop as its beyond the last burst.
         CommandsUtils.LogPrintError(CommandName, nil, "target player ammo state isn't right for some odd reason: " .. data.target, nil)
@@ -248,7 +249,12 @@ end
 MalfunctioningWeapon.ShootWeapon = function(eventData)
     local data = eventData.data ---@type MalfunctioningWeapon_ShootWeaponDetails
     local player, playerIndex = data.player, data.player_index
-    if (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
+    if not player.valid then
+        MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+        return
+    end
+    local player_character = player.character
+    if player_character == nil or player.vehicle ~= nil then
         MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end
@@ -264,7 +270,7 @@ MalfunctioningWeapon.ShootWeapon = function(eventData)
     end
 
     -- Check the player has the weapon equipped as expected.
-    local selectedGunIndex = player.character.selected_gun_index
+    local selectedGunIndex = player_character.selected_gun_index
     local selectedGunInventory = player.get_inventory(defines.inventory.character_guns)[selectedGunIndex]
     if selectedGunInventory == nil or (not selectedGunInventory.valid_for_read) or selectedGunInventory.name ~= data.weaponPrototype.name then
         -- Weapon has been removed as active weapon by some script.
@@ -354,7 +360,7 @@ end
 MalfunctioningWeapon.StopEffectOnPlayer_Schedule = function(eventData)
     local data = eventData.data ---@type MalfunctioningWeapon_ShootWeaponDetails
     local player, playerIndex = data.player, data.player_index
-    if (not player.valid) or player.character == nil or (not player.character.valid) or player.vehicle ~= nil then
+    if (not player.valid) or player.character == nil or player.vehicle ~= nil then
         MalfunctioningWeapon.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
         return
     end

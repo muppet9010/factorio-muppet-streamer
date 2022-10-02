@@ -101,22 +101,21 @@ GiveItems.GiveWeaponAmmoScheduled = function(eventData)
         return
     end
 
-
     -- Check the weapon and ammo are still valid (unchanged).
-    if not data.weaponPrototype.valid then
+    if data.weaponPrototype ~= nil and not data.weaponPrototype.valid then
         CommandsUtils.LogPrintWarning(CommandName, nil, "The in-game weapon prototype has been changed/removed since the command was run.", nil)
         return
     end
-    if not data.ammoPrototype.valid then
+    if data.ammoPrototype ~= nil and not data.ammoPrototype.valid then
         CommandsUtils.LogPrintWarning(CommandName, nil, "The in-game ammo prototype has been changed/removed since the command was run.", nil)
         return
     end
 
     local ammoName ---@type string|nil
-    if data.ammoPrototype ~= nil and data.ammoPrototype.valid and data.ammoCount > 0 then
+    if data.ammoPrototype ~= nil and data.ammoCount > 0 then
         ammoName = data.ammoPrototype.name
     end
-    if data.weaponPrototype ~= nil and data.weaponPrototype.valid then
+    if data.weaponPrototype ~= nil then
         PlayerWeapon.EnsureHasWeapon(targetPlayer, data.weaponPrototype.name, data.forceWeaponToSlot, data.selectWeapon, ammoName)
     end
     if ammoName ~= nil then

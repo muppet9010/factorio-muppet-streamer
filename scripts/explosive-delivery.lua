@@ -302,6 +302,12 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         if data.finalSalvo then
             global.explosiveDelivery.salvoWaveDetails[salvoWaveId] = nil
         end
+
+        -- Check the surface is still valid as it could have been deleted mid salvo.
+        if not surface.valid then
+            -- Just give up on this salvo if the surface is gone.
+            return
+        end
     else
         -- Calculate the target position now.
         targetPos = data.targetPosition or targetPlayer.position
@@ -317,12 +323,6 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
                 targetSurface = surface
             }
         end
-    end
-
-    -- Check the surface is still valid as it could have been deleted mid salvo.
-    if not surface.valid then
-        -- Just give up on this salvo if the surface is gone.
-        return
     end
 
     local explosiveType = data.explosiveType

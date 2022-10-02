@@ -247,7 +247,7 @@ end
 PlayerDropInventory.PlayerDropItems_Scheduled = function(event)
     local data = event.data ---@type PlayerDropInventory_ScheduledDropItemsData
     local player, playerIndex = data.player, data.player_index
-    if player == nil or (not player.valid) or player.character == nil or (not player.character.valid) then
+    if player == nil or (not player.valid) or player.character == nil then
         PlayerDropInventory.StopEffectOnPlayer(playerIndex)
         return
     end
