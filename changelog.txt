@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.33
+Date: 2022-10-02
+  Features:
+  Changes:
+  Bugfixes:
+    - Aggressive Driver - fix crash when a player's character died while under the effect and having been in a vehicle.
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.1.32
 Date: 2022-10-01
   Features:

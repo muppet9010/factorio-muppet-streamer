@@ -58,7 +58,7 @@ local AggressiveWalkingTypes = {
 ---@field accelerationState defines.riding.acceleration # Should only ever be either accelerating or reversing.
 ---@field directionDurationTicks uint # How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
 ---@field ridingDirection defines.riding.direction # For if in a car or train vehicle.
----@field spiderDirection defines.direction # Just for if in a spider vehicle.
+---@field walkingDirection defines.direction # For when walking in a spider vehicle or on foot.
 
 ---@class AggressiveDriver_SortedVehicleEntry
 ---@field distance double
@@ -480,6 +480,13 @@ AggressiveDriver.Drive = function(eventData)
             AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
             return
         end
+
+        -- Check player still has a character to walk.
+        if player.character == nil then
+            -- Player shouldn't walk if they don't have a character and don;t have a vehicle. Likely died, but may also be in editor.
+            AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
+            return
+        end
     else
         -- Player has a vehicle
 
@@ -521,12 +528,12 @@ AggressiveDriver.Drive = function(eventData)
             -- Either find a new direction if the directionDuration has run out, or just count it down 1.
             if data.directionDurationTicks == 0 then
                 data.directionDurationTicks = math.random(30, 180) --[[@as uint]]
-                data.spiderDirection = math.random(0, 7) --[[@as defines.direction]]
+                data.walkingDirection = math.random(0, 7) --[[@as defines.direction]]
             else
                 data.directionDurationTicks = data.directionDurationTicks - 1
             end
 
-            player.walking_state = { walking = true, direction = data.spiderDirection }
+            player.walking_state = { walking = true, direction = data.walkingDirection }
         end
     else
         -- Cars and trains.
