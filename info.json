@@ -1,10 +1,10 @@
 {
     "name": "muppet_streamer",
-    "version": "20.1.33",
+    "version": "20.1.34",
     "title": "Muppet Streamer",
     "author": "Muppet9010",
     "contact": "",
-    "homepage": "https://mods.factorio.com/mod/muppet_streamer",
+    "homepage": "https://github.com/muppet9010/factorio-muppet-streamer/wiki",
     "factorio_version": "1.1",
     "dependencies": [
         "base >= 1.1.57"
