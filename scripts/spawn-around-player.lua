@@ -71,7 +71,7 @@ SpawnAroundPlayer.quantitySearchRadius = 3
 SpawnAroundPlayer.densitySearchRadius = 0.6
 SpawnAroundPlayer.offGridPlacementJitter = 0.3
 
-local commandName = "muppet_streamer_spawn_around_player"
+local CommandName = "muppet_streamer_spawn_around_player"
 
 SpawnAroundPlayer.CreateGlobals = function()
     global.spawnAroundPlayer = global.spawnAroundPlayer or {}
@@ -93,46 +93,46 @@ end
 ---@param command CustomCommandData
 SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "force", "entityName", "customEntityName", "customSecondaryDetail", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer", "removalTimeMin", "removalTimeMax" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "target", "force", "entityName", "customEntityName", "customSecondaryDetail", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer", "removalTimeMin", "removalTimeMax" })
     if commandData == nil then
         return
     end
 
     local delaySeconds = commandData.delay
-    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, CommandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, CommandName, "delay")
     local commandEffectTick = scheduleTick > 0 and scheduleTick --[[@as uint]] or command.tick ---@type uint # The tick the command will be executed.
 
     local target = commandData.target
-    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
+    if not Common.CheckPlayerNameSettingValue(target, CommandName, "target", command.parameter) then
         return
     end ---@cast target string
 
     local forceString = commandData.force
-    if not CommandsUtils.CheckStringArgument(forceString, false, commandName, "force", nil, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(forceString, false, CommandName, "force", nil, command.parameter) then
         return
     end ---@cast forceString string|nil
     if forceString ~= nil then
         if game.forces[forceString] == nil then
-            CommandsUtils.LogPrintError(commandName, "force", "has an invalid force name: " .. tostring(forceString), command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "force", "has an invalid force name: " .. tostring(forceString), command.parameter)
             return
         end
     end
 
     -- Just get these settings and make sure they are the right data type, validate their sanity later.
     local customEntityName = commandData.customEntityName
-    if not CommandsUtils.CheckStringArgument(customEntityName, false, commandName, "customEntityName", nil, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(customEntityName, false, CommandName, "customEntityName", nil, command.parameter) then
         return
     end ---@cast customEntityName string|nil
     local customSecondaryDetail = commandData.customSecondaryDetail
-    if not CommandsUtils.CheckStringArgument(customSecondaryDetail, false, commandName, "customSecondaryDetail", nil, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(customSecondaryDetail, false, CommandName, "customSecondaryDetail", nil, command.parameter) then
         return
     end ---@cast customSecondaryDetail string|nil
 
     local creationName = commandData.entityName
-    if not CommandsUtils.CheckStringArgument(creationName, true, commandName, "entityName", EntityTypeNames, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(creationName, true, CommandName, "entityName", EntityTypeNames, command.parameter) then
         return
     end ---@cast creationName string
     local entityTypeName = EntityTypeNames[creationName]
@@ -150,20 +150,20 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
         -- Check no ignored custom settings for a non custom entityName.
         if customEntityName ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customEntityName", "value was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
+            CommandsUtils.LogPrintWarning(CommandName, "customEntityName", "value was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
         end
         if customSecondaryDetail ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customSecondaryDetail", "value was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
+            CommandsUtils.LogPrintWarning(CommandName, "customSecondaryDetail", "value was provided, but being ignored as the entityName wasn't 'custom'.", command.parameter)
         end
     else
         -- Check just whats needed from the custom settings for the validation needed for this as no post validation can be done given its dynamic nature. Upon usage minimal validation will be done, but the creation details will be generated as not needed at this point.
         if customEntityName == nil then
-            CommandsUtils.LogPrintError(commandName, "customEntityName", "value wasn't provided, but is required as the entityName is 'custom'.", command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "customEntityName", "value wasn't provided, but is required as the entityName is 'custom'.", command.parameter)
             return
         end
         local customEntityPrototype = game.entity_prototypes[customEntityName]
         if customEntityPrototype == nil then
-            CommandsUtils.LogPrintError(commandName, "customEntityName", "entity '" .. customEntityName .. "' wasn't a valid entity name", command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "customEntityName", "entity '" .. customEntityName .. "' wasn't a valid entity name", command.parameter)
             return
         end
 
@@ -174,12 +174,12 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
                 usedSecondaryData = true
                 local ammoItemPrototype = game.item_prototypes[customSecondaryDetail]
                 if ammoItemPrototype == nil then
-                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "item '" .. customSecondaryDetail .. "' wasn't a valid item name", command.parameter)
+                    CommandsUtils.LogPrintError(CommandName, "customSecondaryDetail", "item '" .. customSecondaryDetail .. "' wasn't a valid item name", command.parameter)
                     return
                 end
                 local ammoItemPrototype_type = ammoItemPrototype.type
                 if ammoItemPrototype_type ~= 'ammo' then
-                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "item '" .. customSecondaryDetail .. "' wasn't an ammo item type, instead it was a type: " .. tostring(ammoItemPrototype_type), command.parameter)
+                    CommandsUtils.LogPrintError(CommandName, "customSecondaryDetail", "item '" .. customSecondaryDetail .. "' wasn't an ammo item type, instead it was a type: " .. tostring(ammoItemPrototype_type), command.parameter)
                     return
                 end
             end
@@ -188,7 +188,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
                 usedSecondaryData = true
                 local ammoFluidPrototype = game.fluid_prototypes[customSecondaryDetail]
                 if ammoFluidPrototype == nil then
-                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "fluid '" .. customSecondaryDetail .. "' wasn't a valid fluid name", command.parameter)
+                    CommandsUtils.LogPrintError(CommandName, "customSecondaryDetail", "fluid '" .. customSecondaryDetail .. "' wasn't a valid fluid name", command.parameter)
                     return
                 end
                 -- Can't check the required fluid count as missing fields in API, requested: https://forums.factorio.com/viewtopic.php?f=28&t=103311
@@ -197,74 +197,74 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
         -- Check that customSecondaryDetail setting wasn't populated if it wasn't used.
         if not usedSecondaryData and customSecondaryDetail ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customSecondaryDetail", "value was provided, but being ignored as the type of customEntityName didn't require it.", command.parameter)
+            CommandsUtils.LogPrintWarning(CommandName, "customSecondaryDetail", "value was provided, but being ignored as the type of customEntityName didn't require it.", command.parameter)
         end
     end
 
     local radiusMax = commandData.radiusMax
-    if not CommandsUtils.CheckNumberArgument(radiusMax, "int", true, commandName, "radiusMax", 0, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(radiusMax, "int", true, CommandName, "radiusMax", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast radiusMax uint
 
     local radiusMin = commandData.radiusMin
-    if not CommandsUtils.CheckNumberArgument(radiusMin, "int", false, commandName, "radiusMin", 0, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(radiusMin, "int", false, CommandName, "radiusMin", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast radiusMin uint|nil
     if radiusMin == nil then
         radiusMin = 0
     else
         if radiusMin > radiusMax then
-            CommandsUtils.LogPrintError(commandName, "radiusMin", "can't be set larger than the maximum radius", command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "radiusMin", "can't be set larger than the maximum radius", command.parameter)
             return
         end
     end
 
     local existingEntitiesString = commandData.existingEntities
-    if not CommandsUtils.CheckStringArgument(existingEntitiesString, true, commandName, "existingEntities", ExistingEntitiesTypes, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(existingEntitiesString, true, CommandName, "existingEntities", ExistingEntitiesTypes, command.parameter) then
         return
     end ---@cast existingEntitiesString string
     local existingEntities = ExistingEntitiesTypes[existingEntitiesString] ---@type SpawnAroundPlayer_ExistingEntities
 
 
     local quantity = commandData.quantity
-    if not CommandsUtils.CheckNumberArgument(quantity, "int", false, commandName, "quantity", 0, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(quantity, "int", false, CommandName, "quantity", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast quantity uint|nil
 
     local density = commandData.density
-    if not CommandsUtils.CheckNumberArgument(density, "double", false, commandName, "density", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(density, "double", false, CommandName, "density", 0, nil, command.parameter) then
         return
     end ---@cast density double|nil
 
     -- Check that either quantity or density is provided.
     if quantity == nil and density == nil then
-        CommandsUtils.LogPrintError(commandName, nil, "either quantity or density must be provided, otherwise the command will create nothing.", command.parameter)
+        CommandsUtils.LogPrintError(CommandName, nil, "either quantity or density must be provided, otherwise the command will create nothing.", command.parameter)
         return
     end
 
 
     local ammoCount = commandData.ammoCount
-    if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, commandName, "ammoCount", 0, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(ammoCount, "int", false, CommandName, "ammoCount", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast ammoCount uint|nil
 
     local followPlayer = commandData.followPlayer
-    if not CommandsUtils.CheckBooleanArgument(followPlayer, false, commandName, "followPlayer", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(followPlayer, false, CommandName, "followPlayer", command.parameter) then
         return
     end ---@cast followPlayer boolean|nil
 
 
     local removalTimeMin_seconds = commandData.removalTimeMin
-    if not CommandsUtils.CheckNumberArgument(removalTimeMin_seconds, "double", false, commandName, "removalTimeMin", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(removalTimeMin_seconds, "double", false, CommandName, "removalTimeMin", 0, nil, command.parameter) then
         return
     end ---@cast removalTimeMin_seconds double|nil
-    local removalTimeMin_scheduleTick = Common.SecondsSettingToTickValue(removalTimeMin_seconds, commandEffectTick, commandName, "removalTimeMin")
+    local removalTimeMin_scheduleTick = Common.SecondsSettingToTickValue(removalTimeMin_seconds, commandEffectTick, CommandName, "removalTimeMin")
 
     local removalTimeMax_seconds = commandData.removalTimeMax
-    if not CommandsUtils.CheckNumberArgument(removalTimeMax_seconds, "double", false, commandName, "removalTimeMax", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(removalTimeMax_seconds, "double", false, CommandName, "removalTimeMax", 0, nil, command.parameter) then
         return
     end ---@cast removalTimeMax_seconds double|nil
-    local removalTimeMax_scheduleTick = Common.SecondsSettingToTickValue(removalTimeMax_seconds, commandEffectTick, commandName, "removalTimeMax")
+    local removalTimeMax_scheduleTick = Common.SecondsSettingToTickValue(removalTimeMax_seconds, commandEffectTick, CommandName, "removalTimeMax")
 
     -- Ensure the removal min and max tick are both populated if one is.
     if removalTimeMin_scheduleTick ~= nil and removalTimeMax_scheduleTick == nil then
@@ -275,7 +275,7 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
     -- Ensure the removal min tick is not greater than the removal max tick.
     if removalTimeMin_scheduleTick ~= nil and removalTimeMin_scheduleTick > removalTimeMax_scheduleTick then
-        CommandsUtils.LogPrintError(commandName, "removalTimeMin", "can't be set larger than the maximum removal time", command.parameter)
+        CommandsUtils.LogPrintError(CommandName, "removalTimeMin", "can't be set larger than the maximum removal time", command.parameter)
         return
     end
 
@@ -293,7 +293,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
 
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
     local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0
@@ -311,7 +311,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
     else
         local customEntityPrototype = game.entity_prototypes[data.customEntityName--[[@as string]] ]
         if customEntityPrototype == nil then
-            CommandsUtils.LogPrintError(commandName, "customEntityName", "entity '" .. data.customEntityName .. "' wasn't valid at run time", nil)
+            CommandsUtils.LogPrintError(CommandName, "customEntityName", "entity '" .. data.customEntityName .. "' wasn't valid at run time", nil)
             return
         end
         local customEntityPrototype_type = customEntityPrototype.type
@@ -323,12 +323,12 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
             if data.customSecondaryDetail ~= nil then
                 local ammoItemPrototype = game.item_prototypes[data.customSecondaryDetail--[[@as string]] ]
                 if ammoItemPrototype == nil then
-                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "item '" .. data.customSecondaryDetail .. "' wasn't a valid item type at run time", nil)
+                    CommandsUtils.LogPrintError(CommandName, "customSecondaryDetail", "item '" .. data.customSecondaryDetail .. "' wasn't a valid item type at run time", nil)
                     return
                 end
                 local ammoItemPrototype_type = ammoItemPrototype.type
                 if ammoItemPrototype_type ~= 'ammo' then
-                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "item '" .. data.customSecondaryDetail .. "' wasn't an ammo item type at run time, instead it was a type: " .. tostring(ammoItemPrototype_type), nil)
+                    CommandsUtils.LogPrintError(CommandName, "customSecondaryDetail", "item '" .. data.customSecondaryDetail .. "' wasn't an ammo item type at run time, instead it was a type: " .. tostring(ammoItemPrototype_type), nil)
                     return
                 end
             end
@@ -337,7 +337,7 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
             if data.customSecondaryDetail ~= nil then
                 local ammoFluidPrototype = game.fluid_prototypes[data.customSecondaryDetail--[[@as string]] ]
                 if ammoFluidPrototype == nil then
-                    CommandsUtils.LogPrintError(commandName, "customSecondaryDetail", "fluid '" .. data.customSecondaryDetail .. "' wasn't a valid fluid at run time", nil)
+                    CommandsUtils.LogPrintError(CommandName, "customSecondaryDetail", "fluid '" .. data.customSecondaryDetail .. "' wasn't a valid fluid at run time", nil)
                     return
                 end
             end
@@ -536,13 +536,13 @@ SpawnAroundPlayer.GenerateRandomRockTypeDetails = function()
     ---@type SpawnAroundPlayer_EntityTypeDetails
     local entityTypeDetails = {
         ValidateEntityPrototypes = function(commandString)
-            if Common.GetBaseGameEntityByName("rock-huge", "simple-entity", commandName, commandString) == nil then
+            if Common.GetBaseGameEntityByName("rock-huge", "simple-entity", CommandName, commandString) == nil then
                 return false
             end
-            if Common.GetBaseGameEntityByName("rock-big", "simple-entity", commandName, commandString) == nil then
+            if Common.GetBaseGameEntityByName("rock-big", "simple-entity", CommandName, commandString) == nil then
                 return false
             end
-            if Common.GetBaseGameEntityByName("sand-rock-big", "simple-entity", commandName, commandString) == nil then
+            if Common.GetBaseGameEntityByName("sand-rock-big", "simple-entity", CommandName, commandString) == nil then
                 return false
             end
             return true
@@ -584,7 +584,7 @@ SpawnAroundPlayer.GenerateCombatBotEntityTypeDetails = function(setEntityName)
     ---@type SpawnAroundPlayer_EntityTypeDetails
     local entityTypeDetails = {
         ValidateEntityPrototypes = function(commandString)
-            if Common.GetBaseGameEntityByName(setEntityName, "combat-robot", commandName, commandString) == nil then
+            if Common.GetBaseGameEntityByName(setEntityName, "combat-robot", CommandName, commandString) == nil then
                 return false
             end
             return true
@@ -630,10 +630,10 @@ SpawnAroundPlayer.GenerateAmmoFiringTurretEntityTypeDetails = function(turretNam
     ---@type SpawnAroundPlayer_EntityTypeDetails
     local entityTypeDetails = {
         ValidateEntityPrototypes = function(commandString)
-            if Common.GetBaseGameEntityByName(turretName, { "ammo-turret", "artillery-turret" }, commandName, commandString) == nil then
+            if Common.GetBaseGameEntityByName(turretName, { "ammo-turret", "artillery-turret" }, CommandName, commandString) == nil then
                 return false
             end
-            if ammoName ~= nil and Common.GetBaseGameItemByName(ammoName, "ammo", commandName, commandString) == nil then
+            if ammoName ~= nil and Common.GetBaseGameItemByName(ammoName, "ammo", CommandName, commandString) == nil then
                 return false
             end
             return true
@@ -675,10 +675,10 @@ SpawnAroundPlayer.GenerateFluidFiringTurretEntityTypeDetails = function(turretNa
     ---@type SpawnAroundPlayer_EntityTypeDetails
     local entityTypeDetails = {
         ValidateEntityPrototypes = function(commandString)
-            if Common.GetBaseGameEntityByName(turretName, { "fluid-turret" }, commandName, commandString) == nil then
+            if Common.GetBaseGameEntityByName(turretName, { "fluid-turret" }, CommandName, commandString) == nil then
                 return false
             end
-            if fluidName ~= nil and Common.GetBaseGameFluidByName(fluidName, commandName, commandString) == nil then
+            if fluidName ~= nil and Common.GetBaseGameFluidByName(fluidName, CommandName, commandString) == nil then
                 return false
             end
             return true
@@ -718,7 +718,7 @@ SpawnAroundPlayer.GenerateFireEntityTypeDetails = function(setEntityName)
     ---@type SpawnAroundPlayer_EntityTypeDetails
     local entityTypeDetails = {
         ValidateEntityPrototypes = function(commandString)
-            if Common.GetBaseGameEntityByName(setEntityName, "fire", commandName, commandString) == nil then
+            if Common.GetBaseGameEntityByName(setEntityName, "fire", CommandName, commandString) == nil then
                 return false
             end
             return true
@@ -743,7 +743,7 @@ SpawnAroundPlayer.GenerateFireEntityTypeDetails = function(setEntityName)
             if data.ammoCount ~= nil then
                 flameCount, valueWasClamped = MathUtils.ClampToUInt8(data.ammoCount, 0, 250)
                 if valueWasClamped then
-                    CommandsUtils.LogPrintWarning(commandName, "ammoCount", "value was above the maximum of 250 for a fire type entity, so clamped to 250", nil)
+                    CommandsUtils.LogPrintWarning(CommandName, "ammoCount", "value was above the maximum of 250 for a fire type entity, so clamped to 250", nil)
                 end
             end
             return data.surface.create_entity { name = data.entityName, position = data.position, force = data.force, initial_ground_flame_count = flameCount, create_build_effect_smoke = false, raise_built = true }
@@ -762,7 +762,7 @@ SpawnAroundPlayer.GenerateStandardTileEntityTypeDetails = function(entityName, e
     ---@type SpawnAroundPlayer_EntityTypeDetails
     local entityTypeDetails = {
         ValidateEntityPrototypes = function(commandString)
-            if Common.GetBaseGameEntityByName(entityName, entityType, commandName, commandString) == nil then
+            if Common.GetBaseGameEntityByName(entityName, entityType, CommandName, commandString) == nil then
                 return false
             end
             return true

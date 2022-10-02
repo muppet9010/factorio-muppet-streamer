@@ -75,7 +75,7 @@ local MaxDistancePositionAroundTarget = 10
 
 ---@alias surfaceForceBiterNests table<uint, table<string, table<uint, Teleport_SpawnerDetails>>> # A table of surface index numbers, to tables of force names, to spawner's details keyed by their unit number. Allows easy filtering to current surface and then batch ignoring of non-enemy spawners.
 
-local commandName = "muppet_streamer_teleport"
+local CommandName = "muppet_streamer_teleport"
 
 Teleport.CreateGlobals = function()
     global.teleport = global.teleport or {}
@@ -101,7 +101,7 @@ end
 --- Triggered when the RCON command is run.
 ---@param command CustomCommandData
 Teleport.TeleportCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings", "suppressMessages" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "target", "destinationType", "arrivalRadius", "minDistance", "maxDistance", "reachableOnly", "backupTeleportSettings", "suppressMessages" })
     if commandData == nil then
         return
     end
@@ -128,47 +128,47 @@ Teleport.GetCommandData = function(commandData, depth, commandStringText, suppre
 
     -- Any errors raised need to include the depth message so we know how many backups it has got in to when it errored. So we add it to the end of the passed command name as this gets it to the right place in the produced error messages.
     local delaySeconds = commandData.delay
-    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay" .. depthErrorMessage, 0, nil, commandStringText) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, CommandName, "delay" .. depthErrorMessage, 0, nil, commandStringText) then
         return nil
     end ---@cast delaySeconds double|nil
     -- Don't pass the current tick value as we will add it later.
-    local delayTicks = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, 0, commandName, "delay " .. depthErrorMessage)
+    local delayTicks = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, 0, CommandName, "delay " .. depthErrorMessage)
 
     local target = commandData.target
-    if not Common.CheckPlayerNameSettingValue(target, commandName, "target" .. depthErrorMessage, commandStringText) then
+    if not Common.CheckPlayerNameSettingValue(target, CommandName, "target" .. depthErrorMessage, commandStringText) then
         return nil
     end ---@cast target string
 
     -- Can't check type in standard way as might be a string or table.
     local destinationTypeRaw = commandData.destinationType
     if destinationTypeRaw == nil then
-        CommandsUtils.LogPrintError(commandName, "destinationType" .. depthErrorMessage, "is Mandatory and must be populated", commandData.parameter)
+        CommandsUtils.LogPrintError(CommandName, "destinationType" .. depthErrorMessage, "is Mandatory and must be populated", commandData.parameter)
         return nil
     end
     ---@type Teleport_DestinationTypeSelection, MapPosition|nil
     local destinationType, destinationTargetPosition
     if type(destinationTypeRaw) == "string" then
-        if not CommandsUtils.CheckStringArgument(destinationTypeRaw, true, commandName, "destinationType" .. depthErrorMessage, DestinationTypeSelection, commandData.parameter) then
+        if not CommandsUtils.CheckStringArgument(destinationTypeRaw, true, CommandName, "destinationType" .. depthErrorMessage, DestinationTypeSelection, commandData.parameter) then
             return nil
         end
         destinationType = DestinationTypeSelection[destinationTypeRaw]
     elseif type(destinationTypeRaw) == "table" then
         destinationTargetPosition = PositionUtils.TableToProperPosition(destinationTypeRaw)
         if destinationTargetPosition == nil then
-            CommandsUtils.LogPrintError(commandName, "destinationType" .. depthErrorMessage, "must be a valid map position object", commandData.parameter)
+            CommandsUtils.LogPrintError(CommandName, "destinationType" .. depthErrorMessage, "must be a valid map position object", commandData.parameter)
             return nil
         else
             destinationType = DestinationTypeSelection.position
         end
     else
-        CommandsUtils.LogPrintError(commandName, "destinationType", "must be a string or a map position object, but was a: " .. type(destinationTypeRaw), commandData.parameter)
+        CommandsUtils.LogPrintError(CommandName, "destinationType", "must be a string or a map position object, but was a: " .. type(destinationTypeRaw), commandData.parameter)
         return nil
     end
 
     local destinationTypeDescription = DestinationTypeSelectionDescription[destinationType] ---@type Teleport_DestinationTypeSelectionDescription
 
     local arrivalRadius = commandData.arrivalRadius
-    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, commandName, "arrivalRadius" .. depthErrorMessage, 0, nil, commandData.parameter) then
+    if not CommandsUtils.CheckNumberArgument(arrivalRadius, "double", false, CommandName, "arrivalRadius" .. depthErrorMessage, 0, nil, commandData.parameter) then
         return nil
     end ---@cast arrivalRadius double|nil
     if arrivalRadius == nil then
@@ -176,7 +176,7 @@ Teleport.GetCommandData = function(commandData, depth, commandStringText, suppre
     end
 
     local minDistance = commandData.minDistance
-    if not CommandsUtils.CheckNumberArgument(minDistance, "double", false, commandName, "minDistance" .. depthErrorMessage, 0, nil, commandData.parameter) then
+    if not CommandsUtils.CheckNumberArgument(minDistance, "double", false, CommandName, "minDistance" .. depthErrorMessage, 0, nil, commandData.parameter) then
         return nil
     end ---@cast minDistance double|nil
     if minDistance == nil then
@@ -186,18 +186,18 @@ Teleport.GetCommandData = function(commandData, depth, commandStringText, suppre
     local maxDistance = commandData.maxDistance
     if destinationType == DestinationTypeSelection.position or destinationType == DestinationTypeSelection.spawn then
         if maxDistance ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "maxDistance" .. depthErrorMessage, "maxDistance setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)
+            CommandsUtils.LogPrintWarning(CommandName, "maxDistance" .. depthErrorMessage, "maxDistance setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)
         end
         maxDistance = 0
     else
-        if not CommandsUtils.CheckNumberArgument(maxDistance, "double", true, commandName, "maxDistance" .. depthErrorMessage, 0, nil, commandData.parameter) then
+        if not CommandsUtils.CheckNumberArgument(maxDistance, "double", true, CommandName, "maxDistance" .. depthErrorMessage, 0, nil, commandData.parameter) then
             return nil
         end ---@cast maxDistance double
     end
 
     local reachableOnly = commandData.reachableOnly
     if (destinationType == DestinationTypeSelection.biterNest or destinationType == DestinationTypeSelection.random) then
-        if not CommandsUtils.CheckBooleanArgument(reachableOnly, false, commandName, "reachableOnly" .. depthErrorMessage, commandData.parameter) then
+        if not CommandsUtils.CheckBooleanArgument(reachableOnly, false, CommandName, "reachableOnly" .. depthErrorMessage, commandData.parameter) then
             return
         end ---@cast reachableOnly boolean|nil
         if reachableOnly == nil then
@@ -205,13 +205,13 @@ Teleport.GetCommandData = function(commandData, depth, commandStringText, suppre
         end
     else
         if reachableOnly ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "reachableOnly" .. depthErrorMessage, "reachableOnly setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)
+            CommandsUtils.LogPrintWarning(CommandName, "reachableOnly" .. depthErrorMessage, "reachableOnly setting is populated but will be ignored as the destinationType is either spawn or a set map position.", commandData.parameter)
         end
         reachableOnly = false
     end
 
     local suppressMessages = commandData.suppressMessages
-    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, commandName, "suppressMessages" .. depthErrorMessage, commandData.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(suppressMessages, false, CommandName, "suppressMessages" .. depthErrorMessage, commandData.parameter) then
         return
     end ---@cast suppressMessages boolean|nil
     if suppressMessages == nil then
@@ -229,7 +229,7 @@ Teleport.GetCommandData = function(commandData, depth, commandStringText, suppre
                 return nil
             end
         else
-            CommandsUtils.LogPrintError(commandName, "backupTeleportSettings" .. depthErrorMessage, "backupTeleportSettings setting is populated but isn't a table of extra teleport settings, its type is: " .. type(backupTeleportSettings), commandData.parameter)
+            CommandsUtils.LogPrintError(CommandName, "backupTeleportSettings" .. depthErrorMessage, "backupTeleportSettings setting is populated but isn't a table of extra teleport settings, its type is: " .. type(backupTeleportSettings), commandData.parameter)
             return nil
         end
     end
@@ -274,7 +274,7 @@ Teleport.PlanTeleportTarget = function(eventData)
     -- Get the Player object and confirm its valid.
     local targetPlayer = game.get_player(data.target)
     if targetPlayer == nil then
-        CommandsUtils.LogPrintWarning(commandName, nil, "Target player has been deleted since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
 
@@ -432,7 +432,7 @@ Teleport.PlanTeleportTarget = function(eventData)
         end
     elseif teleportResponse.errorTeleportFailed then
         -- Failed to teleport the entity to the specific position.
-        CommandsUtils.LogPrintWarning(commandName, nil, "Teleport action for player " .. targetPlayer.name .. " to position " .. LoggingUtils.PositionToString(teleportResponse.targetPosition) .. " failed (Factorio request rejected).", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "Teleport action for player " .. targetPlayer.name .. " to position " .. LoggingUtils.PositionToString(teleportResponse.targetPosition) .. " failed (Factorio request rejected).", nil)
         Teleport.DoBackupTeleport(data)
         return
     end
@@ -528,7 +528,7 @@ Teleport.OnScriptPathRequestFinished = function(event)
 
         -- If the teleport of the player's entity/vehicle to the specific position failed then do next action if there is one.
         if not teleportSucceeded then
-            CommandsUtils.LogPrintWarning(commandName, nil, "Teleport action for player " .. data.targetPlayer.name .. " to position " .. LoggingUtils.PositionToString(data.thisAttemptPosition) .. " failed (Factorio request rejected).", nil)
+            CommandsUtils.LogPrintWarning(CommandName, nil, "Teleport action for player " .. data.targetPlayer.name .. " to position " .. LoggingUtils.PositionToString(data.thisAttemptPosition) .. " failed (Factorio request rejected).", nil)
             Teleport.DoBackupTeleport(data)
         end
     end

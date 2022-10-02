@@ -22,7 +22,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 ---@field targetPosition MapPosition
 ---@field targetSurface LuaSurface
 
-local commandName = "muppet_streamer_schedule_explosive_delivery"
+local CommandName = "muppet_streamer_schedule_explosive_delivery"
 
 ExplosiveDelivery.CreateGlobals = function()
     global.explosiveDelivery = global.explosiveDelivery or {}
@@ -39,34 +39,34 @@ end
 
 ---@param command CustomCommandData
 ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, commandName, { "delay", "explosiveCount", "explosiveType", "customExplosiveType", "customExplosiveSpeed", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay", "salvoFollowPlayer" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "explosiveCount", "explosiveType", "customExplosiveType", "customExplosiveSpeed", "target", "targetPosition", "targetOffset", "accuracyRadiusMin", "accuracyRadiusMax", "salvoSize", "salvoDelay", "salvoFollowPlayer" })
     if commandData == nil then
         return
     end
 
     local delaySeconds = commandData.delay
-    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, commandName, "delay", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(delaySeconds, "double", false, CommandName, "delay", 0, nil, command.parameter) then
         return
     end ---@cast delaySeconds double|nil
-    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, commandName, "delay")
+    local scheduleTick = Common.DelaySecondsSettingToScheduledEventTickValue(delaySeconds, command.tick, CommandName, "delay")
 
     local explosiveCount = commandData.explosiveCount
-    if not CommandsUtils.CheckNumberArgument(explosiveCount, "int", true, commandName, "explosiveCount", 1, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(explosiveCount, "int", true, CommandName, "explosiveCount", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast explosiveCount uint
 
     -- Just get these settings and make sure they are the right data type, validate their sanity later.
     local customExplosiveType_string = commandData.customExplosiveType
-    if not CommandsUtils.CheckStringArgument(customExplosiveType_string, false, commandName, "customExplosiveType", nil, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(customExplosiveType_string, false, CommandName, "customExplosiveType", nil, command.parameter) then
         return
     end ---@cast customExplosiveType_string string|nil
     local customExplosiveSpeed = commandData.customExplosiveSpeed
-    if not CommandsUtils.CheckNumberArgument(customExplosiveSpeed, 'double', false, commandName, "customExplosiveSpeed", 0.1, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(customExplosiveSpeed, 'double', false, CommandName, "customExplosiveSpeed", 0.1, nil, command.parameter) then
         return
     end ---@cast customExplosiveSpeed double|nil
 
     local explosiveType_string = commandData.explosiveType
-    if not CommandsUtils.CheckStringArgument(explosiveType_string, true, commandName, "explosiveType", ExplosiveDelivery.Types, command.parameter) then
+    if not CommandsUtils.CheckStringArgument(explosiveType_string, true, CommandName, "explosiveType", ExplosiveDelivery.Types, command.parameter) then
         return
     end ---@cast explosiveType_string string
     local explosiveType = ExplosiveDelivery.Types[explosiveType_string] ---@type ExplosiveDelivery_Type
@@ -81,12 +81,12 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     elseif explosiveType.type == "custom" then
         -- Populate a standard details from the custom settings to make it look "normal" to later code. Lots of validation needed for this.
         if customExplosiveType_string == nil then
-            CommandsUtils.LogPrintError(commandName, "customExplosiveType", "customExplosiveType wasn't provided, but is required as the explosiveType is 'custom'.", command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "customExplosiveType", "customExplosiveType wasn't provided, but is required as the explosiveType is 'custom'.", command.parameter)
             return
         end
         explosivePrototype = game.entity_prototypes[customExplosiveType_string]
         if explosivePrototype == nil then
-            CommandsUtils.LogPrintError(commandName, "customExplosiveType", "entity '" .. customExplosiveType_string .. "' wasn't a valid entity name", command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "customExplosiveType", "entity '" .. customExplosiveType_string .. "' wasn't a valid entity name", command.parameter)
             return
         end
         local explosivePrototype_type = explosivePrototype.type
@@ -107,7 +107,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
                 streamName = explosivePrototype_name
             }
         else
-            CommandsUtils.LogPrintError(commandName, "customExplosiveType", "entity '" .. customExplosiveType_string .. "' wasn't a projectile, artillery-projectile or stream entity type, instead it was a type: " .. tostring(explosivePrototype_type), command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "customExplosiveType", "entity '" .. customExplosiveType_string .. "' wasn't a projectile, artillery-projectile or stream entity type, instead it was a type: " .. tostring(explosivePrototype_type), command.parameter)
             return
         end
     end
@@ -122,7 +122,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
         else
             error("unsupported explosiveType.type: " .. tostring(explosiveType.type))
         end
-        explosivePrototype = Common.GetBaseGameEntityByName(explosivePrototype_name, validPrototypeTypes, commandName, command.parameter)
+        explosivePrototype = Common.GetBaseGameEntityByName(explosivePrototype_name, validPrototypeTypes, CommandName, command.parameter)
         if explosivePrototype == nil then
             return
         end
@@ -132,49 +132,49 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     if not explosiveTypeWasCustom then
         -- Was a built-in option and so these should never be populated.
         if customExplosiveType_string ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customExplosiveType", "customExplosiveType was provided, but being ignored as the explosiveType wasn't 'custom'.", command.parameter)
+            CommandsUtils.LogPrintWarning(CommandName, "customExplosiveType", "customExplosiveType was provided, but being ignored as the explosiveType wasn't 'custom'.", command.parameter)
         end
         if customExplosiveSpeed ~= nil then
-            CommandsUtils.LogPrintWarning(commandName, "customExplosiveSpeed", "customExplosiveSpeed was provided, but being ignored as the explosiveType wasn't 'custom'.", command.parameter)
+            CommandsUtils.LogPrintWarning(CommandName, "customExplosiveSpeed", "customExplosiveSpeed was provided, but being ignored as the explosiveType wasn't 'custom'.", command.parameter)
         end
     else
         -- Was a custom explosive type, so check if speed was populated and valid for this type.
         if customExplosiveSpeed ~= nil and explosiveType.type == "stream" then
-            CommandsUtils.LogPrintWarning(commandName, "customExplosiveSpeed", "customExplosiveSpeed was provided, but being ignored as the custom explosive type isn't a 'projectile' or 'artillery-projectile'.", command.parameter)
+            CommandsUtils.LogPrintWarning(CommandName, "customExplosiveSpeed", "customExplosiveSpeed was provided, but being ignored as the custom explosive type isn't a 'projectile' or 'artillery-projectile'.", command.parameter)
         end
     end
 
     local target = commandData.target
-    if not Common.CheckPlayerNameSettingValue(target, commandName, "target", command.parameter) then
+    if not Common.CheckPlayerNameSettingValue(target, CommandName, "target", command.parameter) then
         return
     end ---@cast target string
 
     local targetPosition = commandData.targetPosition
-    if not CommandsUtils.CheckTableArgument(targetPosition, false, commandName, "targetPosition", PositionUtils.MapPositionConvertibleTableValidKeysList, command.parameter) then
+    if not CommandsUtils.CheckTableArgument(targetPosition, false, CommandName, "targetPosition", PositionUtils.MapPositionConvertibleTableValidKeysList, command.parameter) then
         return
     end ---@cast targetPosition MapPosition|nil
     if targetPosition ~= nil then
         targetPosition = PositionUtils.TableToProperPosition(targetPosition)
         if targetPosition == nil then
-            CommandsUtils.LogPrintError(commandName, "targetPosition", "must be a valid position table string", command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "targetPosition", "must be a valid position table string", command.parameter)
             return
         end
     end
 
     local targetOffset = commandData.targetOffset ---@type MapPosition|nil
-    if not CommandsUtils.CheckTableArgument(targetOffset, false, commandName, "targetOffset", PositionUtils.MapPositionConvertibleTableValidKeysList, command.parameter) then
+    if not CommandsUtils.CheckTableArgument(targetOffset, false, CommandName, "targetOffset", PositionUtils.MapPositionConvertibleTableValidKeysList, command.parameter) then
         return
     end ---@cast targetOffset MapPosition|nil
     if targetOffset ~= nil then
         targetOffset = PositionUtils.TableToProperPosition(targetOffset)
         if targetOffset == nil then
-            CommandsUtils.LogPrintError(commandName, "targetOffset", "must be a valid position table string", command.parameter)
+            CommandsUtils.LogPrintError(CommandName, "targetOffset", "must be a valid position table string", command.parameter)
             return
         end
     end
 
     local accuracyRadiusMin = commandData.accuracyRadiusMin
-    if not CommandsUtils.CheckNumberArgument(accuracyRadiusMin, "double", false, commandName, "accuracyRadiusMin", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(accuracyRadiusMin, "double", false, CommandName, "accuracyRadiusMin", 0, nil, command.parameter) then
         return
     end ---@cast accuracyRadiusMin double|nil
     if accuracyRadiusMin == nil then
@@ -182,7 +182,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
 
     local accuracyRadiusMax = commandData.accuracyRadiusMax
-    if not CommandsUtils.CheckNumberArgument(accuracyRadiusMax, "double", false, commandName, "accuracyRadiusMax", 0, nil, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(accuracyRadiusMax, "double", false, CommandName, "accuracyRadiusMax", 0, nil, command.parameter) then
         return
     end ---@cast accuracyRadiusMax double|nil
     if accuracyRadiusMax == nil then
@@ -190,13 +190,13 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
 
     local salvoSize = commandData.salvoSize
-    if not CommandsUtils.CheckNumberArgument(salvoSize, "int", false, commandName, "salvoSize", 1, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(salvoSize, "int", false, CommandName, "salvoSize", 1, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast salvoSize uint|nil
     salvoSize = salvoSize or explosiveCount
 
     local salvoDelayTicks = commandData.salvoDelay
-    if not CommandsUtils.CheckNumberArgument(salvoDelayTicks, "int", false, commandName, "salvoDelay", 0, MathUtils.uintMax, command.parameter) then
+    if not CommandsUtils.CheckNumberArgument(salvoDelayTicks, "int", false, CommandName, "salvoDelay", 0, MathUtils.uintMax, command.parameter) then
         return
     end ---@cast salvoDelayTicks uint|nil
     salvoDelayTicks = salvoDelayTicks or 0
@@ -212,7 +212,7 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
     end
 
     local salvoFollowPlayer = commandData.salvoFollowPlayer
-    if not CommandsUtils.CheckBooleanArgument(salvoFollowPlayer, false, commandName, "salvoFollowPlayer", command.parameter) then
+    if not CommandsUtils.CheckBooleanArgument(salvoFollowPlayer, false, CommandName, "salvoFollowPlayer", command.parameter) then
         return
     end ---@cast salvoFollowPlayer boolean|nil
     if salvoFollowPlayer == nil then
@@ -278,7 +278,7 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
 
     -- Check the explosive is still valid (unchanged).
     if not data.explosivePrototype.valid then
-        CommandsUtils.LogPrintWarning(commandName, nil, "The in-game explosive prototype has been changed/removed since the command was run.", nil)
+        CommandsUtils.LogPrintWarning(CommandName, nil, "The in-game explosive prototype has been changed/removed since the command was run.", nil)
         return
     end
 
@@ -302,6 +302,12 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
         if data.finalSalvo then
             global.explosiveDelivery.salvoWaveDetails[salvoWaveId] = nil
         end
+
+        -- Check the surface is still valid as it could have been deleted mid salvo.
+        if not surface.valid then
+            -- Just give up on this salvo if the surface is gone.
+            return
+        end
     else
         -- Calculate the target position now.
         targetPos = data.targetPosition or targetPlayer.position
@@ -317,12 +323,6 @@ ExplosiveDelivery.DeliverExplosives = function(eventData)
                 targetSurface = surface
             }
         end
-    end
-
-    -- Check the surface is still valid as it could have been deleted mid salvo.
-    if not surface.valid then
-        -- Just give up on this salvo if the surface is gone.
-        return
     end
 
     local explosiveType = data.explosiveType
