@@ -11,8 +11,6 @@ DO NEAR FUTURE:
 
     - Player Inventory Shuffle - see if any UPS savings on current code. If we can avoid mass creations of tables via table re-use this also helps with Lua garbage collection. Do a performance check with and without lines to see if this distorts the overall results.
 
-    - Look at moving usage documentation to a GitHub wiki.
-
     - A remote interface that can be used to call a function (as text) at a delayed time. For use in calling custom code snippets with a delay. Will have some of the same considerations as the "effect callback feature" listed as a larger piece of work, but should be much simpler.
 
 
