@@ -1,0 +1,3 @@
+At present a Time Duration Effect may interrupt a different type of Time Duration Effect, depending upon each effects behaviours and player state requirements. i.e. Aggressive Driver and Malfunctioning Weapon will interrupt each other, but a Player Drop Inventory will not affect an Aggressive Driver.
+
+Any repeated running of the same effect will have the subsequent effect requests ignored, with the first effect continuing until its original completion.
