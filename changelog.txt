@@ -3,6 +3,7 @@ Version: 20.1.34
 Date: 2022-10-XXXX
   Features:
   Changes:
+    - Aggressive Driver - any vehicle that is disabled (active == false) is not marked as not suitable for the feature. However, train carriages can't be marked as disabled, so this has limited validity.
   Bugfixes:
     - Aggressive Driver - fix crash in some cases when the player was teleported out of the vehicle mid aggressive drive and aggressive walk was enabled.
   Info:

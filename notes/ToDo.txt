@@ -3,7 +3,6 @@ DOING NOW:
 
 
 BUGS:
-	- Aggressive Driver - should exclude vehicles that are disabled. Will make it compatible with Stasis Effects.
 
 
 
