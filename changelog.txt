@@ -4,6 +4,7 @@ Date: 2022-10-XXXX
   Features:
   Changes:
   Bugfixes:
+    - Aggressive Driver - fix crash in some cases when the player was teleported out of the vehicle mid aggressive drive and aggressive walk was enabled.
   Info:
     - Moved to Github Wiki from single giant information file.
 ---------------------------------------------------------------------------------------------------

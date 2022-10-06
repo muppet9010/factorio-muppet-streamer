@@ -50,6 +50,7 @@ local AggressiveWalkingTypes = {
 ---@field player_index uint
 ---@field player LuaPlayer
 ---@field beenInVehicle boolean # Has the player been in a vehicle since the effect started.
+---@field inVehicleLastTick boolean # Was the player in a vehicle last tick. Used to flag when the player changes vehicle state.
 ---@field duration uint # Ticks
 ---@field control AggressiveDriver_ControlTypes
 ---@field aggressiveWalkingNoStartingVehicle boolean
@@ -454,7 +455,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
 
     ---@type AggressiveDriver_DriveEachTickDetails
-    local driveEachTickDetails = { player_index = targetPlayer.index, player = targetPlayer, beenInVehicle = inSuitableVehicle, duration = data.duration, control = data.control, aggressiveWalkingNoStartingVehicle = data.aggressiveWalkingNoStartingVehicle, aggressiveWalkingOnVehicleDeath = data.aggressiveWalkingOnVehicleDeath, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0 }
+    local driveEachTickDetails = { player_index = targetPlayer.index, player = targetPlayer, beenInVehicle = inSuitableVehicle, inVehicleLastTick = inSuitableVehicle, duration = data.duration, control = data.control, aggressiveWalkingNoStartingVehicle = data.aggressiveWalkingNoStartingVehicle, aggressiveWalkingOnVehicleDeath = data.aggressiveWalkingOnVehicleDeath, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0 }
     ---@type UtilityScheduledEvent_CallbackObject
     local driveCallbackObject = { tick = game.tick, instanceId = driveEachTickDetails.player_index, data = driveEachTickDetails }
     AggressiveDriver.Drive(driveCallbackObject)
@@ -501,6 +502,14 @@ AggressiveDriver.Drive = function(eventData)
             AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
             return
         end
+    end
+
+    -- Reset some state data if the player has changed vehicle state from last tick.
+    if data.inVehicleLastTick ~= (vehicle ~= nil) then
+        data.accelerationTicks = 0
+        data.accelerationState = defines.riding.acceleration.accelerating
+        data.directionDurationTicks = 0
+        data.inVehicleLastTick = (vehicle ~= nil)
     end
 
     local vehicle_type
