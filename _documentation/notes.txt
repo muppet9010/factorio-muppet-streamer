@@ -1,0 +1,9 @@
+Home Page
+==========
+
+The `Home` page is used in both the wiki and as the Mod Portal's description. This means it has to try and comply with both's styling.
+
+- This means it only really works with two heading levels, 1 and 4. As any others aren't very distinguishable in the Factorio Mod Portal.
+- Any links from it to other pages (wiki or mod portal) need to be clear that you may be changing context.
+
+The alternative is I have separate page for the mod portal description to the main wiki page. However, I'd still have the issue in needing to direct users to the wiki for usage details.

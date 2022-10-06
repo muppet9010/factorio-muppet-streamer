@@ -50,6 +50,7 @@ local AggressiveWalkingTypes = {
 ---@field player_index uint
 ---@field player LuaPlayer
 ---@field beenInVehicle boolean # Has the player been in a vehicle since the effect started.
+---@field inVehicleLastTick boolean # Was the player in a vehicle last tick. Used to flag when the player changes vehicle state.
 ---@field duration uint # Ticks
 ---@field control AggressiveDriver_ControlTypes
 ---@field aggressiveWalkingNoStartingVehicle boolean
@@ -248,42 +249,48 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     else
         -- Player is in a vehicle.
 
-        -- If the vehicle has a good fuel state then check it's seats situation deeper.
-        if AggressiveDriver.CheckVehiclesFuelState(playersVehicle, playersVehicle.type, checkedTrainFuelStates) then
-            -- Check seats in current vehicle.
-            local driver = playersVehicle.get_driver()
-            if driver == nil then
-                -- No current driver, so player must be in the passengers seat. We can always just move them across to the drivers seat.
-                inSuitableVehicle = true
-                playersVehicle.set_driver(targetPlayer)
-                if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle", targetPlayer.name }) end
-            else
-                -- There's a driver of the vehicle.
-                if data.commandeerVehicle then
-                    -- Commandeer a vehicle.
-                    if driver == targetPlayer or driver == targetPlayer_character then
-                        -- Player is already driving
-                        inSuitableVehicle = true
-                    else
-                        -- Player must be in the passenger seat currently, so will need moving to the driver's seat (swap players seats) before checking for any other vehicle (readme logic).
-                        inSuitableVehicle = true
-                        playersVehicle.set_passenger(driver)
-                        playersVehicle.set_driver(targetPlayer)
-                        if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle_from_other", targetPlayer.name, AggressiveDriver.GetVehicleOccupierPlayer(driver).name }) end
-                    end
+        -- Check the vehicle is active and not disabled.
+        if playersVehicle.active then
+            -- If the vehicle has a good fuel state then check it's seats situation deeper.
+            if AggressiveDriver.CheckVehiclesFuelState(playersVehicle, playersVehicle.type, checkedTrainFuelStates) then
+                -- Check seats in current vehicle.
+                local driver = playersVehicle.get_driver()
+                if driver == nil then
+                    -- No current driver, so player must be in the passengers seat. We can always just move them across to the drivers seat.
+                    inSuitableVehicle = true
+                    playersVehicle.set_driver(targetPlayer)
+                    if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle", targetPlayer.name }) end
                 else
-                    -- Respect vehicle drivers.
-                    if driver == targetPlayer or driver == targetPlayer_character then
-                        -- Player is already driving
-                        inSuitableVehicle = true
+                    -- There's a driver of the vehicle.
+                    if data.commandeerVehicle then
+                        -- Commandeer a vehicle.
+                        if driver == targetPlayer or driver == targetPlayer_character then
+                            -- Player is already driving
+                            inSuitableVehicle = true
+                        else
+                            -- Player must be in the passenger seat currently, so will need moving to the driver's seat (swap players seats) before checking for any other vehicle (readme logic).
+                            inSuitableVehicle = true
+                            playersVehicle.set_passenger(driver)
+                            playersVehicle.set_driver(targetPlayer)
+                            if not data.suppressMessages then game.print({ "message.muppet_streamer_aggressive_commandeer_vehicle_from_other", targetPlayer.name, AggressiveDriver.GetVehicleOccupierPlayer(driver).name }) end
+                        end
                     else
-                        -- Player must be in passenger seat, so will need moving.
-                        inSuitableVehicle = false
+                        -- Respect vehicle drivers.
+                        if driver == targetPlayer or driver == targetPlayer_character then
+                            -- Player is already driving
+                            inSuitableVehicle = true
+                        else
+                            -- Player must be in passenger seat, so will need moving.
+                            inSuitableVehicle = false
+                        end
                     end
                 end
+            else
+                -- Current vehicle is lacking fuel.
+                inSuitableVehicle = false
             end
         else
-            -- Current vehicle is lacking fuel.
+            -- Current vehicle is not active
             inSuitableVehicle = false
         end
     end
@@ -315,33 +322,43 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         -- Check which of the vehicles are suitable.
         local list, driver, passenger, distance, vehicle_type
         for _, vehicle in pairs(vehicles) do
-            -- Check which list to add the vehicle too based on the effect settings.
-            driver, vehicle_type = vehicle.get_driver(), vehicle.type
-            if driver == nil then
-                -- No driver so always include.
-                if PrimaryVehicleTypes[vehicle_type] ~= nil then
-                    list = primaryDistanceSortedFreeVehicles
+            -- the vehicle must be active (not disabled) to be a valid teleport target.
+            if vehicle.active then
+                -- Check which list to add the vehicle too based on the effect settings.
+                driver, vehicle_type = vehicle.get_driver(), vehicle.type
+                if driver == nil then
+                    -- No driver so always include.
+                    if PrimaryVehicleTypes[vehicle_type] ~= nil then
+                        list = primaryDistanceSortedFreeVehicles
+                    else
+                        list = secondaryDistanceSortedFreeVehicles
+                    end
                 else
-                    list = secondaryDistanceSortedFreeVehicles
-                end
-            else
-                -- Is a driver so option based logic.
-                if data.commandeerVehicle then
-                    -- Can commandeer a vehicle.
-                    if vehicle_type == "car" or vehicle_type == "spider-vehicle" then
-                        -- Vehicle allows passenger and driver.
+                    -- Is a driver so option based logic.
+                    if data.commandeerVehicle then
+                        -- Can commandeer a vehicle.
+                        if vehicle_type == "car" or vehicle_type == "spider-vehicle" then
+                            -- Vehicle allows passenger and driver.
 
-                        -- Check if there's a passenger already.
-                        passenger = vehicle.get_passenger()
-                        if passenger == nil then
-                            -- No passenger so include.
-                            if PrimaryVehicleTypes[vehicle_type] ~= nil then
-                                list = primaryDistanceSortedDriverOccupiedVehicles
+                            -- Check if there's a passenger already.
+                            passenger = vehicle.get_passenger()
+                            if passenger == nil then
+                                -- No passenger so include.
+                                if PrimaryVehicleTypes[vehicle_type] ~= nil then
+                                    list = primaryDistanceSortedDriverOccupiedVehicles
+                                else
+                                    list = secondaryDistanceSortedDriverOccupiedVehicles
+                                end
                             else
-                                list = secondaryDistanceSortedDriverOccupiedVehicles
+                                -- Both driver and passenger seats are occupied.
+                                if PrimaryVehicleTypes[vehicle_type] ~= nil then
+                                    list = primaryDistanceSortedFullyOccupiedVehicles
+                                else
+                                    list = secondaryDistanceSortedFullyOccupiedVehicles
+                                end
                             end
                         else
-                            -- Both driver and passenger seats are occupied.
+                            -- Vehicle is a single seat vehicle.
                             if PrimaryVehicleTypes[vehicle_type] ~= nil then
                                 list = primaryDistanceSortedFullyOccupiedVehicles
                             else
@@ -349,19 +366,15 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                             end
                         end
                     else
-                        -- Vehicle is a single seat vehicle.
-                        if PrimaryVehicleTypes[vehicle_type] ~= nil then
-                            list = primaryDistanceSortedFullyOccupiedVehicles
-                        else
-                            list = secondaryDistanceSortedFullyOccupiedVehicles
-                        end
-                    end
-                else
-                    -- Respect vehicle drivers.
+                        -- Respect vehicle drivers.
 
-                    -- We will never eject a driver so don't record occupied vehicles.
-                    list = nil
+                        -- We will never eject a driver so don't record occupied vehicles.
+                        list = nil
+                    end
                 end
+            else
+                -- Vehicle is disabled so never include.
+                list = nil
             end
 
             -- If the vehicle has an appropriate driver/passenger state for our effect's options then check it's not lacking fuel.
@@ -454,7 +467,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     -- A train will continue moving in its current direction, effectively ignoring the accelerationState value at the start. But a car and tank will always start going forwards regardless of their previous movement, as they are much faster forwards than backwards.
 
     ---@type AggressiveDriver_DriveEachTickDetails
-    local driveEachTickDetails = { player_index = targetPlayer.index, player = targetPlayer, beenInVehicle = inSuitableVehicle, duration = data.duration, control = data.control, aggressiveWalkingNoStartingVehicle = data.aggressiveWalkingNoStartingVehicle, aggressiveWalkingOnVehicleDeath = data.aggressiveWalkingOnVehicleDeath, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0 }
+    local driveEachTickDetails = { player_index = targetPlayer.index, player = targetPlayer, beenInVehicle = inSuitableVehicle, inVehicleLastTick = inSuitableVehicle, duration = data.duration, control = data.control, aggressiveWalkingNoStartingVehicle = data.aggressiveWalkingNoStartingVehicle, aggressiveWalkingOnVehicleDeath = data.aggressiveWalkingOnVehicleDeath, accelerationTicks = 0, accelerationState = defines.riding.acceleration.accelerating, directionDurationTicks = 0 }
     ---@type UtilityScheduledEvent_CallbackObject
     local driveCallbackObject = { tick = game.tick, instanceId = driveEachTickDetails.player_index, data = driveEachTickDetails }
     AggressiveDriver.Drive(driveCallbackObject)
@@ -501,6 +514,14 @@ AggressiveDriver.Drive = function(eventData)
             AggressiveDriver.StopEffectOnPlayer(playerIndex, player, EffectEndStatus.invalid)
             return
         end
+    end
+
+    -- Reset some state data if the player has changed vehicle state from last tick.
+    if data.inVehicleLastTick ~= (vehicle ~= nil) then
+        data.accelerationTicks = 0
+        data.accelerationState = defines.riding.acceleration.accelerating
+        data.directionDurationTicks = 0
+        data.inVehicleLastTick = (vehicle ~= nil)
     end
 
     local vehicle_type

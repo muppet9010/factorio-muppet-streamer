@@ -33,6 +33,9 @@ ECHO notes >> excludedfileslist.txt
 ECHO .vscode >> excludedfileslist.txt
 ECHO excludedfileslist.txt >> excludedfileslist.txt
 
+REM BESPOKE EXCLUDES FOR THIS PROJECT
+ECHO _documentation\images >> excludedfileslist.txt
+
 REM COPY THE FILES
 XCOPY "%folderpath%" "%factoriofolder%\mods\%modfoldername%" /S /E /Y /I /Q /EXCLUDE:excludedfileslist.txt
 
