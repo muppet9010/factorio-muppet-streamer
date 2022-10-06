@@ -7,7 +7,7 @@ All of the commands take a table of options as a JSON string when they are calle
 - BOOLEAN = expects either `true` or `false`. Booleans are not wrapped in double quotes.
 - STRING = a text string wrapped in double quotes, i.e. `"some text"`
 - STRING_LIST = a comma separated list of things in a single string, i.e. `"Player1,player2, Player3  "`. Any leading or trailing spaces will be removed from each entry in the list. The casing (capitalisation) of things must match the case within factorio exactly, i.e. player names must have the same case as within Factorio. This can be a single thing in a string, i.e. `"Player1"`.
-- POSITION_OBJECT = Arguments that accept a position will accept either a table or an array for the positional data. Both formats are recording 2 coordinates, an `x` and `y` value. They can be provided as either a table JSON string `{"x": 10, "y": 5}` or as a shorter array JSON string `[10, 5]`.
+- POSITION = Arguments that accept a position will accept either a table or an array for the positional data. Both formats are recording 2 coordinates, an `x` and `y` value. They can be provided as either a table JSON string `{"x":10, "y":5}` or as a shorter array JSON string `[10, 5]`.
 - OBJECT = some features accept an object as an argument. These are detailed in the Notes for those functions. This is a dictionary of keys and values in JSON format (a table). The arguments each command accepts is an example of this.
 
 #### Argument Requirements

@@ -1,38 +1,80 @@
-The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering based on settings. If they don't have a vehicle they can aggressively walk in stead. This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
+The player is locked inside their vehicle and forced to drive forwards for the set duration, they may have control over the steering based on settings. If they don't have a vehicle they can aggressively walk in stead.
+
+This is a Time Duration Effect and so may cut short other Time Duration Effects, for details see the [Time Duration Effects Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Time-Duration-Effects)
+
+![demo](https://github.com/muppet9010/factorio-muppet-streamer/wiki/images/aggressive-driver.gif)
 
 
 
-#### Command syntax
+# Options
 
-`/muppet_streamer_aggressive_driver [OPTIONS TABLE AS JSON STRING]`
+Details on the options syntax is available on the [Streamer Effect Options Syntax Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax).
 
-
-
-#### OPTIONS TABLE AS JSON STRING supports the arguments
-
-- delay: DECIMAL - Optional: how many seconds before the effect starts. A `0` second delay makes it happen instantly. If not specified it defaults to happen instantly.
-- target: STRING - Mandatory: the player name to target (case sensitive).
-- duration: DECIMAL - Mandatory: how many seconds the effect lasts on the player.
-- control: STRING - Optional: if the driver of the vehicle has control over steering, either: `full` or `random`. `full` allows control over left/right steering, with `random` switching between left, right and straight for short periods. Both option settings include continuous accelerating. Defaults to `random`.
-- commandeerVehicle: BOOLEAN - Optional: when `true` (default) the target player asserts control over vehicles dislodging other players if required, otherwise the target player won't dislodge other players in trying to ge a vehicle to drive. See Notes for more details on the option's settings. Defaults to `true`.
-- teleportDistance: DECIMAL - Optional: the max distance of tiles that the player will be teleported into the nearest suitable vehicle. If not supplied it is treated as `0` distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+. See Notes for more details on how options interact.
-- teleportWhitelistTypes: STRING_LIST - Optional: comma separated list of vehicle entity types that the player will only be teleported too. See Notes for more details on how options interact. These types are case sensitive to the Factorio's in-game vehicle types. Defaults to blank, which is all vehicle types.
-- teleportWhitelistNames: STRING_LIST - Optional: comma separated list of vehicle entity names that the player will only be teleported too. See Notes for more details on how options interact. These names are case sensitive to the specific Factorio vehicle in-game names. Defaults to blank, which is all specific vehicle names.
-- aggressiveWalking: STRING - Optional: when the player should aggressively walk: `never`, `noVehicle`, `vehicleLost`, `both`. `noVehicle` is when no suitable vehicle is found you will instead walk aggressively. `vehicleLost` is when the aggressive driver effect has started on a vehicle you're in and the vehicle is then destroyed or becomes unsuitable, you then continue the effect when walking. `both` is both `noVehicle` and `vehicleLost`. `never` means aggressive walking never occurs. Defaults to `both` so that the effect is maximised.
-- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
+| Option Name | Data Type | Required | Details |
+| --- | --- | --- | --- |
+| delay | DECIMAL | Optional | How many seconds before the effect starts. A `0` second delay makes it happen instantly. If not specified it defaults to happen instantly. |
+| target | STRING | Mandatory | The player name to target (case sensitive). |
+| duration | DECIMAL | Mandatory | How many seconds the effect lasts on the player. |
+| control | STRING | Optional | If the driver of the vehicle has control over steering, either: `full` or `random`. `full` allows control over left/right steering, with `random` switching between left, right and straight for short periods. Both option settings include continuous accelerating. Defaults to `random`. |
+| commandeerVehicle | BOOLEAN | Optional | When `true` (default) the target player asserts control over vehicles dislodging other players if required, otherwise the target player won't dislodge other players in trying to ge a vehicle to drive. See Notes for more details on the option's settings. Defaults to `true`. |
+| teleportDistance | DECIMAL | Optional | The max distance of tiles that the player will be teleported into the nearest suitable vehicle. If not supplied it is treated as `0` distance and so the player isn't teleported. Don't set a massive distance as this may cause UPS lag, i.e. 3000+. See Notes for more details on how options interact. |
+| teleportWhitelistTypes | STRING_LIST | Optional | Comma separated list of vehicle entity types that the player will only be teleported too. See Notes for more details on how options interact. These types are case sensitive to the Factorio's in-game vehicle types. Defaults to blank, which is all vehicle types. |
+| teleportWhitelistNames | STRING_LIST | Optional | Comma separated list of vehicle entity names that the player will only be teleported too. See Notes for more details on how options interact. These names are case sensitive to the specific Factorio vehicle in-game names. Defaults to blank, which is all specific vehicle names. |
+| aggressiveWalking | STRING | Optional | When the player should aggressively walk: `never`, `noVehicle`, `vehicleLost`, `both`. `noVehicle` is when no suitable vehicle is found you will instead walk aggressively. `vehicleLost` is when the aggressive driver effect has started on a vehicle you're in and the vehicle is then destroyed or becomes unsuitable, you then continue the effect when walking. `both` is both `noVehicle` and `vehicleLost`. `never` means aggressive walking never occurs. Defaults to `both` so that the effect is maximised. |
+| suppressMessages | BOOLEAN | Optional | If all standard effect messages are suppressed. Defaults to `false`. |
 
 
 
-#### Examples
+# Calling Effect And Code Examples
 
-- standard usage with teleport to a near vehicle: `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance": 100}`
-- only be aggressive if currently driving a vehicle: `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "commandeerVehicle": false}`
-- only teleport in to a train type: `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance": 100, "teleportWhitelistTypes":"locomotive,cargo-wagon,fluid-wagon,artillery-wagon"}`
-- don't aggressively walk if no vehicle is found: `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance": 100, "aggressiveWalking":"never"}`
+Note: all examples target the player named `muppet9010`, you will need to replace this with your own player's name.
+
+<details><summary>Remote Interface</summary>
+<p>
+
+Remote Interface Syntax: `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', [OPTIONS TABLE])`
+
+The options must be provided as a Lua table.
+
+Examples:
+
+| Example | Code |
+| --- | --- |
+| standard usage with teleport to a near vehicle | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=30, teleportDistance=100})` |
+| only be aggressive if currently driving a vehicle | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=30, commandeerVehicle=false})` |
+| only teleport in to a train type | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=30, teleportDistance=100, teleportWhitelistTypes="locomotive,cargo-wagon,fluid-wagon,artillery-wagon"})` |
+| don't aggressively walk if no vehicle is found | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target="muppet9010", duration=30, teleportDistance=100, aggressiveWalking="never"})` |
+
+
+Further details and more advanced usage of using Remote Interfaces can be found here on the [Streamer Effect Options Syntax Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax).
+
+</p>
+</details>
 
 
 
-#### Notes
+<details><summary>Factorio Command</summary>
+<p>
+
+Command Syntax: `/muppet_streamer_aggressive_driver [OPTIONS TABLE AS JSON STRING]`
+
+The effect's options must be provided as a JSON string of a table.
+
+Examples:
+
+| Example | Code |
+| --- | --- |
+| standard usage with teleport to a near vehicle | `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance":100}` |
+| only be aggressive if currently driving a vehicle | `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "commandeerVehicle":false}` |
+| only teleport in to a train type | `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance":100, "teleportWhitelistTypes":"locomotive,cargo-wagon,fluid-wagon,artillery-wagon"}` |
+| don't aggressively walk if no vehicle is found | `/muppet_streamer_aggressive_driver {"target":"muppet9010", "duration":30, "teleportDistance":100, "aggressiveWalking":"never"}` |
+
+</p>
+</details>
+
+
+
+# Notes
 
 - This feature uses a custom Factorio permission group when active. This could conflict with other mods/scenarios that also use Factorio permission groups.
 - This feature affects all types of cars, tanks, spider vehicles and train carriages. Plus it affects the player's walking by default.
@@ -47,3 +89,20 @@ The player is locked inside their vehicle and forced to drive forwards for the s
 - Trains are a special case in Factorio as every player in the train can have input to drive it. The mod will control the target players inputs and generally these seem to supersede any other train riding player's inputs, however, this isn't guaranteed.
 - The player isn't prevented from removing the fuel from their vehicle as this isn't simple to prevent. However, this is such an active countering of the mod's behavior that if the streamer wishes to do this then that's their choice.
 - If the vehicle runs out of fuel during the effect it will continue, but just have no impact other than locking the player in the vehicle. This is a very unlikely edge case and the player can obviously add fuel to the vehicle if they have any.
+
+
+
+# Complicated Usage Examples
+
+#### Just walk aggresively.
+
+You can make yourself just walk aggressively by having the game eject you from any vehicle first. Then have it do no vehicle teleport search so you are guaranteed to be on foot, and just let it walk as the default fall-back.
+
+```
+/sc playerName = "muppet9010";
+local player = game.get_player(playerName);
+if player ~= nil then;
+    player.driving = false;
+    remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', {target=playerName, duration=30});
+end;
+```

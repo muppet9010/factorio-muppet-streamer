@@ -1,45 +1,87 @@
 Spawns entities in the game around the player. Can includes both helpful and damaging entities and creation process options.
 
-
-
-#### Command syntax
-
-`/muppet_streamer_spawn_around_player [OPTIONS TABLE AS JSON STRING]`
+![demo](https://github.com/muppet9010/factorio-muppet-streamer/wiki/images/spawn-around-player.gif)
 
 
 
-#### OPTIONS TABLE AS JSON STRING supports the arguments
+# Options
 
-- delay: DECIMAL - Optional: how many seconds before the spawning occurs. A `0` second delay makes it happen instantly. If not specified it defaults to 0 happen instantly.
-- target: STRING - Mandatory: the player name to center upon (case sensitive).
-- force: STRING - Optional: the force of the spawned entities. Value can be either the name of a force (i.e. `player`), or left blank for the default for the entity type. See Notes for this list. Value is case sensitive to Factorio's internal force name.
-- entityName: STRING - Mandatory: the type of entity to be placed: `tree`, `rock`, `laserTurret`, `gunTurretRegularAmmo`, `gunTurretPiercingAmmo`, `gunTurretUraniumAmmo`, `wall`, `landmine`, `fire`, `defenderBot`, `distractorBot`, `destroyerBot`, or `custom`. Is case sensitive. Custom requires the additional options `customEntityName` and `customSecondaryDetail` options to be set/considered.
-- customEntityName: STRING - Mandatory Special: only required/supported if `entityName` is set to `custom`. Sets the name of the entity to be used. Supports any entity type, with the behaviours matching the included entityTypes.
-- customSecondaryDetail: STRING - Optional Special: only required/supported if `entityName` is set to `custom`. Sets the name of any secondary item/entity used with the main `customEntityName`. See Notes for a list of supported `customEntityName` types.
-- ammoCount: INTEGER - Optional: specifies the amount of "ammo" in applicable entityTypes. For turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the flame count, see Notes for more details. This option applies to both `entityName` options and `customEntityName` entity types of turrets (all types) and fire.
-- radiusMax: INTEGER - Mandatory: the max radius of the placement area from the target player.
-- radiusMin: INTEGER - Optional: the min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then `0` is used.
-- existingEntities: STRING - Mandatory: how the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`.
-- quantity: INTEGER - Mandatory Special: specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities. Either `quantity` or `density` must be supplied.
-- density: DECIMAL - Mandatory Special: specifies the approximate density of the placed entities. `1` is fully dense, close to `0` is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities. Either `quantity` or `density` must be supplied.
-- followPlayer: BOOLEAN - Optional: if `true` the combat robot types that are able to follow the player will do. If `false` they will be unmanaged. Some entities like defender combat bots have a maximum follower number, and so those beyond this limit will just be placed in the desired area.
-- removalTimeMin: DECIMAL - Optional: the minimum number of seconds before the created entity will be automatically removed. Removal time is randomly between `removalTimeMin` and `removalTimeMax`. If neither `removalTimeMin` and `removalTimeMax` are specified it defaults to never removing the created entity.
-- removalTimeMax: DECIMAL - Optional: the maximum number of seconds before the created entity will be automatically removed. Removal time is randomly between `removalTimeMin` and `removalTimeMax`. If neither `removalTimeMin` and `removalTimeMax` are specified it defaults to never removing the created entity.
+Details on the options syntax is available on the [Streamer Effect Options Syntax Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax).
 
-
-
-#### Examples
-
-- tree ring: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density": 0.5}`
-- gun turrets with small delay: `/muppet_streamer_spawn_around_player {"delay":3, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "ammoCount":10, "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10}`
-- spread out fires: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "ammoCount": 100, "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density": 0.05}`
-- combat robots: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"defenderBot", "radiusMax":10, "radiusMin":10, "existingEntities":"overlap", "quantity": 20, "followPlayer": true}`
-- named ammo in a named turret: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"artillery-turret", "customSecondaryDetail":"artillery-shell", "ammoCount": 5, "radiusMax":7, "radiusMin":3, "existingEntities":"avoid", "quantity":1}`
-- enemy worms that disappear after around 15 seconds: `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"big-worm-turret", "radiusMax":20, "radiusMin":10, "existingEntities":"avoid", "quantity":5, "removalTimeMin":12, "removalTimeMax":18}`
+| Option Name | Data Type | Required | Details |
+| --- | --- | --- | --- |
+| delay | DECIMAL | Optional | How many seconds before the spawning occurs. A `0` second delay makes it happen instantly. If not specified it defaults to 0 happen instantly. |
+| target | STRING | Mandatory | The player name to center upon (case sensitive). |
+| force | STRING | Optional | The force of the spawned entities. Value can be either the name of a force (i.e. `player`), or left blank for the default for the entity type. See Notes for this list. Value is case sensitive to Factorio's internal force name. |
+| entityName | STRING | Mandatory | The type of entity to be placed: `tree`, `rock`, `laserTurret`, `gunTurretRegularAmmo`, `gunTurretPiercingAmmo`, `gunTurretUraniumAmmo`, `wall`, `landmine`, `fire`, `defenderBot`, `distractorBot`, `destroyerBot`, or `custom`. Is case sensitive. Custom requires the additional options `customEntityName` and `customSecondaryDetail` options to be set/considered. |
+| customEntityName | STRING | Mandatory Special | Only required/supported if `entityName` is set to `custom`. Sets the name of the entity to be used. Supports any entity type, with the behaviours matching the included entityTypes. |
+| customSecondaryDetail | STRING | Optional Special | Only required/supported if `entityName` is set to `custom`. Sets the name of any secondary item/entity used with the main `customEntityName`. See Notes for a list of supported `customEntityName` types. |
+| ammoCount | INTEGER | Optional | Specifies the amount of "ammo" in applicable entityTypes. For turrets it's the ammo count and ammo over the turrets max storage is ignored. For fire types it's the flame count, see Notes for more details. This option applies to both `entityName` options and `customEntityName` entity types of turrets (all types) and fire. |
+| radiusMax | INTEGER | Mandatory | The max radius of the placement area from the target player. |
+| radiusMin | INTEGER | Optional | The min radius of the placement area from the target player. If set to the same value as radiusMax then a perimeter is effectively made. If not provided then `0` is used. |
+| existingEntities | STRING | Mandatory | How the newly spawned entity should handle existing entities on the map. Either `overlap`, or `avoid`. |
+| quantity | INTEGER | Mandatory Special | Specifies the quantity of entities to place. Will not be more than this, but may be less if it struggles to find random placement spots. Placed on a truly random placement within the radius which is then searched around for a nearby valid spot. Intended for small quantities. Either `quantity` or `density` must be supplied. |
+| density | DECIMAL | Mandatory Special | Specifies the approximate density of the placed entities. `1` is fully dense, close to `0` is very sparse. Placed on a 1 tile grid with random jitter for non tile aligned entities. Due to some placement searching it won't be a perfect circle and not necessarily a regular grid. Intended for larger quantities. Either `quantity` or `density` must be supplied. |
+| followPlayer | BOOLEAN | Optional | If `true` the combat robot types that are able to follow the player will do. If `false` they will be unmanaged. Some entities like defender combat bots have a maximum follower number, and so those beyond this limit will just be placed in the desired area. |
+| removalTimeMin | DECIMAL | Optional | The minimum number of seconds before the created entity will be automatically removed. Removal time is randomly between `removalTimeMin` and `removalTimeMax`. If neither `removalTimeMin` and `removalTimeMax` are specified it defaults to never removing the created entity. |
+| removalTimeMax | DECIMAL | Optional | The maximum number of seconds before the created entity will be automatically removed. Removal time is randomly between `removalTimeMin` and `removalTimeMax`. If neither `removalTimeMin` and `removalTimeMax` are specified it defaults to never removing the created entity. |
 
 
 
-#### Notes
+# Calling Effect And Code Examples
+
+Note: all examples target the player named `muppet9010`, you will need to replace this with your own player's name.
+
+<details><summary>Remote Interface</summary>
+<p>
+
+Remote Interface Syntax: `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', [OPTIONS TABLE])`
+
+The options must be provided as a Lua table.
+
+Examples:
+
+| Example | Code |
+| --- | --- |
+| tree ring | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="tree", radiusMax=10, radiusMin=5, existingEntities="avoid", density=0.5})` |
+| gun turrets with small delay | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {delay=3, target="muppet9010", "entityName=gunTurretPiercingAmmo", ammoCount=10, radiusMax=7, radiusMin=7, existingEntities="avoid", quantity=10})` |
+| spread out fires | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="fire", ammoCount=100, radiusMax=20, radiusMin=0, existingEntities="overlap", density=0.05})` |
+| combat robots | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="defenderBot", radiusMax=10, radiusMin=10, existingEntities="overlap", quantity=20, followPlayer=true})` |
+| named ammo in a named turret | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="custom", customEntityName="artillery-turret", customSecondaryDetail="artillery-shell", ammoCount=5, radiusMax=7, radiusMin=3, existingEntities="avoid", quantity=1})` |
+| enemy worms that disappear after around 15 seconds | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="custom", customEntityName="big-worm-turret", radiusMax=20, radiusMin=10, existingEntities="avoid", quantity=5, removalTimeMin=12, removalTimeMax=18})` |
+
+
+Further details and more advanced usage of using Remote Interfaces can be found here on the [Streamer Effect Options Syntax Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax).
+
+</p>
+</details>
+
+
+
+<details><summary>Factorio Command</summary>
+<p>
+
+Command Syntax: `/muppet_streamer_spawn_around_player [OPTIONS TABLE AS JSON STRING]`
+
+The effect's options must be provided as a JSON string of a table.
+
+Examples:
+
+| Example | Code |
+| --- | --- |
+| tree ring | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"tree", "radiusMax":10, "radiusMin":5, "existingEntities":"avoid", "density":0.5}` |
+| gun turrets with small delay | `/muppet_streamer_spawn_around_player {"delay":3, "target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "ammoCount":10, "radiusMax":7, "radiusMin":7, "existingEntities":"avoid", "quantity":10}` |
+| spread out fires | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "ammoCount":100, "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density":0.05}` |
+| combat robots | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"defenderBot", "radiusMax":10, "radiusMin":10, "existingEntities":"overlap", "quantity":20, "followPlayer":true}` |
+| named ammo in a named turret | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"artillery-turret", "customSecondaryDetail":"artillery-shell", "ammoCount":5, "radiusMax":7, "radiusMin":3, "existingEntities":"avoid", "quantity":1}` |
+| enemy worms that disappear after around 15 seconds | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"big-worm-turret", "radiusMax":20, "radiusMin":10, "existingEntities":"avoid", "quantity":5, "removalTimeMin":12, "removalTimeMax":18}` |
+
+</p>
+</details>
+
+
+
+# Notes
 
 - For `entityType` of `tree` or a `customEntityName` of an entity with a type of `tree`: if placed on a vanilla Factorio tile or with Alien Biomes mod a biome specific tree will be selected, otherwise the tree will be random on other modded tiles. Should support and handle fully defined custom tree types, otherwise they will be ignored.
 - For `entityType` of `rock` or a `customEntityName` of an entity with a type of `rock`: a random selection between the larger 3 minable vanilla Factorio rocks will be used.

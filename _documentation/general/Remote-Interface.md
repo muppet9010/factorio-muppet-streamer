@@ -9,7 +9,7 @@ All features are called with the `muppet_streamer` interface and the `run_comman
 
 This option string is identical to the command's, with the string defined by single quotes to avoid needing to escape the double quotes within the JSON text.
 If you want to dynamically insert values in to this options JSON string you will have to ensure the correct JSON syntax is maintained. Often this is when using a Lua object (detailed below) is easier.
-```/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', '{"target":"muppet9010", "duration":30, "control": "random", "teleportDistance": 100}')```
+```/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_aggressive_driver', '{"target":"muppet9010", "duration":30, "control":"random", "teleportDistance":100}')```
 
 #### Calling the Aggressive Driver feature with options as a Lua object
 
@@ -39,5 +39,5 @@ An example of this is below, with making a ring of turrets around the player, wi
 ```
 /sc
 remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', '{"target":"muppet9010", "entityName":"gunTurretPiercingAmmo", "radiusMax":3, "radiusMin":3, "existingEntities":"avoid", "quantity":5, "ammoCount":10}')
-remote.call('muppet_streamer', 'run_command', 'muppet_streamer_schedule_explosive_delivery', '{"explosiveCount":60, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":15, "accuracyRadiusMax":15, "salvoSize": 20, "salvoDelay": 120}')
+remote.call('muppet_streamer', 'run_command', 'muppet_streamer_schedule_explosive_delivery', '{"explosiveCount":60, "explosiveType":"grenade", "target":"muppet9010", "accuracyRadiusMin":15, "accuracyRadiusMax":15, "salvoSize":20, "salvoDelay":120}')
 ```

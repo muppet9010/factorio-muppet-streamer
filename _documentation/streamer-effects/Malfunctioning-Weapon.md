@@ -1,37 +1,77 @@
 Forces the targeted player to wield a weapon that shoots in random directions. Shoots a full ammo item, then briefly pauses before firing the next full ammo item.
 
-This is a Time Duration Effect and so may cut short other Time Duration Effects, see General Notes for details.
+This is a Time Duration Effect and so may cut short other Time Duration Effects, for details see the [Time Duration Effects Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Time-Duration-Effects)
+
+![demo](https://github.com/muppet9010/factorio-muppet-streamer/wiki/images/malfunctioning-weapon.gif)
 
 
 
-#### Command syntax
+# Options
 
-`/muppet_streamer_malfunctioning_weapon [OPTIONS TABLE AS JSON STRING]`
+Details on the options syntax is available on the [Streamer Effect Options Syntax Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax).
 
-
-
-#### OPTIONS TABLE AS JSON STRING supports the arguments
-
-- delay: DECIMAL - Optional: how many seconds the flamethrower and effects are delayed before starting. A `0` second `delay` makes it happen instantly. If not specified it defaults to happening instantly.
-- target: STRING - Mandatory: the player name to target (case sensitive).
-- ammoCount: INTEGER - Mandatory: the quantity of ammo items to be put in the weapon and shot.
-- reloadTime: DECIMAL - Optional: how many seconds to wait between each ammo magazine being fired. Defaults to `3` to give a noticeable gap.
-- weaponType: STRING - Optional: the name of the specific weapon you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower weapon, `flamethrower`.
-- ammoType: STRING - Optional: the name of the specific ammo you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower ammo, `flamethrower-ammo`.
-- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
+| Option Name | Data Type | Required | Details |
+| --- | --- | --- | --- |
+| delay | DECIMAL | Optional | How many seconds the flamethrower and effects are delayed before starting. A `0` second `delay` makes it happen instantly. If not specified it defaults to happening instantly. |
+| target | STRING | Mandatory | The player name to target (case sensitive). |
+| ammoCount | INTEGER | Mandatory | The quantity of ammo items to be put in the weapon and shot. |
+| reloadTime | DECIMAL | Optional | How many seconds to wait between each ammo magazine being fired. Defaults to `3` to give a noticeable gap. |
+| weaponType | STRING | Optional | The name of the specific weapon you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower weapon, `flamethrower`. |
+| ammoType | STRING | Optional | The name of the specific ammo you want to use. This is the internal name within Factorio. Defaults to the vanilla Factorio flamethrower ammo, `flamethrower-ammo`. |
+| suppressMessages | BOOLEAN | Optional | If all standard effect messages are suppressed. Defaults to `false`. |
 
 
 
-#### Examples
+# Calling Effect And Code Examples
 
-- standard usage (leaky flamethrower): `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":5}`
-- shotgun: `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":3, "weaponType":"shotgun", "ammoType":"shotgun-shell"}`
-- custom weapon (Cryogun from Space Exploration mod): `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":5, "weaponType":"se-cryogun", "ammoType":"se-cryogun-ammo"}`
-- atomic rocket launch: `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":1, "weaponType":"rocket-launcher", "ammoType":"atomic-bomb"}`
+Note: all examples target the player named `muppet9010`, you will need to replace this with your own player's name.
+
+<details><summary>Remote Interface</summary>
+<p>
+
+Remote Interface Syntax: `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_malfunctioning_weapon', [OPTIONS TABLE])`
+
+The options must be provided as a Lua table.
+
+Examples:
+
+| Example | Code |
+| --- | --- |
+| standard usage (leaky flamethrower) | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_malfunctioning_weapon', {target="muppet9010", ammoCount=5})` |
+| shotgun | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_malfunctioning_weapon', {target="muppet9010", ammoCount=3, weaponType="shotgun", ammoType="shotgun-shell"})` |
+| custom weapon (Cryogun from Space Exploration mod) | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_malfunctioning_weapon', {target="muppet9010", ammoCount=5, weaponType="se-cryogun", ammoType="se-cryogun-ammo"})` |
+| atomic rocket launch | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_malfunctioning_weapon', {target="muppet9010", ammoCount=1, weaponType="rocket-launcher", ammoType="atomic-bomb"})` |
+
+
+Further details and more advanced usage of using Remote Interfaces can be found here on the [Streamer Effect Options Syntax Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax).
+
+</p>
+</details>
 
 
 
-#### Notes
+<details><summary>Factorio Command</summary>
+<p>
+
+Command Syntax: `/muppet_streamer_malfunctioning_weapon [OPTIONS TABLE AS JSON STRING]`
+
+The effect's options must be provided as a JSON string of a table.
+
+Examples:
+
+| Example | Code |
+| --- | --- |
+| standard usage (leaky flamethrower) | `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":5}` |
+| shotgun | `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":3, "weaponType":"shotgun", "ammoType":"shotgun-shell"}` |
+| custom weapon (Cryogun from Space Exploration mod) | `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":5, "weaponType":"se-cryogun", "ammoType":"se-cryogun-ammo"}` |
+| atomic rocket launch | `/muppet_streamer_malfunctioning_weapon {"target":"muppet9010", "ammoCount":1, "weaponType":"rocket-launcher", "ammoType":"atomic-bomb"}` |
+
+</p>
+</details>
+
+
+
+# Notes
 
 - This feature uses a custom Factorio permission group when active. This could conflict with other mods/scenarios that also use Factorio permission groups.
 - While activated the player will be kicked out of any vehicle they are in and prevented from entering one. As no one likes to be in an enclosed space with weapons firing.

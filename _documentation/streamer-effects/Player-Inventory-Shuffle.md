@@ -2,37 +2,76 @@ Takes all the inventory items from the targeted players, shuffles them and then 
 
 
 
-#### Command syntax
 
-`/muppet_streamer_player_inventory_shuffle [OPTIONS TABLE AS JSON STRING]`
+# Options
 
+Details on the options syntax is available on the [Streamer Effect Options Syntax Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax).
 
-
-#### OPTIONS TABLE AS JSON STRING supports the arguments
-
-- delay: DECIMAL - Optional: how many seconds before the effects start. A `0` second delay makes it happen instantly. If not specified it defaults to happen instantly.
-- includedPlayers: STRING_LIST/STRING -  Mandatory Special: Can be one of a few setting values; Either blank(`""`) or not specified for no specific named players. A comma separated list of the player names to include (assuming they are online at the time). Or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's in-game name. Either or both of `includedPlayers` or `includedForces` options must be provided.
-- includedForces: STRING_LIST -  Mandatory Special: Can be one of a few setting values; Either blank(`""`) or not specified for no specific force's players. A comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's in-game name. Either or both of `includedPlayers` or `includedForces` options must be provided.
-- includeArmor: BOOLEAN - Optional: if the player's equipped (worn) armor is included for shuffling or not. Defaults to `true`.
-- extractArmorEquipment: BOOLEAN - Optional: if the player's armor (equipped and in inventory) should have its equipment removed from it and included in the shuffled items. Defaults to `false`.
-- includeWeapons: BOOLEAN - Optional: if the player's equipped weapons and ammo are included for shuffling or not. Defaults to `true`.
-- includeHandCrafting: BOOLEAN - Optional: if the player's hand crafting should be cancelled and the ingredients shuffled. Defaults to `true`.
-- destinationPlayersMinimumVariance: INTEGER - Optional: Set the minimum player count variance to receive an item type compared to the number of source inventories. A value of `0` will allow the same number of players to receive an item as lost it, greater than 0 ensures a wider distribution away from the source number of inventories. Defaults to `1` to ensure some uneven spreading of items. See Notes for logic on item distribution and how this option interacts with other options.
-- destinationPlayersVarianceFactor: DECIMAL - Optional: The multiplying factor applied to each item type's number of source players when calculating the number of inventories to receive the item. Used to allow scaling of item recipients for large player counts. A value of `0` will mean there is no scaling of source to destination inventories. Defaults to `0.25`. See Notes for logic on item distribution and how this option interacts with other options.
-- recipientItemMinToMaxRatio: INTEGER - Optional: The approximate min/max ratio range of the number of items a destination player will receive compared to others. Defaults to `4`. See Notes for logic on item distribution.
-- suppressMessages: BOOLEAN - Optional: if all standard effect messages are suppressed. Defaults to `false`.
-
-
-
-#### Examples
-
-- 3 named players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"muppet9010,Test_1,Test_2"}`
-- all active players: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"[ALL]"}`
-- 2 named players and all players on a specific force: `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"Test_1,Test_2", "includedForces":"player"}`
+| Option Name | Data Type | Required | Details |
+| --- | --- | --- | --- |
+| delay | DECIMAL | Optional | How many seconds before the effects start. A `0` second delay makes it happen instantly. If not specified it defaults to happen instantly. |
+| includedPlayers | STRING_LIST/STRING | Mandatory Special | Can be one of a few setting values; Either blank(`""`) or not specified for no specific named players. A comma separated list of the player names to include (assuming they are online at the time). Or `[ALL]` to target all online players on the server. Any player names listed are case sensitive to the player's in-game name. Either or both of `includedPlayers` or `includedForces` options must be provided. |
+| includedForces | STRING_LIST | Mandatory Special | Can be one of a few setting values; Either blank(`""`) or not specified for no specific force's players. A comma separated list of the force names to include all players from (assuming they are online at the time). Any force names listed are case sensitive to the forces's in-game name. Either or both of `includedPlayers` or `includedForces` options must be provided. |
+| includeArmor | BOOLEAN | Optional | If the player's equipped (worn) armor is included for shuffling or not. Defaults to `true`. |
+| extractArmorEquipment | BOOLEAN | Optional | If the player's armor (equipped and in inventory) should have its equipment removed from it and included in the shuffled items. Defaults to `false`. |
+| IncludeWeapons | BOOLEAN | Optional | If the player's equipped weapons and ammo are included for shuffling or not. Defaults to `true`. |
+| IncludeHandCrafting | BOOLEAN | Optional | If the player's hand crafting should be cancelled and the ingredients shuffled. Defaults to `true`. |
+| destinationPlayersMinimumVariance | INTEGER | Optional | Set the minimum player count variance to receive an item type compared to the number of source inventories. A value of `0` will allow the same number of players to receive an item as lost it, greater than 0 ensures a wider distribution away from the source number of inventories. Defaults to `1` to ensure some uneven spreading of items. See Notes for logic on item distribution and how this option interacts with other options. |
+| destinationPlayersVarianceFactor | DECIMAL | Optional | The multiplying factor applied to each item type's number of source players when calculating the number of inventories to receive the item. Used to allow scaling of item recipients for large player counts. A value of `0` will mean there is no scaling of source to destination inventories. Defaults to `0.25`. See Notes for logic on item distribution and how this option interacts with other options. |
+| recipientItemMinToMaxRatio | INTEGER | Optional | The approximate min/max ratio range of the number of items a destination player will receive compared to others. Defaults to `4`. See Notes for logic on item distribution. |
+| suppressMessages | BOOLEAN | Optional | If all standard effect messages are suppressed. Defaults to `false`. |
 
 
 
-#### Notes
+# Calling Effect And Code Examples
+
+Note: many examples target specific named players, you will need to replace this with your own player's name.
+
+
+<details><summary>Remote Interface</summary>
+<p>
+
+Remote Interface Syntax: `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_player_inventory_shuffle', [OPTIONS TABLE])`
+
+The options must be provided as a Lua table.
+
+Examples:
+
+| Example | Code |
+| --- | --- |
+| 3 named players | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_player_inventory_shuffle', {includedPlayers="muppet9010,Test_1,Test_2"})` |
+| all active players | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_player_inventory_shuffle', {includedPlayers="[ALL]"})` |
+| 2 named players and all players on a specific force | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_player_inventory_shuffle', {includedPlayers="Test_1,Test_2", includedForces="player"})` |
+
+
+Further details and more advanced usage of using Remote Interfaces can be found here on the [Streamer Effect Options Syntax Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax).
+
+</p>
+</details>
+
+
+
+<details><summary>Factorio Command</summary>
+<p>
+
+Command Syntax: `/muppet_streamer_player_inventory_shuffle [OPTIONS TABLE AS JSON STRING]`
+
+The effect's options must be provided as a JSON string of a table.
+
+Examples:
+
+| Example | Code |
+| --- | --- |
+| 3 named players | `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"muppet9010,Test_1,Test_2"}` |
+| all active players | `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"[ALL]"}` |
+| 2 named players and all players on a specific force | `/muppet_streamer_player_inventory_shuffle {"includedPlayers":"Test_1,Test_2", "includedForces":"player"}` |
+
+</p>
+</details>
+
+
+
+# Notes
 
 - There must be 2 or more included players online otherwise the command will do nothing (prints notification message). The players from both include options will be pooled for this.
 - Players are given items using Factorio's default item assignment logic. This will mean that equipment will be loaded based on the random order it is received. Any auto trashing will happen after all the items have tried to be distributed, just like if you try to mine an auto trashed item, but your inventory is already full.
