@@ -51,7 +51,7 @@ local EffectEndStatus = {
 local CommandName = "muppet_streamer_malfunctioning_weapon"
 
 MalfunctioningWeapon.CreateGlobals = function()
-    global.malfunctioningWeapon = global.malfunctioningWeapon or {}
+    global.malfunctioningWeapon = global.malfunctioningWeapon or {} ---@class MalfunctioningWeapon_Global
     global.malfunctioningWeapon.affectedPlayers = global.malfunctioningWeapon.affectedPlayers or {} ---@type table<uint, MalfunctioningWeapon_AffectedPlayerDetails> # Key'd by player_index.
     global.malfunctioningWeapon.nextId = global.malfunctioningWeapon.nextId or 0 ---@type uint
 end

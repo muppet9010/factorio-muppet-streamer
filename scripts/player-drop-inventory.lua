@@ -53,7 +53,7 @@ local QuantityType = {
 local CommandName = "muppet_streamer_player_drop_inventory"
 
 PlayerDropInventory.CreateGlobals = function()
-    global.playerDropInventory = global.playerDropInventory or {}
+    global.playerDropInventory = global.playerDropInventory or {} ---@class PlayerDropInventory_Global
     global.playerDropInventory.affectedPlayers = global.playerDropInventory.affectedPlayers or {} ---@type table<uint, true> # A dictionary of player indexes that have the effect active on them currently.
     global.playerDropInventory.nextId = global.playerDropInventory.nextId or 0 ---@type uint
 end

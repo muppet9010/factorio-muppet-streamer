@@ -78,7 +78,7 @@ local SecondaryVehicleTypes = { ["cargo-wagon"] = "cargo-wagon", ["fluid-wagon"]
 local AllVehicleEntityTypes = { ["car"] = "car", ["locomotive"] = "locomotive", ["spider-vehicle"] = "spider-vehicle", ["cargo-wagon"] = "cargo-wagon", ["fluid-wagon"] = "fluid-wagon", ["artillery-wagon"] = "artillery-wagon" }
 
 AggressiveDriver.CreateGlobals = function()
-    global.aggressiveDriver = global.aggressiveDriver or {}
+    global.aggressiveDriver = global.aggressiveDriver or {} ---@class AggressiveDriver_Global
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type uint
     global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, AggressiveDriver_AffectedPlayerDetails> # Key'd by player_index.
 end

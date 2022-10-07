@@ -17,7 +17,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 local CommandName = "muppet_streamer_give_player_weapon_ammo"
 
 GiveItems.CreateGlobals = function()
-    global.giveItems = global.giveItems or {}
+    global.giveItems = global.giveItems or {} ---@class GiveItems_Global
     global.giveItems.nextId = global.giveItems.nextId or 0 ---@type uint
 end
 

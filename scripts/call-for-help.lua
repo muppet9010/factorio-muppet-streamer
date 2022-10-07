@@ -64,7 +64,7 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 local CommandName = "muppet_streamer_call_for_help"
 
 CallForHelp.CreateGlobals = function()
-    global.callForHelp = global.callForHelp or {}
+    global.callForHelp = global.callForHelp or {} ---@class CallForHelp_Global
     global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type uint
     global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<uint, CallForHelp_PathRequestObject> # Key'd to the pathing request Ids,
     global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<uint, CallForHelp_CallForHelpObject> # Key'd to the callForHelp Ids.

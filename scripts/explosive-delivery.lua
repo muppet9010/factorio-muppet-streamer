@@ -25,7 +25,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 local CommandName = "muppet_streamer_schedule_explosive_delivery"
 
 ExplosiveDelivery.CreateGlobals = function()
-    global.explosiveDelivery = global.explosiveDelivery or {}
+    global.explosiveDelivery = global.explosiveDelivery or {} ---@class ExplosiveDelivery_Global
     global.explosiveDelivery.nextId = global.explosiveDelivery.nextId or 0 ---@type uint
     global.explosiveDelivery.nextSalvoWaveId = global.explosiveDelivery.nextSalvoWaveId or 0 ---@type uint
     global.explosiveDelivery.salvoWaveDetails = global.explosiveDelivery.salvoWaveDetails or {} ---@type table<int,ExplosiveDelivery_SalvoWaveDetails>

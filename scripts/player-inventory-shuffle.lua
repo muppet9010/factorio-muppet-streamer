@@ -51,7 +51,7 @@ local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force th
 local CommandName = "muppet_streamer_player_inventory_shuffle"
 
 PlayerInventoryShuffle.CreateGlobals = function()
-    global.playerInventoryShuffle = global.playerInventoryShuffle or {}
+    global.playerInventoryShuffle = global.playerInventoryShuffle or {} ---@class PlayerInventoryShuffle_Global
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId or 0 ---@type uint
 end
 
