@@ -3,6 +3,8 @@ DOING NOW:
 
 
 BUGS:
+	- Check last changelog entry, it is badly worded.
+	- Aggressive Driver - also exclude vehicles that are non-openable and are indestructible or have health set at 0. This will catch trains in stasis. As while teleporting to a stasis train kicks you out, the feature also doesn't try other vehicles near by as for that tick you were in the vehicle.
 
 
 
