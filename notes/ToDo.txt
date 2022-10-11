@@ -5,6 +5,9 @@ DOING NOW:
 BUGS:
 	- Check last changelog entry, it is badly worded.
 	- Aggressive Driver - also exclude vehicles that are non-openable and are indestructible or have health set at 0. This will catch trains in stasis. As while teleporting to a stasis train kicks you out, the feature also doesn't try other vehicles near by as for that tick you were in the vehicle.
+	- Aggressive Driver - clear the player/spider walking state so that they stop when the effect ends. Mukie found the running kept on going until he pressed a button.
+	- Aggressive Driver - Maybe some way to detect player/spider not having moved for a few ticks and then doing the opposite movement direction or another random one? Try to stop the player constantly running in to a solid obejct for the whole few seconds until the next random direction.
+	- Aggressive Driver - Check if the surface search always returns the closest vehicle first, or is it the top left most vehicle within the radius. May be able to reduce the vehicles validated.
 
 
 
