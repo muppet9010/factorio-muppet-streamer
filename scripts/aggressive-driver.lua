@@ -677,6 +677,8 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
         acceleration = defines.riding.acceleration.braking,
         direction = defines.riding.direction.straight
     }
+    -- Also set the players walking state back to nothing. Not sure this is needed from testing, but Mukkie claimed he kept on walking so added to be safe.
+    player.walking_state = { walking = false, direction = player.walking_state.direction }
 
     -- Print a message based on ending status.
     if status == EffectEndStatus.completed then

@@ -7,6 +7,7 @@ Date: 2022-10-XXXXXXXXXXX
   Bugfixes:
     - 2 features previously shared a global name space due to a typo. However there was no impactful overlap between Call For help and Aggressive Driver in state data field names; so this shouldn't have caused any issues. It will be resolved in new games, however, existing games will continue with this shared global name space.
     - Fix loading save that used to have the mod, it was then removed and now its back again.
+    - Aggressive Driver - set player to stop walking at end of effect. In testing this fix wasn't needed, but reported from user so added to be safe.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.34
