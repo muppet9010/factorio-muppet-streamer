@@ -4,6 +4,7 @@ Date: 2022-10-XXXXXXXXXXX
   Features:
   Changes:
     - Aggressive Driver - any vehicle that is not operable and not destructible is also viewed as being unsuitable for the feature. Train carriages can be marked with these 2 options. To enhance compatibility with the Stasis Weapons mod.
+    - Aggressive Driver - when the spider or player on foot gets stuck against something and they are on `random` `control` they will try a new random direction, rather than remaining there for the duration of the short direction movement.
   Bugfixes:
     - 2 features previously shared a global name space due to a typo. However there was no impactful overlap between Call For help and Aggressive Driver in state data field names; so this shouldn't have caused any issues. It will be resolved in new games, however, existing games will continue with this shared global name space.
     - Fix loading save that used to have the mod, it was then removed and now its back again.

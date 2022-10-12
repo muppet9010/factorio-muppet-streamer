@@ -58,6 +58,7 @@ local AggressiveWalkingTypes = {
 ---@field accelerationTicks uint # How many ticks the vehicle has been trying to move in its current direction (forwards or backwards).
 ---@field accelerationState defines.riding.acceleration # Should only ever be either accelerating or reversing.
 ---@field directionDurationTicks uint # How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
+---@field oldPlayerPosition MapPosition|nil # The players position last tick.
 ---@field ridingDirection defines.riding.direction # For if in a car or train vehicle.
 ---@field walkingDirection defines.direction # For when walking in a spider vehicle or on foot.
 
@@ -303,7 +304,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         ---@type AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[]
         local primaryDistanceSortedFreeVehicles, primaryDistanceSortedDriverOccupiedVehicles, primaryDistanceSortedFullyOccupiedVehicles, secondaryDistanceSortedFreeVehicles, secondaryDistanceSortedDriverOccupiedVehicles, secondaryDistanceSortedFullyOccupiedVehicles = {}, {}, {}, {}, {}, {}
 
-        -- Search for specified vehicles within the teleport radius. Have to get by type and names separately as otherwise if both populated they restricted over each other.
+        -- Search for specified vehicles within the teleport radius. Have to get by type and names separately as otherwise if both populated they restricted over each other. Generally only 1 search is done for standard requests, unless the user has put specific option combinations in that requires 2 searches.
         local vehicles
         if data.teleportWhitelistTypes ~= nil then
             vehicles = targetPlayer.surface.find_entities_filtered { position = targetPlayer_position, radius = data.teleportDistance, force = targetPlayer.force, type = data.teleportWhitelistTypes }
@@ -537,6 +538,8 @@ AggressiveDriver.Drive = function(eventData)
         if data.control == ControlTypes.full then
             -- Player can still steer, so just force to move "forwards".
 
+            -- With the player giving the direction we can't go any other direction if the player gets stuck against something :(
+
             -- Every 10 ticks we have to stop controlling the spiders movement so that the players direction input is registered and we can pick it up.
             if data.accelerationTicks > 10 then
                 -- Just reset the counter this tick, lets user input be captured.
@@ -547,6 +550,15 @@ AggressiveDriver.Drive = function(eventData)
             end
         else
             -- Player has no control so we will set both acceleration and direction.
+
+            -- Check if the player/spider is stuck against something and needs direction changing.
+            local currentPlayerPosition = player.position
+            if data.oldPlayerPosition ~= nil and data.oldPlayerPosition.x == currentPlayerPosition.x and data.oldPlayerPosition.y == currentPlayerPosition.y then
+                data.oldPlayerPosition = nil
+                data.directionDurationTicks = 0
+            else
+                data.oldPlayerPosition = currentPlayerPosition
+            end
 
             -- Either find a new direction if the directionDuration has run out, or just count it down 1.
             if data.directionDurationTicks == 0 then
