@@ -300,6 +300,10 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     local storageInventory = game.create_inventory(storageInventorySize)
     local storageInventoryStackCount, storageInventoryFull = 0, false
 
+    -- Re-used table objects to save their creation.
+    local cancelCrafting_allNextItemTable = { index = 1, count = 99999999 }
+    local storageInventoryInsert_equipmentItemsTable = { name = nil, count = nil }
+
     -- Loop over each player and handle their inventories.
     ---@type LuaItemStack|nil, LuaInventory|nil, string, uint, table<string, true>, string, LuaEquipmentGrid|nil
     local playerInventoryStack, playersInventory, stackItemName, playersInitialInventorySlotBonus, playersItemSources, stackItemType, equipmentGrid
@@ -349,7 +353,8 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                         end
 
                                         -- Create items in the shared storage for the item counts removed. When you take an item from armor it loses all its electricity anyway.
-                                        storageInventory.insert({ name = equipmentName, count = equipmentCount })
+                                        storageInventoryInsert_equipmentItemsTable.name, storageInventoryInsert_equipmentItemsTable.count = equipmentName, equipmentCount
+                                        storageInventory.insert(storageInventoryInsert_equipmentItemsTable)
                                     end
                                 end
                             end
@@ -401,7 +406,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
 
                 -- Have to cancel each item one at a time while there still are some. As if you cancel a pre-requisite or final item then the other related items are auto cancelled and any attempt to iterate a cached list errors.
                 while player.crafting_queue_size > 0 do
-                    player.cancel_crafting { index = 1, count = 99999999 } -- Just a number to get all.
+                    player.cancel_crafting(cancelCrafting_allNextItemTable) -- Just a number to get all.
 
                     -- Move each item type in the player's inventory to the storage inventory until we have got them all. See code notes at top of file for iterating inventory slots vs get_contents().
                     -- CODE NOTE: All items will end up in players main inventory as their other inventories have already been emptied. No trashing or other actions will occur mid tick.
@@ -688,6 +693,9 @@ PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemNa
     local itemStackToTakeFrom, itemsInserted, itemToInsert, itemStackToTakeFrom_count, itemCountToTakeFromThisStack
     local playersInventoryIsFull = false
 
+    -- Re-used table objects to save their creation.
+    local itemToInsert = {}
+
     -- Keep on taking items from the storage inventories stacks until we have moved the required number of items or filled up the player's inventory.
     while itemCount > 0 do
         itemStackToTakeFrom = storageInventory.find_item_stack(itemName)
@@ -706,12 +714,19 @@ PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemNa
             end
         else
             -- We want some of the items from the stack, so add the required number with attributes to the player.
-            itemToInsert = { name = itemName, count = itemCountToTakeFromThisStack, health = itemStackToTakeFrom.health, durability = itemStackToTakeFrom.durability }
+            itemToInsert.name = itemName
+            itemToInsert.count = itemCountToTakeFromThisStack
+            itemToInsert.health = itemStackToTakeFrom.health
+            itemToInsert.durability = itemStackToTakeFrom.durability
             if itemStackToTakeFrom.type == "ammo" then
                 itemToInsert.ammo = itemStackToTakeFrom.ammo
+            else
+                itemToInsert.ammo = nil
             end
             if itemStackToTakeFrom.is_item_with_tags then
                 itemToInsert.tags = itemStackToTakeFrom.tags
+            else
+                itemToInsert.tags = nil
             end
             itemsInserted = player.insert(itemToInsert)
             if itemsInserted ~= itemCountToTakeFromThisStack then
