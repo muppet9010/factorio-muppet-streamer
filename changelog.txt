@@ -3,17 +3,19 @@ Version: 20.1.35
 Date: 2022-10-XXXXXXXXXXX
   Features:
   Changes:
+    - Aggressive Driver - any vehicle that is not operable and not destructible is also viewed as being unsuitable for the feature. Train carriages can be marked with these 2 options. To enhance compatibility with the Stasis Weapons mod.
   Bugfixes:
-    - 2 features shared a global name space. However there was no impactful overlap between Call For help and Aggressive Driver in state data names, and so this shouldn't have caused any issues.
+    - 2 features previously shared a global name space due to a typo. However there was no impactful overlap between Call For help and Aggressive Driver in state data field names; so this shouldn't have caused any issues. It will be resolved in new games, however, existing games will continue with this shared global name space.
+    - Fix loading save that used to have the mod, it was then removed and now its back again.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.34
 Date: 2022-10-06
   Features:
   Changes:
-    - Aggressive Driver - any vehicle that is disabled (active == false) is not marked as not suitable for the feature. However, train carriages can't be marked as disabled, so this has limited validity.
+    - Aggressive Driver - any vehicle that is disabled (active == false) is viewed as being unsuitable for the feature. However, train carriages can't be marked as disabled, so this has limited validity. To enhance compatibility with the Stasis Weapons mod.
   Bugfixes:
-    - Aggressive Driver - fix crash in some cases when the player was teleported out of the vehicle mid aggressive drive and aggressive walk was enabled.
+    - Aggressive Driver - fix crash that could occur in some cases when the player was teleported out of their vehicle mid aggressive drive and the aggressive walk fallback option was enabled.
   Info:
     - Moved to Github Wiki from single giant information file.
 ---------------------------------------------------------------------------------------------------

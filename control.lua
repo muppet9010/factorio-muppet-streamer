@@ -79,8 +79,10 @@ local function OnStartup()
 
     -- Ensure our special enemy force is always present.
     if global.Forces.muppet_streamer_enemy == nil then
-        -- CODE NOTE: done as separate line rather than `x = x or blah` as Sumneko kept on flashing it as an error.
-        global.Forces.muppet_streamer_enemy = game.create_force("muppet_streamer_enemy") -- No alliances set to any other force.
+        global.Forces.muppet_streamer_enemy = game.forces["muppet_streamer_enemy"]
+        if global.Forces.muppet_streamer_enemy == nil then
+            global.Forces.muppet_streamer_enemy = game.create_force("muppet_streamer_enemy") -- No alliances set to any other force.
+        end
     end
 end
 

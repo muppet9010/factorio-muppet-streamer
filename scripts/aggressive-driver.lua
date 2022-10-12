@@ -249,8 +249,11 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     else
         -- Player is in a vehicle.
 
-        -- Check the vehicle is active and not disabled.
-        if playersVehicle.active then
+        -- Check the vehicle is usable. Either being disabled or a combination of entity field settings being unfriendly for player usage.
+        if not playersVehicle.active or (not playersVehicle.operable and not playersVehicle.destructible) then
+            -- Current vehicle is not active.
+            inSuitableVehicle = false
+        else
             -- If the vehicle has a good fuel state then check it's seats situation deeper.
             if AggressiveDriver.CheckVehiclesFuelState(playersVehicle, playersVehicle.type, checkedTrainFuelStates) then
                 -- Check seats in current vehicle.
@@ -289,9 +292,6 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                 -- Current vehicle is lacking fuel.
                 inSuitableVehicle = false
             end
-        else
-            -- Current vehicle is not active
-            inSuitableVehicle = false
         end
     end
 
@@ -322,8 +322,11 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         -- Check which of the vehicles are suitable.
         local list, driver, passenger, distance, vehicle_type
         for _, vehicle in pairs(vehicles) do
-            -- the vehicle must be active (not disabled) to be a valid teleport target.
-            if vehicle.active then
+            -- Check the vehicle is usable. Either being disabled or a combination of entity field settings being unfriendly for player usage.
+            if not vehicle.active or (not vehicle.operable and not vehicle.destructible) then
+                -- Vehicle is disabled so never include.
+                list = nil
+            else
                 -- Check which list to add the vehicle too based on the effect settings.
                 driver, vehicle_type = vehicle.get_driver(), vehicle.type
                 if driver == nil then
@@ -372,9 +375,6 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                         list = nil
                     end
                 end
-            else
-                -- Vehicle is disabled so never include.
-                list = nil
             end
 
             -- If the vehicle has an appropriate driver/passenger state for our effect's options then check it's not lacking fuel.
