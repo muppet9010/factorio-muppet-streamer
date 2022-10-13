@@ -74,3 +74,4 @@ Examples:
 - If both `number` and `activePercentage` is supplied the greatest value at the time will be used.
 - CallSelection of `nearest` will treat players on other surfaces as being maximum distance away, so they will be the lowest priority. If these players on other surfaces are included or not is controlled by the `sameSurfaceOnly` option.
 - A teleported player comes with their vehicle where appropriate (excludes trains). Anyone else in the vehicle will stay in the vehicle and thus be teleported as well. The vehicle will be partially re-angled unless/until a Factorio modding API request is done.
+- If the player requesting help is in a vehicle then any teleported players who can will be added in to that vehicle/train before the default of being placed on foot within the arrival radius as normal. Any teleported player that has their own teleportable vehicle (all but trains) will remain with that vehicle post its teleporting.
