@@ -2,6 +2,7 @@
 Version: 20.1.35
 Date: 2022-10-XXXXXXXXXXX
   Features:
+    - Call For Help - any teleported players on foot will try and be placed in to the requesting player's vehicle/train first. With any that don't fit being placed on the ground as per normal. Any players in a teleportable vehicle will still come with their vehicle and stay in it.
   Changes:
     - Aggressive Driver - any vehicle that is not operable and not destructible is also viewed as being unsuitable for the feature. Train carriages can be marked with these 2 options. To enhance compatibility with the Stasis Weapons mod.
     - Aggressive Driver - when the spider or player on foot gets stuck against something and they are on `random` `control` they will try a new random direction, rather than remaining there for the duration of the short direction movement.

@@ -7,8 +7,6 @@ BUGS:
 
 
 DO NEAR FUTURE:
-    - Call for Help - add option for if target player is in a vehicle try to put any helping players (who are on foot) in the vehicle with them first. If the target player is in a train try and put the players in other carriages in the train first.
-
     - A remote interface that can be used to call a function (as text) at a delayed time. For use in calling custom code snippets with a delay. Will have some of the same considerations as the "effect callback feature" listed as a larger piece of work, but should be much simpler.
 
 
