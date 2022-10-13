@@ -356,12 +356,10 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
     end
 
     -- Set up the initial values before starting to hunt for the item numbers.
-    local inventoryNameOfItemNumberToDrop = next(itemsCountsInInventories)
-    local countInInventory = itemsCountsInInventories[inventoryNameOfItemNumberToDrop]
+    local inventoryNameOfItemNumberToDrop, countInInventory = next(itemsCountsInInventories)
     local itemCountedUpTo, inventoryTotalCountedUpTo = 0, 0
     local inventoryContents = inventoriesContents[inventoryNameOfItemNumberToDrop]
-    local itemNameToDrop = next(inventoryContents)
-    local itemCount = inventoryContents[itemNameToDrop]
+    local itemNameToDrop, itemCount = next(inventoryContents)
     local itemStackToDropFrom_UpdatedForThisItem = false
 
     -- Set initial cached LuaObjects used when placing entities on the ground. "cursorStack" is a special case and we don't use the inventory variable there, so just don't update it.
@@ -383,20 +381,18 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
             -- Item not in this inventory so cycle to the correct inventory.
             while inventoryTotalCountedUpTo + countInInventory < itemNumberToDrop do
                 inventoryTotalCountedUpTo = inventoryTotalCountedUpTo + countInInventory
-                inventoryNameOfItemNumberToDrop = next(itemsCountsInInventories, inventoryNameOfItemNumberToDrop)
+                inventoryNameOfItemNumberToDrop, countInInventory = next(itemsCountsInInventories, inventoryNameOfItemNumberToDrop)
 
                 if inventoryNameOfItemNumberToDrop == nil then
                     -- Run out of inventories to iterate through, ERROR.
                     CommandsUtils.LogPrintError(CommandName, nil, "run out of inventories to search before finding item number " .. itemNumberToDrop .. " for " .. player.name, nil)
                     return
                 end
-                countInInventory = itemsCountsInInventories[inventoryNameOfItemNumberToDrop]
             end
 
             -- Correct inventory found, so update our starting positions to the start of this inventory.
             inventoryContents = inventoriesContents[inventoryNameOfItemNumberToDrop]
-            itemNameToDrop = next(inventoryContents)
-            itemCount = inventoryContents[itemNameToDrop]
+            itemNameToDrop, itemCount = next(inventoryContents)
             itemCountedUpTo = inventoryTotalCountedUpTo
 
             -- Update cached LuaObjects used when placing entities on the ground.
@@ -421,13 +417,12 @@ PlayerDropInventory.DropSomeItemsFromInventories = function(player, data, itemCo
             -- Find the specific item in this inventory details if the current item doesn't include the required count.
             while itemCountedUpTo + itemCount < itemNumberToDrop do
                 itemCountedUpTo = itemCountedUpTo + itemCount
-                itemNameToDrop = next(inventoryContents, itemNameToDrop)
+                itemNameToDrop, itemCount = next(inventoryContents, itemNameToDrop)
                 if itemNameToDrop == nil then
                     -- Run out of items in this this inventory to iterate through, ERROR.
                     CommandsUtils.LogPrintError(CommandName, nil, "didn't find item number " .. itemNumberToDrop .. " in " .. player.name .. "'s inventory id " .. inventoryNameOfItemNumberToDrop, nil)
                     return
                 end
-                itemCount = inventoryContents[itemNameToDrop]
             end
 
             -- Update cached LuaObjects used when placing entities on the ground.
