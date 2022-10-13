@@ -341,7 +341,7 @@ Teleport.PlanTeleportTarget = function(eventData)
                             ---@type Teleport_TargetPlayerSpawnerDistanceDetails
                             local spawnerDistanceDetails = { distance = spawnerDistance, spawnerDetails = spawnerDetails }
                             -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
-                            table.insert(data.spawnerDistances, spawnerDistanceDetails)
+                            data.spawnerDistances[#data.spawnerDistances + 1] = spawnerDistanceDetails
                         end
                     end
                 end

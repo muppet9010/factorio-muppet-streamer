@@ -222,7 +222,7 @@ CallForHelp.CallForHelp = function(eventData)
         availablePlayers = {}
         for _, onlinePlayer in pairs(game.connected_players) do
             if data.whitelistedPlayerNames[onlinePlayer.name] then
-                table.insert(availablePlayers, onlinePlayer)
+                availablePlayers[#availablePlayers + 1] = onlinePlayer
             end
         end
     end
@@ -294,7 +294,7 @@ CallForHelp.CallForHelp = function(eventData)
             if helpPlayersInRange[i] == nil then
                 break
             end
-            table.insert(helpPlayers, helpPlayersInRange[i].player)
+            helpPlayers[#helpPlayers + 1] = helpPlayersInRange[i].player
         end
     end
 

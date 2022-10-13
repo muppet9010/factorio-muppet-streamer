@@ -108,7 +108,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         for _, includedForceName in pairs(includedForceNames) do
             local force = game.forces[includedForceName]
             if force ~= nil then
-                table.insert(includedForces, force)
+                includedForces[#includedForces] = force
             else
                 CommandsUtils.LogPrintError(CommandName, "includedForces", "has an invalid force name: " .. tostring(includedForceName), command.parameter)
                 return
@@ -207,7 +207,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
         -- Just include everyone.
         for _, player in pairs(game.connected_players) do
             if player.controller_type == defines.controllers.character and player.character ~= nil then
-                table.insert(players, player)
+                players[#players + 1] = player
             end
         end
     else
@@ -216,7 +216,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
             if force.valid then
                 for _, player in pairs(force.connected_players) do
                     if player.controller_type == defines.controllers.character and player.character ~= nil then
-                        table.insert(players, player)
+                        players[#players + 1] = player
                         local player_name = player.name
                         playerNamesAddedByForce[player_name] = player_name
                     end
@@ -229,7 +229,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
                 local player_name = player.name
                 -- Only include the player if they aren't already included by their force.
                 if playerNamesAddedByForce[player_name] == nil then
-                    table.insert(players, player)
+                    players[#players + 1] = player
                     playerNamesAddedByName[player_name] = player_name
                 end
             end
@@ -621,7 +621,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
         -- playerIndexesWithFreeInventorySpace_table is a gappy array so have to make it consistent to allow easier usage in this phase.
         local playerIndexesWithFreeInventorySpace_array = {} ---@type LuaPlayer[]
         for _, player in pairs(playerIndexesWithFreeInventorySpace_table) do
-            table.insert(playerIndexesWithFreeInventorySpace_array, player)
+            playerIndexesWithFreeInventorySpace_array[#playerIndexesWithFreeInventorySpace_array + 1] = player
         end
 
         -- Try and shove the items in players inventories that aren't full first
