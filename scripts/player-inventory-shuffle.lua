@@ -51,7 +51,7 @@ local SinglePlayerTesting_DuplicateInputItems = false -- Set to TRUE to force th
 local CommandName = "muppet_streamer_player_inventory_shuffle"
 
 PlayerInventoryShuffle.CreateGlobals = function()
-    global.playerInventoryShuffle = global.playerInventoryShuffle or {}
+    global.playerInventoryShuffle = global.playerInventoryShuffle or {} ---@class PlayerInventoryShuffle_Global
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId or 0 ---@type uint
 end
 
@@ -108,7 +108,7 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
         for _, includedForceName in pairs(includedForceNames) do
             local force = game.forces[includedForceName]
             if force ~= nil then
-                table.insert(includedForces, force)
+                includedForces[#includedForces] = force
             else
                 CommandsUtils.LogPrintError(CommandName, "includedForces", "has an invalid force name: " .. tostring(includedForceName), command.parameter)
                 return
@@ -207,7 +207,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
         -- Just include everyone.
         for _, player in pairs(game.connected_players) do
             if player.controller_type == defines.controllers.character and player.character ~= nil then
-                table.insert(players, player)
+                players[#players + 1] = player
             end
         end
     else
@@ -216,7 +216,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
             if force.valid then
                 for _, player in pairs(force.connected_players) do
                     if player.controller_type == defines.controllers.character and player.character ~= nil then
-                        table.insert(players, player)
+                        players[#players + 1] = player
                         local player_name = player.name
                         playerNamesAddedByForce[player_name] = player_name
                     end
@@ -229,7 +229,7 @@ PlayerInventoryShuffle.MixUpPlayerInventories = function(event)
                 local player_name = player.name
                 -- Only include the player if they aren't already included by their force.
                 if playerNamesAddedByForce[player_name] == nil then
-                    table.insert(players, player)
+                    players[#players + 1] = player
                     playerNamesAddedByName[player_name] = player_name
                 end
             end
@@ -300,6 +300,10 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
     local storageInventory = game.create_inventory(storageInventorySize)
     local storageInventoryStackCount, storageInventoryFull = 0, false
 
+    -- Re-used table objects to save their creation.
+    local cancelCrafting_allNextItemTable = { index = 1, count = 99999999 }
+    local storageInventoryInsert_equipmentItemsTable = { name = nil, count = nil }
+
     -- Loop over each player and handle their inventories.
     ---@type LuaItemStack|nil, LuaInventory|nil, string, uint, table<string, true>, string, LuaEquipmentGrid|nil
     local playerInventoryStack, playersInventory, stackItemName, playersInitialInventorySlotBonus, playersItemSources, stackItemType, equipmentGrid
@@ -349,7 +353,8 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
                                         end
 
                                         -- Create items in the shared storage for the item counts removed. When you take an item from armor it loses all its electricity anyway.
-                                        storageInventory.insert({ name = equipmentName, count = equipmentCount })
+                                        storageInventoryInsert_equipmentItemsTable.name, storageInventoryInsert_equipmentItemsTable.count = equipmentName, equipmentCount
+                                        storageInventory.insert(storageInventoryInsert_equipmentItemsTable)
                                     end
                                 end
                             end
@@ -401,7 +406,7 @@ PlayerInventoryShuffle.CollectPlayerItems = function(players, requestData)
 
                 -- Have to cancel each item one at a time while there still are some. As if you cancel a pre-requisite or final item then the other related items are auto cancelled and any attempt to iterate a cached list errors.
                 while player.crafting_queue_size > 0 do
-                    player.cancel_crafting { index = 1, count = 99999999 } -- Just a number to get all.
+                    player.cancel_crafting(cancelCrafting_allNextItemTable) -- Just a number to get all.
 
                     -- Move each item type in the player's inventory to the storage inventory until we have got them all. See code notes at top of file for iterating inventory slots vs get_contents().
                     -- CODE NOTE: All items will end up in players main inventory as their other inventories have already been emptied. No trashing or other actions will occur mid tick.
@@ -616,7 +621,7 @@ PlayerInventoryShuffle.DistributeRemainingItemsAnywhere = function(storageInvent
         -- playerIndexesWithFreeInventorySpace_table is a gappy array so have to make it consistent to allow easier usage in this phase.
         local playerIndexesWithFreeInventorySpace_array = {} ---@type LuaPlayer[]
         for _, player in pairs(playerIndexesWithFreeInventorySpace_table) do
-            table.insert(playerIndexesWithFreeInventorySpace_array, player)
+            playerIndexesWithFreeInventorySpace_array[#playerIndexesWithFreeInventorySpace_array + 1] = player
         end
 
         -- Try and shove the items in players inventories that aren't full first
@@ -688,6 +693,9 @@ PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemNa
     local itemStackToTakeFrom, itemsInserted, itemToInsert, itemStackToTakeFrom_count, itemCountToTakeFromThisStack
     local playersInventoryIsFull = false
 
+    -- Re-used table objects to save their creation.
+    local itemToInsert = {}
+
     -- Keep on taking items from the storage inventories stacks until we have moved the required number of items or filled up the player's inventory.
     while itemCount > 0 do
         itemStackToTakeFrom = storageInventory.find_item_stack(itemName)
@@ -706,12 +714,19 @@ PlayerInventoryShuffle.InsertItemsInToPlayer = function(storageInventory, itemNa
             end
         else
             -- We want some of the items from the stack, so add the required number with attributes to the player.
-            itemToInsert = { name = itemName, count = itemCountToTakeFromThisStack, health = itemStackToTakeFrom.health, durability = itemStackToTakeFrom.durability }
+            itemToInsert.name = itemName
+            itemToInsert.count = itemCountToTakeFromThisStack
+            itemToInsert.health = itemStackToTakeFrom.health
+            itemToInsert.durability = itemStackToTakeFrom.durability
             if itemStackToTakeFrom.type == "ammo" then
                 itemToInsert.ammo = itemStackToTakeFrom.ammo
+            else
+                itemToInsert.ammo = nil
             end
             if itemStackToTakeFrom.is_item_with_tags then
                 itemToInsert.tags = itemStackToTakeFrom.tags
+            else
+                itemToInsert.tags = nil
             end
             itemsInserted = player.insert(itemToInsert)
             if itemsInserted ~= itemCountToTakeFromThisStack then

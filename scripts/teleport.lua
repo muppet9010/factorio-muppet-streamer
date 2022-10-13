@@ -78,7 +78,7 @@ local MaxDistancePositionAroundTarget = 10
 local CommandName = "muppet_streamer_teleport"
 
 Teleport.CreateGlobals = function()
-    global.teleport = global.teleport or {}
+    global.teleport = global.teleport or {} ---@class Teleport_Global
     global.teleport.nextId = global.teleport.nextId or 0 ---@type uint
     global.teleport.pathingRequests = global.teleport.pathingRequests or {} ---@type table<uint, Teleport_TeleportDetails> # The path request Id to its teleport details for when the path request completes.
     global.teleport.surfaceBiterNests = global.teleport.surfaceBiterNests or Teleport.FindExistingSpawnersOnAllSurfaces() ---@type surfaceForceBiterNests
@@ -341,7 +341,7 @@ Teleport.PlanTeleportTarget = function(eventData)
                             ---@type Teleport_TargetPlayerSpawnerDistanceDetails
                             local spawnerDistanceDetails = { distance = spawnerDistance, spawnerDetails = spawnerDetails }
                             -- While this is inserted as consistent key ID's it can be manipulated later to be gappy.
-                            table.insert(data.spawnerDistances, spawnerDistanceDetails)
+                            data.spawnerDistances[#data.spawnerDistances + 1--[[@as uint]] ] = spawnerDistanceDetails
                         end
                     end
                 end

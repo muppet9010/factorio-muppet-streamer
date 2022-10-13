@@ -58,6 +58,7 @@ local AggressiveWalkingTypes = {
 ---@field accelerationTicks uint # How many ticks the vehicle has been trying to move in its current direction (forwards or backwards).
 ---@field accelerationState defines.riding.acceleration # Should only ever be either accelerating or reversing.
 ---@field directionDurationTicks uint # How many more ticks the vehicle will carry on going in its steering direction. Only used/updated if the steering is "random".
+---@field oldPlayerPosition MapPosition|nil # The players position last tick.
 ---@field ridingDirection defines.riding.direction # For if in a car or train vehicle.
 ---@field walkingDirection defines.direction # For when walking in a spider vehicle or on foot.
 
@@ -78,7 +79,7 @@ local SecondaryVehicleTypes = { ["cargo-wagon"] = "cargo-wagon", ["fluid-wagon"]
 local AllVehicleEntityTypes = { ["car"] = "car", ["locomotive"] = "locomotive", ["spider-vehicle"] = "spider-vehicle", ["cargo-wagon"] = "cargo-wagon", ["fluid-wagon"] = "fluid-wagon", ["artillery-wagon"] = "artillery-wagon" }
 
 AggressiveDriver.CreateGlobals = function()
-    global.aggressiveDriver = global.aggressiveDriver or {}
+    global.aggressiveDriver = global.aggressiveDriver or {} ---@class AggressiveDriver_Global
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId or 0 ---@type uint
     global.aggressiveDriver.affectedPlayers = global.aggressiveDriver.affectedPlayers or {} ---@type table<uint, AggressiveDriver_AffectedPlayerDetails> # Key'd by player_index.
 end
@@ -249,8 +250,11 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
     else
         -- Player is in a vehicle.
 
-        -- Check the vehicle is active and not disabled.
-        if playersVehicle.active then
+        -- Check the vehicle is usable. Either being disabled or a combination of entity field settings being unfriendly for player usage.
+        if not playersVehicle.active or (not playersVehicle.operable and not playersVehicle.destructible) then
+            -- Current vehicle is not active.
+            inSuitableVehicle = false
+        else
             -- If the vehicle has a good fuel state then check it's seats situation deeper.
             if AggressiveDriver.CheckVehiclesFuelState(playersVehicle, playersVehicle.type, checkedTrainFuelStates) then
                 -- Check seats in current vehicle.
@@ -289,9 +293,6 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                 -- Current vehicle is lacking fuel.
                 inSuitableVehicle = false
             end
-        else
-            -- Current vehicle is not active
-            inSuitableVehicle = false
         end
     end
 
@@ -303,7 +304,7 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         ---@type AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[], AggressiveDriver_SortedVehicleEntry[]
         local primaryDistanceSortedFreeVehicles, primaryDistanceSortedDriverOccupiedVehicles, primaryDistanceSortedFullyOccupiedVehicles, secondaryDistanceSortedFreeVehicles, secondaryDistanceSortedDriverOccupiedVehicles, secondaryDistanceSortedFullyOccupiedVehicles = {}, {}, {}, {}, {}, {}
 
-        -- Search for specified vehicles within the teleport radius. Have to get by type and names separately as otherwise if both populated they restricted over each other.
+        -- Search for specified vehicles within the teleport radius. Have to get by type and names separately as otherwise if both populated they restricted over each other. Generally only 1 search is done for standard requests, unless the user has put specific option combinations in that requires 2 searches.
         local vehicles
         if data.teleportWhitelistTypes ~= nil then
             vehicles = targetPlayer.surface.find_entities_filtered { position = targetPlayer_position, radius = data.teleportDistance, force = targetPlayer.force, type = data.teleportWhitelistTypes }
@@ -322,8 +323,11 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
         -- Check which of the vehicles are suitable.
         local list, driver, passenger, distance, vehicle_type
         for _, vehicle in pairs(vehicles) do
-            -- the vehicle must be active (not disabled) to be a valid teleport target.
-            if vehicle.active then
+            -- Check the vehicle is usable. Either being disabled or a combination of entity field settings being unfriendly for player usage.
+            if not vehicle.active or (not vehicle.operable and not vehicle.destructible) then
+                -- Vehicle is disabled so never include.
+                list = nil
+            else
                 -- Check which list to add the vehicle too based on the effect settings.
                 driver, vehicle_type = vehicle.get_driver(), vehicle.type
                 if driver == nil then
@@ -372,9 +376,6 @@ AggressiveDriver.ApplyToPlayer = function(eventData)
                         list = nil
                     end
                 end
-            else
-                -- Vehicle is disabled so never include.
-                list = nil
             end
 
             -- If the vehicle has an appropriate driver/passenger state for our effect's options then check it's not lacking fuel.
@@ -537,6 +538,8 @@ AggressiveDriver.Drive = function(eventData)
         if data.control == ControlTypes.full then
             -- Player can still steer, so just force to move "forwards".
 
+            -- With the player giving the direction we can't go any other direction if the player gets stuck against something :(
+
             -- Every 10 ticks we have to stop controlling the spiders movement so that the players direction input is registered and we can pick it up.
             if data.accelerationTicks > 10 then
                 -- Just reset the counter this tick, lets user input be captured.
@@ -547,6 +550,15 @@ AggressiveDriver.Drive = function(eventData)
             end
         else
             -- Player has no control so we will set both acceleration and direction.
+
+            -- Check if the player/spider is stuck against something and needs direction changing.
+            local currentPlayerPosition = player.position
+            if data.oldPlayerPosition ~= nil and data.oldPlayerPosition.x == currentPlayerPosition.x and data.oldPlayerPosition.y == currentPlayerPosition.y then
+                data.oldPlayerPosition = nil
+                data.directionDurationTicks = 0
+            else
+                data.oldPlayerPosition = currentPlayerPosition
+            end
 
             -- Either find a new direction if the directionDuration has run out, or just count it down 1.
             if data.directionDurationTicks == 0 then
@@ -677,6 +689,8 @@ AggressiveDriver.StopEffectOnPlayer = function(playerIndex, player, status)
         acceleration = defines.riding.acceleration.braking,
         direction = defines.riding.direction.straight
     }
+    -- Also set the players walking state back to nothing. Not sure this is needed from testing, but Mukkie claimed he kept on walking so added to be safe.
+    player.walking_state = { walking = false, direction = player.walking_state.direction }
 
     -- Print a message based on ending status.
     if status == EffectEndStatus.completed then

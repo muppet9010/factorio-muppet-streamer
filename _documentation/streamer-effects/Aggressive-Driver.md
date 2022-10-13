@@ -82,7 +82,7 @@ Examples:
 - If the vehicle (non spider-vehicle) comes to a stop during the effect due to hitting something it will automatically start moving in the opposite direction.
 - Spider vehicles and aggressive player walking will not reverse if they get stuck on something. They just keep on moving in the direction of travel. This direction may be dictated by the players with `control` option of `full`, or randomly changing with the `control` option of `random`.
 - Any vehicle that is lacking fuel is treated as not suitable for the effect. This correctly handles vehicles that don't require fuel. If the `aggressiveWalking` option is set to either `noVehicle` or `both` then the player will be ejected so they can walk. `vehicleLost` if you become in an unsuitable vehicle you will be ejected.
-- Any vehicle that is marked as script-disabled (`active == false`) is not suitable. However, train carriage types don't support being marked as disabled and so always report as being active.
+- Any vehicle that is viewed as unusable based on its settings is treated as not suitable. This can be when the vehicle is marked as script-disabled (`active == false`), however, train carriages don't support this. Also if a vehicle is both non operable and not destructible its viewed as being non suitable. This is to provide compatibility with Stasis Weapons mod and that no normal vehicle would ever meet these conditions.
 - The `commandeerVehicle` option when enabled (`true`) will always aim to put the player in the driving seat of a vehicle so they have all of the control over the vehicle. If the target player is already in a suitable vehicle they will be swapped to the drivers seat. If they aren't in a suitable vehicle and the `teleportDistance` option is greater than 0, then if there's no driverless suitable vehicles the target player will be moved in to any suitable vehicle's driver seat. Any other players dislodged will be moved to a passenger seat if possible, otherwise ejected from the vehicle. The vehicle selection logic for teleport targets will aim to minimise dislocations of other player, choosing greater teleportation distance first.
 - The `commandeerVehicle` option when disabled (`false`) will try to get the player a vehicle to drive, but won't dislodge any other players to achieve it. If the player is already in a suitable vehicle in the passengers seat then the current vehicle will be deemed unsuitable as they aren't driving it. When the `teleportDistance` option is greater than 0, suitable vehicles must have a vacant drivers seat.
 - The `teleportDistance` option will de-prioritise non-locomotive train carriages. So it will pick a further away locomotive or car type, rather than a near by cargo-wagon type. It will still aim to minimise player dislocations over target vehicle type priority.
@@ -95,7 +95,7 @@ Examples:
 
 # Complicated Usage Examples
 
-#### Just walk aggresively.
+#### Just walk aggressively.
 
 You can make yourself just walk aggressively by having the game eject you from any vehicle first. Then have it do no vehicle teleport search so you are guaranteed to be on foot, and just let it walk as the default fall-back.
 

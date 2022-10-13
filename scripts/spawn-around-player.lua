@@ -74,7 +74,7 @@ SpawnAroundPlayer.offGridPlacementJitter = 0.3
 local CommandName = "muppet_streamer_spawn_around_player"
 
 SpawnAroundPlayer.CreateGlobals = function()
-    global.spawnAroundPlayer = global.spawnAroundPlayer or {}
+    global.spawnAroundPlayer = global.spawnAroundPlayer or {} ---@class SpawnAroundPlayer_Global
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId or 0 ---@type uint
     global.spawnAroundPlayer.removeEntityNextId = global.spawnAroundPlayer.removeEntityNextId or 0 ---@type uint
 end

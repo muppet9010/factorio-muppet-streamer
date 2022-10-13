@@ -64,7 +64,7 @@ local MaxPathfinderAttemptsForTargetLocation = 5 -- How many times the mod tries
 local CommandName = "muppet_streamer_call_for_help"
 
 CallForHelp.CreateGlobals = function()
-    global.callForHelp = global.aggressiveDriver or {}
+    global.callForHelp = global.callForHelp or {} ---@class CallForHelp_Global
     global.callForHelp.nextId = global.callForHelp.nextId or 0 ---@type uint
     global.callForHelp.pathingRequests = global.callForHelp.pathingRequests or {} ---@type table<uint, CallForHelp_PathRequestObject> # Key'd to the pathing request Ids,
     global.callForHelp.callForHelpIds = global.callForHelp.callForHelpIds or {} ---@type table<uint, CallForHelp_CallForHelpObject> # Key'd to the callForHelp Ids.
@@ -191,20 +191,6 @@ CallForHelp.CallForHelpCommand = function(command)
     EventScheduler.ScheduleEventOnce(scheduleTick, "CallForHelp.CallForHelp", global.callForHelp.nextId, delayedCommandDetails)
 end
 
---- Gets the target players current entity or nil if they aren't valid to be helped.
----@param targetPlayer LuaPlayer
----@param suppressMessages boolean
----@return LuaEntity|nil targetPlayerEntity
-CallForHelp.GetTargetPlayersEntity = function(targetPlayer, suppressMessages)
-    local targetPlayerEntity = targetPlayer.vehicle or targetPlayer.character
-    if targetPlayerEntity == nil then
-        -- Being in a character controller without a character is possible and Space Exploration may do it...
-        if not suppressMessages then game.print({ "message.muppet_streamer_call_for_help_no_character", targetPlayer.name }) end
-        return nil
-    end
-    return targetPlayerEntity
-end
-
 ---@param eventData UtilityScheduledEvent_CallbackObject
 CallForHelp.CallForHelp = function(eventData)
     local data = eventData.data ---@type CallForHelp_DelayedCommandDetails
@@ -219,7 +205,7 @@ CallForHelp.CallForHelp = function(eventData)
         return
     end
 
-    local targetPlayerEntity = CallForHelp.GetTargetPlayersEntity(targetPlayer, data.suppressMessages)
+    local targetPlayerEntity, targetPlayerInVehicle = CallForHelp.GetTargetPlayersEntity(targetPlayer, data.suppressMessages)
     if targetPlayerEntity == nil then
         return
     end
@@ -236,7 +222,7 @@ CallForHelp.CallForHelp = function(eventData)
         availablePlayers = {}
         for _, onlinePlayer in pairs(game.connected_players) do
             if data.whitelistedPlayerNames[onlinePlayer.name] then
-                table.insert(availablePlayers, onlinePlayer)
+                availablePlayers[#availablePlayers + 1] = onlinePlayer
             end
         end
     end
@@ -262,19 +248,21 @@ CallForHelp.CallForHelp = function(eventData)
 
     local helpPlayersInRange = {} ---@type CallForHelp_HelpPlayerInRange[]
     local targetPlayerForce = targetPlayer.force
+    local helpPlayer_surface, distance
     for _, helpPlayer in pairs(availablePlayers) do
         if SinglePlayerTesting or helpPlayer ~= targetPlayer then
-            local helpPlayer_surface = helpPlayer.surface
-            if (not data.sameTeamOnly or helpPlayer.force == targetPlayerForce) and (not data.sameSurfaceOnly or helpPlayer_surface == targetPlayerSurface) and helpPlayer.controller_type == defines.controllers.character and targetPlayer.character ~= nil then
-                local distance
-                if helpPlayer_surface ~= targetPlayerSurface then
-                    distance = 4294967295 -- Maximum distance away to de-prioritise these players vs ones on the same surface.
-                else
-                    distance = PositionUtils.GetDistance(targetPlayerPosition, helpPlayer.position)
-                end
+            if (not data.sameTeamOnly) or helpPlayer.force == targetPlayerForce then
+                helpPlayer_surface = helpPlayer.surface
+                if (not data.sameSurfaceOnly or helpPlayer_surface == targetPlayerSurface) and helpPlayer.controller_type == defines.controllers.character and helpPlayer.character ~= nil then
+                    if helpPlayer_surface ~= targetPlayerSurface then
+                        distance = 4294967295 -- Maximum distance away to de-prioritise these players vs ones on the same surface.
+                    else
+                        distance = PositionUtils.GetDistance(targetPlayerPosition, helpPlayer.position)
+                    end
 
-                if data.callRadius == nil or distance <= data.callRadius then
-                    table.insert(helpPlayersInRange, { player = helpPlayer, distance = distance })
+                    if data.callRadius == nil or distance <= data.callRadius then
+                        helpPlayersInRange[#helpPlayersInRange + 1] = { player = helpPlayer, distance = distance }
+                    end
                 end
             end
         end
@@ -289,7 +277,7 @@ CallForHelp.CallForHelp = function(eventData)
     if data.callSelection == CallSelection.random then
         for i = 1, maxPlayers do
             local random = math.random(1, #helpPlayersInRange)
-            table.insert(helpPlayers, helpPlayersInRange[random].player)
+            helpPlayers[#helpPlayers + 1] = helpPlayersInRange[random].player
             table.remove(helpPlayersInRange, random)
             if #helpPlayersInRange == 0 then
                 break
@@ -306,15 +294,86 @@ CallForHelp.CallForHelp = function(eventData)
             if helpPlayersInRange[i] == nil then
                 break
             end
-            table.insert(helpPlayers, helpPlayersInRange[i].player)
+            helpPlayers[#helpPlayers + 1] = helpPlayersInRange[i].player
+        end
+    end
+
+    -- Work out if the requesting player is in a vehicle that can have some players added to it.
+    local teleportHelpToVehicle, canSetDriver, canSetPassenger = false, false, false
+    local freeTrainCarriages ---@type LuaEntity[]
+    if targetPlayerInVehicle then
+        local targetPlayerEntity_type = targetPlayerEntity.type
+        if targetPlayerEntity_type == "car" or targetPlayerEntity_type == "spider-vehicle" then
+            -- Is a 2 seat vehicle, but as our requester is in 1 seat only 1 can be free, but possibly both seats may already be full.
+            if targetPlayerEntity.get_driver() == nil then
+                canSetDriver = true
+                teleportHelpToVehicle = true
+            elseif targetPlayerEntity.get_passenger() == nil then
+                canSetPassenger = true
+                teleportHelpToVehicle = true
+            end
+        else
+            -- Is a train carriage type.
+            freeTrainCarriages = {}
+            for _, carriage in pairs(targetPlayerEntity.train.carriages) do
+                if carriage.get_driver() == nil then
+                    -- Carriage doesn't already have a player in it, so is free.
+                    freeTrainCarriages[#freeTrainCarriages + 1] = carriage
+                    teleportHelpToVehicle = true
+                end
+            end
         end
     end
 
     -- Store the initial details for the call and start the process for each player trying to come to help.
     if not data.suppressMessages then game.print({ "message.muppet_streamer_call_for_help_start", targetPlayer.name }) end
     global.callForHelp.callForHelpIds[data.callForHelpId] = { callForHelpId = data.callForHelpId, pendingPathRequests = {} }
+    local helpPlayer_moved, freeTrainCarriage, freeTrainCarriage_index, helpPlayer_vehicle, helpPlayer_vehicle_type, helpPlayer_canGoInTargetsVehicle
     for _, helpPlayer in pairs(helpPlayers) do
-        CallForHelp.PlanTeleportHelpPlayer(helpPlayer, data.arrivalRadius, targetPlayer, targetPlayerPosition, targetPlayerSurface, targetPlayerEntity, data.callForHelpId, 1, data.sameSurfaceOnly, data.sameTeamOnly, data.suppressMessages)
+
+        -- Put player in to the current player's vehicle first if possible.
+        helpPlayer_moved = false
+        if teleportHelpToVehicle then
+            -- Check the helping player isn't already in a vehicle.
+            helpPlayer_vehicle = helpPlayer.vehicle
+            helpPlayer_canGoInTargetsVehicle = true
+            if helpPlayer_vehicle ~= nil then
+                helpPlayer_vehicle_type = helpPlayer_vehicle.type
+                if helpPlayer_vehicle_type == "car" or helpPlayer_vehicle_type == "spider-vehicle" then
+                    helpPlayer_canGoInTargetsVehicle = false
+                end
+            end
+
+            -- If the helping player can go in a vehicle try to do it.
+            if helpPlayer_canGoInTargetsVehicle then
+                if canSetDriver then
+                    targetPlayerEntity.set_driver(helpPlayer)
+                    helpPlayer_moved = true
+                    canSetDriver = false
+                    teleportHelpToVehicle = false
+                elseif canSetPassenger then
+                    targetPlayerEntity.set_passenger(helpPlayer)
+                    helpPlayer_moved = true
+                    canSetPassenger = false
+                    teleportHelpToVehicle = false
+                else
+                    -- Find a free train carriage.
+                    freeTrainCarriage_index, freeTrainCarriage = next(freeTrainCarriages, freeTrainCarriage_index)
+                    if freeTrainCarriage ~= nil then
+                        freeTrainCarriage.set_driver(helpPlayer)
+                        helpPlayer_moved = true
+                    else
+                        helpPlayer_moved = false
+                        teleportHelpToVehicle = false
+                    end
+                end
+            end
+        end
+
+        -- Teleport the helping player if we couldn't put them in the target players vehicle/train.
+        if not helpPlayer_moved then
+            CallForHelp.PlanTeleportHelpPlayer(helpPlayer, data.arrivalRadius, targetPlayer, targetPlayerPosition, targetPlayerSurface, targetPlayerEntity, data.callForHelpId, 1, data.sameSurfaceOnly, data.sameTeamOnly, data.suppressMessages)
+        end
     end
 end
 
@@ -499,6 +558,22 @@ CallForHelp.CheckIfCallForHelpCompleted = function(pathRequest)
         if not pathRequest.suppressMessages then game.print({ "message.muppet_streamer_call_for_help_stop", pathRequest.targetPlayer.name }) end
         global.callForHelp.callForHelpIds[pathRequest.callForHelpId] = nil
     end
+end
+
+--- Gets the target players current entity or nil if they aren't valid to be helped.
+---@param targetPlayer LuaPlayer
+---@param suppressMessages boolean
+---@return LuaEntity|nil targetPlayerEntity
+---@return boolean isVehicle
+CallForHelp.GetTargetPlayersEntity = function(targetPlayer, suppressMessages)
+    local targetPlayer_vehicle = targetPlayer.vehicle
+    local targetPlayerEntity = targetPlayer_vehicle or targetPlayer.character
+    if targetPlayerEntity == nil then
+        -- Being in a character controller without a character is possible and Space Exploration may do it...
+        if not suppressMessages then game.print({ "message.muppet_streamer_call_for_help_no_character", targetPlayer.name }) end
+        return nil, false
+    end
+    return targetPlayerEntity, targetPlayer_vehicle ~= nil
 end
 
 return CallForHelp

@@ -5,7 +5,7 @@ local MathUtils = require("utility.helper-utils.math-utils")
 local customGhostLife = 40000000 ---@type uint # Different to the vanilla value so it can be distinguished. Vanilla adds 36288000 (36million vs 40million).
 
 BuildingGhosts.CreateGlobals = function()
-    global.buildingGhosts = global.buildingGhosts or {}
+    global.buildingGhosts = global.buildingGhosts or {} ---@class BuildingGhosts_Global
     global.buildingGhosts.enabled = global.buildingGhosts.enabled or false ---@type boolean
 end
 

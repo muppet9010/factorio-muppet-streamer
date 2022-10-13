@@ -46,7 +46,7 @@ local EffectEndStatus = {
 local CommandName = "muppet_streamer_pants_on_fire"
 
 PantsOnFire.CreateGlobals = function()
-    global.PantsOnFire = global.PantsOnFire or {}
+    global.PantsOnFire = global.PantsOnFire or {} ---@class PantsOnFire_Global
     global.PantsOnFire.nextId = global.PantsOnFire.nextId or 0 ---@type uint
     global.PantsOnFire.affectedPlayers = global.PantsOnFire.affectedPlayers or {} ---@type table<uint, PantsOnFire_AffectedPlayerDetails> # Key'd by player_index.
 end

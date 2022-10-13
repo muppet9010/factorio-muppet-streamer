@@ -7,10 +7,6 @@ BUGS:
 
 
 DO NEAR FUTURE:
-    - Call for Help - add option for if target player is in a vehicle try to put any helping players (who are on foot) in the vehicle with them first. If the target player is in a train try and put the players in other carriages in the train first.
-
-    - Player Inventory Shuffle - see if any UPS savings on current code. If we can avoid mass creations of tables via table re-use this also helps with Lua garbage collection. Do a performance check with and without lines to see if this distorts the overall results.
-
     - A remote interface that can be used to call a function (as text) at a delayed time. For use in calling custom code snippets with a delay. Will have some of the same considerations as the "effect callback feature" listed as a larger piece of work, but should be much simpler.
 
 
@@ -29,7 +25,7 @@ BUGS THAT CAN'T BE REPRODUCED:
 
 
 
-Future Confirmed (bigger things):
+Future Confirmed:
     - A way for Lua code utilising Remote Interface calls to manipulate the created entities post effect. Means you can chain them together in a Lua script. This must handle the fact that the execution of each effect is always delayed, and possibly by a lot, must also be Save/Load safe to avoid MP desyncs. This should just need the odd entry in a features "notes" and an entry in the generic Remote Interface section to check each command. For affected players it should return the players who were/are affected, i.e. if a player isn't affected by aggressive driver then nil is return, rather than the LuaPlayer object. Potential methods:
 		- 1: WONT WORK - Return the created/affected things. This can never handle a delay and so isn't a valid universal solution.
 		- 2: Command accepts a callback function. To make this Save/Load safe if will need to be able to put this in to global. This requires the function to be turned to a string and stored until needed to handle the delay. It also requires any passed in data object to be stored in global between the command being called and the function being run. At function run time it would be changed from a string back in to a function, have the passed in data object passed in to the function as well as the effect data object (entities/players affected by the effect). See the SimHelper mod as that does something similar apparently.
