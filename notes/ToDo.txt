@@ -1,5 +1,5 @@
 DOING NOW:
-    - A remote interface that can be used to call a function (as text) at a delayed time. For use in calling custom code snippets with a delay. Will have some of the same considerations as the "effect callback feature" listed as a larger piece of work, but should be much simpler.
+    - Add get and set data remotes.
     - A remote interface - add code to A Robot Friend utils files.
 
 
@@ -66,5 +66,5 @@ Future Possible Concepts:
     - Player Drop Inventory - There's no hard edge limit with the item drop spread, so it always softens out gradually. Maybe try to collect the items on the very edge and bring them back in a bit?
     - Player Drop Inventory - You can't do an even spread with current algorithm. Add an algorithm option and have one for even spread that uses an even distribution weighting and a different max radius logic to balance it. Also see if we can have a low to max option, so the outside is high density.
     - Player Drop Inventory - Separate option to include armor equipment in things that can be dropped. Would require a more stateful inspection of items in inventory to see if they have grids and then equipment.
-    - Drunk Player - new feature to swap movement keys around randomly. So when a player pressed UP, it may behave like its bind'ed to RIGHT. Will be a timed duration event.
+    - Drunk Player - new feature to swap movement keys around randomly. So when a player pressed UP, it may behave like its bind'ed to RIGHT. Will be a timed duration event. Silent Storm has this on his list. I suspect this will have bad stuttering effects in MP from the players movement anti lag.
     - Spawn enemies around player. Allow named (list) or evolution specific. Allow all or named spawner type generated enemies.

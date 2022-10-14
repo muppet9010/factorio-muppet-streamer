@@ -45,7 +45,8 @@ local function OnLoad()
         {
             run_command = Common.CallCommandFromRemote,
             increase_team_member_level = TeamMember.RemoteIncreaseTeamMemberLevel,
-            add_delayed_lua = DelayedLua.AddDelayedLua_Remote
+            add_delayed_lua = DelayedLua.AddDelayedLua_Remote,
+            remove_delayed_lua = DelayedLua.RemoveDelayedLua_Remote
         }
     )
 

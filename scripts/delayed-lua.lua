@@ -4,13 +4,6 @@ local LoggingUtils = require("utility.helper-utils.logging-utils")
 local Constants = require("constants")
 local MathUtils = require("utility.helper-utils.math-utils")
 
---[[
-/sc
-local testFunction = function(data) game.print(game.tick .. " - " .. data.name) end
-local data = {name = "me"}
-remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(testFunction), data)
-]]
-
 ---@class DelayedLua_ScheduledEvent
 ---@field id uint
 ---@field functionString string
@@ -25,10 +18,11 @@ DelayedLua.OnLoad = function()
     EventScheduler.RegisterScheduledEventType("DelayedLua.ActionDelayedLua", DelayedLua.ActionDelayedLua)
 end
 
---- Called to add a delayed lua event.
+--- Called to add a delayed Lua event.
 ---@param delay number
 ---@param functionString string
 ---@param functionData table|nil
+---@return uint|nil scheduleId
 DelayedLua.AddDelayedLua_Remote = function(delay, functionString, functionData)
     local messagePrefix = Constants.ModFriendlyName .. " - add_delayed_lua - "
     local errorMessagePrefix = messagePrefix .. "Error: "
@@ -37,15 +31,15 @@ DelayedLua.AddDelayedLua_Remote = function(delay, functionString, functionData)
     -- Check the delay provided.
     if delay == nil then
         LoggingUtils.LogPrintError(errorMessagePrefix .. "`delay` argument must be provided.")
-        return
+        return nil
     elseif type(delay) ~= "number" then
         LoggingUtils.LogPrintError(errorMessagePrefix .. "`delay` argument must be a Lua number type, provided: " .. type(delay))
-        return
+        return nil
     end
     delay = math.floor(delay)
     if delay < 0 then
         LoggingUtils.LogPrintError(errorMessagePrefix .. "`delay` argument must be 0 or greater, provided: " .. tostring(delay))
-        return
+        return nil
     end ---@cast delay uint
     local scheduleTick ---@type UtilityScheduledEvent_UintNegative1
     if delay > 0 then
@@ -64,23 +58,23 @@ DelayedLua.AddDelayedLua_Remote = function(delay, functionString, functionData)
     -- Check the function provided.
     if functionString == nil then
         LoggingUtils.LogPrintError(errorMessagePrefix .. "`functionString` argument must be provided.")
-        return
+        return nil
     elseif type(functionString) ~= "string" then
         LoggingUtils.LogPrintError(errorMessagePrefix .. "`functionString` argument must be a Lua string type, provided: " .. type(functionString))
-        return
+        return nil
     end
     -- Make sure the text string provided is actually a function and not something else.
     local func = load(functionString)
     if type(func) ~= "function" then
         LoggingUtils.LogPrintError(errorMessagePrefix .. "`functionString` argument must be a string dumped from a Lua function type, provided was a string dump of type: " .. type(func))
-        return
+        return nil
     end
 
     -- Check the data if provided.
     if functionData ~= nil then
         if type(functionData) ~= "table" then
             LoggingUtils.LogPrintError(errorMessagePrefix .. "`data` argument must be a Lua table type when populated, provided: " .. type(functionData))
-            return
+            return nil
         end
     end
 
@@ -88,6 +82,8 @@ DelayedLua.AddDelayedLua_Remote = function(delay, functionString, functionData)
     ---@type DelayedLua_ScheduledEvent
     local scheduledEvent = { id = global.delayedLua.nextId, functionString = functionString, functionData = functionData }
     EventScheduler.ScheduleEventOnce(scheduleTick, "DelayedLua.ActionDelayedLua", global.delayedLua.nextId, scheduledEvent)
+
+    return global.delayedLua.nextId
 end
 
 --- Called when a scheduled delayed lua event occurs.
@@ -116,6 +112,31 @@ DelayedLua.ActionDelayedLua = function(event)
     end
 end
 
+--- Called to remove a scheduled Lua event. Will just try and remove the event, with silent succeed/fail.
+---@param scheduleId uint
+DelayedLua.RemoveDelayedLua_Remote = function(scheduleId)
+    local messagePrefix = Constants.ModFriendlyName .. " - remove_delayed_lua - "
+    local errorMessagePrefix = messagePrefix .. "Error: "
 
+    -- Check the scheduleId provided.
+    if scheduleId == nil then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be provided.")
+        return nil
+    elseif type(scheduleId) ~= "number" then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be a Lua number type, provided: " .. type(scheduleId))
+        return nil
+    elseif scheduleId ~= math.floor(scheduleId) then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be an integer number, provided: " .. tostring(scheduleId))
+        return nil
+    elseif scheduleId < 0 then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be 0 or greater, provided: " .. tostring(scheduleId))
+        return nil
+    elseif scheduleId >= global.delayedLua.nextId then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must not be greater than the max scheduled lua code Id, provided: " .. tostring(scheduleId))
+        return nil
+    end
+
+    EventScheduler.RemoveScheduledOnceEvents("DelayedLua.ActionDelayedLua", scheduleId)
+end
 
 return DelayedLua
