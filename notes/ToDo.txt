@@ -1,4 +1,6 @@
 DOING NOW:
+    - A remote interface that can be used to call a function (as text) at a delayed time. For use in calling custom code snippets with a delay. Will have some of the same considerations as the "effect callback feature" listed as a larger piece of work, but should be much simpler.
+    - A remote interface - add code to A Robot Friend utils files.
 
 
 
@@ -7,7 +9,6 @@ BUGS:
 
 
 DO NEAR FUTURE:
-    - A remote interface that can be used to call a function (as text) at a delayed time. For use in calling custom code snippets with a delay. Will have some of the same considerations as the "effect callback feature" listed as a larger piece of work, but should be much simpler.
 
 
 

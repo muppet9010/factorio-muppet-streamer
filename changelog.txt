@@ -2,6 +2,7 @@
 Version: 20.1.36
 Date: 2022-10-XXXX
   Features:
+    - Added Delayed Lua helper feature - allows the scheduling of Lua code to be run at a later date. See the wiki for details as its a more involved code helper feature, rather than a copy/paste streamer effect.
   Changes:
   Bugfixes:
   Info:
