@@ -1,6 +1,4 @@
 DOING NOW:
-    - Add get and set data remotes.
-    - A remote interface - add code to A Robot Friend utils files.
 
 
 

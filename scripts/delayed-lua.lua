@@ -116,27 +116,104 @@ end
 ---@param scheduleId uint
 DelayedLua.RemoveDelayedLua_Remote = function(scheduleId)
     local messagePrefix = Constants.ModFriendlyName .. " - remove_delayed_lua - "
-    local errorMessagePrefix = messagePrefix .. "Error: "
+    local errorMessagePrefix, warningMessagePrefix = messagePrefix .. "Error: ", messagePrefix .. "Warning: "
 
     -- Check the scheduleId provided.
-    if scheduleId == nil then
-        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be provided.")
-        return nil
-    elseif type(scheduleId) ~= "number" then
-        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be a Lua number type, provided: " .. type(scheduleId))
-        return nil
-    elseif scheduleId ~= math.floor(scheduleId) then
-        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be an integer number, provided: " .. tostring(scheduleId))
-        return nil
-    elseif scheduleId < 0 then
-        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be 0 or greater, provided: " .. tostring(scheduleId))
-        return nil
-    elseif scheduleId >= global.delayedLua.nextId then
-        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must not be greater than the max scheduled lua code Id, provided: " .. tostring(scheduleId))
+    if not DelayedLua.CheckScheduledId(scheduleId, errorMessagePrefix) then
         return nil
     end
 
-    EventScheduler.RemoveScheduledOnceEvents("DelayedLua.ActionDelayedLua", scheduleId)
+    -- Remove the scheduled Id's event.
+    if EventScheduler.IsEventScheduledOnce("DelayedLua.ActionDelayedLua", scheduleId) then
+        EventScheduler.RemoveScheduledOnceEvents("DelayedLua.ActionDelayedLua", scheduleId)
+    else
+        LoggingUtils.LogPrintWarning(warningMessagePrefix .. "no delayed lua with schedule Id: " .. tostring(scheduleId))
+    end
+end
+
+--- Gets the data for a scheduled delayed Lua instance.
+---@param scheduleId uint
+---@return table|nil data
+DelayedLua.GetDelayedLuaData_Remote = function(scheduleId)
+    local messagePrefix = Constants.ModFriendlyName .. " - get_delayed_lua_data - "
+    local errorMessagePrefix, warningMessagePrefix = messagePrefix .. "Error: ", messagePrefix .. "Warning: "
+
+    -- Check the scheduleId provided.
+    if not DelayedLua.CheckScheduledId(scheduleId, errorMessagePrefix) then
+        return nil
+    end
+
+    -- Get the data for the scheduled Id from it's event.
+    local scheduledLuaEvents = EventScheduler.GetScheduledOnceEvents("DelayedLua.ActionDelayedLua", scheduleId)
+    if scheduledLuaEvents == nil then
+        LoggingUtils.LogPrintWarning(warningMessagePrefix .. "no delayed lua with schedule Id: " .. tostring(scheduleId))
+        return nil
+    elseif #scheduledLuaEvents ~= 1 then
+        LoggingUtils.LogPrintWarning(errorMessagePrefix .. "more than 1 delayed lua with schedule Id - report to mod author as error: " .. tostring(scheduleId))
+        return nil
+    end
+    local scheduledLuaEvent = scheduledLuaEvents[1] -- Only ever 1 result for an Id.
+    local delayedLua = scheduledLuaEvent.eventData ---@type DelayedLua_ScheduledEvent
+    return delayedLua.functionData
+end
+
+--- Sets the data for a scheduled delayed Lua instance.
+---@param scheduleId uint
+---@param functionData table|nil
+DelayedLua.SetDelayedLuaData_Remote = function(scheduleId, functionData)
+    local messagePrefix = Constants.ModFriendlyName .. " - set_delayed_lua_data - "
+    local errorMessagePrefix, warningMessagePrefix = messagePrefix .. "Error: ", messagePrefix .. "Warning: "
+
+    -- Check the scheduleId provided.
+    if not DelayedLua.CheckScheduledId(scheduleId, errorMessagePrefix) then
+        return nil
+    end
+
+    -- Check the data provided.
+    if functionData ~= nil then
+        if type(functionData) ~= "table" then
+            LoggingUtils.LogPrintError(errorMessagePrefix .. "`data` argument must be a Lua table type when populated, provided: " .. type(functionData))
+            return nil
+        end
+    end
+
+    -- Set the data for the scheduled Id in it's event.
+    local scheduledLuaEvents = EventScheduler.GetScheduledOnceEvents("DelayedLua.ActionDelayedLua", scheduleId)
+    if scheduledLuaEvents == nil then
+        LoggingUtils.LogPrintWarning(warningMessagePrefix .. "no delayed lua with schedule Id: " .. tostring(scheduleId))
+        return nil
+    elseif #scheduledLuaEvents ~= 1 then
+        LoggingUtils.LogPrintWarning(errorMessagePrefix .. "more than 1 delayed lua with schedule Id - report to mod author as error: " .. tostring(scheduleId))
+        return nil
+    end
+    local scheduledLuaEvent = scheduledLuaEvents[1] -- Only ever 1 result for an Id.
+    local delayedLua = scheduledLuaEvent.eventData ---@type DelayedLua_ScheduledEvent
+    delayedLua.functionData = functionData
+end
+
+--- Check the Schedule Id is a generally suitable parameter value.
+---@param scheduleId uint
+---@param errorMessagePrefix string
+---@return boolean valid
+DelayedLua.CheckScheduledId = function(scheduleId, errorMessagePrefix)
+    if scheduleId == nil then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be provided.")
+        return false
+    elseif type(scheduleId) ~= "number" then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be a Lua number type, provided: " .. type(scheduleId))
+        return false
+    elseif scheduleId ~= math.floor(scheduleId) then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be an integer number, provided: " .. tostring(scheduleId))
+        return false
+    elseif scheduleId < 0 then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must be 0 or greater, provided: " .. tostring(scheduleId))
+        return false
+    elseif scheduleId > global.delayedLua.nextId then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`scheduleId` argument must not be greater than the max scheduled Lua code Id, provided: " .. tostring(scheduleId))
+        return false
+    end
+
+    return true
 end
 
 return DelayedLua

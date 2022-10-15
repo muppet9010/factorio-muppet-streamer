@@ -116,7 +116,7 @@ end
 
 --- Runs the function in a wrapper that will log detailed information should an error occur. Will be slower than straight code running, so should be used with consideration and not just to avoid testing code.
 --- Doesn't support returning values to caller as can't do this for unknown argument count.
--- Only produces correct stack traces in regular Factorio, not in debugger as this adds extra lines to the stacktrace.
+--- Only produces correct stack traces in regular Factorio, not in debugger as this adds extra lines to the stacktrace.
 ---@param functionRef function,
 ---@param ... any
 ---@return string|nil errorMessage # An error message string if an error occurred.

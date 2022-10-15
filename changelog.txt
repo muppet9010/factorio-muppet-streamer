@@ -2,7 +2,7 @@
 Version: 20.1.36
 Date: 2022-10-XXXX
   Features:
-    - Added Delayed Lua helper functions - allows the scheduling of Lua code to be run at a later date. See the wiki for details as its a more involved code helper feature, rather than a copy/paste streamer effect. Also includes an option to cancel a scheduled lua code instance.
+    - Added Delayed Lua helper functions - allows the scheduling of Lua code to be run at a later date. Also includes an option to cancel a scheduled lua code instance and get/set its scheduled persisted data. See the wiki for details as its a technical code helper function: https://github.com/muppet9010/factorio-muppet-streamer/wiki/Delayed-Lua
   Changes:
   Bugfixes:
   Info:
