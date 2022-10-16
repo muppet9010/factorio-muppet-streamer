@@ -7,4 +7,6 @@ Created by Muppet9010: https://github.com/muppet9010/Factorio-Utils
 HOT FIXES
 =========
 
+logging-utils.lua > LoggingUtils.RunFunctionAndCatchErrors --- updated to make function generically useful. Added to Utility 20.12.45.
+commands-utils.lua > CommandsUtils.CheckTableArgument() --- removed requirement that keys in the table are strings, as there's no reason for this blind requirement. Added to Utility 20.12.45.
 vehicle-utils.lua > VehicleUtils.GetVehicleCurrentFuelPrototype() --- already obtained LuaBurner passed in as `vehicle_burner` function parameter. Added to Utility 20.12.45.

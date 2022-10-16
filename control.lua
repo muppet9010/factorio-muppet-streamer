@@ -13,6 +13,7 @@ local PlayerDropInventory = require("scripts.player-drop-inventory")
 local PlayerInventoryShuffle = require("scripts.player-inventory-shuffle")
 local BuildingGhosts = require("scripts.building-ghosts")
 local Common = require("scripts.common")
+local DelayedLua = require("scripts.delayed-lua")
 
 local function CreateGlobals()
     global.originalPlayersPermissionGroup = global.originalPlayersPermissionGroup or {} ---@type table<uint, LuaPermissionGroup> # Used to track the last non-modded permission group across all the features. So we restore back to it after jumping between modded permission groups. Reset upon the last feature expiring.
@@ -33,6 +34,7 @@ local function CreateGlobals()
     PlayerDropInventory.CreateGlobals()
     PlayerInventoryShuffle.CreateGlobals()
     PlayerInventoryShuffle.CreateGlobals()
+    DelayedLua.CreateGlobals()
 end
 
 local function OnLoad()
@@ -42,7 +44,11 @@ local function OnLoad()
         "muppet_streamer",
         {
             run_command = Common.CallCommandFromRemote,
-            increase_team_member_level = TeamMember.RemoteIncreaseTeamMemberLevel
+            increase_team_member_level = TeamMember.RemoteIncreaseTeamMemberLevel,
+            add_delayed_lua = DelayedLua.AddDelayedLua_Remote,
+            remove_delayed_lua = DelayedLua.RemoveDelayedLua_Remote,
+            get_delayed_lua_data = DelayedLua.GetDelayedLuaData_Remote,
+            set_delayed_lua_data = DelayedLua.SetDelayedLuaData_Remote
         }
     )
 
@@ -58,6 +64,7 @@ local function OnLoad()
     PantsOnFire.OnLoad()
     PlayerDropInventory.OnLoad()
     PlayerInventoryShuffle.OnLoad()
+    DelayedLua.OnLoad()
 end
 
 ---@param event on_runtime_mod_setting_changed

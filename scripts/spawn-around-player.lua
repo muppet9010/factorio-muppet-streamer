@@ -14,6 +14,8 @@ local ExistingEntitiesTypes = {
 
 ---@class SpawnAroundPlayer_ScheduledDetails
 ---@field target string
+---@field targetPosition MapPosition|nil
+---@field targetOffset MapPosition|nil
 ---@field entityTypeName SpawnAroundPlayer_EntityTypeNames
 ---@field customEntityName? string
 ---@field customSecondaryDetail? string
@@ -93,7 +95,7 @@ end
 ---@param command CustomCommandData
 SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
 
-    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "target", "force", "entityName", "customEntityName", "customSecondaryDetail", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer", "removalTimeMin", "removalTimeMax" })
+    local commandData = CommandsUtils.GetSettingsTableFromCommandParameterString(command.parameter, true, CommandName, { "delay", "target", "targetPosition", "targetOffset", "force", "entityName", "customEntityName", "customSecondaryDetail", "radiusMax", "radiusMin", "existingEntities", "quantity", "density", "ammoCount", "followPlayer", "removalTimeMin", "removalTimeMax" })
     if commandData == nil then
         return
     end
@@ -109,6 +111,30 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     if not Common.CheckPlayerNameSettingValue(target, CommandName, "target", command.parameter) then
         return
     end ---@cast target string
+
+    local targetPosition = commandData.targetPosition
+    if not CommandsUtils.CheckTableArgument(targetPosition, false, CommandName, "targetPosition", PositionUtils.MapPositionConvertibleTableValidKeysList, command.parameter) then
+        return
+    end ---@cast targetPosition MapPosition|nil
+    if targetPosition ~= nil then
+        targetPosition = PositionUtils.TableToProperPosition(targetPosition)
+        if targetPosition == nil then
+            CommandsUtils.LogPrintError(CommandName, "targetPosition", "must be a valid position table string", command.parameter)
+            return
+        end
+    end
+
+    local targetOffset = commandData.targetOffset ---@type MapPosition|nil
+    if not CommandsUtils.CheckTableArgument(targetOffset, false, CommandName, "targetOffset", PositionUtils.MapPositionConvertibleTableValidKeysList, command.parameter) then
+        return
+    end ---@cast targetOffset MapPosition|nil
+    if targetOffset ~= nil then
+        targetOffset = PositionUtils.TableToProperPosition(targetOffset)
+        if targetOffset == nil then
+            CommandsUtils.LogPrintError(CommandName, "targetOffset", "must be a valid position table string", command.parameter)
+            return
+        end
+    end
 
     local forceString = commandData.force
     if not CommandsUtils.CheckStringArgument(forceString, false, CommandName, "force", nil, command.parameter) then
@@ -283,7 +309,24 @@ SpawnAroundPlayer.SpawnAroundPlayerCommand = function(command)
     global.spawnAroundPlayer.nextId = global.spawnAroundPlayer.nextId + 1
     -- Can't transfer the Type object with the generated functions as it goes in to `global` for when there is a delay. So we just pass the name and then re-generate it at run time.
     ---@type SpawnAroundPlayer_ScheduledDetails
-    local scheduledDetails = { target = target, entityTypeName = entityTypeName, customEntityName = customEntityName, customSecondaryDetail = customSecondaryDetail, radiusMax = radiusMax, radiusMin = radiusMin, existingEntities = existingEntities, quantity = quantity, density = density, ammoCount = ammoCount, followPlayer = followPlayer, forceString = forceString, removalTimeMinScheduleTick = removalTimeMin_scheduleTick, removalTimeMaxScheduleTick = removalTimeMax_scheduleTick }
+    local scheduledDetails = {
+        target = target,
+        targetPosition = targetPosition,
+        targetOffset = targetOffset,
+        entityTypeName = entityTypeName,
+        customEntityName = customEntityName,
+        customSecondaryDetail = customSecondaryDetail,
+        radiusMax = radiusMax,
+        radiusMin = radiusMin,
+        existingEntities = existingEntities,
+        quantity = quantity,
+        density = density,
+        ammoCount = ammoCount,
+        followPlayer = followPlayer,
+        forceString = forceString,
+        removalTimeMinScheduleTick = removalTimeMin_scheduleTick,
+        removalTimeMaxScheduleTick = removalTimeMax_scheduleTick
+    }
     EventScheduler.ScheduleEventOnce(scheduleTick, "SpawnAroundPlayer.SpawnAroundPlayerScheduled", global.spawnAroundPlayer.nextId, scheduledDetails)
 end
 
@@ -296,7 +339,13 @@ SpawnAroundPlayer.SpawnAroundPlayerScheduled = function(eventData)
         CommandsUtils.LogPrintWarning(CommandName, nil, "Target player has been deleted since the command was run.", nil)
         return
     end
-    local targetPos, surface, followsLeft = targetPlayer.position, targetPlayer.surface, 0
+    local surface, followsLeft = targetPlayer.surface, 0
+    -- Calculate the target position.
+    local targetPos = data.targetPosition or targetPlayer.position
+    if data.targetOffset ~= nil then
+        targetPos.x = targetPos.x + data.targetOffset.x
+        targetPos.y = targetPos.y + data.targetOffset.y
+    end
 
     -- Check and generate the creation function object. Can't be transferred from before as it may sit in `global`.
     local entityTypeDetails

@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.36
+Date: 2022-10-16
+  Features:
+    - Delayed Lua helper function - added functions to schedule Lua code to be run at a later date. Also includes functions to cancel a scheduled lua code and to get & set its scheduled persisted data. See the wiki for details as its a technical code helper function: https://github.com/muppet9010/factorio-muppet-streamer/wiki/Delayed-Lua
+    - Spawn Around Player - added `targetPosition` and `targetOffset` options.
+  Changes:
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.1.35
 Date: 2022-10-13
   Features:

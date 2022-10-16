@@ -22,7 +22,7 @@ Details on the options syntax is available on the [Streamer Effect Options Synta
 
 
 
-# Calling Effect And Code Examples
+# Syntax and Usage Examples
 
 Note: all examples target the player named `muppet9010`, you will need to replace this with your own player's name.
 

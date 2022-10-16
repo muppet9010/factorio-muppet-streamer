@@ -114,35 +114,22 @@ LoggingUtils._RecordToModsLog = function(text)
     game.write_file(Constants.LogFileName, tostring(text) .. "\r\n", true)
 end
 
--- Runs the function in a wrapper that will log detailed information should an error occur. Is used to provide a debug release of a mod with enhanced error logging. Will slow down real world usage and so shouldn't be used for general releases.
--- CODE NOTE: JustARandomGeek doesn't believe that the ".instrument" check is needed for the control hook and the presence of the __DebugAdapter variable is enough. Check if this function is used ever again.
+--- Runs the function in a wrapper that will log detailed information should an error occur. Will be slower than straight code running, so should be used with consideration and not just to avoid testing code.
+--- Doesn't support returning values to caller as can't do this for unknown argument count.
+--- Only produces correct stack traces in regular Factorio, not in debugger as this adds extra lines to the stacktrace.
 ---@param functionRef function,
 ---@param ... any
+---@return string|nil errorMessage # An error message string if an error occurred.
+---@return string|nil fullErrorDetails # The full error, stacktrace and arguments as a text string for writing to a file. Only populated if an error occurred.
 LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
-    -- Doesn't support returning values to caller as can't do this for unknown argument count.
-    -- Uses a random number in file name to try and avoid overlapping errors in real game. If save is reloaded and nothing different done by player will be the same result however.
-
-    -- If the debug adapter with instrument mode (control hook) is active just run the function and end as no need to log to file anything. As the logging write out is slow in debugger. Just runs the function normally and return any results.
-    if __DebugAdapter ~= nil and __DebugAdapter.instrument then
-        functionRef(...)
-        return
-    end
-
     local args = { ... } ---@type any[]
 
-    -- Is in debug mode so catch any errors and log state data.
-    -- Only produces correct stack traces in regular Factorio, not in debugger as this adds extra lines to the stacktrace.
     ---@type boolean, UtilityLogging_RunFunctionAndCatchErrors_ErrorObject
     local success, errorObject = xpcall(functionRef, LoggingUtils._RunFunctionAndCatchErrors_ErrorHandlerFunction, ...)
     if success then
         return
     else
-        local logFileName = Constants.ModName .. " - error details - " .. tostring(math.random() .. ".log")
-        local contents = ""
-        local AddLineToContents = function(text)
-            contents = contents .. text .. "\r\n"
-        end
-        AddLineToContents("Error: " .. errorObject.message)
+        local fullErrorDetails = "Error: " .. errorObject.message
 
         -- Tidy the stacktrace up by removing the indented (\9) lines that relate to this xpcall function. Makes the stack trace read more naturally ignoring this function.
         local newStackTrace, lineCount = "stacktrace:\n", 1
@@ -164,16 +151,20 @@ LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
             end
             lineCount = lineCount + 1
         end
-        AddLineToContents(newStackTrace)
+        fullErrorDetails = fullErrorDetails .. newStackTrace .. "\r\n"
 
-        AddLineToContents("")
-        AddLineToContents("Function call arguments:")
-        for index, arg in pairs(args) do
-            AddLineToContents(TableUtils.TableContentsToJSON(LoggingUtils.PrintThingsDetails(arg), "argument number: " .. tostring(index)))
+        fullErrorDetails = fullErrorDetails .. "\r\n"
+
+        fullErrorDetails = fullErrorDetails .. "Function call arguments:" .. "\r\n"
+        if #args > 0 then
+            for index, arg in pairs(args) do
+                fullErrorDetails = fullErrorDetails .. TableUtils.TableContentsToJSON(LoggingUtils.PrintThingsDetails(arg), "argument number: " .. tostring(index)) .. "\r\n"
+            end
+        else
+            fullErrorDetails = fullErrorDetails .. "no arguments provided to function" .. "\r\n"
         end
 
-        game.write_file(logFileName, contents, false) -- Wipe file if it exists from before.
-        error('Debug release: see log file in Factorio Data\'s "script-output" folder.\n' .. errorObject.message .. "\n" .. newStackTrace, 0)
+        return errorObject.message, fullErrorDetails
     end
 end
 

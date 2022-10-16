@@ -7,7 +7,6 @@ BUGS:
 
 
 DO NEAR FUTURE:
-    - A remote interface that can be used to call a function (as text) at a delayed time. For use in calling custom code snippets with a delay. Will have some of the same considerations as the "effect callback feature" listed as a larger piece of work, but should be much simpler.
 
 
 
@@ -29,8 +28,6 @@ Future Confirmed:
     - A way for Lua code utilising Remote Interface calls to manipulate the created entities post effect. Means you can chain them together in a Lua script. This must handle the fact that the execution of each effect is always delayed, and possibly by a lot, must also be Save/Load safe to avoid MP desyncs. This should just need the odd entry in a features "notes" and an entry in the generic Remote Interface section to check each command. For affected players it should return the players who were/are affected, i.e. if a player isn't affected by aggressive driver then nil is return, rather than the LuaPlayer object. Potential methods:
 		- 1: WONT WORK - Return the created/affected things. This can never handle a delay and so isn't a valid universal solution.
 		- 2: Command accepts a callback function. To make this Save/Load safe if will need to be able to put this in to global. This requires the function to be turned to a string and stored until needed to handle the delay. It also requires any passed in data object to be stored in global between the command being called and the function being run. At function run time it would be changed from a string back in to a function, have the passed in data object passed in to the function as well as the effect data object (entities/players affected by the effect). See the SimHelper mod as that does something similar apparently.
-
-    - Add `targetPosition` and `targetOffset` to `Spawn Around Player` like they are in `Explosive Delivery`.
 
     - Time duration events should add to existing ones if active.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room. Should never be "lost".
@@ -65,5 +62,5 @@ Future Possible Concepts:
     - Player Drop Inventory - There's no hard edge limit with the item drop spread, so it always softens out gradually. Maybe try to collect the items on the very edge and bring them back in a bit?
     - Player Drop Inventory - You can't do an even spread with current algorithm. Add an algorithm option and have one for even spread that uses an even distribution weighting and a different max radius logic to balance it. Also see if we can have a low to max option, so the outside is high density.
     - Player Drop Inventory - Separate option to include armor equipment in things that can be dropped. Would require a more stateful inspection of items in inventory to see if they have grids and then equipment.
-    - Drunk Player - new feature to swap movement keys around randomly. So when a player pressed UP, it may behave like its bind'ed to RIGHT. Will be a timed duration event.
+    - Drunk Player - new feature to swap movement keys around randomly. So when a player pressed UP, it may behave like its bind'ed to RIGHT. Will be a timed duration event. Silent Storm has this on his list. I suspect this will have bad stuttering effects in MP from the players movement anti lag.
     - Spawn enemies around player. Allow named (list) or evolution specific. Allow all or named spawner type generated enemies.

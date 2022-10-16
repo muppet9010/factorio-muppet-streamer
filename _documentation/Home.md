@@ -6,6 +6,10 @@ Github Wiki: https://github.com/muppet9010/factorio-muppet-streamer/wiki/Home
 
 ---------------------
 
+---------------------
+
+---------------------
+
 
 
 Streamer Effects
@@ -121,6 +125,32 @@ Configuration details and examples: [GitHub Wiki](https://github.com/muppet9010/
 
 ---------------------
 
+---------------------
+
+---------------------
+
+
+
+
+Helper Functions
+==============
+
+Functions that streamers can use to build more complicated Lua code features. Blurring the possibilities between a Lua script and a mod.
+
+
+
+#### Delayed Lua
+
+Provides ways to schedule Lua code to be run at a later date and to cancel an instance of scheduled Lua code.
+
+Configuration details and examples: [GitHub Wiki](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Delayed-Lua)
+
+---------------------
+
+---------------------
+
+---------------------
+
 
 
 
@@ -136,6 +166,10 @@ Persistent features that can be controlled via mod settings and commands. All de
 Can add a team member limit GUI & research for use in Multiplayer by streamers.
 
 Configuration details and examples: [GitHub Wiki](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Team-Member-Limit)
+
+---------------------
+
+---------------------
 
 ---------------------
 
@@ -158,6 +192,10 @@ This is the same as if the force had researched the vanilla Factorio constructio
 
 ---------------------
 
+---------------------
+
+---------------------
+
 
 
 #### Game Starting Settings
@@ -170,6 +208,9 @@ Game settings that the mod provides an easy way to manage via mod settings.
 
 ---------------------
 
+---------------------
+
+---------------------
 
 
 
@@ -179,6 +220,12 @@ General Usage Notes
 - Streamer Effect options syntax: [GitHub Wiki](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax)
 - Time Duration Effect explanation: [GitHub Wiki](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Time-Duration-Effects)
 - Remote Interface Usage and Examples: [GitHub Wiki](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Remote-Interface)
+
+---------------------
+
+---------------------
+
+---------------------
 
 
 
