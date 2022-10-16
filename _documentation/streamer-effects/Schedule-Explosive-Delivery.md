@@ -17,7 +17,7 @@ Details on the options syntax is available on the [Streamer Effect Options Synta
 | customExplosiveSpeed | DECIMAL | Mandatory Special | Only required/supported if `explosiveType` is set to `custom`. Sets the speed of the custom explosive type in the air. Only applies to `projectile` and `artillery-projectile` entity types. Default is `0.3` if not specified. See effect Notes for the values of built-in options. |
 | target | STRING | Mandatory | A player name to target the position and surface of (case sensitive). |
 | targetPosition | POSITION | Optional | A specific position to target on the target player's surface, rather than the player's current position. See Argument Data Types for syntax examples of a POSITION. |
-| targetOffset | POSITION | Optional | An offset position that's applied to the `target`/`targetPosition` value. This allows for explosives to be targeted at a static offset from the target player's current position for example. By default there is no offset set. See Argument Data Types for syntax examples of a POSITION. As this is an offset, a value of `0` for "x" and/or "y" is valid as specifying no offset on that axis. |
+| targetOffset | POSITION | Optional | An offset position that's applied to the `target`/`targetPosition` value. By default there is no offset set. See Argument Data Types for syntax examples of a POSITION. |
 | accuracyRadiusMin | DECIMAL | Optional | The minimum distance from the target that each explosive can be randomly targeted within. If not specified defaults to `0`. |
 | accuracyRadiusMax | DECIMAL | Optional | The maximum distance from the target that each explosive can be randomly targeted within. If not specified defaults to `0`. |
 | salvoSize | INTEGER | Optional | Breaks the incoming `explosiveCount` into salvos of this size. Useful if you are using very large numbers of nukes to prevent UPS issues. Defaults to all explosives being in a single salvo. |
@@ -26,7 +26,7 @@ Details on the options syntax is available on the [Streamer Effect Options Synta
 
 
 
-# Calling Effect And Code Examples
+# Syntax and Usage Examples
 
 Note: all examples target the player named `muppet9010`, you will need to replace this with your own player's name.
 

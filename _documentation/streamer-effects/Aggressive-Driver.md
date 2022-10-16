@@ -25,7 +25,7 @@ Details on the options syntax is available on the [Streamer Effect Options Synta
 
 
 
-# Calling Effect And Code Examples
+# Syntax and Usage Examples
 
 Note: all examples target the player named `muppet9010`, you will need to replace this with your own player's name.
 
@@ -90,6 +90,7 @@ Examples:
 - Trains are a special case in Factorio as every player in the train can have input to drive it. The mod will control the target players inputs and generally these seem to supersede any other train riding player's inputs, however, this isn't guaranteed.
 - The player isn't prevented from removing the fuel from their vehicle as this isn't simple to prevent. However, this is such an active countering of the mod's behavior that if the streamer wishes to do this then that's their choice.
 - If the vehicle runs out of fuel during the effect it will continue, but just have no impact other than locking the player in the vehicle. This is a very unlikely edge case and the player can obviously add fuel to the vehicle if they have any.
+- In an MP server there can be some visual oddities in player character movement if the player tries to move via their input keys. This is due to how Factorio anti-lag works and shows the player's character walking in their input direction before the server/mod over rules the movement direction. In a single player game or when no player input is used everything is perfectly smooth.
 
 
 
