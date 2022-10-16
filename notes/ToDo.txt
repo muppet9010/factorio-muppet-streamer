@@ -29,8 +29,6 @@ Future Confirmed:
 		- 1: WONT WORK - Return the created/affected things. This can never handle a delay and so isn't a valid universal solution.
 		- 2: Command accepts a callback function. To make this Save/Load safe if will need to be able to put this in to global. This requires the function to be turned to a string and stored until needed to handle the delay. It also requires any passed in data object to be stored in global between the command being called and the function being run. At function run time it would be changed from a string back in to a function, have the passed in data object passed in to the function as well as the effect data object (entities/players affected by the effect). See the SimHelper mod as that does something similar apparently.
 
-    - Add `targetPosition` and `targetOffset` to `Spawn Around Player` like they are in `Explosive Delivery`.
-
     - Time duration events should add to existing ones if active.
 	- Giving stuff to a dead player should go in to their corpse inventory or on the ground if no room. Should never be "lost".
 	- Change all effect notification game.print's to just print to all connected players on the target's team. Help make the commands more multi team friendly.
