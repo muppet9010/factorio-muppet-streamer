@@ -215,7 +215,13 @@ AggressiveDriver.AggressiveDriverCommand = function(command)
     global.aggressiveDriver.nextId = global.aggressiveDriver.nextId + 1
     ---@type AggressiveDriver_DelayedCommandDetails
     local delayedCommandDetails = { target = target, duration = duration, control = control, aggressiveWalkingNoStartingVehicle = aggressiveWalkingNoStartingVehicle, aggressiveWalkingOnVehicleDeath = aggressiveWalkingOnVehicleDeath, commandeerVehicle = commandeerVehicle, teleportDistance = teleportDistance, teleportWhitelistTypes = teleportWhitelistTypes, teleportWhitelistNames = teleportWhitelistNames, suppressMessages = suppressMessages }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, delayedCommandDetails)
+    if scheduleTick ~= -1 then
+        EventScheduler.ScheduleEventOnce(scheduleTick, "AggressiveDriver.ApplyToPlayer", global.aggressiveDriver.nextId, delayedCommandDetails)
+    else
+        ---@type UtilityScheduledEvent_CallbackObject
+        local eventData = { tick = command.tick, name = "AggressiveDriver.ApplyToPlayer", instanceId = global.aggressiveDriver.nextId, data = delayedCommandDetails }
+        AggressiveDriver.ApplyToPlayer(eventData)
+    end
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject

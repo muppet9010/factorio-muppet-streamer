@@ -84,7 +84,13 @@ GiveItems.GivePlayerWeaponAmmoCommand = function(command)
     global.giveItems.nextId = global.giveItems.nextId + 1
     ---@type GiveItems_GiveWeaponAmmoScheduled
     local giveWeaponAmmoScheduled = { target = target, ammoPrototype = ammoPrototype, ammoCount = ammoCount, weaponPrototype = weaponPrototype, forceWeaponToSlot = forceWeaponToSlot, selectWeapon = selectWeapon, suppressMessages = suppressMessages }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "GiveItems.GiveWeaponAmmoScheduled", global.giveItems.nextId, giveWeaponAmmoScheduled)
+    if scheduleTick ~= -1 then
+        EventScheduler.ScheduleEventOnce(scheduleTick, "GiveItems.GiveWeaponAmmoScheduled", global.giveItems.nextId, giveWeaponAmmoScheduled)
+    else
+        ---@type UtilityScheduledEvent_CallbackObject
+        local eventData = { tick = command.tick, name = "GiveItems.GiveWeaponAmmoScheduled", instanceId = global.giveItems.nextId, data = giveWeaponAmmoScheduled }
+        GiveItems.GiveWeaponAmmoScheduled(eventData)
+    end
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject

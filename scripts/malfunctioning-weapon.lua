@@ -146,7 +146,13 @@ MalfunctioningWeapon.MalfunctioningWeaponCommand = function(command)
     global.malfunctioningWeapon.nextId = global.malfunctioningWeapon.nextId + 1 ---@type uint # Needed for weird bug reason, maybe in Sumneko or maybe the plugin with its fake global.
     ---@type MalfunctioningWeapon_ScheduledEventDetails
     local scheduledEventDetails = { target = target, ammoCount = ammoCount, reloadTicks = reloadTicks, weaponPrototype = weaponPrototype, ammoPrototype = ammoPrototype, suppressMessages = suppressMessages }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "MalfunctioningWeapon.ApplyToPlayer", global.malfunctioningWeapon.nextId, scheduledEventDetails)
+    if scheduleTick ~= -1 then
+        EventScheduler.ScheduleEventOnce(scheduleTick, "MalfunctioningWeapon.ApplyToPlayer", global.malfunctioningWeapon.nextId, scheduledEventDetails)
+    else
+        ---@type UtilityScheduledEvent_CallbackObject
+        local eventData = { tick = command.tick, name = "MalfunctioningWeapon.ApplyToPlayer", instanceId = global.malfunctioningWeapon.nextId, data = scheduledEventDetails }
+        MalfunctioningWeapon.ApplyToPlayer(eventData)
+    end
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject

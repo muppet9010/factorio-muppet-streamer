@@ -81,7 +81,13 @@ DelayedLua.AddDelayedLua_Remote = function(delay, functionString, functionData)
     global.delayedLua.nextId = global.delayedLua.nextId + 1
     ---@type DelayedLua_ScheduledEvent
     local scheduledEvent = { id = global.delayedLua.nextId, functionString = functionString, functionData = functionData }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "DelayedLua.ActionDelayedLua", global.delayedLua.nextId, scheduledEvent)
+    if scheduleTick ~= -1 then
+        EventScheduler.ScheduleEventOnce(scheduleTick, "DelayedLua.ActionDelayedLua", global.delayedLua.nextId, scheduledEvent)
+    else
+        ---@type UtilityScheduledEvent_CallbackObject
+        local eventData = { tick = currentTick, name = "DelayedLua.ActionDelayedLua", instanceId = global.delayedLua.nextId, data = scheduledEvent }
+        DelayedLua.ActionDelayedLua(eventData)
+    end
 
     return global.delayedLua.nextId
 end

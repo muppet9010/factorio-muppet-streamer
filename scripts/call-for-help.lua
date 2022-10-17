@@ -188,7 +188,13 @@ CallForHelp.CallForHelpCommand = function(command)
     global.callForHelp.nextId = global.callForHelp.nextId + 1
     ---@type CallForHelp_DelayedCommandDetails
     local delayedCommandDetails = { callForHelpId = global.callForHelp.nextId, target = target, arrivalRadius = arrivalRadius, callRadius = callRadius, sameTeamOnly = sameTeamOnly, sameSurfaceOnly = sameSurfaceOnly, blacklistedPlayerNames = blacklistedPlayerNames, whitelistedPlayerNames = whitelistedPlayerNames, callSelection = callSelection, number = number, activePercentage = activePercentage, suppressMessages = suppressMessages }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "CallForHelp.CallForHelp", global.callForHelp.nextId, delayedCommandDetails)
+    if scheduleTick ~= -1 then
+        EventScheduler.ScheduleEventOnce(scheduleTick, "CallForHelp.CallForHelp", global.callForHelp.nextId, delayedCommandDetails)
+    else
+        ---@type UtilityScheduledEvent_CallbackObject
+        local eventData = { tick = command.tick, name = "CallForHelp.CallForHelp", instanceId = global.callForHelp.nextId, data = delayedCommandDetails }
+        CallForHelp.CallForHelp(eventData)
+    end
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject

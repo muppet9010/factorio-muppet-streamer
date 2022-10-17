@@ -24,7 +24,9 @@ Details on the options syntax is available on the [Streamer Effect Options Synta
 
 Note: all examples target the player named `muppet9010`, you will need to replace this with your own player's name.
 
-<details><summary>Remote Interface</summary>
+#### Remote Interface
+
+<details><summary>show details</summary>
 <p>
 
 Remote Interface Syntax: `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_give_player_weapon_ammo', [OPTIONS TABLE])`
@@ -45,7 +47,9 @@ Further details and more advanced usage of using Remote Interfaces can be found 
 
 
 
-<details><summary>Factorio Command</summary>
+#### Factorio Command
+
+<details><summary>show details</summary>
 <p>
 
 Command Syntax: `/muppet_streamer_give_player_weapon_ammo [OPTIONS TABLE AS JSON STRING]`

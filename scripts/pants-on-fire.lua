@@ -136,7 +136,13 @@ PantsOnFire.PantsOnFireCommand = function(command)
     global.PantsOnFire.nextId = global.PantsOnFire.nextId + 1
     ---@type PantsOnFire_ScheduledEventDetails
     local scheduledEventDetails = { target = target, finishTick = finishTick, fireHeadStart = fireHeadStart, fireGap = fireGap, flameCount = flameCount, firePrototype = firePrototype, suppressMessages = suppressMessages }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, scheduledEventDetails)
+    if scheduleTick ~= -1 then
+        EventScheduler.ScheduleEventOnce(scheduleTick, "PantsOnFire.ApplyToPlayer", global.PantsOnFire.nextId, scheduledEventDetails)
+    else
+        ---@type UtilityScheduledEvent_CallbackObject
+        local eventData = { tick = command.tick, name = "PantsOnFire.ApplyToPlayer", instanceId = global.PantsOnFire.nextId, data = scheduledEventDetails }
+        PantsOnFire.ApplyToPlayer(eventData)
+    end
 end
 
 ---@param eventData UtilityScheduledEvent_CallbackObject

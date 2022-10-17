@@ -80,16 +80,17 @@ Common.CommandNames = {
 --- Allows calling a command via a remote interface.
 ---@param commandName Common_CommandNames # The command to be run.
 ---@param options string|table # The options being passed in.
+---@return ... # The returns if any.
 Common.CallCommandFromRemote = function(commandName, options)
     -- Check the command name is valid.
     if not CommandsUtils.CheckStringArgument(commandName, true, "Remote Interface", "commandName", Common.CommandNames, commandName) then
-        return
+        return nil
     end
 
     -- Check options are populated.
     if options == nil then
         CommandsUtils.LogPrintError("Remote Interface", commandName, "received no option data", nil)
-        return
+        return nil
     end
 
     -- Get the command string equivalent for the remote call.
@@ -102,7 +103,7 @@ Common.CallCommandFromRemote = function(commandName, options)
         commandString = game.table_to_json(options)
     else
         CommandsUtils.LogPrintError("Remote Interface", commandName, "received unexpected option data type: " .. type(options), TableUtils.TableContentsToJSON(options, nil, true))
-        return
+        return nil
     end
 
     -- Make the fake command object to pass in so the feature thinks its a command being called directly.
@@ -116,25 +117,25 @@ Common.CallCommandFromRemote = function(commandName, options)
 
     -- Call the correct features command with the details.
     if commandName == Common.CommandNames.muppet_streamer_aggressive_driver then
-        MOD.Interfaces.Commands.AggressiveDriver(commandData)
+        return MOD.Interfaces.Commands.AggressiveDriver(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_call_for_help then
-        MOD.Interfaces.Commands.CallForHelp(commandData)
+        return MOD.Interfaces.Commands.CallForHelp(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_schedule_explosive_delivery then
-        MOD.Interfaces.Commands.ExplosiveDelivery(commandData)
+        return MOD.Interfaces.Commands.ExplosiveDelivery(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_give_player_weapon_ammo then
-        MOD.Interfaces.Commands.GiveItems(commandData)
+        return MOD.Interfaces.Commands.GiveItems(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_malfunctioning_weapon then
-        MOD.Interfaces.Commands.MalfunctioningWeapon(commandData)
+        return MOD.Interfaces.Commands.MalfunctioningWeapon(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_pants_on_fire then
-        MOD.Interfaces.Commands.PantsOnFire(commandData)
+        return MOD.Interfaces.Commands.PantsOnFire(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_player_drop_inventory then
-        MOD.Interfaces.Commands.PlayerDropInventory(commandData)
+        return MOD.Interfaces.Commands.PlayerDropInventory(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_player_inventory_shuffle then
-        MOD.Interfaces.Commands.PlayerInventoryShuffle(commandData)
+        return MOD.Interfaces.Commands.PlayerInventoryShuffle(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_spawn_around_player then
-        MOD.Interfaces.Commands.SpawnAroundPlayer(commandData)
+        return MOD.Interfaces.Commands.SpawnAroundPlayer(commandData)
     elseif commandName == Common.CommandNames.muppet_streamer_teleport then
-        MOD.Interfaces.Commands.Teleport(commandData)
+        return MOD.Interfaces.Commands.Teleport(commandData)
     end
 end
 

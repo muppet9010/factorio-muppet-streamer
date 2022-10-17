@@ -262,7 +262,13 @@ ExplosiveDelivery.ScheduleExplosiveDeliveryCommand = function(command)
                 batchScheduleTick = scheduleTick + batchSalvoDelay
             end
         end
-        EventScheduler.ScheduleEventOnce(batchScheduleTick, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
+        if scheduleTick ~= -1 then
+            EventScheduler.ScheduleEventOnce(batchScheduleTick, "ExplosiveDelivery.DeliverExplosives", global.explosiveDelivery.nextId, delayedCommandDetails)
+        else
+            ---@type UtilityScheduledEvent_CallbackObject
+            local eventData = { tick = command.tick, name = "ExplosiveDelivery.DeliverExplosives", instanceId = global.explosiveDelivery.nextId, data = delayedCommandDetails }
+            ExplosiveDelivery.DeliverExplosives(eventData)
+        end
     end
 end
 

@@ -192,7 +192,13 @@ PlayerInventoryShuffle.PlayerInventoryShuffleCommand = function(command)
     global.playerInventoryShuffle.nextId = global.playerInventoryShuffle.nextId + 1
     ---@type PlayerInventoryShuffle_RequestData
     local requestData = { includedPlayerNames = includedPlayerNames, includedForces = includedForces, includeAllPlayersOnServer = includeAllPlayersOnServer, includeArmor = includeArmor, extractArmorEquipment = extractArmorEquipment, includeWeapons = includeWeapons, includeHandCrafting = includeHandCrafting, destinationPlayersMinimumVariance = destinationPlayersMinimumVariance, destinationPlayersVarianceFactor = destinationPlayersVarianceFactor, recipientItemMinToMaxRatio = recipientItemMinToMaxRatio, suppressMessages = suppressMessages }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerInventoryShuffle.MixUpPlayerInventories", global.playerInventoryShuffle.nextId, requestData)
+    if scheduleTick ~= -1 then
+        EventScheduler.ScheduleEventOnce(scheduleTick, "PlayerInventoryShuffle.MixUpPlayerInventories", global.playerInventoryShuffle.nextId, requestData)
+    else
+        ---@type UtilityScheduledEvent_CallbackObject
+        local eventData = { tick = command.tick, name = "PlayerInventoryShuffle.MixUpPlayerInventories", instanceId = global.playerInventoryShuffle.nextId, data = requestData }
+        PlayerInventoryShuffle.MixUpPlayerInventories(eventData)
+    end
 end
 
 ---@param event UtilityScheduledEvent_CallbackObject

@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.37
+Date: 2022-10-17
+  Features:
+    - Spawn Around Player - when called via the remote interface and a 0 `delay` it returns an array of the created entities. These can then be used by the calling Lua code. Included example of setting enemy worms health post creation.
+  Changes:
+  Bugfixes:
+  Info:
+    - Effects with a 0 delay run fully when called now (synchronously), whereas before they ran later in the same tick (asynchronously).
+---------------------------------------------------------------------------------------------------
 Version: 20.1.36
 Date: 2022-10-16
   Features:

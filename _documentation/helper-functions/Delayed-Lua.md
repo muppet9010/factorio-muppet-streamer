@@ -8,9 +8,9 @@ local warnPlayerFunction = function(data)
     rendering.draw_text({text="take cover !", surface=data.player.surface, target=data.player.character or data.player.position, scale=2, time_to_live=180, color = {1,1,1}, alignment="center"})
 end
 local player = game.connected_players[1]
-local delay = math.random(6, 10)
-remote.call('muppet_streamer', 'run_command', 'muppet_streamer_schedule_explosive_delivery', {delay=delay, explosiveCount=10, explosiveType="artilleryShell", target=player.name, accuracyRadiusMax=10})
-remote.call("muppet_streamer", "add_delayed_lua", (delay-3)*60, string.dump(warnPlayerFunction), {player=player})
+local delaySeconds = math.random(6, 10)
+remote.call('muppet_streamer', 'run_command', 'muppet_streamer_schedule_explosive_delivery', {delay=delaySeconds, explosiveCount=10, explosiveType="artilleryShell", target=player.name, accuracyRadiusMax=10})
+remote.call("muppet_streamer", "add_delayed_lua", (delaySeconds-3)*60, string.dump(warnPlayerFunction), {player=player})
 ```
 
 -------------------------
@@ -172,8 +172,7 @@ Every second during 30 seconds we check if the player has no character. Assuming
 
 The code is targetting player number 1 in the game. Also this example idea is on the edge of needing a proper mod as really it should react to the players death Factorio event, however, we are instead polling every second to see if they have just died.
 
-# TODO
-In the adding of the 30 delayed functions (1 per second) we add them backwards (latest first) so that we can build up a list of the scheduled function Ids to be run after the currently added delayed function. While we are adding them to the same `data` Lua table in the code during registering the delayed functions, remember that the `data` table is effectively DeepCopied upon receipt and so is in fact unique at each scheduled function's execution time.
+When adding the 30 delayed functions (1 per second) we add them backwards (latest first). This is so that we can build up a list of the scheduled function Ids to be run after the delayed function we are currently adding and pass this list in to each delayed function's `data` object. This way when a given delayed function reacts to the players death it knows about all of the later (still to occur) delayed functions and can remove them. While we are adding them to the same `data` Lua table in the code during registering the delayed functions, remember that the `data` table is effectively DeepCopied upon receipt when adding each delayed function and so at each scheduled function's execution time it has a unique list of just the delayed schedule Ids that will be run after it.
 
 ```
 /sc

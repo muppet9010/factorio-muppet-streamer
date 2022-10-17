@@ -30,11 +30,25 @@ Details on the options syntax is available on the [Streamer Effect Options Synta
 
 
 
+#### Returns
+
+None of the returned values have to be captured in to a variable, unless you actively want to use them.
+
+Values are only returned to Remote Interface calls and not to Factorio Command. Values are only returned if `delay` was set to `0`, otherwise they will be `nil` value. If you want to delay the effect and handle returned values then use the Delayed Lua feature.
+
+| Returned order number | Details |
+| --- | --- |
+| First | A Lua table of the LuaEntities created (`LuaEntity[]`). This will be an empty table if no entities were created. It will be `nil` if the feature errors during execution. |
+
+
+
 # Syntax and Usage Examples
 
 Note: all examples target the player named `muppet9010`, you will need to replace this with your own player's name.
 
-<details><summary>Remote Interface</summary>
+#### Remote Interface
+
+<details><summary>show details</summary>
 <p>
 
 Remote Interface Syntax: `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', [OPTIONS TABLE])`
@@ -50,8 +64,7 @@ Examples:
 | spread out fires | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="fire", ammoCount=100, radiusMax=20, radiusMin=0, existingEntities="overlap", density=0.05})` |
 | combat robots | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="defenderBot", radiusMax=10, radiusMin=10, existingEntities="overlap", quantity=20, followPlayer=true})` |
 | named ammo in a named turret | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="custom", customEntityName="artillery-turret", customSecondaryDetail="artillery-shell", ammoCount=5, radiusMax=7, radiusMin=3, existingEntities="avoid", quantity=1})` |
-| enemy worms that disappear after around 15 seconds | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="custom", customEntityName="big-worm-turret", radiusMax=20, radiusMin=10, existingEntities="avoid", quantity=5, removalTimeMin=12, removalTimeMax=18})` |
-
+| enemy worms that disappear after around 15 seconds | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="custom", customEntityName="big-worm-turret", radiusMax=20, radiusMin=10, existingEntities="avoid", quantity=5, removalTimeMin=12, removalTimeMax=18, force="enemy"})` |
 
 Further details and more advanced usage of using Remote Interfaces can be found here on the [Streamer Effect Options Syntax Wiki page](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Streamer-Effect-Options-Syntax).
 
@@ -60,7 +73,9 @@ Further details and more advanced usage of using Remote Interfaces can be found 
 
 
 
-<details><summary>Factorio Command</summary>
+#### Factorio Command
+
+<details><summary>show details</summary>
 <p>
 
 Command Syntax: `/muppet_streamer_spawn_around_player [OPTIONS TABLE AS JSON STRING]`
@@ -76,7 +91,7 @@ Examples:
 | spread out fires | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"fire", "ammoCount":100, "radiusMax":20, "radiusMin":0, "existingEntities":"overlap", "density":0.05}` |
 | combat robots | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"defenderBot", "radiusMax":10, "radiusMin":10, "existingEntities":"overlap", "quantity":20, "followPlayer":true}` |
 | named ammo in a named turret | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"artillery-turret", "customSecondaryDetail":"artillery-shell", "ammoCount":5, "radiusMax":7, "radiusMin":3, "existingEntities":"avoid", "quantity":1}` |
-| enemy worms that disappear after around 15 seconds | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"big-worm-turret", "radiusMax":20, "radiusMin":10, "existingEntities":"avoid", "quantity":5, "removalTimeMin":12, "removalTimeMax":18}` |
+| enemy worms that disappear after around 15 seconds | `/muppet_streamer_spawn_around_player {"target":"muppet9010", "entityName":"custom", "customEntityName":"big-worm-turret", "radiusMax":20, "radiusMin":10, "existingEntities":"avoid", "quantity":5, "removalTimeMin":12, "removalTimeMax":18, "force":"enemy"}` |
 
 </p>
 </details>
@@ -100,10 +115,12 @@ Examples:
 
 # Complicated usage examples
 
-<details><summary>Build castle around player</summary>
-<p>
+#### Build castle around player
 
 This makes a small castle like thing around the player with walls, turrets and landmines. As it's all random and it will avoid placing these new things over existing things its not guaranteed in busy areas and may be a a bit wonky. But still a fun example of stacking multiple commands together to give a dynamic and flexible outcome.
+
+<details><summary>show details</summary>
+<p>
 
 ![example](https://github.com/muppet9010/factorio-muppet-streamer/wiki/images/spawn_around_player-castle.png)
 
@@ -120,6 +137,28 @@ remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_play
 remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target=targetPlayer.name, entityName="wall", existingEntities="avoid", density=1, targetOffset={x=-8,y=8}, radiusMin=3, radiusMax=4})
 remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target=targetPlayer.name, entityName="wall", existingEntities="avoid", density=1, radiusMin=7, radiusMax=7})
 remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target=targetPlayer.name, entityName="landmine", existingEntities="avoid", density=0.2, radiusMin=18, radiusMax=18})
+```
+
+</p>
+</details>
+
+
+
+#### Create injured enemy worms
+
+This creates some injured enemy worms around the target player with random health.
+
+<details><summary>show details</summary>
+<p>
+
+```
+/sc
+local worms = remote.call('muppet_streamer', 'run_command', 'muppet_streamer_spawn_around_player', {target="muppet9010", entityName="custom", customEntityName="behemoth-worm-turret", radiusMax=15, radiusMin=10, existingEntities="avoid", quantity=5, force="enemy"})
+if worms ~= nil then
+    for _, worm in pairs(worms) do
+        worm.health = math.random(200,600)
+    end
+end
 ```
 
 </p>

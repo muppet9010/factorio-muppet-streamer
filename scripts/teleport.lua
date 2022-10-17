@@ -243,26 +243,18 @@ end
 ---@param commandValues Teleport_CommandDetails
 Teleport.ScheduleTeleportCommand = function(commandValues)
     global.teleport.nextId = global.teleport.nextId + 1
-    local scheduleTick = commandValues.delay > 0 and game.tick + commandValues.delay or (-1) --[[@as UtilityScheduledEvent_UintNegative1]]
+    local currentTick = game.tick
+    local scheduleTick = commandValues.delay > 0 and currentTick + commandValues.delay or (-1) --[[@as UtilityScheduledEvent_UintNegative1]]
     ---@type UtilityScheduledEvent_UintNegative1
     ---@type Teleport_TeleportDetails
-    local teleportDetails = {
-        teleportId = global.teleport.nextId,
-        target = commandValues.target,
-        arrivalRadius = commandValues.arrivalRadius,
-        minDistance = commandValues.minDistance,
-        maxDistance = commandValues.maxDistance,
-        destinationType = commandValues.destinationType,
-        destinationTargetPosition = commandValues.destinationTargetPosition,
-        reachableOnly = commandValues.reachableOnly,
-        targetAttempt = 0,
-        backupTeleportSettings = commandValues.backupTeleportSettings,
-        destinationTypeDescription = commandValues.destinationTypeDescription,
-        thisAttemptPosition = nil,
-        spawnerDistances = {},
-        suppressMessages = commandValues.suppressMessages
-    }
-    EventScheduler.ScheduleEventOnce(scheduleTick, "Teleport.PlanTeleportTarget", global.teleport.nextId, teleportDetails)
+    local teleportDetails = { teleportId = global.teleport.nextId, target = commandValues.target, arrivalRadius = commandValues.arrivalRadius, minDistance = commandValues.minDistance, maxDistance = commandValues.maxDistance, destinationType = commandValues.destinationType, destinationTargetPosition = commandValues.destinationTargetPosition, reachableOnly = commandValues.reachableOnly, targetAttempt = 0, backupTeleportSettings = commandValues.backupTeleportSettings, destinationTypeDescription = commandValues.destinationTypeDescription, thisAttemptPosition = nil, spawnerDistances = {}, suppressMessages = commandValues.suppressMessages }
+    if scheduleTick ~= -1 then
+        EventScheduler.ScheduleEventOnce(scheduleTick, "Teleport.PlanTeleportTarget", global.teleport.nextId, teleportDetails)
+    else
+        ---@type UtilityScheduledEvent_CallbackObject
+        local eventData = { tick = currentTick, name = "Teleport.PlanTeleportTarget", instanceId = global.teleport.nextId, data = teleportDetails }
+        Teleport.PlanTeleportTarget(eventData)
+    end
 end
 
 --- When the actual teleport action needs to be planned and done (post scheduled delay).
