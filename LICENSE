@@ -1,14 +1,17 @@
 Proprietary License
 Muppet9010
 
-Everyone is allowed full use of this software for personal use.
-Usage of this mod for commercial purposes is allowed explicitly in relation to gameplay, review videos and streaming. Using this mod behind a paywall or as a chargeable service is not allowed.
-Embedding and usage of the "Factorio-Utils" and its "Utility" code within other mods is allowed when credit is given.
-No copying or modifications of this software is allowed.
+Everyone is allowed full use of this software for personal use. Full usage is granted for the mod to be used as part creating commercial content, i.e. streaming for financial reward. 
 
-In the event of inactivity by the copyright holder of 1 month or more, this licence shall allow copying, modifications and distribution of this software. This is provided with the intention of allowing others to support and continue mods in the copyright holders long term absence.
+Usage of this mod for commercial purposes is only restricted to prevent charging for access to the mod's files, i.e. a paywalled mod distribution system. Using the mod as part of commercial purposes is allowed, i.e. using the mod in a public Twitch stream in relation to financial support, or using this mod as part of a chargeable/paywalled video/stream.
+
+Derivatives of this software may not be distributed via the Factorio Mod Portal or other organised mod distribution system. Personal use and direct file sharing of derivatives is allowed, i.e. sharing a modified copy of the mod on a discord server for use with a specific Factorio server/game.
+
+Usage of the "Factorio-Utils" project and its "Utility" code within other mods is allowed when credit is given. This includes making derivatives of the "Factorio-Utils" code for inclusion within your own mods. No restrictions are placed upon the wider projects licence when "Factorio-Utils" is included within it (no Copyleft).
+
+In the event of inactivity by the copyright holder of 3 months or more, this licence shall allow distribution of derivatives of this software. This is provided with the intention of allowing others to support and continue mods in the copyright holders long term absence.
 The other usage restrictions must remain as-is under this licence and this licence remain on the software unchanged.
-The definition of inactivity is if you have attempted contact to the copyright holder via all of the follow mediums and not had any response to all after 1 month: the Factorio Mod Portal discussion section for the relevant mod, Github repo of the relevant mod, via discord within the official Wube Factorio discord channel (@muppet9010).
+The definition of inactivity is if you have attempted contact to the copyright holder via all of the following mediums and not had any response to all after 3 month: the Factorio Mod Portal discussion section for the relevant mod, Github repo of the relevant mod, via discord within the official Wube Factorio discord channel (@muppet9010).
 The copyright holder reserves the right to re-establish exclusive control to the mod and for all derived works to be removed from the internet upon the copyright holder's request.
 
 Any questions regarding the implications of this licence should be raised with the copyright holder via one of the following methods: the Factorio Mod Portal discussion section for the relevant mod, Github repo of the relevant mod, via discord within the official Wube Factorio discord channel (@muppet9010).
