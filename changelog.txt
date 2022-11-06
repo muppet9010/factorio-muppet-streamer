@@ -94,7 +94,7 @@ Date: 2022-09-16
     - Pants On Fire - no message locale for when used on a dead person, so it showed the message name.
     - All Features - don't error if a tiny delay is provided that gets rounded to 0 ticks.
     - Aggressive Driver - vehicles that don't require fuel (spidertron) are now valid teleport targets.
-    - Spawn Around Player - if there is an ammo name provided, but no `ammoCount` value is given it won't error any more. It won;t warn about this either, it will just insert 0 ammo for no effect.
+    - Spawn Around Player - if there is an ammo name provided, but no `ammoCount` value is given it won't error any more. It won't warn about this either, it will just insert 0 ammo for no effect.
   Info:
     - Correct some spelling mistakes in locale strings.
     - Player Drop Inventory - More UPS efficient: both Lua code improvements and for larger quantities the distributed item dropping logic is much more efficient than the old way of dropping everything at the players feet. As the game doesn't have to keep on looking for a near by location to place each spilled item from the center heading outwards. The mileage on this UPS saving will vary based on densities being dropped and how crowded the area is (best UPS in open areas).

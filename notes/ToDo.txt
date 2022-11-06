@@ -3,10 +3,12 @@ DOING NOW:
 
 
 BUGS:
+	- Delayed Lua - error log is missing a line break for the stacktrace, so it gives an output of: Error: 'entity': table expected, got nilstacktrace:
 
 
 
 DO NEAR FUTURE:
+	- Add remote call to create a biome approperiate tree near a position. Bsacially just a remote front end to the biome-trees library function.
 
 
 
