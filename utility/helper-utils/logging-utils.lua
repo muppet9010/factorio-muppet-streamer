@@ -132,7 +132,7 @@ LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
         local fullErrorDetails = "Error: " .. errorObject.message
 
         -- Tidy the stacktrace up by removing the indented (\9) lines that relate to this xpcall function. Makes the stack trace read more naturally ignoring this function.
-        local newStackTrace, lineCount = "stacktrace:\n", 1
+        local newStackTrace, lineCount = "\r\nstacktrace:\r\n", 1
         local rawxpcallLine
         for line in string.gmatch(errorObject.stacktrace, "(\9[^\n]+)\n") do
             local skipLine = false
@@ -147,7 +147,7 @@ LoggingUtils.RunFunctionAndCatchErrors = function(functionRef, ...)
                 skipLine = true
             end
             if not skipLine then
-                newStackTrace = newStackTrace .. line .. "\n"
+                newStackTrace = newStackTrace .. line .. "\r\n"
             end
             lineCount = lineCount + 1
         end
