@@ -3,10 +3,26 @@ DOING NOW:
 
 
 BUGS:
+	- explosive_delivery of "acid-stream-worm-behemoth" doesn't have impact sounds, but explosive deliveries do. This looks to be due to how far away the streams starts and that the steams sound is part of that and not an explosion when it lands.
+	- also there's no sound for the biter spit fire effect when used as part of pants on fire. I assume there's noise from the regular fire effect ?
+	- Teleport selection logic (multiple features?) needs to restrict itself within map limits. So on ribbon map all of its attempts may be above/below the maps boundaries.
+	- Teleport selection needs to only choose from generated chunks, as the pathfinder goes weird over non generated chunks I recall. Need to test however.
+	- Check what happens if a non gun and non ammo named item is passed in, I suspect the mod will hard error. Also confirm that an incompatible ammo to gun is used is raised as a nice warning (pretty sure it will).
+	- Look at making the various combat bot sounds have quieter sounds when a bulk of them all die at once. There is notional aggregation limit at present, but not sure if that is per variation or total. But a chunk of them timing out at once. Workaround given to JD that just staggers the bot death times. This is visually nicer and so maybe this should just be a standard feature of the effect instead ?
+	- Seems to output some generic errors to my script-output log file when an invalid command is called (back in summer). But just the lead line of the error, nothing terribly helpful. Better it went in server log verbose tbh.
+	- inventory shuffle and drop on ground features - test when the player has a special action in hand (copy tool). We should ignore these somehow, guessing on the type or the only in hand flag.
+    - "offset artillery" example for explosive_delivery under remote interface is bad as uses [] and not {}. Check no other remote examples in any files have any [] in them.
+    - explosive delivery - can we teleport the target around rather than create one for each incoming? test with homing missiles as they will be most fussy.
 
 
 
 DO NEAR FUTURE:
+	- Add startup setting so that all units can open gates. Needs a prototype change. Mainly so that Biter Pets can go through gates and not get stuck.
+	- Post latest Utility Version:
+		- Create a helper file called: setting-value-inputs.lua
+		- Move the input argument checking functions (i.e. CommandsUtils.CheckNumberArgument() ) out of CommandUtils in to their own library file and make them generic for remote or command usage. Will require passing in prefixes and changes to arguments and error message structure.
+		- Migrate some of the generic scripts\common.lua functions in to the the new Utility helper file. Especially the prototype validation ones. As we do this to a weaker extent in some other mods and would be good to have their robustness available.
+		- Revamp the remote interface calls to be bespoke for each feature and not to make a fake command. Will require the feature input validations to have been updated to accommodate this. But will give more accurate and clearer issue feedback.
 
 
 
