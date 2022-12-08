@@ -3,6 +3,7 @@ Version: 20.1.38
 Date: 2022-11-XXX
   Features:
   Changes:
+    - Explosive Delivery - `smallSpit`, `mediumSpit` and `largeSpit` are now special modified biter spit and ground fire prototypes to ensure the spit hitting the ground sound is played. They are otherwise still copies of `spitter-small`, `worm-medium` and `worm-behemoth` correspondingly. This does not affect the vanilla versions of these prototypes.
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------
