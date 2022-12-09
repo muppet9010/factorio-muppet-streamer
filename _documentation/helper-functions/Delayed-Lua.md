@@ -4,8 +4,8 @@ Provides a way to schedule Lua code to be run at a later date. Includes remote i
 
 ```
 /sc
-local warnPlayerFunction = function(data)
-    rendering.draw_text({text="take cover !", surface=data.player.surface, target=data.player.character or data.player.position, scale=2, time_to_live=180, color = {1,1,1}, alignment="center"})
+local warnPlayerFunction = function(delayedData)
+    rendering.draw_text({text="take cover !", surface=delayedData.player.surface, target=delayedData.player.character or delayedData.player.position, scale=2, time_to_live=180, color = {1,1,1}, alignment="center"})
 end
 local player = game.connected_players[1]
 local delaySeconds = math.random(6, 10)
@@ -45,7 +45,7 @@ remote.call("muppet_streamer", "add_delayed_lua", [DELAY], [FUNCTION_STRING], [D
 | --- | --- | --- |
 | DELAY | Mandatory | How many ticks before the Lua function is run. A `0` tick delay makes it happen instantly. |
 | FUNCTION_STRING | Mandatory | The Lua code you want run after the delay within a Lua function. The function will have the `DATA` argument passed in to it as its single parameter. The function must be converted to a string using `string.dump(FUNCTION)` and this string passed in. Passing in an actual Lua function will be rejected by Factorio. |
-| DATA | Optional | A Lua table that is passed in to the Lua function when it's run. This table is provided at scheduling time and persisted until the functions execution time. It is the only way to pass in data to the function. |
+| DATA | Optional | A Lua table that is passed in to the Lua function when it's run. This table is provided at scheduling time and persisted until the functions execution time. It is the only way to pass in data to the delayed Lua function. |
 
 #### Returns
 
@@ -59,7 +59,7 @@ None of the returned values have to be captured in to a variable, unless you act
 
 - The delayed Lua function is run in an error safe manner where any error is caught, rather than crashing the game. The high level error is printed to screen along with the name of a file created in the Factorio `script-data` folder with the full error details in it. These error detail files are only uniquely named within a single run of a single save game, as they are just the Id of the delayed Lua function and not unique across Factorio saves, etc.
 - If you pass in an actual Lua function, rather than the string version of it you will get an error from Factorio: `Cannot execute command. Error: Can't copy object of type function`.
-- The Lua function will be run in isolation to the Lua state when it was scheduled. This means you can't pass anything in to the function other than via the DATA Lua table. See the bad example below for further details. As the Lua function is stringified its references to any variable declared outside of it are lost before it is run. if you do this then when the delayed function runs you will likely get errors about: `attempt to index upvalue`.
+- The Lua function will be run in isolation to the Lua state when it was scheduled. This means you can't pass anything in to the function other than via the DATA Lua table. See the bad example below for further details. As the Lua function is stringified its references to any variable declared outside of it are lost before it is run. If you do this then when the delayed function runs you will likely get errors about: `attempt to index upvalue`. For this reason its advised to use different variable names outside of the scheduled function to avoid your confusion; You'll see this in the examples, specifically the `data` variable as it exists within the delayed Lua function and outside of the function when it is initially scheduled.
 - The `DATA` passed in to each `add_delayed_lua` remote interface call is effectively deep copied when stored for running later. So a shared function data table passed in to multiple delayed Lua code remote interface calls won't be kept in sync between each delayed function.
 - This feature is save/load safe and is why a lot of the limitations/oddities of usage exist. These are required to avoid the end user having to make a mod to achieve the delay.
 
@@ -69,13 +69,13 @@ A very simple demonstration of using a single delayed Lua function that prints t
 
 ```
 /sc
-local testFunction = function(data)
-    game.print(game.tick .. " - delayed - name: " .. data.name)
+local testFunction = function(delayedData)
+    game.print(game.tick .. " - delayed - name: " .. delayedData.name)
 end
 
-local data = {name = "me"}
+local outerData = {name = "me"}
 
-remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(testFunction), data)
+remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(testFunction), outerData)
 game.print(game.tick .. " - queued time")
 ```
 
@@ -87,19 +87,44 @@ We do this by scheduling many delayed functions to run once every second for the
 
 ```
 /sc
-local damageVehicleFunction = function(data)
-    local vehicle = data.player.vehicle
+local damageVehicleFunction = function(delayedData)
+    local vehicle = delayedData.player.vehicle
     if vehicle ~= nil then
         local maxHealth = vehicle.prototype.max_health
-        vehicle.damage(maxHealth/10, data.player.force, "acid", data.player.character)
+        vehicle.damage(maxHealth/10, delayedData.player.force, "acid", delayedData.player.character)
     end
 end
 
-local data = {player = game.connected_players[1]}
+local outerData = {player = game.connected_players[1]}
 
 for i=0, 30 do
-    remote.call("muppet_streamer", "add_delayed_lua", i*60, string.dump(damageVehicleFunction), data)
+    remote.call("muppet_streamer", "add_delayed_lua", i*60, string.dump(damageVehicleFunction), outerData)
 end
+```
+
+#### Example - Looping Delayed Lua code
+
+Until the player dies remove 50 HP from them every second. No limit on how long this will run for, just until the player doesn't have a character alive any more.
+
+We do this by scheduling one Delayed Lua function that checks if the player is still alive, if they are they suffer 1 damage and the same function text is scheduled again for 1 second later. This utilises the fact that we can safely store the function's text in the `data` and then each time the function is run it can use this initially stored function text to schedule the next Delayed Lua function. Each time the function is run it is a fresh instance from the raw text version and so no persistence exists between the functions, other than the standard persisted `data` object. The code is targetting player number 1 in the game.
+
+```
+/sc
+local damagePlayerFunction = function(delayedData)
+    if delayedData.player.character == nil then
+        game.print(delayedData.player.name .. " died after " .. delayedData.cycles .. " damage cycles !")
+        return
+    end
+    delayedData.player.character.damage(50, delayedData.player.force, "acid")
+    delayedData.cycles = delayedData.cycles + 1
+    game.print(delayedData.player.name .. " damaged " .. delayedData.cycles .. " times")
+    remote.call("muppet_streamer", "add_delayed_lua", 60, delayedData.damagePlayerFunction_asString, delayedData)
+end
+local damagePlayerFunction_asString = string.dump(damagePlayerFunction)
+
+local outerData = {player = game.connected_players[1], damagePlayerFunction_asString = damagePlayerFunction_asString, cycles = 0}
+
+remote.call("muppet_streamer", "add_delayed_lua", 60, damagePlayerFunction_asString, outerData)
 ```
 
 #### Example - Bad data passing
@@ -112,13 +137,16 @@ local badVariable = "me"
 local badFunction = function()
     game.print("bad function")
 end
+local goodDataPassedIn = {name = "muppet9010}
 
-local testFunction = function(data)
+local testFunction = function(delayedData)
     game.print(badVariable)
     badFunction()
+
+    game.print(delayedData.name)
 end
 
-remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(testFunction))
+remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(testFunction), goodDataPassedIn)
 ```
 
 -------------------------
@@ -151,8 +179,8 @@ A very simple demonstration of adding 3 scheduled functions and then removing th
 
 ```
 /sc
-local printRunFunction = function(data)
-    game.print("run: " .. data.name .. " at: " .. game.tick)
+local printRunFunction = function(delayedData)
+    game.print("run: " .. delayedData.name .. " at: " .. game.tick)
 end
 
 remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(printRunFunction), {name = "first"})
@@ -176,24 +204,24 @@ When adding the 30 delayed functions (1 per second) we add them backwards (lates
 
 ```
 /sc
-local playerDiedFunction = function(data)
-    if data.player.character == nil then
-        local surface = data.player.surface
-        local wormPosition = surface.find_non_colliding_position("behemoth-worm-turret", data.player.position, 10, 0.1)
+local playerDiedFunction = function(delayedData)
+    if delayedData.player.character == nil then
+        local surface = delayedData.player.surface
+        local wormPosition = surface.find_non_colliding_position("behemoth-worm-turret", delayedData.player.position, 10, 0.1)
         if wormPosition ~= nil then
             surface.create_entity({name="behemoth-worm-turret", position=wormPosition, force="enemy"})
         end
-        for _, scheduleId in pairs(data.laterScheduleIds) do
+        for _, scheduleId in pairs(delayedData.laterScheduleIds) do
             remote.call("muppet_streamer", "remove_delayed_lua", scheduleId)
         end
     end
 end
 
-local data = {player = game.connected_players[1], laterScheduleIds = {}}
+local outerData = {player = game.connected_players[1], laterScheduleIds = {}}
 
 for i=30, 0, -1 do
-    local scheduleId = remote.call("muppet_streamer", "add_delayed_lua", i*60, string.dump(playerDiedFunction), data)
-    data.laterScheduleIds[#data.laterScheduleIds+1] = scheduleId
+    local scheduleId = remote.call("muppet_streamer", "add_delayed_lua", i*60, string.dump(playerDiedFunction), outerData)
+    outerData.laterScheduleIds[#outerData.laterScheduleIds+1] = scheduleId
 end
 ```
 
@@ -231,13 +259,13 @@ A very simple demonstration of getting the data from a previously scheduled Lua 
 
 ```
 /sc
-local testFunction = function(data)
-    game.print("delayed - name: " .. data.name)
+local testFunction = function(delayedData)
+    game.print("delayed - name: " .. delayedData.name)
 end
 
-local data = {name = "me"}
+local outerData = {name = "me"}
 
-local scheduleId = remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(testFunction), data)
+local scheduleId = remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(testFunction), outerData)
 
 local delayedData = remote.call("muppet_streamer", "get_delayed_lua_data", scheduleId)
 game.print("future scheduled - name: " .. delayedData.name)
@@ -270,18 +298,18 @@ A very simple demonstration of getting the data from a previously scheduled Lua 
 
 ```
 /sc
-local testFunction = function(data)
-    game.print("delayed - name: " .. data.name)
+local testFunction = function(delayedData)
+    game.print("delayed - name: " .. delayedData.name)
 end
 
-local data = {name = "me"}
+local outerData = {name = "me"}
 
-local scheduleId = remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(testFunction), data)
-game.print("original - name: " .. data.name)
+local scheduleId = remote.call("muppet_streamer", "add_delayed_lua", 60, string.dump(testFunction), outerData)
+game.print("original - name: " .. outerData.name)
 
-local delayedData = remote.call("muppet_streamer", "get_delayed_lua_data", scheduleId)
-delayedData.name = delayedData.name .. "UPDATED"
-remote.call("muppet_streamer", "set_delayed_lua_data", scheduleId, delayedData)
+local obtainedDelayedData = remote.call("muppet_streamer", "get_delayed_lua_data", scheduleId)
+obtainedDelayedData.name = obtainedDelayedData.name .. "UPDATED"
+remote.call("muppet_streamer", "set_delayed_lua_data", scheduleId, obtainedDelayedData)
 ```
 
 #### Example - Updating a delayed function's data.
@@ -292,21 +320,21 @@ We schedule the same function to run at the 5 and 10 second delays. Then we upda
 
 ```
 /sc
-local rewardPlayerFunction = function(data)
-    if data.hadVehicle == true then
-        data.player.insert({name="rocket-fuel", count=10})
+local rewardPlayerFunction = function(delayedData)
+    if delayedData.hadVehicle == true then
+        delayedData.player.insert({name="rocket-fuel", count=10})
         game.print(game.tick .. " - there was a vehicle recently, so have some fuel")
-    elseif data.hadVehicle == false then
-        data.player.insert({name="exoskeleton-equipment", count=1})
+    elseif delayedData.hadVehicle == false then
+        delayedData.player.insert({name="exoskeleton-equipment", count=1})
         game.print(game.tick .. " - no vehicle recently, so have some exoskeleton legs")
     else
         game.print(game.tick .. " - failure, no hadVehicle state set")
     end
 
-    if data.nextScheduledId ~= nil then
-        local delayedData = remote.call("muppet_streamer", "get_delayed_lua_data", data.nextScheduledId)
-        delayedData.hadVehicle = data.player.driving
-        remote.call("muppet_streamer", "set_delayed_lua_data", data.nextScheduledId, delayedData)
+    if delayedData.nextScheduledId ~= nil then
+        local delayedData = remote.call("muppet_streamer", "get_delayed_lua_data", delayedData.nextScheduledId)
+        delayedData.hadVehicle = delayedData.player.driving
+        remote.call("muppet_streamer", "set_delayed_lua_data", delayedData.nextScheduledId, delayedData)
     end
 end
 

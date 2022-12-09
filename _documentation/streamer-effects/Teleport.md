@@ -41,7 +41,7 @@ Examples:
 | --- | --- |
 | nearest walkable biter nest | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_teleport', {target="muppet9010", destinationType="biterNest", maxDistance=1000, reachableOnly=true})` |
 | random location | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_teleport', {target="muppet9010", destinationType="random", minDistance=100, maxDistance=500, reachableOnly=true})` |
-| specific position | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_teleport', {target="muppet9010", destinationType=[200, 100]})` |
+| specific position | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_teleport', {target="muppet9010", destinationType={200, 100}})` |
 | usage of a backup teleport | `/sc remote.call('muppet_streamer', 'run_command', 'muppet_streamer_teleport', {target="muppet9010", destinationType="biterNest", maxDistance=100, reachableOnly=true, backupTeleportSettings= {target="muppet9010", destinationType="random", minDistance=100, maxDistance=500, reachableOnly=true} })` |
 
 

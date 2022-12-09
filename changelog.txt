@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.38
-Date: 2022-12-XXX
+Date: 2022-12-09
   Features:
     - Added mod startup setting to make all units be able to open friendly gates. Defaults to no change from default values. Useful when adding friendly biters to the player's team as by default biters can't open friendly gates.
   Changes:
