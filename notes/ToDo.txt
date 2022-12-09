@@ -3,18 +3,16 @@ DOING NOW:
 
 
 BUGS:
-	- also there's no sound for the biter spit fire effect when used as part of pants on fire. I assume there's noise from the regular fire effect ?
 	- Teleport selection logic (multiple features?) needs to restrict itself within map limits. So on ribbon map all of its attempts may be above/below the maps boundaries.
 	- Teleport selection needs to only choose from generated chunks, as the pathfinder goes weird over non generated chunks I recall. Need to test however.
 	- Check what happens if a non gun and non ammo named item is passed in, I suspect the mod will hard error. Also confirm that an incompatible ammo to gun is used is raised as a nice warning (pretty sure it will).
-	- Look at making the various combat bot sounds have quieter sounds when a bulk of them all die at once. There is notional aggregation limit at present, but not sure if that is per variation or total. But a chunk of them timing out at once. Workaround given to JD that just staggers the bot death times. This is visually nicer and so maybe this should just be a standard feature of the effect instead ?
 	- Inventory Shuffle and drop on ground features - test when the player has a special action in hand (copy tool). We should ignore these somehow, guessing on the type or the only in hand flag.
-    - Explosive Delivery - can we teleport the target around rather than create one for each incoming? test with homing missiles as they will be most fussy.
 
 
 
 DO NEAR FUTURE:
-	- Add startup setting so that all units can open gates. Needs a prototype change. Mainly so that Biter Pets can go through gates and not get stuck.
+    - Explosive Delivery - can we teleport the target around rather than create one for each incoming? test with homing missiles as they will be most fussy.
+	- Look at making the various combat bot sounds have quieter sounds when a bulk of them all die at once. There is notional aggregation limit at present, but not sure if that is per variation or total. But a chunk of them timing out at once. Workaround given to JD that just staggers the bot death times. This is visually nicer and so maybe this should just be a standard feature of the effect instead ?
 	- Post latest Utility Version:
 		- Create a helper file called: setting-value-inputs.lua
 		- Move the input argument checking functions (i.e. CommandsUtils.CheckNumberArgument() ) out of CommandUtils in to their own library file and make them generic for remote or command usage. Will require passing in prefixes and changes to arguments and error message structure.

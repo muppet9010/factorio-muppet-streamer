@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.38
-Date: 2022-11-XXX
+Date: 2022-12-XXX
   Features:
+    - Added mod startup setting to make all units be able to open friendly gates. Defaults to no change from default values. Useful when adding friendly biters to the player's team as by default biters can't open friendly gates.
   Changes:
     - Explosive Delivery - `smallSpit`, `mediumSpit` and `largeSpit` are now special modified biter spit and ground fire prototypes to ensure the spit hitting the ground sound is played. They are otherwise still copies of `spitter-small`, `worm-medium` and `worm-behemoth` correspondingly. This does not affect the vanilla versions of these prototypes.
   Bugfixes:
