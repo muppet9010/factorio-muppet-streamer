@@ -12,6 +12,15 @@ local enable_building_ghosts = {
 }
 
 ---@type SettingType.BoolSetting
+local units_can_open_gates = {
+    name = "muppet_streamer-units_can_open_gates",
+    type = "bool-setting",
+    default_value = false,
+    setting_type = "startup",
+    order = "1002"
+}
+
+---@type SettingType.BoolSetting
 local disable_intro_message = {
     name = "muppet_streamer-disable_intro_message",
     type = "bool-setting",
@@ -87,4 +96,4 @@ local recruited_team_member_gui_title = {
 --                            ADD SETTING PROTOTYPES
 ----------------------------------------------------------------------------------
 
-data:extend({ enable_building_ghosts, disable_intro_message, disable_rocket_win, starting_reveal, recruit_team_member_technology_cost, recruit_team_member_technology_title, recruit_team_member_technology_description, recruited_team_member_gui_title })
+data:extend(({ enable_building_ghosts, units_can_open_gates, disable_intro_message, disable_rocket_win, starting_reveal, recruit_team_member_technology_cost, recruit_team_member_technology_title, recruit_team_member_technology_description, recruited_team_member_gui_title })--[[@as Prototype[] ]] )

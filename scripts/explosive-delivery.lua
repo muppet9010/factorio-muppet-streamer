@@ -420,17 +420,17 @@ ExplosiveDelivery.Types = {
     ---@class ExplosiveDelivery_Type_Stream
     smallSpit = {
         type = "stream",
-        streamName = "acid-stream-spitter-small"
+        streamName = "muppet_streamer-small_spit-stream"
     },
     ---@class ExplosiveDelivery_Type_Stream
     mediumSpit = {
         type = "stream",
-        streamName = "acid-stream-worm-medium"
+        streamName = "muppet_streamer-medium_spit-stream"
     },
     ---@class ExplosiveDelivery_Type_Stream
     largeSpit = {
         type = "stream",
-        streamName = "acid-stream-worm-behemoth"
+        streamName = "muppet_streamer-large_spit-stream"
     },
     ---@class ExplosiveDelivery_Type_Custom_Generic
     custom = {

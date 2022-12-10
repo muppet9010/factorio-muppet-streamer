@@ -198,6 +198,18 @@ This is the same as if the force had researched the vanilla Factorio constructio
 
 
 
+#### All Units Can Open Gates
+
+Makes all units able to open friendly gates, as by default biters can not. Useful when adding friendly biters to the player's team so these biters don't get stuck inside your walls and gates. As you'd surely microchip your beloved pets so they can transit your base perimeter smoothly.
+
+---------------------
+
+---------------------
+
+---------------------
+
+
+
 #### Game Starting Settings
 
 Game settings that the mod provides an easy way to manage via mod settings.
@@ -233,3 +245,20 @@ Updating The Mod
 ===============
 
 When updating the mod make sure there aren't any effects active or queued for action (in delay). As the mod is not kept backwards compatible when new features are added or changed. The chance of an effect being active when the mod is being updated seems very low given their usage, but you've been warned.
+
+---------------------
+
+---------------------
+
+---------------------
+
+
+
+Streamer Integration Scripts
+===============
+
+I have some more complex and bespoke streamer integration scripts publicly available. These provide neat features that are complicated enough they can't just be casually typed, but not complicated/important enough to warrant inclusion in a mod.
+
+They are provided as scripts and not as part of a mod as some users will want to make changes to them to fit their specific play through or other mods in use. They may even want to remove or add features to the scripts. As a script I am able to develop them quicker in a lighter fashion than a modded feature as I don't have to cater for every edge case another mod could generate within them, you can amend them yourself for this.
+
+Integration Lua Snippets - [Other GitHub Repository](https://github.com/muppet9010/Factorio-Integration-Lua-Snippets)
