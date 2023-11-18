@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.39
+Date: 2023-11-18
+  Features:
+    - Added some invisible blocking entities of various sizes. For adhoc usage in features/maps.
+  Changes:
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.1.38
 Date: 2022-12-09
   Features:

@@ -6,35 +6,29 @@
             "active": true
         }
     ],
-    "Lua.diagnostics.globals": [
-        "game",
-        "script",
-        "remote",
-        "commands",
-        "settings",
-        "rcon",
-        "rendering",
-        "global",
-        "log",
-        "defines",
-        "data",
-        "mods",
-        "serpent",
-        "table_size",
-        "bit32",
-        "util",
-        "localised_print",
-        "circuit_connector_definitions",
-        "universal_connector_template",
-        "__DebugAdapter",
-        "__Profiler",
-        "ourConnectionPoint"
-    ],
-    "Lua.runtime.version": "Lua 5.2",
     "Lua.workspace.library": [
-        "c:\\FactorioModding\\factorio-api",
-        "c:\\FactorioModding\\data",
-        "c:\\FactorioModding\\data\\core\\lualib",
-        "c:\\FactorioModding\\runtime-api"
+        "c:/Users/mikeh/AppData/Roaming/Code/User/workspaceStorage/63c23864eb27b80c2197ad9996800607/justarandomgeek.factoriomod-debug/sumneko-3rd/factorio/library",
+        "c:\\FactorioModding\\data"
     ],
+    "Lua.workspace.userThirdParty": [
+        "c:\\Users\\mikeh\\AppData\\Roaming\\Code\\User\\workspaceStorage\\63c23864eb27b80c2197ad9996800607\\justarandomgeek.factoriomod-debug\\sumneko-3rd"
+    ],
+    "Lua.runtime.builtin": {
+        "io": "disable",
+        "os": "disable",
+        "math": "disable",
+        "debug": "disable",
+        "coroutine": "disable",
+        "package": "disable"
+    },
+    "Lua.diagnostics.globals": [
+        "__Profiler"
+    ],
+    "Lua.runtime.special": {
+        "__object_name": "type"
+    },
+    "Lua.diagnostics.disable": [
+        "lowercase-global"
+    ],
+    "Lua.runtime.plugin": "c:/Users/mikeh/AppData/Roaming/Code/User/workspaceStorage/63c23864eb27b80c2197ad9996800607/justarandomgeek.factoriomod-debug/sumneko-3rd/factorio/plugin.lua"
 }

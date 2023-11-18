@@ -1,12 +1,17 @@
 DOING NOW:
+    -- Add localisation to invisible blockers.
+    -- Add to wiki about invisible blockers.
 
 
 
-BUGS:
+BUGS/Next:
 	- Teleport selection logic (multiple features?) needs to restrict itself within map limits. So on ribbon map all of its attempts may be above/below the maps boundaries.
 	- Teleport selection needs to only choose from generated chunks, as the pathfinder goes weird over non generated chunks I recall. Need to test however.
 	- Check what happens if a non gun and non ammo named item is passed in, I suspect the mod will hard error. Also confirm that an incompatible ammo to gun is used is raised as a nice warning (pretty sure it will).
 	- Inventory Shuffle and drop on ground features - test when the player has a special action in hand (copy tool). We should ignore these somehow, guessing on the type or the only in hand flag.
+	- If a player is in a car and dangerous driver starts with them having direction control. It looked like when their car was blown up they continued to run upwards (forwards key), it should have stopped the effect or changed to dangerous walker or something.
+	- Inventory Shuffle - see if we can spread it out more as with lots of items and many players it can slow down the server. Will need to have it pre-count the players and then if it has less players than expected by the end re-distribute the remaining items across the remaining players.
+	- Inventory Shuffle - Add option to take everything from the offline players and add it into the item pool. Option won't give anything to offline players though. See if we can tell how long they have been offline for and give options to only include players who have left within a given time range.
 
 
 

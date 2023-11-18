@@ -24,7 +24,11 @@ SET modfoldername=%modname%_%version%
 
 
 REM REMOVE OLD FOLDER
-FOR /D %%G IN ("%factoriofolder%\mods\%modname%_*") DO RMDIR /S /Q "%%~G"
+for /F "delims= eol=|" %%f in ('
+    dir "C:\FactorioModding\mods" /B /A:D ^| findstr /I "^%modname%_[0-9]*\.[0-9]*\.[0-9]*$"
+') do (
+    RMDIR /S /Q "C:\FactorioModding\mods"\%%f
+)
 
 REM CREATE EXCLUDE FILES LIST
 ECHO .bat >> excludedfileslist.txt
