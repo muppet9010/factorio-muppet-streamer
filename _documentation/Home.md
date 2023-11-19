@@ -192,19 +192,11 @@ This is the same as if the force had researched the vanilla Factorio constructio
 
 ---------------------
 
----------------------
-
----------------------
-
 
 
 #### All Units Can Open Gates
 
 Makes all units able to open friendly gates, as by default biters can not. Useful when adding friendly biters to the player's team so these biters don't get stuck inside your walls and gates. As you'd surely microchip your beloved pets so they can transit your base perimeter smoothly.
-
----------------------
-
----------------------
 
 ---------------------
 
@@ -217,6 +209,29 @@ Game settings that the mod provides an easy way to manage via mod settings.
 - Disable introduction message in freeplay.
 - Disable rocket win condition in freeplay.
 - Set a custom area of the map revealed at game start.
+
+---------------------
+
+---------------------
+
+---------------------
+
+
+
+Utility Prototypes
+==============
+
+Helpful prototypes that can be useful when doing adhoc things for streams and integration effects.
+
+
+
+#### Invisible Blocking Entities
+
+Invisible blocking entities that can be used to block different entity types. e.g. block players from being able to build somewhere, or units being able to move/spawn in an area.
+
+Usage details: [GitHub Wiki](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Invisible-Blocking-Entities)
+
+
 
 ---------------------
 

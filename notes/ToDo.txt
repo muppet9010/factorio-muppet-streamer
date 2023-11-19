@@ -1,5 +1,4 @@
 DOING NOW:
-    -- Add localisation to invisible blockers.
     -- Add to wiki about invisible blockers.
 
 

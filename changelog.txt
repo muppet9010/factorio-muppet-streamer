@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.40
+Date: 2023-11-XXXX
+  Features:
+  Changes:
+  Bugfixes:
+    - Added missing localisation names for the blocker entities.
+    - Added blocker entities to the Wiki.
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.1.39
 Date: 2023-11-18
   Features:
