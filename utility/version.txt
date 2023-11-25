@@ -10,3 +10,4 @@ HOT FIXES
 logging-utils.lua > LoggingUtils.RunFunctionAndCatchErrors --- updated to make function generically useful. Added to Utility 20.12.46.
 commands-utils.lua > CommandsUtils.CheckTableArgument() --- removed requirement that keys in the table are strings, as there's no reason for this blind requirement. Added to Utility 20.12.45.
 vehicle-utils.lua > VehicleUtils.GetVehicleCurrentFuelPrototype() --- already obtained LuaBurner passed in as `vehicle_burner` function parameter. Added to Utility 20.12.45.
+biome-trees > BiomeTrees._GetTreeData() --- don't error if prototype's autoplace_specification has a blank peak. Added to Utility 20.13.47.

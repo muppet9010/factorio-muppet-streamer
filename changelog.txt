@@ -1,9 +1,10 @@
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.40
-Date: 2023-11-XXXX
+Date: 2023-11-25
   Features:
   Changes:
   Bugfixes:
+    - Fix error when another mod added a tree that was autoplaced evenly in the map (sea block mod).
     - Added missing localisation names for the blocker entities.
     - Added blocker entities to the Wiki.
   Info:

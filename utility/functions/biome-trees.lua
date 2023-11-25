@@ -110,7 +110,7 @@ end
 ---@return string|nil treeName
 BiomeTrees.GetBiomeTreeName = function(surface, position)
     -- Returns the tree name or nil if tile isn't land type
-    local tile = surface.get_tile(position--[[@as TilePosition # handled equally by Factorio in this API function.]] )
+    local tile = surface.get_tile(position --[[@as TilePosition # handled equally by Factorio in this API function.]])
     local tileData = global.UTILITYBIOMETREES.tileData[tile.name]
     if tileData == nil then
         local tileName = tile.hidden_tile
@@ -338,10 +338,12 @@ BiomeTrees._GetTreeData = function()
             LoggingUtils.ModLog(prototype.name, false)
         end
         local autoplace ---@type AutoplaceSpecificationPeak|nil
-        for _, peak in pairs(prototype.autoplace_specification.peaks) do
-            if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeNames.optimal] ~= nil then
-                autoplace = peak
-                break
+        if (prototype.autoplace_specification.peaks ~= nil) then
+            for _, peak in pairs(prototype.autopla ce_specification.peaks) do
+                if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeNames.optimal] ~= nil then
+                    autoplace = peak
+                    break
+                end
             end
         end
 
@@ -412,10 +414,10 @@ BiomeTrees._CalculateTileTemperature = function(tileTemperature)
         tileTemperature = tileTemperature * tileTemperatureCalculationSettings.scaleMultiplier
     end
     if tileTemperatureCalculationSettings.max ~= nil then
-        tileTemperature = math.min(tileTemperatureCalculationSettings.max--[[@as double]] , tileTemperature)
+        tileTemperature = math.min(tileTemperatureCalculationSettings.max --[[@as double]], tileTemperature)
     end
     if tileTemperatureCalculationSettings.min ~= nil then
-        tileTemperature = math.max(tileTemperatureCalculationSettings.min--[[@as double]] , tileTemperature)
+        tileTemperature = math.max(tileTemperatureCalculationSettings.min --[[@as double]], tileTemperature)
     end
     return tileTemperature
 end
