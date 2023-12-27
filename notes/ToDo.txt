@@ -1,8 +1,10 @@
 DOING NOW:
-
+    - Update wiki for Delayed Lua change.
+	- The wiki should link to my Integration Lua Scripts and include example links in the main wiki.
 
 
 BUGS/Next:
+    - The mod's Factorio types need updating as it's Nexula's old one, rather than FMTK's newer complete one.
 	- Teleport selection logic (multiple features?) needs to restrict itself within map limits. So on ribbon map all of its attempts may be above/below the maps boundaries.
 	- Teleport selection needs to only choose from generated chunks, as the pathfinder goes weird over non generated chunks I recall. Need to test however.
 	- Check what happens if a non gun and non ammo named item is passed in, I suspect the mod will hard error. Also confirm that an incompatible ammo to gun is used is raised as a nice warning (pretty sure it will).
@@ -10,6 +12,7 @@ BUGS/Next:
 	- If a player is in a car and dangerous driver starts with them having direction control. It looked like when their car was blown up they continued to run upwards (forwards key), it should have stopped the effect or changed to dangerous walker or something.
 	- Inventory Shuffle - see if we can spread it out more as with lots of items and many players it can slow down the server. Will need to have it pre-count the players and then if it has less players than expected by the end re-distribute the remaining items across the remaining players.
 	- Inventory Shuffle - Add option to take everything from the offline players and add it into the item pool. Option won't give anything to offline players though. See if we can tell how long they have been offline for and give options to only include players who have left within a given time range.
+    - Delayed Lua - can we add a "name" to the scheduled task. Also add a way to cancel all scheduled tasks of a given name. Allow duplicates of the same name. Basically so we can stop a self-repeating scheduled task via remote interface call if needed.
 
 
 
@@ -60,7 +63,7 @@ Future Possible Concepts:
         - option: spider goes in search of water and/or fish.
         - option: walk towards nearest biter base (use teleport biter nest tracking). - use some sort of back off when damaged.
         - option: walk towards nearest enemy unit group (use teleport to nearest biter logic). - use some sort of back off when damaged.
-    - Change player (named or all) characters to other things, i.e. biters. Need to check how armor, ammo, etc handles this. Also would need to be delayed until after other active event has finished.
+    - Change player (named or all) characters to other things, i.e. biters. Need to check how armor, ammo, etc handles this. Also would need to be delayed until after other active event has finished. Would need to include new character types of the things to change into, i.e. a biter character. Or use those created by other mods.
     - A New feature to ensure a player has a vehicle.
         - Support cars, spiders and locomotive vehicle types being placed in valid spots within a random distance from the player. Ideally have it find and use a larger clear area within the radius.
         - Support settings for ammo and fuel, types and quantities being in the vehicle.

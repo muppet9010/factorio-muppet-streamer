@@ -55,7 +55,7 @@ DelayedLua.AddDelayedLua_Remote = function(delay, functionString, functionData)
         scheduleTick = -1 ---@type UtilityScheduledEvent_UintNegative1
     end
 
-    -- Check the function provided.
+    -- Check the function string provided.
     if functionString == nil then
         LoggingUtils.LogPrintError(errorMessagePrefix .. "`functionString` argument must be provided.")
         return nil
@@ -63,12 +63,10 @@ DelayedLua.AddDelayedLua_Remote = function(delay, functionString, functionData)
         LoggingUtils.LogPrintError(errorMessagePrefix .. "`functionString` argument must be a Lua string type, provided: " .. type(functionString))
         return nil
     end
-    -- Make sure the text string provided is actually a function and not something else.
-    local func = load(functionString)
-    if type(func) ~= "function" then
-        LoggingUtils.LogPrintError(errorMessagePrefix .. "`functionString` argument must be a string dumped from a Lua function type, provided was a string dump of type: " .. type(func))
-        return nil
-    end
+
+    -- Make sure the text string provided is suitable for running.
+    local delayedFunction = DelayedLua.GetFunctionFromFunctionStringSafely(functionString, errorMessagePrefix)
+    if delayedFunction == nil then return nil end
 
     -- Check the data if provided.
     if functionData ~= nil then
@@ -92,6 +90,37 @@ DelayedLua.AddDelayedLua_Remote = function(delay, functionString, functionData)
     return global.delayedLua.nextId
 end
 
+--- Gets a Lua function from the functionString argument in a safe manner, handling any errors in the process.
+---@param functionString string
+---@param errorMessagePrefix string
+---@return function|nil functionForDelayedExecution
+DelayedLua.GetFunctionFromFunctionStringSafely = function(functionString, errorMessagePrefix)
+    -- Make sure the provided string isn't bytecode.
+    if string.find(functionString, "^\27LuaR\0\1\4\8\4\8\0\25") ~= nil then
+        -- Has a Lua header, so is bytecode.
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`functionString` argument must be the code of a Lua function in string form, provided was bytecode from `string.dump()`.")
+        return nil
+    end
+
+    -- Make sure the provided string is for a function and not just a random Lua code snippet. They both look the same after going through `load`.
+    if string.find(functionString, "^%s*function%(") == nil then
+        -- Is a non function, so just a bit of Lua code
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`functionString` argument must be the code of a Lua function in string form. This wasn't in the form `function() game.print(\"blah\") end`")
+        return nil
+    end
+
+    -- Make sure the text string provided is actually a function and not something else.
+    local funcContainer, funcStringLoadError = load("return " .. functionString)
+    if funcStringLoadError ~= nil or funcContainer == nil then
+        LoggingUtils.LogPrintError(errorMessagePrefix .. "`functionString` argument errored when converting to Lua code with error: " .. (funcStringLoadError or "[BLANK ERROR MESSAGE]"))
+        return nil
+    end
+
+    -- Have to get the real inner function from the container object that load makes.
+    local delayedFunction = funcContainer() --[[@as function]]
+    return delayedFunction
+end
+
 --- Called when a scheduled delayed lua event occurs.
 ---@param event UtilityScheduledEvent_CallbackObject
 DelayedLua.ActionDelayedLua = function(event)
@@ -100,8 +129,9 @@ DelayedLua.ActionDelayedLua = function(event)
     local errorMessagePrefix = messagePrefix .. "Error: "
 
     -- Make the LuaFunction and run it.
-    local func = load(scheduledEvent.functionString) --[[@as function]]
-    local errorMessage, fullErrorDetails = LoggingUtils.RunFunctionAndCatchErrors(func, scheduledEvent.functionData)
+    local delayedFunction = DelayedLua.GetFunctionFromFunctionStringSafely(scheduledEvent.functionString, errorMessagePrefix)
+    if delayedFunction == nil then return end
+    local errorMessage, fullErrorDetails = LoggingUtils.RunFunctionAndCatchErrors(delayedFunction, scheduledEvent.functionData)
 
     -- Handle if the code errored.
     if errorMessage then
@@ -118,22 +148,24 @@ DelayedLua.ActionDelayedLua = function(event)
     end
 end
 
---- Called to remove a scheduled Lua event. Will just try and remove the event, with silent succeed/fail.
+--- Called to remove a scheduled Lua event. Reports if the removal was successful.
 ---@param scheduleId uint
+---@return boolean removedSuccessfully
 DelayedLua.RemoveDelayedLua_Remote = function(scheduleId)
     local messagePrefix = Constants.ModFriendlyName .. " - remove_delayed_lua - "
-    local errorMessagePrefix, warningMessagePrefix = messagePrefix .. "Error: ", messagePrefix .. "Warning: "
+    local errorMessagePrefix = messagePrefix .. "Error: "
 
-    -- Check the scheduleId provided.
+    -- Check the scheduleId provided is valid.
     if not DelayedLua.CheckScheduledId(scheduleId, errorMessagePrefix) then
-        return nil
+        return false
     end
 
     -- Remove the scheduled Id's event.
     if EventScheduler.IsEventScheduledOnce("DelayedLua.ActionDelayedLua", scheduleId) then
         EventScheduler.RemoveScheduledOnceEvents("DelayedLua.ActionDelayedLua", scheduleId)
+        return true
     else
-        LoggingUtils.LogPrintWarning(warningMessagePrefix .. "no delayed lua with schedule Id: " .. tostring(scheduleId))
+        return false
     end
 end
 
@@ -163,38 +195,39 @@ DelayedLua.GetDelayedLuaData_Remote = function(scheduleId)
     return delayedLua.functionData
 end
 
---- Sets the data for a scheduled delayed Lua instance.
+--- Sets the data for a scheduled delayed Lua instance. Reports if the update was successful.
 ---@param scheduleId uint
 ---@param functionData table|nil
+---@return boolean updatedSuccessfully
 DelayedLua.SetDelayedLuaData_Remote = function(scheduleId, functionData)
     local messagePrefix = Constants.ModFriendlyName .. " - set_delayed_lua_data - "
-    local errorMessagePrefix, warningMessagePrefix = messagePrefix .. "Error: ", messagePrefix .. "Warning: "
+    local errorMessagePrefix = messagePrefix .. "Error: "
 
     -- Check the scheduleId provided.
     if not DelayedLua.CheckScheduledId(scheduleId, errorMessagePrefix) then
-        return nil
+        return false
     end
 
     -- Check the data provided.
     if functionData ~= nil then
         if type(functionData) ~= "table" then
             LoggingUtils.LogPrintError(errorMessagePrefix .. "`data` argument must be a Lua table type when populated, provided: " .. type(functionData))
-            return nil
+            return false
         end
     end
 
     -- Set the data for the scheduled Id in it's event.
     local scheduledLuaEvents = EventScheduler.GetScheduledOnceEvents("DelayedLua.ActionDelayedLua", scheduleId)
     if scheduledLuaEvents == nil then
-        LoggingUtils.LogPrintWarning(warningMessagePrefix .. "no delayed lua with schedule Id: " .. tostring(scheduleId))
-        return nil
+        return false
     elseif #scheduledLuaEvents ~= 1 then
         LoggingUtils.LogPrintWarning(errorMessagePrefix .. "more than 1 delayed lua with schedule Id - report to mod author as error: " .. tostring(scheduleId))
-        return nil
+        return false
     end
     local scheduledLuaEvent = scheduledLuaEvents[1] -- Only ever 1 result for an Id.
     local delayedLua = scheduledLuaEvent.eventData ---@type DelayedLua_ScheduledEvent
     delayedLua.functionData = functionData
+    return true
 end
 
 --- Check the Schedule Id is a generally suitable parameter value.

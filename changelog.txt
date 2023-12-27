@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 20.1.42
+Date: 2023-12-27
+  Features:
+  Changes:
+    - Delayed Lua - add_delayed_lua now uses a string of the Lua code to run, rather than a bytecode dump. See the wiki section on Delayed Lua for updated usage examples. It is a trivial change to the code sent in the remote interface call to the mod by your streamer integration tool.
+    - Delayed Lua - remove_delayed_lua now returns as the response if a delayed Lua function was removed with the given scheduleId or not. It no longer prints to screen if the requested scheduleId wasn't found to exist. The calling code can use the response success status to do any alerting if it happens to be desired. This enables a looser/speculative tidy up logic to be used than before.
+    - Delayed Lua - set_delayed_lua_data now returns as the response if a delayed Lua function was updated with the given scheduleId or not. It no longer prints to screen if the requested scheduleId wasn't found to exist. The calling code can use the response success status to do any alerting if it happens to be desired. This enables a more looser/speculative logic to be used than before.
+  Bugfixes:
+    - Delayed Lua - add_delayed_lua in previous mod versions errored from Factorio version 1.1.101 and above. The changes to the feature and its usage included in this mod version resolve this.
+  Info:
+---------------------------------------------------------------------------------------------------
 Version: 20.1.41
 Date: 2023-11-25
   Features:
