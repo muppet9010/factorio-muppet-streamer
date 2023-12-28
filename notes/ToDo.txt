@@ -1,6 +1,4 @@
 DOING NOW:
-    - Update wiki for Delayed Lua change.
-	- The wiki should link to my Integration Lua Scripts and include example links in the main wiki.
 
 
 BUGS/Next:

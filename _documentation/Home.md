@@ -141,9 +141,13 @@ Functions that streamers can use to build more complicated Lua code features. Bl
 
 #### Delayed Lua
 
-Provides ways to schedule Lua code to be run at a later date and to cancel an instance of scheduled Lua code.
+Provides ways to schedule Lua code to be run at a later date and to manage these scheduled actions.
 
 Configuration details and examples: [GitHub Wiki](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Delayed-Lua)
+
+Feature rich examples [GitHub Wiki](https://github.com/muppet9010/factorio-muppet-streamer/wiki/Delayed-Lua#rich-features-using-delayed-lua):
+
+- Biter Pet - A friendly biter that follows the player around and generally acts like a dog. Highly configurable and expandable if desired.
 
 ---------------------
 

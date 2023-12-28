@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
-Version: 20.1.42
+Version: 20.2.0
 Date: 2023-12-27
   Features:
   Changes:
@@ -10,6 +10,7 @@ Date: 2023-12-27
     - Delayed Lua - add_delayed_lua in previous mod versions errored from Factorio version 1.1.101 and above. The changes to the feature and its usage included in this mod version resolve this.
   Info:
     - Delayed Lua - If a legacy Delayed Lua function is scheduled then on mod upgrade an intentional error will be raised. As we can't migrate the old Lua function. The users options are to either continue the save on the old mod & Factorio version until the scheduled functions have completed, or to cleanse the save of the old Lua functions and accept that whatever was scheduled won't happen. This is a hyper defensive protection mechanism and isn't expected to ever be triggered.
+    - Due to the Delayed Lua changes this version is considered a significant change and so the 2nd version number has ben incremented. As the first version number relates to the Factorio version this is considered as a major version change.
 ---------------------------------------------------------------------------------------------------
 Version: 20.1.41
 Date: 2023-11-25
